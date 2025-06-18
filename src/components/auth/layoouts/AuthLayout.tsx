@@ -25,19 +25,19 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
 
     const backgroundProps = isCentered
         ? {
-              bgGradient: 'white',
-              shapeColor: 'blue',
-          }
+            bgGradient: 'white',
+            shapeColor: 'blue',
+        }
         : {
-              bgGradient: 'bg-gradient-to-t from-accent-default to-accent-default-dark',
-              shapeColor: '#1f2937',
-          };
+            bgGradient: 'bg-gradient-to-t from-accent-default to-accent-default-dark',
+            shapeColor: '#1f2937',
+        };
 
     return (
         <div className={`relative min-h-screen flex ${isCentered ? '' : 'bg-gray-900'}`}>
             <FloatingShapesBackground
                 {...backgroundProps}
-                className="absolute inset-0"
+                className={`absolute inset-0 ${isCentered ? "" : "hidden lg:block"}`}
             />
 
             {isCentered ? (

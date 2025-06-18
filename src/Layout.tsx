@@ -7,7 +7,6 @@ const Layout = () => {
         <main>
             <Routes>
                 <Route path="/" element={<TestPreview />} />
-                <Route path="/auth-new/*" element={<AuthLayout variant="centered"/>} />
                 <Route path="/auth/*" element={<AuthLayout variant="split"/>} />
             </Routes>
         </main>
