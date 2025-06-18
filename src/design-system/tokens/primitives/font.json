@@ -1,0 +1,7 @@
+{
+  "fontFamily": {
+    "poppins": "'Poppins', sans-serif",
+    "serif":   "Georgia, serif",
+    "mono":    "Menlo, monospace"
+  }
+}
