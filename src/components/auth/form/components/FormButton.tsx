@@ -25,14 +25,14 @@ const FormButton: React.FC<FormButtonProps> = ({
       {...rest}
       onClick={handleClick}
       disabled={isLoading}
-      className="flex items-center justify-center"
+      className="flex items-center justify-center gap-sm"
     >
       {children}
 
       {isLoading && (
         <svg
           aria-hidden="true"
-          className="ml-2 w-5 h-5 animate-spin text-current fill-current"
+          className="w-5 h-5 animate-spin text-current fill-current"
           viewBox="0 0 100 101"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"

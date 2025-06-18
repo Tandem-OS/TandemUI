@@ -7,6 +7,9 @@ const semanticColors = require('../tokens/semantic/colors.json');
 const primitiveSpacing = require('../tokens/primitives/spacing.json');
 const semanticSpacing = require('../tokens/semantic/spacing.json');
 const fontSizes = require('../tokens/semantic/fontSizes.json');
+const fontFamily = require('../tokens/primitives/font.json');
+const shadows = require('../tokens/primitives/shadows.json');
+const borderRadius = require('../tokens/primitives/borderRadius.json');
 
 // Build the Tailwind config object
 const config = {
@@ -14,6 +17,7 @@ const config = {
         './index.html',
         './src/**/*.{js,ts,jsx,tsx}',
     ],
+    darkMode: "class",
     theme: {
         extend: {
             colors: {
@@ -26,6 +30,15 @@ const config = {
             },
             fontSize: {
                 ...fontSizes
+            },
+            fontFamily: {
+                ...fontFamily.fontFamily
+            },
+            boxShadow: {
+                ...shadows
+            },
+            borderRadius: {
+                ...borderRadius
             }
         }
     },
@@ -35,4 +48,4 @@ const config = {
 // Serialize and write
 const output = `module.exports = ${inspect(config, { depth: null, compact: false })}\n`;
 fs.writeFileSync('./tailwind.config.js', output, 'utf8');
-console.log('✅ Tailwind config generated with colors, spacing, and fontSize tokens!');
+console.log('✅ Tailwind config generated with all design tokens!');

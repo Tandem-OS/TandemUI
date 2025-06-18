@@ -9,8 +9,7 @@ const buttonStyles = cva(
         variants: {
             variant: {
                 solid: 'bg-accent-default hover:bg-accent-default-dark text-white shadow-lg hover:shadow-xl',
-                outline:
-                    'border border-accent-default text-accent-default hover:text-white bg-transparent hover:bg-accent-default',
+                outline: 'border-2 border-accent-default text-accent-default hover:text-white bg-transparent hover:bg-accent-default',
                 ghost: 'bg-transparent text-accent-default hover:bg-accent-subtle',
             },
             shape: {
@@ -20,9 +19,9 @@ const buttonStyles = cva(
                 circular: 'rounded-full aspect-square',
             },
             size: {
-                sm: 'py-xs px-sm text-btn-sm',
-                md: 'py-sm px-md text-btn-md',
-                lg: 'py-md px-lg text-btn-lg',
+                sm: 'py-xs px-sm text-btn-sm min-h-[36px]',
+                md: 'py-sm px-md text-btn-md min-h-[44px]',
+                lg: 'py-md px-lg text-btn-lg min-h-[52px]',
             },
             fullWidth: {
                 true: 'w-full',

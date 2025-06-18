@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import Input from './components/Input';
-import Heading from '../../demos/typography/Heading';
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
-import FormButton from './components/FormButton'; // <-- your new FormButton
+import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
 
 const LoginForm = () => {
@@ -21,7 +20,6 @@ const LoginForm = () => {
   };
 
   const handleLogin = async () => {
-    // note: onSubmit handler for FormButton
     const newErrors: { email?: string; password?: string } = {};
     if (!values.email.trim()) newErrors.email = 'Email is required';
     if (!values.password.trim()) newErrors.password = 'Password is required';
@@ -48,35 +46,27 @@ const LoginForm = () => {
         e.preventDefault();
         handleLogin();
       }}
-      
-      className="w-full max-w-md bg-gray-800 rounded-2xl px-8 py-6 space-y-6 shadow-xl"
-      
+      className="w-full max-w-md bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
     >
       {/* Back to Home */}
-      <Link
-        to="/"
-        className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
-      >
-        <FaArrowLeft />
-        <span>Back to home</span>
-      </Link>
+      <div className="flex justify-end">
+        <Link
+          to="/"
+          className="flex items-center gap-sm text-para-sm text-gray-300 hover:text-white transition-colors"
+        >
+          <FaArrowLeft />
+          <span>Back to home</span>
+        </Link>
+      </div>
 
       {/* Header */}
       <div>
-        <Heading
-          level="h4"
-          color="accent"
-          align="left"
-          weight="bold"
-          className="mb-4"
-        >
-          Welcome To Tandem
-        </Heading>
-        <p className="text-gray-200 text-sm">Login Your Account</p>
+        <img src="/images/logo.png" alt="Logo" className="w-[150px] mb-sm" />
+        <p className="text-gray-200 text-para-md mb-md">Login Your Account</p>
       </div>
 
       {/* Inputs */}
-      <div className="space-y-3">
+      <div className="space-y-sm">
         <Input
           label="Email"
           name="email"
@@ -86,7 +76,6 @@ const LoginForm = () => {
           placeholder="Enter your email"
           icon={<FaEnvelope />}
           variant="filled"
-          primaryColor="#4f46e5"
           error={errors.email}
           className="bg-gray-900"
         />
@@ -102,14 +91,13 @@ const LoginForm = () => {
             icon={<FaLock />}
             showPasswordToggle
             variant="filled"
-            primaryColor="#4f46e5"
             error={errors.password}
             className="bg-gray-900"
           />
-          <div className="text-right mt-0.5">
+          <div className="text-right mt-xs">
             <Link
               to="/auth/reset-password"
-              className="text-sm text-accent-default hover:underline"
+              className="text-para-sm text-accent-default hover:underline"
             >
               Forgot Password?
             </Link>
@@ -130,12 +118,12 @@ const LoginForm = () => {
       </FormButton>
 
       {/* Social Buttons */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-sm">
         <SimpleButton
           type="button"
           variant="outline"
           fullWidth
-          className="flex items-center justify-center gap-2 mt-2"
+          className="flex items-center justify-center gap-sm mt-sm"
         >
           <img src="/images/icons/google.svg" className="w-5" alt="google" />
           Sign in with Google
@@ -143,8 +131,8 @@ const LoginForm = () => {
       </div>
 
       {/* Sign Up Redirect */}
-      <p className="text-center text-gray-200 text-sm">
-        Don’t have an account?{' '}
+      <p className="text-center text-gray-200 text-para-sm">
+        Don't have an account?{' '}
         <Link to="/auth/signup" className="underline text-accent-default font-medium">
           Sign Up
         </Link>

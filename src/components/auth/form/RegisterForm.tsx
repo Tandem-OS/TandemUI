@@ -52,29 +52,31 @@ const RegisterForm = () => {
     return (
         <form
             onSubmit={handleRegister}
-            className="w-full max-w-md bg-gray-800 rounded-2xl px-8 py-6 space-y-6 shadow-xl"
+            className="w-full max-w-md bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
         >
             {/* Back to Home */}
-            <Link
-                to="/"
-                className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
-            >
-                <FaArrowLeft />
-                <span>Back to home</span>
-            </Link>
+            <div className="flex justify-end">
+                <Link
+                    to="/"
+                    className="flex items-center gap-sm text-para-sm text-gray-300 hover:text-white transition-colors"
+                >
+                    <FaArrowLeft />
+                    <span>Back to home</span>
+                </Link>
+            </div>
 
             {/* Heading */}
             <div>
-                <Heading level="h4" color="accent" align="left" weight="bold" className="mb-4">
+                <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
                     Join Tandem
                 </Heading>
-                <p className="text-gray-200 text-sm">
+                <p className="text-gray-200 text-para-md mb-md">
                     Create Your Account
                 </p>
             </div>
 
             {/* Input Fields */}
-            <div className="space-y-3">
+            <div className="space-y-sm">
                 <Input
                     label="Email"
                     name="email"
@@ -84,7 +86,6 @@ const RegisterForm = () => {
                     placeholder="Enter your email"
                     icon={<FaEnvelope />}
                     variant="filled"
-                    primaryColor="#4f46e5"
                     error={errors.email}
                     className="bg-gray-900"
                 />
@@ -99,7 +100,6 @@ const RegisterForm = () => {
                     icon={<FaLock />}
                     showPasswordToggle
                     variant="filled"
-                    primaryColor="#4f46e5"
                     error={errors.password}
                     className="bg-gray-900"
                 />
@@ -114,7 +114,6 @@ const RegisterForm = () => {
                     icon={<FaLock />}
                     showPasswordToggle
                     variant="filled"
-                    primaryColor="#4f46e5"
                     error={errors.confirmPassword}
                     className="bg-gray-900"
                 />
@@ -126,7 +125,7 @@ const RegisterForm = () => {
             </SimpleButton>
 
             {/* Redirect */}
-            <p className="text-center text-gray-200 text-sm">
+            <p className="text-center text-gray-200 text-para-sm">
                 Already have an account?{' '}
                 <Link to="/auth/" className="underline text-accent-default font-medium">
                     Sign In

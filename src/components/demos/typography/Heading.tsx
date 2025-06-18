@@ -17,10 +17,12 @@ const headingStyles = cva(
                 h6: 'text-h6-sm sm:text-h6-md md:text-h6-lg',
             },
             color: {
-                primary: 'text-text-primary',
-                secondary: 'text-text-secondary',
+                dark: 'text-text-primary',
+                darkSecondary: 'text-text-secondary',
                 tertiary: 'text-text-tertiary',
                 accent: 'text-accent-default',
+                light: 'text-text-light',
+                lightSecondary: 'text-text-lightSecondary'
             },
             align: {
                 left: 'text-left',
@@ -37,7 +39,7 @@ const headingStyles = cva(
         },
         defaultVariants: {
             level: 'h1',
-            color: 'primary',
+            color: 'dark',
             align: 'left',
             weight: 'bold',
         },
@@ -52,7 +54,7 @@ export type HeadingProps = React.PropsWithChildren<
 
 const Heading: React.FC<HeadingProps> = ({
     level = 'h1',
-    color = 'primary',
+    color = 'dark',
     align = 'left',
     weight = 'bold',
     className,

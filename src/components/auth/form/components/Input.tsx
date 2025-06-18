@@ -16,13 +16,8 @@ interface InputProps {
     onFocus?: () => void;
     onBlur?: () => void;
     variant?: 'default' | 'outlined' | 'filled';
-    primaryColor?: string; // HEX
     className?: string;
 }
-
-// Helper for inline color (HEX)
-const getInlineColor = (color?: string) =>
-    color?.startsWith('#') ? color : undefined;
 
 const Input: React.FC<InputProps> = ({
     label,
@@ -37,7 +32,6 @@ const Input: React.FC<InputProps> = ({
     onFocus,
     onBlur,
     variant = 'default',
-    primaryColor = '#6366f1',
     className = '',
 }) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -51,16 +45,16 @@ const Input: React.FC<InputProps> = ({
             : type;
 
     const inputVariants = cva(
-        'w-full rounded-md py-2 px-3 transition-all outline-none border',
+        'w-full rounded-lg py-sm px-md transition-all outline-none border text-para-md',
         {
             variants: {
                 variant: {
-                    default: 'bg-white text-gray-800 placeholder-gray-400 border-gray-300',
-                    outlined: 'bg-transparent text-gray-100 placeholder-gray-400 border-gray-600',
-                    filled: 'bg-gray-900 text-white placeholder-gray-400 border-gray-700',
+                    default: 'bg-white text-gray-800 placeholder-gray-400 border-gray-300 focus:border-accent-default',
+                    outlined: 'bg-transparent text-gray-100 placeholder-gray-400 border-gray-600 focus:border-accent-default',
+                    filled: 'bg-gray-900 text-white placeholder-gray-400 border-gray-700 focus:border-accent-default',
                 },
                 error: {
-                    true: 'border-red-500',
+                    true: 'border-red-500 focus:border-red-500',
                     false: '',
                 },
             },
@@ -71,20 +65,10 @@ const Input: React.FC<InputProps> = ({
         }
     );
 
-    // Primary color styling (HEX only)
-    const inlineBorderColor = getInlineColor(primaryColor);
-    const inlineFocusBorder = isFocused && inlineBorderColor
-        ? { borderColor: primaryColor }
-        : {};
-
-    const inlineIconColor = inlineBorderColor
-        ? { color: primaryColor }
-        : {};
-
     return (
         <div className="w-full">
             {label && (
-                <label className="block mb-1 text-sm text-gray-200">
+                <label className="block mb-xs text-para-sm text-gray-200">
                     {label}
                 </label>
             )}
@@ -92,8 +76,10 @@ const Input: React.FC<InputProps> = ({
             <div className="relative flex items-center">
                 {icon && (
                     <div
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2"
-                        style={inlineIconColor}
+                        className={clsx(
+                            "absolute left-md top-1/2 transform -translate-y-1/2",
+                            isFocused ? "text-accent-default" : "text-gray-400"
+                        )}
                     >
                         {icon}
                     </div>
@@ -124,13 +110,11 @@ const Input: React.FC<InputProps> = ({
                         },
                         className
                     )}
-                    style={error ? undefined : inlineFocusBorder}
                 />
 
                 {type === 'password' && showPasswordToggle && (
                     <div
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
-                        style={inlineIconColor}
+                        className="absolute right-md top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-200"
                         onClick={() => setShowPassword(!showPassword)}
                     >
                         {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -139,7 +123,7 @@ const Input: React.FC<InputProps> = ({
             </div>
 
             {error && (
-                <p className="text-sm text-red-500 mt-1">{error}</p>
+                <p className="text-para-sm text-red-500 mt-xs">{error}</p>
             )}
         </div>
     );
