@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaCloudUploadAlt, FaShoppingCart, FaUsers, FaCalendarCheck, FaBriefcase, FaPencilAlt } from 'react-icons/fa';
+import { FaCloudUploadAlt, FaShoppingCart, FaUsers, FaCalendarCheck, FaBriefcase, FaPencilAlt, FaArrowRight, FaCheck, FaHandshake } from 'react-icons/fa';
 import Input from '../auth/form/components/Input';
 import SimpleButton from '../demos/buttons/SimpleButton';
 import Heading from '../demos/typography/Heading';
@@ -17,22 +17,17 @@ const goalOptions = [
     { id: 'leads', label: 'Get leads', icon: <FaUsers /> },
     { id: 'appointments', label: 'Book appointments', icon: <FaCalendarCheck /> },
     { id: 'showcase', label: 'Showcase work', icon: <FaBriefcase /> },
+    { id: 'community', label: 'Build community', icon: <FaHandshake /> },
     { id: 'other', label: 'Other', icon: <FaPencilAlt /> },
 ];
 
-const businessTypes = [
-    'Wellness coach',
-    'SaaS tool',
-    'Clothing brand',
-    'Event planner',
-    'Restaurant',
-    'Real estate',
-    'Photography',
-    'Consulting',
-    'E-commerce',
-    'Non-profit',
-    'Healthcare',
-    'Education',
+const businessTypeOptions = [
+    { id: 'wellness', label: 'Wellness coach' },
+    { id: 'saas', label: 'SaaS tool' },
+    { id: 'clothing', label: 'Clothing brand' },
+    { id: 'events', label: 'Event planner' },
+    { id: 'restaurant', label: 'Restaurant' },
+    { id: 'other', label: 'Other' },
 ];
 
 const ProjectSnapshot: React.FC<ProjectSnapshotProps> = ({ onNext, initialData = {} }) => {
@@ -40,29 +35,25 @@ const ProjectSnapshot: React.FC<ProjectSnapshotProps> = ({ onNext, initialData =
         projectName: initialData.projectName || '',
         logo: initialData.logo || null,
         businessType: initialData.businessType || '',
+        otherBusinessType: initialData.otherBusinessType || '',
         mainGoal: initialData.mainGoal || '',
         otherGoal: initialData.otherGoal || '',
     });
 
-    const [showBusinessDropdown, setShowBusinessDropdown] = useState(false);
-    const [filteredBusinessTypes, setFilteredBusinessTypes] = useState(businessTypes);
     const [dragActive, setDragActive] = useState(false);
+    const [buttonState, setButtonState] = useState<'default' | 'saving' | 'saved'>('default');
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-
-        if (name === 'businessType') {
-            const filtered = businessTypes.filter(type =>
-                type.toLowerCase().includes(value.toLowerCase())
-            );
-            setFilteredBusinessTypes(filtered);
-            setShowBusinessDropdown(true);
-        }
     };
 
     const handleGoalSelect = (goalId: string) => {
         setFormData(prev => ({ ...prev, mainGoal: goalId }));
+    };
+
+    const handleBusinessTypeSelect = (typeId: string) => {
+        setFormData(prev => ({ ...prev, businessType: typeId }));
     };
 
     const handleDrag = (e: React.DragEvent) => {
@@ -101,10 +92,38 @@ const ProjectSnapshot: React.FC<ProjectSnapshotProps> = ({ onNext, initialData =
         }
     };
 
-    const handleSubmit = () => {
-        // Auto-save happens on each change, but validate before proceeding
+    const handleSubmit = async () => {
         if (formData.projectName && formData.businessType && formData.mainGoal) {
-            onNext(formData);
+            setButtonState('saving');
+            
+            // Show saving for 1 second
+            setTimeout(() => {
+                setButtonState('saved');
+                
+                // Show saved for 0.5 seconds then proceed
+                setTimeout(() => {
+                    onNext(formData);
+                }, 500);
+            }, 1000);
+        }
+    };
+
+    const getButtonContent = () => {
+        switch (buttonState) {
+            case 'saving':
+                return 'Saving...';
+            case 'saved':
+                return (
+                    <>
+                        Saved <FaCheck className="ml-xs" />
+                    </>
+                );
+            default:
+                return (
+                    <>
+                        Next Step <FaArrowRight className="ml-xs" />
+                    </>
+                );
         }
     };
 
@@ -128,7 +147,7 @@ const ProjectSnapshot: React.FC<ProjectSnapshotProps> = ({ onNext, initialData =
             {/* Project Name */}
             <motion.div variants={fadeInLeft} className="mb-md">
                 <Input
-                    label="Project Name"
+                    label="What's the name of your project?"
                     name="projectName"
                     type="text"
                     value={formData.projectName}
@@ -191,35 +210,43 @@ const ProjectSnapshot: React.FC<ProjectSnapshotProps> = ({ onNext, initialData =
             </motion.div>
 
             {/* Business Type */}
-            <motion.div variants={fadeInLeft} className="mb-md relative">
-                <Input
-                    label="What type of business is this for?"
-                    name="businessType"
-                    type="text"
-                    value={formData.businessType}
-                    onChange={handleInputChange}
-                    onFocus={() => setShowBusinessDropdown(true)}
-                    onBlur={() => setTimeout(() => setShowBusinessDropdown(false), 200)}
-                    placeholder="e.g., wellness coach, SaaS tool, clothing brand"
-                    variant="filled"
-                    className="bg-gray-900"
-                />
+            <motion.div variants={fadeInLeft} className="mb-md">
+                <label className="block mb-sm text-para-sm text-gray-200">
+                    What are you building?
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-sm">
+                    {businessTypeOptions.map((type) => (
+                        <button
+                            key={type.id}
+                            type="button"
+                            onClick={() => handleBusinessTypeSelect(type.id)}
+                            className={`p-md rounded-lg border-2 transition-all text-center ${formData.businessType === type.id
+                                ? 'border-accent-default bg-accent-subtle bg-opacity-20 text-white'
+                                : 'border-gray-600 hover:border-gray-500 text-gray-300'
+                                }`}
+                        >
+                            <span className="text-para-sm">{type.label}</span>
+                        </button>
+                    ))}
+                </div>
 
-                {showBusinessDropdown && filteredBusinessTypes.length > 0 && (
-                    <div className="absolute z-10 w-full mt-xs bg-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                        {filteredBusinessTypes.map((type) => (
-                            <div
-                                key={type}
-                                className="px-md py-sm hover:bg-gray-600 cursor-pointer text-gray-200 text-para-sm"
-                                onMouseDown={() => {
-                                    setFormData(prev => ({ ...prev, businessType: type }));
-                                    setShowBusinessDropdown(false);
-                                }}
-                            >
-                                {type}
-                            </div>
-                        ))}
-                    </div>
+                {formData.businessType === 'other' && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="mt-sm"
+                    >
+                        <Input
+                            label=""
+                            name="otherBusinessType"
+                            type="text"
+                            value={formData.otherBusinessType}
+                            onChange={handleInputChange}
+                            placeholder="Please specify..."
+                            variant="filled"
+                            className="bg-gray-900"
+                        />
+                    </motion.div>
                 )}
             </motion.div>
 
@@ -271,9 +298,9 @@ const ProjectSnapshot: React.FC<ProjectSnapshotProps> = ({ onNext, initialData =
                     variant="solid"
                     size="md"
                     onClick={handleSubmit}
-                    disabled={!formData.projectName || !formData.businessType || !formData.mainGoal}
+                    disabled={!formData.projectName || !formData.businessType || !formData.mainGoal || buttonState !== 'default'}
                 >
-                    Continue to Visual Direction
+                    {getButtonContent()}
                 </SimpleButton>
             </motion.div>
         </motion.div>

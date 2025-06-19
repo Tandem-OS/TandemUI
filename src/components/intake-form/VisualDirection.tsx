@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaCalendarAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaCheck, FaArrowRight } from 'react-icons/fa';
 import SimpleButton from '../demos/buttons/SimpleButton';
 import { containerVariant, fadeInLeft } from '../../lib/animations/variants';
 import Heading from '../demos/typography/Heading';
@@ -40,6 +40,8 @@ const VisualDirection: React.FC<VisualDirectionProps> = ({ onNext, onBack, initi
         customColors: initialData.customColors || '',
     });
 
+    const [buttonState, setButtonState] = useState<'default' | 'saving' | 'saved'>('default');
+
     const handleToneToggle = (toneId: string) => {
         setFormData(prev => ({
             ...prev,
@@ -53,12 +55,51 @@ const VisualDirection: React.FC<VisualDirectionProps> = ({ onNext, onBack, initi
         setFormData(prev => ({ ...prev, budget: budgetId, needHelpScoping: false }));
     };
 
-    const handleSubmit = () => {
-        onNext(formData);
+    const handleSubmit = async () => {
+        setButtonState('saving');
+        
+        // Show saving for 1 second
+        setTimeout(() => {
+            setButtonState('saved');
+            
+            // Show saved for 0.5 seconds then proceed
+            setTimeout(() => {
+                onNext(formData);
+            }, 500);
+        }, 1000);
     };
 
-    const handleSkip = () => {
-        onNext({});
+    const handleSkip = async () => {
+        setButtonState('saving');
+        
+        // Show saving for 1 second
+        setTimeout(() => {
+            setButtonState('saved');
+            
+            // Show saved for 0.5 seconds then proceed
+            setTimeout(() => {
+                onNext({});
+            }, 500);
+        }, 1000);
+    };
+
+    const getButtonContent = () => {
+        switch (buttonState) {
+            case 'saving':
+                return 'Saving...';
+            case 'saved':
+                return (
+                    <>
+                        Saved <FaCheck className="ml-xs" />
+                    </>
+                );
+            default:
+                return (
+                    <>
+                        Let's Go <FaArrowRight className="ml-xs" />
+                    </>
+                );
+        }
     };
 
     return (
@@ -81,16 +122,17 @@ const VisualDirection: React.FC<VisualDirectionProps> = ({ onNext, onBack, initi
                 </div>
                 <button
                     onClick={handleSkip}
-                    className="text-gray-400 hover:text-gray-200 text-para-sm underline transition-colors"
+                    disabled={buttonState !== 'default'}
+                    className="text-gray-400 hover:text-gray-200 text-para-sm underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Skip this step
+                    {buttonState === 'default' ? 'Skip this step' : buttonState === 'saving' ? 'Skipping...' : 'Skipped!'}
                 </button>
             </motion.div>
 
             {/* Launch Timeline */}
             <motion.div variants={fadeInLeft} className="mb-md">
                 <label className="block mb-sm text-para-sm text-gray-200">
-                    Launch timeline (optional)
+                    When do you need this delivered? (Optional)
                 </label>
                 <div className="space-y-sm">
                     {!formData.notSureDate && (
@@ -123,7 +165,7 @@ const VisualDirection: React.FC<VisualDirectionProps> = ({ onNext, onBack, initi
             {/* Budget */}
             <motion.div variants={fadeInLeft} className="mb-md">
                 <label className="block mb-sm text-para-sm text-gray-200">
-                    Rough budget (optional)
+                    Do you have a budget or range in mind? (optional)
                 </label>
                 <div className="grid grid-cols-2 gap-sm mb-sm">
                     {budgetOptions.map((option) => (
@@ -183,7 +225,7 @@ const VisualDirection: React.FC<VisualDirectionProps> = ({ onNext, onBack, initi
             {/* Brand Colors */}
             <motion.div variants={fadeInLeft} className="mb-lg">
                 <label className="block mb-sm text-para-sm text-gray-200">
-                    Brand colors?
+                    Do you have any brand colors or vibes in mind?
                 </label>
                 <div className="space-y-sm">
                     <div className="flex gap-sm">
@@ -242,6 +284,7 @@ const VisualDirection: React.FC<VisualDirectionProps> = ({ onNext, onBack, initi
                     variant="outline"
                     size="md"
                     onClick={onBack}
+                    disabled={buttonState !== 'default'}
                 >
                     Back
                 </SimpleButton>
@@ -249,8 +292,9 @@ const VisualDirection: React.FC<VisualDirectionProps> = ({ onNext, onBack, initi
                     variant="solid"
                     size="md"
                     onClick={handleSubmit}
+                    disabled={buttonState !== 'default'}
                 >
-                    Continue to Final Details
+                    {getButtonContent()}
                 </SimpleButton>
             </motion.div>
         </motion.div>

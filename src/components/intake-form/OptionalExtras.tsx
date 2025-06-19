@@ -181,7 +181,7 @@ const OptionalExtras: React.FC<OptionalExtrasProps> = ({ onNext, onBack, initial
                     Any websites or designs you like?
                 </label>
                 <p className="text-gray-400 text-para-sm mb-sm">
-                    Share links for inspiration (or skip if you'll use our style swiper)
+                    Drop any links that inspire you — Dribbble, Behance, or websites you like.
                 </p>
                 <div className="space-y-xs">
                     {formData.inspirationUrls.map((url: any, index: any) => (
@@ -259,7 +259,7 @@ const OptionalExtras: React.FC<OptionalExtrasProps> = ({ onNext, onBack, initial
                     onClick={handleSubmit}
                     className="min-w-[150px]"
                 >
-                    Submit Project
+                    Start My Project
                 </SimpleButton>
             </motion.div>
         </motion.div>

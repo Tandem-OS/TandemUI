@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { forwardRef } from 'react'
 import { cva } from 'class-variance-authority'
 import type { VariantProps } from 'class-variance-authority'
-import type { ElementType } from 'react'
+import type { ElementType, HTMLAttributes } from 'react'
 import clsx from 'clsx'
 
 const headingStyles = cva(
@@ -22,7 +22,7 @@ const headingStyles = cva(
                 tertiary: 'text-text-tertiary',
                 accent: 'text-accent-default',
                 light: 'text-text-light',
-                lightSecondary: 'text-text-lightSecondary'
+                lightSecondary: 'text-text-lightSecondary',
             },
             align: {
                 left: 'text-left',
@@ -34,7 +34,7 @@ const headingStyles = cva(
                 normal: 'font-normal',
                 bold: 'font-bold',
                 extrabold: 'font-extrabold',
-                semiBold: "font-semibold"
+                semiBold: 'font-semibold',
             },
         },
         defaultVariants: {
@@ -47,31 +47,28 @@ const headingStyles = cva(
 )
 
 export type HeadingProps = React.PropsWithChildren<
-    VariantProps<typeof headingStyles> & {
+    VariantProps<typeof headingStyles> & 
+    HTMLAttributes<HTMLHeadingElement> & {
         className?: string
     }
 >
 
-const Heading: React.FC<HeadingProps> = ({
-    level = 'h1',
-    color = 'dark',
-    align = 'left',
-    weight = 'bold',
-    className,
-    children,
-}) => {
-    const Tag = level as ElementType
+// ✅ Fix the forwardRef typing to be more specific for heading elements
+const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(
+    ({ level = 'h1', color = 'dark', align = 'left', weight = 'bold', className, children, ...rest }, ref) => {
+        const Tag = level as ElementType
 
-    return (
-        <Tag
-            className={clsx(
-                headingStyles({ level, color, align, weight }),
-                className
-            )}
-        >
-            {children}
-        </Tag>
-    )
-}
+        return (
+            <Tag
+                ref={ref}
+                className={clsx(headingStyles({ level, color, align, weight }), className)}
+                {...rest}
+            >
+                {children}
+            </Tag>
+        )
+    }
+)
 
+Heading.displayName = 'Heading'
 export default Heading

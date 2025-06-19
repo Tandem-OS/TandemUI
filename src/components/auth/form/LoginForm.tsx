@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
+import Heading from '../../demos/typography/Heading';
 
 const LoginForm = () => {
   const [values, setValues] = useState({ email: '', password: '' });
@@ -61,7 +62,9 @@ const LoginForm = () => {
 
       {/* Header */}
       <div>
-        <img src="/images/logo.png" alt="Logo" className="w-[150px] mb-sm" />
+        <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
+          AI meets creativity.
+        </Heading>
         <p className="text-gray-200 text-para-md mb-md">Login Your Account</p>
       </div>
 

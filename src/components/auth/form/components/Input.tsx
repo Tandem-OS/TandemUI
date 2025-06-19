@@ -15,6 +15,7 @@ interface InputProps {
     error?: string;
     onFocus?: () => void;
     onBlur?: () => void;
+    onKeyPress?: () => void;
     variant?: 'default' | 'outlined' | 'filled';
     className?: string;
 }
@@ -25,6 +26,7 @@ const Input: React.FC<InputProps> = ({
     type,
     value,
     onChange,
+    onKeyPress,
     placeholder,
     icon,
     showPasswordToggle = false,
@@ -93,6 +95,7 @@ const Input: React.FC<InputProps> = ({
                     name={name}
                     value={value}
                     onChange={onChange}
+                    onKeyPress={onKeyPress}
                     onFocus={() => {
                         setIsFocused(true);
                         onFocus?.();

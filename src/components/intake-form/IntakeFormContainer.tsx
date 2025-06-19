@@ -6,6 +6,7 @@ import VisualDirection from './VisualDirection';
 
 const IntakeFormContainer: React.FC = () => {
     const [currentStep, setCurrentStep] = useState(1);
+    const [firstLoaded, setFirstLoaded] = useState(false);
     const [formData, setFormData] = useState({
         step1: {},
         step2: {},
@@ -21,8 +22,11 @@ const IntakeFormContainer: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, [currentStep]);
+        if (firstLoaded) {
+            window.scrollTo({ top: 90, behavior: 'smooth' });
+        }
+
+    }, [currentStep, firstLoaded]);
 
     const saveProgress = (step: string, data: any) => {
         const newFormData = { ...formData, [step]: data };
@@ -31,6 +35,7 @@ const IntakeFormContainer: React.FC = () => {
     };
 
     const handleNext = (step: number, data: any) => {
+        setFirstLoaded(true);
         saveProgress(`step${step}`, data);
         if (step < 3) {
             setCurrentStep(step + 1);
@@ -62,17 +67,19 @@ const IntakeFormContainer: React.FC = () => {
     ];
 
     return (
-        <div className="relative min-h-screen flex bg-gray-900 overflow-x-hidden">
+
+        <div className="relative min-h-screen flex bg-gray-900 ">
 
             {/* Main Container */}
             <div className="flex-1 flex flex-col p-lg z-10">
                 {/* Logo */}
-                <div className="mb-lg">
+                <div className="max-lg:mb-lg">
                     <img src="/images/logo.png" alt="Logo" className="w-[150px]" />
                 </div>
 
                 {/* Progress Bar */}
-                <div className="w-full max-w-3xl mx-auto mb-lg">
+                {/* Progress Bar */}
+                <div className="w-full max-w-3xl mx-auto mb-sm sticky top-0 z-50 bg-gray-900 py-4">
                     <div className="flex justify-between mb-sm">
                         {steps.map((step) => (
                             <div
@@ -98,7 +105,7 @@ const IntakeFormContainer: React.FC = () => {
                             </div>
                         ))}
                     </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden mt-md">
+                    <div className="w-full bg-gray-700 rounded-full h-1 overflow-hidden mt-md">
                         <motion.div
                             className="h-full bg-gradient-to-r from-accent-default to-accent-default-dark"
                             initial={{ width: 0 }}
@@ -108,8 +115,9 @@ const IntakeFormContainer: React.FC = () => {
                     </div>
                 </div>
 
+
                 {/* Form Steps */}
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center overflow-hidden">
                     <AnimatePresence mode="wait">
                         {currentStep === 1 && (
                             <motion.div
