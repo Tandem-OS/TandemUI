@@ -8,9 +8,22 @@ const buttonStyles = cva(
     {
         variants: {
             variant: {
-                solid: 'bg-accent-default hover:bg-accent-default-dark text-white shadow-lg hover:shadow-xl',
-                outline: 'border-2 border-accent-default text-accent-default hover:text-white bg-transparent hover:bg-accent-default',
-                ghost: 'bg-transparent text-accent-default hover:bg-accent-subtle',
+                solid: [
+                    // Base styles
+                    'bg-accent-default hover:bg-accent-default-dark text-white shadow-lg hover:shadow-xl',
+                    // Light/dark mode - solid variant doesn't change
+                ].join(' '),
+                outline: [
+                    // Light mode
+                    'border-2 border-accent-default text-accent-default hover:text-white bg-transparent hover:bg-accent-default',
+                    // Dark mode - same behavior
+                ].join(' '),
+                ghost: [
+                    // Light mode
+                    'bg-transparent text-accent-default hover:bg-accent-subtle',
+                    // Dark mode
+                    'dark:bg-transparent dark:text-accent-default dark:hover:bg-accent-subtle'
+                ].join(' '),
             },
             shape: {
                 rounded: 'rounded-lg',

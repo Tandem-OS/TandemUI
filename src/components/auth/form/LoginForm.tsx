@@ -47,13 +47,13 @@ const LoginForm = () => {
         e.preventDefault();
         handleLogin();
       }}
-      className="w-full max-w-md bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
+      className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
     >
       {/* Back to Home */}
       <div className="flex justify-end">
         <Link
           to="/"
-          className="flex items-center gap-sm text-para-sm text-gray-300 hover:text-white transition-colors"
+          className="flex items-center gap-sm text-para-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
         >
           <FaArrowLeft />
           <span>Back to home</span>
@@ -65,7 +65,7 @@ const LoginForm = () => {
         <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
           AI meets creativity.
         </Heading>
-        <p className="text-gray-200 text-para-md mb-md">Login Your Account</p>
+        <p className="text-gray-700 dark:text-gray-200 text-para-md mb-md">Login Your Account</p>
       </div>
 
       {/* Inputs */}
@@ -80,7 +80,6 @@ const LoginForm = () => {
           icon={<FaEnvelope />}
           variant="filled"
           error={errors.email}
-          className="bg-gray-900"
         />
 
         <div>
@@ -95,7 +94,6 @@ const LoginForm = () => {
             showPasswordToggle
             variant="filled"
             error={errors.password}
-            className="bg-gray-900"
           />
           <div className="text-right mt-xs">
             <Link
@@ -134,7 +132,7 @@ const LoginForm = () => {
       </div>
 
       {/* Sign Up Redirect */}
-      <p className="text-center text-gray-200 text-para-sm">
+      <p className="text-center text-gray-700 dark:text-gray-200 text-para-sm">
         Don't have an account?{' '}
         <Link to="/auth/signup" className="underline text-accent-default font-medium">
           Sign Up

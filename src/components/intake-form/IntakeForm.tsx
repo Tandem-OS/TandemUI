@@ -8,6 +8,7 @@ import { containerVariant, fadeInLeft } from '../../lib/animations/variants';
 import Input from '../auth/form/components/Input';
 import SimpleButton from '../demos/buttons/SimpleButton';
 import Heading from '../demos/typography/Heading';
+import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 
 // Types
 interface IntakeFormData {
@@ -64,25 +65,27 @@ const OPTIONS = {
 // Utility functions
 const getButtonClass = (isSelected: boolean, disabled = false) =>
     `transition-all ${isSelected
-        ? 'border-accent-default bg-accent-subtle bg-opacity-20 text-white'
-        : 'border-gray-600 hover:border-gray-500 text-gray-300'} ${disabled ? 'disabled:opacity-50' : ''}`;
+        ? 'border-accent-default bg-accent-subtle bg-opacity-20 text-accent-default dark:text-white'
+        : 'border-gray-300 hover:border-gray-400 text-gray-700 dark:border-gray-600 dark:hover:border-gray-500 dark:text-gray-300'} ${disabled ? 'disabled:opacity-50' : ''}`;
 
 const getDropzoneClass = (isDragActive: boolean) =>
-    `relative border-2 border-dashed rounded-lg p-lg text-center transition-all ${isDragActive ? 'border-accent-default bg-accent-subtle bg-opacity-10' : 'border-gray-600 hover:border-gray-500'
+    `relative border-2 border-dashed rounded-lg p-lg text-center transition-all ${isDragActive
+        ? 'border-accent-default bg-accent-subtle bg-opacity-10'
+        : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
     }`;
 
-// Components
+
 const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastStep }: any) => (
     <motion.div variants={fadeInLeft} className="mb-lg flex justify-between items-start">
         <div>
             <Heading level="h3" color="accent">{title}</Heading>
-            <p className="text-para-md text-gray-300">{subtitle}</p>
+            <p className="text-para-md text-gray-700 dark:text-gray-300">{subtitle}</p>
         </div>
         {canSkip && (
             <button
                 onClick={onSkip}
                 disabled={buttonState !== 'default'}
-                className="text-gray-400 hover:text-gray-200 text-para-sm underline transition-colors disabled:opacity-50"
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-para-sm underline transition-colors disabled:opacity-50"
             >
                 {isLastStep ? 'Skip and Submit' : 'Skip this step'}
             </button>
@@ -139,15 +142,15 @@ const FileUpload = ({ file, onFile }: any) => {
             />
             {file ? (
                 <div className="flex items-center justify-between">
-                    <span className="text-gray-300 text-para-sm">{(file as File).name}</span>
+                    <span className="text-gray-700 dark:text-gray-300 text-para-sm">{(file as File).name}</span>
                     <label htmlFor="brandguide-upload" className="text-accent-default hover:text-accent-hover cursor-pointer text-para-sm">
                         Change file
                     </label>
                 </div>
             ) : (
                 <label htmlFor="brandguide-upload" className="cursor-pointer block">
-                    <FaFileUpload className="mx-auto text-gray-400 text-3xl mb-xs" />
-                    <p className="text-gray-300 text-para-md mb-xs">Drop brand guide here or click to upload</p>
+                    <FaFileUpload className="mx-auto text-gray-400 dark:text-gray-400 text-3xl mb-xs" />
+                    <p className="text-gray-700 dark:text-gray-300 text-para-md mb-xs">Drop brand guide here or click to upload</p>
                 </label>
             )}
         </div>
@@ -204,8 +207,8 @@ const IntakeForm: React.FC = () => {
             content: (
                 <>
                     <motion.div variants={fadeInLeft} className="mb-md">
-                        <label className="block mb-sm text-para-sm text-gray-200">What vibe are you going for?</label>
-                        <p className="text-gray-400 text-para-sm mb-sm">Select all that apply</p>
+                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">What vibe are you going for?</label>
+                        <p className="text-gray-500 dark:text-gray-400 text-para-sm mb-sm">Select all that apply</p>
                         <SelectionGrid
                             options={OPTIONS.tones}
                             selected={formData.tones}
@@ -219,7 +222,7 @@ const IntakeForm: React.FC = () => {
                         />
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
-                        <label className="block mb-sm text-para-sm text-gray-200">Do you have any brand colors in mind?</label>
+                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Do you have any brand colors in mind?</label>
                         <div className="space-y-sm">
                             <div className="flex gap-sm">
                                 {OPTIONS.colorStrategies.map(strategy => (
@@ -241,7 +244,6 @@ const IntakeForm: React.FC = () => {
                                         onChange={(e) => updateForm({ customColors: e.target.value })}
                                         placeholder="Enter hex values or color names (e.g., #3B82F6, navy, coral)"
                                         variant='filled'
-                                        className='bg-gray-900'
                                     />
                                 </motion.div>
                             )}
@@ -255,13 +257,13 @@ const IntakeForm: React.FC = () => {
             subtitle: "What functionality do you need?",
             content: (
                 <motion.div variants={fadeInLeft} className="mb-lg">
-                    <label className="block mb-sm text-para-sm text-gray-200">List the key pages or features you need</label>
+                    <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">List the key pages or features you need</label>
                     <textarea
                         value={formData.keyFeatures}
                         onChange={(e) => updateForm({ keyFeatures: e.target.value })}
                         placeholder="E.g., Homepage, About Us, Product catalog, Blog, Contact form, Newsletter signup, User dashboard..."
                         rows={8}
-                        className="w-full bg-gray-900 text-white rounded-lg py-sm px-md border border-gray-700 focus:border-accent-default outline-none transition-all resize-none"
+                        className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg py-sm px-md border border-gray-200 dark:border-gray-700 focus:border-accent-default outline-none transition-all resize-none"
                     />
                 </motion.div>
             )
@@ -271,8 +273,8 @@ const IntakeForm: React.FC = () => {
             subtitle: "Share websites or designs that inspire you",
             content: (
                 <motion.div variants={fadeInLeft} className="mb-lg">
-                    <label className="block mb-sm text-para-sm text-gray-200">Any websites or designs you like?</label>
-                    <p className="text-gray-400 text-para-sm mb-sm">Drop any links that inspire you</p>
+                    <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Any websites or designs you like?</label>
+                    <p className="text-gray-500 dark:text-gray-400 text-para-sm mb-sm">Drop any links that inspire you</p>
                     <div className="space-y-xs">
                         {formData.inspirationUrls.map((url, index) => (
                             <div key={index} className="flex gap-xs">
@@ -286,7 +288,7 @@ const IntakeForm: React.FC = () => {
                                             updateForm({ inspirationUrls: newUrls });
                                         }}
                                         placeholder="https://inspiration-site.com"
-                                        className="bg-gray-900 pl-10"
+                                        className="pl-10"
                                         variant='filled'
                                     />
                                     <FaLink className="absolute left-md top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -325,21 +327,21 @@ const IntakeForm: React.FC = () => {
             content: (
                 <>
                     <motion.div variants={fadeInLeft} className="mb-md">
-                        <label className="block mb-sm text-para-sm text-gray-200">Do you have a current site?</label>
+                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Do you have a current site?</label>
                         <div className="relative">
                             <Input
                                 type="url"
                                 value={formData.currentSiteUrl}
                                 onChange={(e) => updateForm({ currentSiteUrl: e.target.value })}
                                 placeholder="https://your-current-site.com"
-                                className="bg-gray-900 pl-10"
+                                className="pl-10"
                                 variant='filled'
                             />
                             <FaLink className="absolute left-md top-1/2 transform -translate-y-1/2 text-gray-400" />
                         </div>
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
-                        <label className="block mb-sm text-para-sm text-gray-200">Upload brand guide (optional)</label>
+                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Upload brand guide (optional)</label>
                         <FileUpload
                             file={formData.brandGuide}
                             onFile={handleFile}
@@ -354,7 +356,7 @@ const IntakeForm: React.FC = () => {
             content: (
                 <>
                     <motion.div variants={fadeInLeft} className="mb-md">
-                        <label className="block mb-sm text-para-sm text-gray-200">When do you need this delivered?</label>
+                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">When do you need this delivered?</label>
                         <div className="space-y-sm">
                             {!formData.notSureDeadline && (
                                 <div className="relative">
@@ -362,7 +364,7 @@ const IntakeForm: React.FC = () => {
                                         type="date"
                                         value={formData.deadline}
                                         onChange={(e) => updateForm({ deadline: e.target.value })}
-                                        className="w-full bg-gray-900 text-white rounded-lg py-sm px-md border border-gray-700 focus:border-accent-default outline-none transition-all"
+                                        className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg py-sm px-md border border-gray-200 dark:border-gray-700 focus:border-accent-default outline-none transition-all"
                                     />
                                     <FaCalendarAlt className="absolute right-md top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                                 </div>
@@ -372,21 +374,21 @@ const IntakeForm: React.FC = () => {
                                     type="checkbox"
                                     checked={formData.notSureDeadline}
                                     onChange={(e) => updateForm({ notSureDeadline: e.target.checked, deadline: e.target.checked ? '' : formData.deadline })}
-                                    className="w-4 h-4 text-accent-default bg-gray-900 border-gray-600 rounded focus:ring-accent-default"
+                                    className="w-4 h-4 text-accent-default bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded focus:ring-accent-default"
                                 />
-                                <span className="text-gray-300 text-para-sm">Flexible timeline</span>
+                                <span className="text-gray-700 dark:text-gray-300 text-para-sm">Flexible timeline</span>
                             </label>
                         </div>
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
-                        <label className="block mb-sm text-para-sm text-gray-200">Any remaining details?</label>
+                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Any remaining details?</label>
                         <div className="relative">
                             <textarea
                                 value={formData.additionalDetails}
                                 onChange={(e) => e.target.value.length <= 500 && updateForm({ additionalDetails: e.target.value })}
                                 placeholder="Special requirements, specific functionality needs, or anything else we should know..."
                                 rows={5}
-                                className="w-full bg-gray-900 text-white rounded-lg py-sm px-md border border-gray-700 focus:border-accent-default outline-none transition-all resize-none"
+                                className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg py-sm px-md border border-gray-200 dark:border-gray-700 focus:border-accent-default outline-none transition-all resize-none"
                             />
                             <span className={`absolute bottom-sm right-md text-para-sm ${formData.additionalDetails.length > 450 ? 'text-yellow-400' : 'text-gray-500'
                                 }`}>
@@ -402,13 +404,11 @@ const IntakeForm: React.FC = () => {
     const currentScreenData = screens[currentScreen - 1];
 
     return (
-        <div className="relative min-h-screen flex bg-gray-900">
-            <div className="flex-1 flex flex-col p-lg z-10">
-                <div className="mb-5 lg:mb-0">
-                    <img src="/images/logo.png" alt="Logo" className="w-[150px]" />
-                </div>
+        <div className="relative min-h-screen flex bg-slate-100 dark:bg-gray-900 transition-colors">
+            <div className="flex-1 flex flex-col z-10">
+                <SimpleHeader />
 
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center p-lg">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentScreen}
@@ -416,7 +416,7 @@ const IntakeForm: React.FC = () => {
                             initial="initial"
                             animate="animate"
                             exit="exit"
-                            className="w-full max-w-3xl mx-auto bg-gray-800 rounded-2xl px-xl py-lg shadow-xl"
+                            className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg shadow-xl transition-colors"
                         >
                             <ScreenHeader
                                 title={currentScreenData.title}

@@ -17,12 +17,12 @@ const headingStyles = cva(
                 h6: 'text-h6-sm sm:text-h6-md md:text-h6-lg',
             },
             color: {
-                dark: 'text-text-primary',
-                darkSecondary: 'text-text-secondary',
-                tertiary: 'text-text-tertiary',
+                dark: 'text-gray-900',
+                darkSecondary: 'text-gray-700',
+                tertiary: 'text-gray-600',
                 accent: 'text-accent-default',
-                light: 'text-text-light',
-                lightSecondary: 'text-text-lightSecondary',
+                light: 'text-white',
+                lightSecondary: 'text-gray-200',
             },
             align: {
                 left: 'text-left',
@@ -53,7 +53,6 @@ export type HeadingProps = React.PropsWithChildren<
     }
 >
 
-// ✅ Fix the forwardRef typing to be more specific for heading elements
 const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(
     ({ level = 'h1', color = 'dark', align = 'left', weight = 'bold', className, children, ...rest }, ref) => {
         const Tag = level as ElementType

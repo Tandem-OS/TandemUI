@@ -52,13 +52,13 @@ const RegisterForm = () => {
     return (
         <form
             onSubmit={handleRegister}
-            className="w-full max-w-md bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
+            className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
         >
             {/* Back to Home */}
             <div className="flex justify-end">
                 <Link
                     to="/"
-                    className="flex items-center gap-sm text-para-sm text-gray-300 hover:text-white transition-colors"
+                    className="flex items-center gap-sm text-para-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                     <FaArrowLeft />
                     <span>Back to home</span>
@@ -70,7 +70,7 @@ const RegisterForm = () => {
                 <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
                     Join Tandem
                 </Heading>
-                <p className="text-gray-200 text-para-md mb-md">
+                <p className="text-gray-700 dark:text-gray-200 text-para-md mb-md">
                     Create Your Account
                 </p>
             </div>
@@ -87,7 +87,7 @@ const RegisterForm = () => {
                     icon={<FaEnvelope />}
                     variant="filled"
                     error={errors.email}
-                    className="bg-gray-900"
+                    className="bg-white dark:bg-gray-900"
                 />
 
                 <Input
@@ -101,7 +101,7 @@ const RegisterForm = () => {
                     showPasswordToggle
                     variant="filled"
                     error={errors.password}
-                    className="bg-gray-900"
+                    className="bg-white dark:bg-gray-900"
                 />
 
                 <Input
@@ -115,7 +115,7 @@ const RegisterForm = () => {
                     showPasswordToggle
                     variant="filled"
                     error={errors.confirmPassword}
-                    className="bg-gray-900"
+                    className="bg-white dark:bg-gray-900"
                 />
             </div>
 
@@ -125,7 +125,7 @@ const RegisterForm = () => {
             </SimpleButton>
 
             {/* Redirect */}
-            <p className="text-center text-gray-200 text-para-sm">
+            <p className="text-center text-gray-700 dark:text-gray-200 text-para-sm">
                 Already have an account?{' '}
                 <Link to="/auth/" className="underline text-accent-default font-medium">
                     Sign In

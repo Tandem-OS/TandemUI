@@ -51,12 +51,27 @@ const Input: React.FC<InputProps> = ({
         {
             variants: {
                 variant: {
-                    default: 'bg-white text-gray-800 placeholder-gray-400 border-gray-300 focus:border-accent-default',
-                    outlined: 'bg-transparent text-gray-100 placeholder-gray-400 border-gray-600 focus:border-accent-default',
-                    filled: 'bg-gray-900 text-white placeholder-gray-400 border-gray-700 focus:border-accent-default',
+                    default: [
+                        // Light mode
+                        'bg-white text-gray-800 placeholder-gray-400 border-gray-300 focus:border-accent-default',
+                        // Dark mode
+                        'dark:bg-gray-900 dark:text-white dark:placeholder-gray-500 dark:border-gray-700 dark:focus:border-accent-default'
+                    ].join(' '),
+                    outlined: [
+                        // Light mode
+                        'bg-transparent text-gray-800 placeholder-gray-400 border-gray-400 focus:border-accent-default',
+                        // Dark mode
+                        'dark:bg-transparent dark:text-gray-100 dark:placeholder-gray-400 dark:border-gray-600 dark:focus:border-accent-default'
+                    ].join(' '),
+                    filled: [
+                        // Light mode
+                        'bg-gray-100 text-gray-900 placeholder-gray-500 border-gray-200 focus:border-accent-default',
+                        // Dark mode
+                        'dark:bg-gray-900 dark:text-white dark:placeholder-gray-400 dark:border-gray-700 dark:focus:border-accent-default'
+                    ].join(' '),
                 },
                 error: {
-                    true: 'border-red-500 focus:border-red-500',
+                    true: 'border-red-500 focus:border-red-500 dark:border-red-500 dark:focus:border-red-500',
                     false: '',
                 },
             },
@@ -70,7 +85,7 @@ const Input: React.FC<InputProps> = ({
     return (
         <div className="w-full">
             {label && (
-                <label className="block mb-xs text-para-sm text-gray-200">
+                <label className="block mb-xs text-para-sm text-gray-700 dark:text-gray-200">
                     {label}
                 </label>
             )}
@@ -79,8 +94,8 @@ const Input: React.FC<InputProps> = ({
                 {icon && (
                     <div
                         className={clsx(
-                            "absolute left-md top-1/2 transform -translate-y-1/2",
-                            isFocused ? "text-accent-default" : "text-gray-400"
+                            "absolute left-md top-1/2 transform -translate-y-1/2 transition-colors",
+                            isFocused ? "text-accent-default" : "text-gray-400 dark:text-gray-400"
                         )}
                     >
                         {icon}
@@ -117,7 +132,7 @@ const Input: React.FC<InputProps> = ({
 
                 {type === 'password' && showPasswordToggle && (
                     <div
-                        className="absolute right-md top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-200"
+                        className="absolute right-md top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                         onClick={() => setShowPassword(!showPassword)}
                     >
                         {showPassword ? <FaEyeSlash /> : <FaEye />}

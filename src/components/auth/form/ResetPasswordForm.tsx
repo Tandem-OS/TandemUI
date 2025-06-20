@@ -24,12 +24,12 @@ const ResetPasswordForm = () => {
     return (
         <form
             onSubmit={handleSubmit}
-            className="w-full max-w-md bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
+            className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
         >
             <div className="flex justify-end">
                 <Link
                     to="/"
-                    className="flex items-center gap-sm text-para-sm text-gray-300 hover:text-white transition-colors"
+                    className="flex items-center gap-sm text-para-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                     <FaArrowLeft />
                     <span>Back to home</span>
@@ -40,7 +40,7 @@ const ResetPasswordForm = () => {
                 <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
                     Reset Password
                 </Heading>
-                <p className="text-gray-200 text-para-md mb-md">
+                <p className="text-gray-700 dark:text-gray-200 text-para-md mb-md">
                     Enter your email to reset your password
                 </p>
             </div>
@@ -56,7 +56,7 @@ const ResetPasswordForm = () => {
                 icon={<FaEnvelope />}
                 variant="filled"
                 error={error || undefined}
-                className="bg-gray-900"
+                className="bg-white dark:bg-gray-900"
             />
 
             {/* Submit */}
@@ -65,10 +65,10 @@ const ResetPasswordForm = () => {
             </SimpleButton>
 
             {/* Divider */}
-            <div className="flex items-center gap-md text-gray-400 text-para-sm py-md">
-                <div className="flex-1 h-hairline bg-gray-600" />
+            <div className="flex items-center gap-md text-gray-500 dark:text-gray-400 text-para-sm py-md">
+                <div className="flex-1 h-hairline bg-gray-300 dark:bg-gray-600" />
                 <span className="text-h7-sm uppercase">or</span>
-                <div className="flex-1 h-hairline bg-gray-600" />
+                <div className="flex-1 h-hairline bg-gray-300 dark:bg-gray-600" />
             </div>
 
             {/* Guest Button */}
@@ -76,7 +76,7 @@ const ResetPasswordForm = () => {
                 type="button"
                 variant="outline"
                 fullWidth
-                className="flex items-center justify-center gap-sm text-white bg-gray-700 hover:bg-gray-600"
+                className="flex items-center justify-center gap-sm text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
             >
                 <FaUser className="text-para-lg" />
                 Continue as Guest

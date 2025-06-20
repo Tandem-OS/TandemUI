@@ -6,6 +6,7 @@ import LoginForm from '../form/LoginForm';
 import ResetPasswordForm from '../form/ResetPasswordForm';
 import FloatingShapesBackground from '../../animations-components/FloatingShapesBackground';
 import { pageVariants } from "../../../lib/animations/variants";
+import SimpleHeader from '../../Headers/SimpleHeader/SimpleHeader';
 
 export type AuthVariant = 'split' | 'centered';
 
@@ -67,7 +68,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
         </AnimatePresence>
     );
 
-    const containerClasses = `relative min-h-screen flex ${isCentered ? '' : 'bg-gray-900'}`;
+    const containerClasses = `relative min-h-screen flex ${isCentered ? '' : 'bg-slate-100 dark:bg-gray-900'}`;
     const backgroundClasses = `absolute inset-0 ${isCentered ? '' : 'hidden lg:block'}`;
 
     // Common wrapper for forms
@@ -91,10 +92,8 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col flex-1 p-lg z-10">
-                        <div className="mb-lg">
-                            <img src="/images/logo.png" alt="Logo" className="w-[150px]" />
-                        </div>
+                    <div className="flex flex-col flex-1 px-5 lg:px-0  z-10">
+                        <SimpleHeader />
                         <div className="flex-1 flex justify-center items-center">
                             <AnimatedRoutes />
                         </div>
