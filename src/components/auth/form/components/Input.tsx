@@ -4,9 +4,9 @@ import clsx from 'clsx';
 import { cva } from 'class-variance-authority';
 
 interface InputProps {
-    label: string;
-    name: string;
-    type: 'text' | 'email' | 'password';
+    label?: string;
+    name?: string;
+    type: 'text' | 'email' | 'password' | 'url';
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
