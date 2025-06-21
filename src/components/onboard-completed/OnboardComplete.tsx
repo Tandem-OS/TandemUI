@@ -221,18 +221,18 @@ const OnboardComplete: React.FC = () => {
                                                     className="w-full sm:w-auto min-w-[200px]"
                                                     onClick={() => navigate("/intake")}
                                                 >
-                                                    <FaHome className="mr-sm" />
+                                                    <FaPaintBrush className="mr-sm" />
                                                     Pick Your Style
                                                 </SimpleButton>
                                             </motion.div>
-                                            
+
                                             <SimpleButton
                                                 variant="outline"
                                                 size="lg"
                                                 className="w-full sm:w-auto min-w-[200px]"
                                                 onClick={() => navigate('/intake')}
                                             >
-                                                <FaPaintBrush className="mr-sm" />
+                                                <FaHome className="mr-sm" />
                                                 Go to Dashboard
                                             </SimpleButton>
                                         </motion.div>
