@@ -151,7 +151,7 @@ const OnboardComplete: React.FC = () => {
                             </motion.div>
 
                             {/* Content wrapper with reserved space */}
-                            <div className="h-[130px] flex flex-col justify-start">
+                            <div className="h-[100px] flex flex-col justify-start">
                                 <AnimatePresence>
                                     {showContent && (
                                         <motion.div
@@ -171,7 +171,7 @@ const OnboardComplete: React.FC = () => {
                                                 Your Vision starts here.
                                             </p>
                                             <p className="text-para-md text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                                                The next step? A seamless, visual journey built around your taste.
+                                                A seamless, visual journey tailored to your taste.
                                             </p>
                                         </motion.div>
                                     )}
@@ -197,15 +197,35 @@ const OnboardComplete: React.FC = () => {
                                                 transformOrigin: 'center'
                                             }}
                                         >
-                                            <SimpleButton
-                                                variant="solid"
-                                                size="lg"
-                                                className="w-full sm:w-auto min-w-[200px]"
-                                                onClick={() => navigate("/dashboard")}
+                                            {/* Primary button with subtle pulse animation */}
+                                            <motion.div
+                                                animate={{
+                                                    scale: [1, 1.02, 1],
+                                                    opacity: [1, 0.95, 1]
+                                                }}
+                                                transition={{
+                                                    duration: 1,
+                                                    delay: 1,
+                                                    repeat: Infinity,
+                                                    repeatDelay: 1,
+                                                    ease: [0.4, 0, 0.6, 1]
+                                                }}
+                                                style={{
+                                                    willChange: 'transform, opacity',
+                                                    transformOrigin: 'center'
+                                                }}
                                             >
-                                                <FaHome className="mr-sm" />
-                                                Go to Dashboard
-                                            </SimpleButton>
+                                                <SimpleButton
+                                                    variant="solid"
+                                                    size="lg"
+                                                    className="w-full sm:w-auto min-w-[200px]"
+                                                    onClick={() => navigate("/intake")}
+                                                >
+                                                    <FaHome className="mr-sm" />
+                                                    Pick Your Style
+                                                </SimpleButton>
+                                            </motion.div>
+                                            
                                             <SimpleButton
                                                 variant="outline"
                                                 size="lg"
@@ -213,7 +233,7 @@ const OnboardComplete: React.FC = () => {
                                                 onClick={() => navigate('/intake')}
                                             >
                                                 <FaPaintBrush className="mr-sm" />
-                                                Keep Designing
+                                                Go to Dashboard
                                             </SimpleButton>
                                         </motion.div>
                                     )}
