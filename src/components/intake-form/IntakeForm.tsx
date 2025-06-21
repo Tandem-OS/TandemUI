@@ -408,7 +408,7 @@ const IntakeForm: React.FC = () => {
             <div className="flex-1 flex flex-col z-10">
                 <SimpleHeader />
 
-                <div className="flex-1 flex items-center justify-center p-lg">
+                <div className="flex-1 flex items-center justify-center px-lg">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentScreen}

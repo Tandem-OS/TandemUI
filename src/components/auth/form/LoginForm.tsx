@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Input from './components/Input';
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
@@ -11,6 +11,7 @@ const LoginForm = () => {
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -34,6 +35,7 @@ const LoginForm = () => {
       // simulate API delay
       await new Promise(resolve => setTimeout(resolve, 3000));
       console.log('Logged in!', values);
+      navigate("/first");
     } catch (err) {
       console.error(err);
     } finally {

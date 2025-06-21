@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { FaSun, FaMoon } from 'react-icons/fa';
 
-// Components
 const ThemeToggle = () => {
-    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+    const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
     useEffect(() => {
-        // Check for saved theme preference or default to 'dark'
         const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-        const initialTheme = savedTheme || 'dark';
+        const initialTheme = savedTheme || 'light';
         setTheme(initialTheme);
         document.documentElement.classList.toggle('dark', initialTheme === 'dark');
     }, []);
@@ -31,4 +29,4 @@ const ThemeToggle = () => {
     );
 };
 
-export default ThemeToggle
+export default ThemeToggle;

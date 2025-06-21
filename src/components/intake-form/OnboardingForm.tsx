@@ -8,6 +8,7 @@ import Input from '../auth/form/components/Input';
 import SimpleButton from '../demos/buttons/SimpleButton';
 import Heading from '../demos/typography/Heading';
 import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
+import { useNavigate } from 'react-router-dom';
 
 // Types
 interface OnboardingFormData {
@@ -152,6 +153,7 @@ const OnboardingForm: React.FC = () => {
     const [currentScreen, setCurrentScreen] = useState(1);
     const [formData, setFormData] = useState<OnboardingFormData>(initialFormData);
     const [buttonState, setButtonState] = useState<'default' | 'saving' | 'saved'>('default');
+    const navigate = useNavigate();
 
     const totalScreens = 4;
 
@@ -176,7 +178,7 @@ const OnboardingForm: React.FC = () => {
         }
     };
 
-    const navigate = async (next: boolean) => {
+    const navigater = async (next: boolean) => {
         if (!next) {
             if (currentScreen > 1) {
                 setCurrentScreen(currentScreen - 1);
@@ -186,8 +188,8 @@ const OnboardingForm: React.FC = () => {
 
         // Final submission - direct alert, no animation for last screen
         if (currentScreen === totalScreens) {
-            alert('Onboarding completed! You can now proceed to the detailed intake form.');
             console.log('Onboarding data:', formData);
+            navigate("/onboardcomplete")
             return;
         }
 
@@ -309,7 +311,7 @@ const OnboardingForm: React.FC = () => {
 
     return (
         <div className="relative min-h-screen flex bg-slate-100 dark:bg-gray-900 transition-colors">
-            <div className="flex-1 flex flex-col p-lg z-10">
+            <div className="flex-1 flex flex-col px-lg z-10">
 
                 <SimpleHeader />
 
@@ -327,7 +329,7 @@ const OnboardingForm: React.FC = () => {
                                 title={currentScreenData.title}
                                 subtitle={currentScreenData.subtitle}
                                 canSkip={currentScreenData.canSkip}
-                                onSkip={() => navigate(true)}
+                                onSkip={() => navigater(true)}
                                 buttonState={buttonState}
                                 isLastStep={currentScreen === totalScreens}
                             />
@@ -339,7 +341,7 @@ const OnboardingForm: React.FC = () => {
                                     <SimpleButton
                                         variant="outline"
                                         size="md"
-                                        onClick={() => navigate(false)}
+                                        onClick={() => navigater(false)}
                                         disabled={buttonState !== 'default'}
                                     >
                                         Back
@@ -348,7 +350,7 @@ const OnboardingForm: React.FC = () => {
                                 <SimpleButton
                                     variant="solid"
                                     size="md"
-                                    onClick={() => navigate(true)}
+                                    onClick={() => navigater(true)}
                                     disabled={buttonState !== 'default' || !isScreenValid(currentScreen)}
                                     className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
                                 >

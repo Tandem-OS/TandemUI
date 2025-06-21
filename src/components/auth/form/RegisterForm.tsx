@@ -3,7 +3,7 @@ import Input from './components/Input';
 import Heading from '../../demos/typography/Heading';
 import { FaArrowLeft, FaEnvelope, FaLock } from 'react-icons/fa';
 import SimpleButton from '../../demos/buttons/SimpleButton';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const RegisterForm = () => {
     const [values, setValues] = useState({ email: '', password: '', confirmPassword: '' });
@@ -12,7 +12,7 @@ const RegisterForm = () => {
         password?: string;
         confirmPassword?: string;
     }>({});
-
+    const navigate = useNavigate();
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setValues((prev) => ({ ...prev, [name]: value }));
@@ -47,6 +47,8 @@ const RegisterForm = () => {
         }
 
         console.log('Register form submitted with values:', values);
+        navigate("/first");
+
     };
 
     return (
