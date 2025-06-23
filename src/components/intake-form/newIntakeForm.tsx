@@ -10,6 +10,9 @@ import SimpleButton from '../demos/buttons/SimpleButton';
 import Heading from '../demos/typography/Heading';
 import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 import SuccessAnimation from '../animations-components/SuccessAnimation';
+import swipeAudio from ".././../assets/audio/swipeAudio.mp3";
+import winAudio from ".././../assets/audio/winAudio.mp3";
+import clickAudio from "../../assets/audio/clickAudio.mp3";
 
 const vibesImages = [
     { id: 1, name: "Bold", src: "/images/vibeImages/bold.webp" },
@@ -78,12 +81,18 @@ const getDropzoneClass = (isDragActive: boolean) =>
         : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
     }`;
 
+// Audio playback helper
+const playAudio = (audioSrc: string) => {
+    const audio = new Audio(audioSrc);
+    audio.play().catch(error => console.log('Audio playback failed:', error));
+};
+
 // King of the Hill Component
-const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, completedTones = [] }: { 
-    onComplete: (winners: string[]) => void, 
+const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, completedTones = [] }: {
+    onComplete: (winners: string[]) => void,
     onRetake?: () => void,
-    showResultsInitially?: boolean, 
-    completedTones?: string[] 
+    showResultsInitially?: boolean,
+    completedTones?: string[]
 }) => {
     const [currentWinner, setCurrentWinner] = useState<typeof vibesImages[0] | null>(null);
     const [challenger, setChallenger] = useState<typeof vibesImages[0] | null>(null);
@@ -95,6 +104,17 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
     const [showConfetti, setShowConfetti] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
     const [shakeWinner, setShakeWinner] = useState<number | null>(null);
+    const [previousChallengerId, setPreviousChallengerId] = useState<number | null>(null);
+
+    // Play swipe audio when challenger changes (new slide appears)
+    useEffect(() => {
+        if (challenger && previousChallengerId !== null && challenger.id !== previousChallengerId && isInitialized) {
+            playAudio(swipeAudio);
+        }
+        if (challenger) {
+            setPreviousChallengerId(challenger.id);
+        }
+    }, [challenger, previousChallengerId, isInitialized]);
 
     const initializeGame = () => {
         // Initialize scores
@@ -119,9 +139,9 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
         setSelectedCard(null);
         setIsTransitioning(false);
         setShowConfetti(false);
-        
+
         initializeGame();
-        
+
         // Call onRetake callback if provided
         if (onRetake) {
             onRetake();
@@ -139,6 +159,7 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
                 }));
                 setScores(mockScores);
                 setShowResults(true);
+                window.scrollTo(0, 0);
                 setIsInitialized(true);
             } else {
                 initializeGame();
@@ -146,69 +167,80 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
         }
     }, []); // Empty dependency array - only run once on mount
 
-    const handleSelection = async (winnerId: number, loserId: number) => {
+    const handleSelection = (winnerId: number, loserId: number) => {
         if (selectedCard !== null || isTransitioning) return;
-        
+
+        // Play click audio when card is selected
+        playAudio(clickAudio);
+
         setSelectedCard(winnerId);
         setIsTransitioning(true);
-        
+
         // Update scores
         const newScores = [...scores];
         const winnerIndex = newScores.findIndex(s => s.id === winnerId);
         const loserIndex = newScores.findIndex(s => s.id === loserId);
-        
+
         if (winnerIndex !== -1) newScores[winnerIndex].wins += 1;
         if (loserIndex !== -1) newScores[loserIndex].losses += 1;
-        
+
         setScores(newScores);
 
-        // Wait for checkmark animation
-        await new Promise(resolve => setTimeout(resolve, 600));
-        
         // Add shake animation to winner
         setShakeWinner(winnerId);
-        await new Promise(resolve => setTimeout(resolve, 600));
-        setShakeWinner(null);
         
+        // Remove shake after animation duration
+        setTimeout(() => {
+            setShakeWinner(null);
+        }, 600);
+
         // Check if we should continue
         if (remainingOptions.length === 0) {
-            // All vibes have been compared
-            setShowResults(true);
-            setShowConfetti(true);
-            
-            // Hide confetti after animation completes
+            // Show results immediately
             setTimeout(() => {
-                setShowConfetti(false);
-            }, 4000);
-            
-            // Get vibes that actually won at least once
-            const winnersOnly = newScores.filter(s => s.wins > 0);
-            const sortedWinners = winnersOnly.sort((a, b) => {
-                const ratioA = a.wins / (a.wins + a.losses || 1);
-                const ratioB = b.wins / (b.wins + b.losses || 1);
-                return ratioB - ratioA;
-            });
-            
-            // Take top 3 or less if fewer winners
-            const topVibes = sortedWinners
-                .slice(0, Math.min(3, sortedWinners.length))
-                .map(s => s.name.toLowerCase());
-            
-            onComplete(topVibes);
+                setShowResults(true);
+                setShowConfetti(true);
+                
+                // Play win audio when showing results
+                playAudio(winAudio);
+
+                // Get vibes that actually won at least once
+                const winnersOnly = newScores.filter(s => s.wins > 0);
+                const sortedWinners = winnersOnly.sort((a, b) => {
+                    const ratioA = a.wins / (a.wins + a.losses || 1);
+                    const ratioB = b.wins / (b.wins + b.losses || 1);
+                    return ratioB - ratioA;
+                });
+
+                // Take top 3 or less if fewer winners
+                const topVibes = sortedWinners
+                    .slice(0, Math.min(3, sortedWinners.length))
+                    .map(s => s.name.toLowerCase());
+
+                // Call onComplete AFTER showing results
+                onComplete(topVibes);
+
+                // Hide confetti after animation completes
+                setTimeout(() => {
+                    setShowConfetti(false);
+                }, 4000);
+            }, 800); // Small delay for shake animation to complete
         } else {
-            // Continue with next challenger
-            const winner = winnerId === currentWinner!.id ? currentWinner : challenger;
-            const nextChallenger = remainingOptions[0];
-            
-            setCurrentWinner(winner);
-            setChallenger(nextChallenger);
-            setRemainingOptions(remainingOptions.slice(1));
-            setSelectedCard(null);
-            setIsTransitioning(false);
+            // Continue with next challenger - update immediately
+            setTimeout(() => {
+                const winner = winnerId === currentWinner!.id ? currentWinner : challenger;
+                const nextChallenger = remainingOptions[0];
+
+                setCurrentWinner(winner);
+                setChallenger(nextChallenger);
+                setRemainingOptions(remainingOptions.slice(1));
+                setSelectedCard(null);
+                setIsTransitioning(false);
+            }, 800); // Quick transition for better flow
         }
     };
 
-    const topWinners = showResults 
+    const topWinners = showResults
         ? [...scores]
             .filter(s => s.wins > 0)  // Only show vibes that won at least once
             .sort((a, b) => {
@@ -247,19 +279,18 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
                                         rotate: [0, -8, 8, -6, 6, -3, 3, 0],
                                         scale: [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
                                     } : {}}
-                                    transition={{ 
+                                    transition={{
                                         duration: 0.6,
                                         ease: "easeInOut",
                                         times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
                                     }}
-                                    className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full md:w-72 ${
-                                        selectedCard === currentWinner!.id 
-                                            ? 'ring-4 ring-accent-default ring-opacity-50' 
+                                    className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full md:w-72 ${selectedCard === currentWinner!.id
+                                            ? 'ring-4 ring-accent-default ring-opacity-50'
                                             : ''
-                                    } ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                        } ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                 >
-                                    <img 
-                                        src={currentWinner!.src} 
+                                    <img
+                                        src={currentWinner!.src}
                                         alt={currentWinner!.name}
                                         className="w-full md:w-72 h-80 object-cover"
                                     />
@@ -299,31 +330,30 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
                                         onClick={() => handleSelection(challenger!.id, currentWinner!.id)}
                                         disabled={isTransitioning}
                                         animate={
-                                            selectedCard === currentWinner!.id 
+                                            selectedCard === currentWinner!.id
                                                 ? { opacity: 0, y: -50 }
-                                                : shakeWinner === challenger!.id 
-                                                ? { 
-                                                    x: [0, -12, 12, -8, 8, -4, 4, 0],
-                                                    rotate: [0, -8, 8, -6, 6, -3, 3, 0],
-                                                    scale: [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
-                                                }
-                                                : { opacity: 1, y: 0 }
+                                                : shakeWinner === challenger!.id
+                                                    ? {
+                                                        x: [0, -12, 12, -8, 8, -4, 4, 0],
+                                                        rotate: [0, -8, 8, -6, 6, -3, 3, 0],
+                                                        scale: [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
+                                                    }
+                                                    : { opacity: 1, y: 0 }
                                         }
-                                        transition={{ 
+                                        transition={{
                                             duration: selectedCard === currentWinner!.id ? 0.3 : shakeWinner === challenger!.id ? 0.6 : 0.3,
                                             ease: "easeInOut",
                                             ...(shakeWinner === challenger!.id && {
                                                 times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
                                             })
                                         }}
-                                        className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full md:w-72 ${
-                                            selectedCard === challenger!.id 
-                                                ? 'ring-4 ring-accent-default ring-opacity-50' 
+                                        className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full md:w-72 ${selectedCard === challenger!.id
+                                                ? 'ring-4 ring-accent-default ring-opacity-50'
                                                 : ''
-                                        } ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                            } ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                     >
-                                        <img 
-                                            src={challenger!.src} 
+                                        <img
+                                            src={challenger!.src}
                                             alt={challenger!.name}
                                             className="w-full md:w-72 h-80 object-cover"
                                         />
@@ -399,7 +429,7 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
                                 Your Visual Direction {topWinners.length === 1 ? 'Winner' : 'Winners'}!
                             </h3>
                         </motion.div>
-                        
+
                         <div className="flex flex-col md:flex-row justify-center gap-md items-center">
                             {topWinners.map((winner, index) => (
                                 <motion.div
@@ -409,15 +439,13 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
                                     transition={{ delay: index * 0.2 + 0.6 }}
                                     className="relative"
                                 >
-                                    <div className={`rounded-xl overflow-hidden shadow-lg ${
-                                        index === 0 ? 'ring-4 ring-yellow-400' : ''
-                                    }`}>
-                                        <img 
-                                            src={winner.src} 
+                                    <div className={`rounded-xl overflow-hidden shadow-lg ${index === 0 ? 'ring-4 ring-yellow-400' : ''
+                                        }`}>
+                                        <img
+                                            src={winner.src}
                                             alt={winner.name}
-                                            className={`${
-                                                index === 0 ? 'w-48 h-48' : 'w-40 h-50'
-                                            } object-cover`}
+                                            className={`${index === 0 ? 'w-48 h-48' : 'w-40 h-50'
+                                                } object-cover`}
                                         />
                                         <div className="absolute top-2 right-2">
                                             {index === 0 ? (
@@ -438,7 +466,7 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
                                 </motion.div>
                             ))}
                         </div>
-                        
+
                         <div className="mt-md">
                             <button
                                 onClick={resetGame}
@@ -458,7 +486,7 @@ const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastSte
     <motion.div variants={fadeInLeft} className="mb-lg flex justify-between items-start">
         <div>
             <Heading level="h3" color="accent">{title}</Heading>
-            <p className="text-para-md text-gray-700 dark:text-gray-300">{subtitle}</p>
+            <p className="text-para-md text-gray-700 dark:text-gray-300 mt-sm">{subtitle}</p>
         </div>
         {canSkip && (
             <button
@@ -588,7 +616,7 @@ const NewIntakeForm: React.FC = () => {
             subtitle: "Choose your preferred style in head-to-head battles",
             content: (
                 <motion.div variants={fadeInLeft}>
-                    <KingOfTheHill 
+                    <KingOfTheHill
                         onComplete={handleVibeComplete}
                         onRetake={handleVibeRetake}
                         showResultsInitially={vibeSelectionComplete && showVibeResults}
