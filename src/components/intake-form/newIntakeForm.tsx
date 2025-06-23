@@ -94,6 +94,7 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
+    const [shakeWinner, setShakeWinner] = useState<number | null>(null);
 
     const initializeGame = () => {
         // Initialize scores
@@ -161,8 +162,13 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
         
         setScores(newScores);
 
-        // Wait for animation
+        // Wait for checkmark animation
         await new Promise(resolve => setTimeout(resolve, 600));
+        
+        // Add shake animation to winner
+        setShakeWinner(winnerId);
+        await new Promise(resolve => setTimeout(resolve, 600));
+        setShakeWinner(null);
         
         // Check if we should continue
         if (remainingOptions.length === 0) {
@@ -213,6 +219,15 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
             .slice(0, 3)  // Maximum 3, but could be less
         : [];
 
+    const getPlacementText = (index: number) => {
+        switch (index) {
+            case 0: return '1st';
+            case 1: return '2nd';
+            case 2: return '3rd';
+            default: return '';
+        }
+    };
+
     if (!showResults && (!currentWinner || !challenger)) return null;
 
     return (
@@ -227,6 +242,16 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
                                 <motion.button
                                     onClick={() => handleSelection(currentWinner!.id, challenger!.id)}
                                     disabled={isTransitioning}
+                                    animate={shakeWinner === currentWinner!.id ? {
+                                        x: [0, -12, 12, -8, 8, -4, 4, 0],
+                                        rotate: [0, -8, 8, -6, 6, -3, 3, 0],
+                                        scale: [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
+                                    } : {}}
+                                    transition={{ 
+                                        duration: 0.6,
+                                        ease: "easeInOut",
+                                        times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
+                                    }}
                                     className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full md:w-72 ${
                                         selectedCard === currentWinner!.id 
                                             ? 'ring-4 ring-accent-default ring-opacity-50' 
@@ -276,9 +301,21 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
                                         animate={
                                             selectedCard === currentWinner!.id 
                                                 ? { opacity: 0, y: -50 }
+                                                : shakeWinner === challenger!.id 
+                                                ? { 
+                                                    x: [0, -12, 12, -8, 8, -4, 4, 0],
+                                                    rotate: [0, -8, 8, -6, 6, -3, 3, 0],
+                                                    scale: [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
+                                                }
                                                 : { opacity: 1, y: 0 }
                                         }
-                                        transition={{ duration: 0.3 }}
+                                        transition={{ 
+                                            duration: selectedCard === currentWinner!.id ? 0.3 : shakeWinner === challenger!.id ? 0.6 : 0.3,
+                                            ease: "easeInOut",
+                                            ...(shakeWinner === challenger!.id && {
+                                                times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
+                                            })
+                                        }}
                                         className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full md:w-72 ${
                                             selectedCard === challenger!.id 
                                                 ? 'ring-4 ring-accent-default ring-opacity-50' 
@@ -395,8 +432,8 @@ const KingOfTheHill = ({ onComplete, onRetake, showResultsInitially = false, com
                                     <p className="mt-xs text-para-md font-medium text-gray-700 dark:text-gray-300">
                                         {winner.name}
                                     </p>
-                                    <p className="text-para-sm text-gray-500 dark:text-gray-400">
-                                        {winner.wins} wins
+                                    <p className="text-para-sm font-bold text-accent-default">
+                                        {getPlacementText(index)}
                                     </p>
                                 </motion.div>
                             ))}
