@@ -1,84 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaRocket, FaHome, FaPaintBrush } from 'react-icons/fa';
 import { containerVariant } from '../../lib/animations/variants';
 import SimpleButton from '../demos/buttons/SimpleButton';
-import Heading from '../demos/typography/Heading';
 import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 import { useNavigate } from 'react-router-dom';
-
-// Smooth Confetti particle component
-const ConfettiParticle = () => {
-    const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-    const randomColor = colors[Math.floor(Math.random() * colors.length)];
-    const randomX = (Math.random() - 0.5) * 800;
-    const randomY = -100 - Math.random() * 300; // Explode upward and outward
-    const randomRotate = Math.random() * 720;
-    const randomScale = 0.8 + Math.random() * 0.6; // Slightly bigger particles
-    const randomDelay = Math.random() * 0.3;
-
-    return (
-        <motion.div
-            className="absolute w-3 h-3 rounded-full pointer-events-none"
-            style={{
-                backgroundColor: randomColor,
-                left: '50%',
-                top: '20%', // Start from around the rocket/text area
-                willChange: 'transform, opacity',
-                transformOrigin: 'center',
-            }}
-            initial={{
-                x: 0,
-                y: 0,
-                scale: 0,
-                rotate: 0,
-                opacity: 0
-            }}
-            animate={{
-                x: randomX,
-                y: randomY,
-                scale: randomScale,
-                rotate: randomRotate,
-                opacity: [0, 1, 1, 0] // Smooth fade in and out
-            }}
-            transition={{
-                duration: 2.5,
-                delay: randomDelay,
-                ease: [0.25, 0.46, 0.45, 0.94], // Smooth custom easing
-                opacity: {
-                    duration: 2.5,
-                    times: [0, 0.15, 0.8, 1], // Quick fade in, long visible, smooth fade out
-                    ease: "easeOut"
-                }
-            }}
-        />
-    );
-};
+import SuccessAnimation from '../animations-components/SuccessAnimation';
 
 const OnboardComplete: React.FC = () => {
-    const [showContent, setShowContent] = useState(false);
-    const [showConfetti, setShowConfetti] = useState(true);
     const navigate = useNavigate();
+    const [showContent, setShowContent] = useState(false);
 
-    useEffect(() => {
-        // Show content after initial animation
+    // Show content after initial animation
+    React.useEffect(() => {
         const timer = setTimeout(() => {
             setShowContent(true);
         }, 800);
 
-        // Hide confetti after animation completes
-        const confettiTimer = setTimeout(() => {
-            setShowConfetti(false);
-        }, 4000); // Increased time for slower animation
-
-        return () => {
-            clearTimeout(timer);
-            clearTimeout(confettiTimer);
-        };
+        return () => clearTimeout(timer);
     }, []);
 
     return (
         <div className="relative min-h-screen flex bg-slate-100 dark:bg-gray-900 transition-colors overflow-hidden">
+
             <div className="flex-1 flex flex-col z-10">
                 <SimpleHeader />
 
@@ -89,26 +33,14 @@ const OnboardComplete: React.FC = () => {
                         animate="animate"
                         className="w-full max-w-3xl mx-auto relative"
                     >
-                        {/* Smooth Confetti Container */}
-                        <AnimatePresence>
-                            {showConfetti && (
-                                <div
-                                    className="absolute inset-0 pointer-events-none z-40"
-                                    style={{
-                                        contain: 'layout style',
-                                        transform: 'translateZ(0)', // Force GPU acceleration
-                                    }}
-                                >
-                                    {Array.from({ length: 80 }).map((_, i) => ( // Increased confetti count
-                                        <ConfettiParticle key={i} />
-                                    ))}
-                                </div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Main Content - Fixed height to prevent layout shift */}
-                        <div className="relative z-10 text-center flex flex-col items-center justify-start min-h-[500px]">
-                            {/* Rocket Icon with animation */}
+                        <div className="relative min-h-[500px] z-10 text-center flex flex-col items-center justify-start">
+                            {/* Confetti Animation */}
+                            <SuccessAnimation
+                                showConfetti={true}
+                                confettiCount={80}
+                                confettiDuration={4000}
+                            />
+                            {/* Icon with animation */}
                             <motion.div
                                 initial={{ scale: 0, rotate: -180 }}
                                 animate={{ scale: 1, rotate: 0 }}
@@ -124,12 +56,12 @@ const OnboardComplete: React.FC = () => {
                                     transformOrigin: 'center'
                                 }}
                             >
-                                <div className="w-24 h-24 bg-accent-subtle max-lg:bg-opacity-20 dark:bg-opacity-20 rounded-full flex items-center justify-center">
+                                <div className="w-24 h-24 bg-accent-subtle dark:bg-opacity-20 rounded-full flex items-center justify-center">
                                     <FaRocket className="text-5xl text-accent-default" />
                                 </div>
                             </motion.div>
 
-                            {/* Hurray Text with bounce animation */}
+                            {/* Title with bounce animation */}
                             <motion.div
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
@@ -145,13 +77,14 @@ const OnboardComplete: React.FC = () => {
                                     transformOrigin: 'center'
                                 }}
                             >
-                                <Heading level="h1" className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white">
-                                    Hurray!
-                                </Heading>
+
+                                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white">
+                                    Let's Build
+                                </h1>
                             </motion.div>
 
                             {/* Content wrapper with reserved space */}
-                            <div className="h-[100px] flex flex-col justify-start">
+                            <div className="min-h-[100px] flex flex-col justify-start">
                                 <AnimatePresence>
                                     {showContent && (
                                         <motion.div
@@ -178,8 +111,8 @@ const OnboardComplete: React.FC = () => {
                                 </AnimatePresence>
                             </div>
 
-                            {/* Buttons with reserved space */}
-                            <div className="h-[60px] flex items-center mt-lg lg:mt-none">
+                            {/* Buttons */}
+                            <div className="min-h-[60px] flex items-center mt-lg lg:mt-none">
                                 <AnimatePresence>
                                     {showContent && (
                                         <motion.div
@@ -191,50 +124,51 @@ const OnboardComplete: React.FC = () => {
                                                 delay: 0.2,
                                                 ease: [0.25, 0.46, 0.45, 0.94]
                                             }}
-                                            className="flex flex-col sm:flex-row gap-sm justify-center items-center"
                                             style={{
                                                 willChange: 'transform, opacity',
                                                 transformOrigin: 'center'
                                             }}
                                         >
-                                            {/* Primary button with subtle pulse animation */}
-                                            <motion.div
-                                                animate={{
-                                                    scale: [1, 1.02, 1],
-                                                    opacity: [1, 0.95, 1]
-                                                }}
-                                                transition={{
-                                                    duration: 1,
-                                                    delay: 1,
-                                                    repeat: Infinity,
-                                                    repeatDelay: 1,
-                                                    ease: [0.4, 0, 0.6, 1]
-                                                }}
-                                                style={{
-                                                    willChange: 'transform, opacity',
-                                                    transformOrigin: 'center'
-                                                }}
-                                            >
+                                            <div className="flex flex-col sm:flex-row gap-sm justify-center items-center">
+                                                {/* Primary button with subtle pulse animation */}
+                                                <motion.div
+                                                    animate={{
+                                                        scale: [1, 1.02, 1],
+                                                        opacity: [1, 0.95, 1]
+                                                    }}
+                                                    transition={{
+                                                        duration: 1,
+                                                        delay: 1,
+                                                        repeat: Infinity,
+                                                        repeatDelay: 1,
+                                                        ease: [0.4, 0, 0.6, 1]
+                                                    }}
+                                                    style={{
+                                                        willChange: 'transform, opacity',
+                                                        transformOrigin: 'center'
+                                                    }}
+                                                >
+                                                    <SimpleButton
+                                                        variant="solid"
+                                                        size="lg"
+                                                        className="w-full sm:w-auto min-w-[200px]"
+                                                        onClick={() => navigate("/intake")}
+                                                    >
+                                                        <FaPaintBrush className="mr-sm" />
+                                                        Pick Your Style
+                                                    </SimpleButton>
+                                                </motion.div>
+
                                                 <SimpleButton
-                                                    variant="solid"
+                                                    variant="outline"
                                                     size="lg"
                                                     className="w-full sm:w-auto min-w-[200px]"
-                                                    onClick={() => navigate("/intake")}
+                                                    onClick={() => navigate('/intake')}
                                                 >
-                                                    <FaPaintBrush className="mr-sm" />
-                                                    Pick Your Style
+                                                    <FaHome className="mr-sm" />
+                                                    Go to Dashboard
                                                 </SimpleButton>
-                                            </motion.div>
-
-                                            <SimpleButton
-                                                variant="outline"
-                                                size="lg"
-                                                className="w-full sm:w-auto min-w-[200px]"
-                                                onClick={() => navigate('/intake')}
-                                            >
-                                                <FaHome className="mr-sm" />
-                                                Go to Dashboard
-                                            </SimpleButton>
+                                            </div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>

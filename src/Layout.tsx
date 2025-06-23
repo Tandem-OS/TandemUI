@@ -7,6 +7,7 @@ import OnboardingForm from "./components/intake-form/OnboardingForm"
 import IntakeForm from "./components/intake-form/IntakeForm"
 import OnboardComplete from "./components/onboard-completed/OnboardComplete"
 import Dashboard from "./dashboard/Dashboard"
+import NewIntakeForm from "./components/intake-form/newIntakeForm"
 
 const Layout = () => {
     return (
@@ -18,7 +19,7 @@ const Layout = () => {
                 <Route path="/intake-form-new" element={<IntakeFormRefactored />} />
                 <Route path="/first" element={<OnboardingForm />} />
                 <Route path="/onboardcomplete" element={<OnboardComplete />} />
-                <Route path="/intake" element={<IntakeForm />} />
+                <Route path="/intake" element={<NewIntakeForm />} />
                 <Route path="/dashboard" element={<Dashboard />} />
             </Routes>
         </main>
