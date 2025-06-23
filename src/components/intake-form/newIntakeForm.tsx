@@ -47,7 +47,6 @@ interface VibeScore {
     losses: number;
 }
 
-// Constants
 const initialFormData: IntakeFormData = {
     tones: [],
     keyFeatures: '',
@@ -69,7 +68,6 @@ const OPTIONS = {
     ]
 };
 
-// Utility functions
 const getButtonClass = (isSelected: boolean, disabled = false) =>
     `transition-all ${isSelected
         ? 'border-accent-default bg-accent-subtle bg-opacity-20 text-accent-default dark:text-white'
@@ -81,7 +79,6 @@ const getDropzoneClass = (isDragActive: boolean) =>
         : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
     }`;
 
-// Audio playback helper
 const playAudio = (audioSrc: string) => {
     const audio = new Audio(audioSrc);
     audio.play().catch(error => console.log('Audio playback failed:', error));
