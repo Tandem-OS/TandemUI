@@ -1,3 +1,4 @@
+// IntakeForm.tsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -9,60 +10,10 @@ import Input from '../auth/form/components/Input';
 import SimpleButton from '../demos/buttons/SimpleButton';
 import Heading from '../demos/typography/Heading';
 import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
+import { KingOfTheHill } from './KingOfTheHill';
+import { initialFormData, suggestedPageChips, OPTIONS } from './constants';
+import { type IntakeFormData, type ButtonState } from './types';
 
-// Types
-interface IntakeFormData {
-    tones: string[];
-    keyFeatures: string;
-    inspirationUrls: string[];
-    colorStrategy: 'match-logo' | 'pick-for-me' | 'custom';
-    customColors: string;
-    deadline: string;
-    notSureDeadline: boolean;
-    currentSiteUrl: string;
-    brandGuide: File | null;
-    additionalDetails: string;
-}
-
-interface Option {
-    id: string;
-    label: string;
-    emoji?: string;
-}
-
-// Constants
-const initialFormData: IntakeFormData = {
-    tones: [],
-    keyFeatures: '',
-    inspirationUrls: [''],
-    colorStrategy: 'match-logo',
-    customColors: '',
-    deadline: '',
-    notSureDeadline: false,
-    currentSiteUrl: '',
-    brandGuide: null,
-    additionalDetails: '',
-};
-
-const OPTIONS = {
-    tones: [
-        { id: 'bold', label: 'Bold', emoji: '💪' },
-        { id: 'minimal', label: 'Minimal', emoji: '⚡' },
-        { id: 'fun', label: 'Fun', emoji: '🎉' },
-        { id: 'elegant', label: 'Elegant', emoji: '✨' },
-        { id: 'clean', label: 'Clean', emoji: '🧼' },
-        { id: 'playful', label: 'Playful', emoji: '🎨' },
-        { id: 'earthy', label: 'Earthy', emoji: '🌿' },
-        { id: 'luxury', label: 'Luxury', emoji: '💎' },
-    ],
-    colorStrategies: [
-        { id: 'match-logo', label: 'Match my logo' },
-        { id: 'pick-for-me', label: 'Pick for me' },
-        { id: 'custom', label: 'Custom' },
-    ]
-};
-
-// Utility functions
 const getButtonClass = (isSelected: boolean, disabled = false) =>
     `transition-all ${isSelected
         ? 'border-accent-default bg-accent-subtle bg-opacity-20 text-accent-default dark:text-white'
@@ -74,12 +25,12 @@ const getDropzoneClass = (isDragActive: boolean) =>
         : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
     }`;
 
-
+// ScreenHeader Component
 const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastStep }: any) => (
     <motion.div variants={fadeInLeft} className="mb-lg flex justify-between items-start">
         <div>
             <Heading level="h3" color="accent">{title}</Heading>
-            <p className="text-para-md text-gray-700 dark:text-gray-300">{subtitle}</p>
+            <p className="text-para-md text-gray-700 dark:text-gray-300 mt-sm">{subtitle}</p>
         </div>
         {canSkip && (
             <button
@@ -93,22 +44,7 @@ const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastSte
     </motion.div>
 );
 
-const SelectionGrid = ({ options, selected, onSelect, columns = 3, multiSelect = false }: any) => (
-    <div className={`grid grid-cols-2 md:grid-cols-${columns} gap-sm`}>
-        {options.map((option: Option) => (
-            <button
-                key={option.id}
-                type="button"
-                onClick={() => onSelect(option.id)}
-                className={`p-sm rounded-lg border-2 text-center ${getButtonClass(multiSelect ? selected.includes(option.id) : selected === option.id)}`}
-            >
-                {option.emoji && <span className="text-2xl">{option.emoji}</span>}
-                <span className="text-para-sm">{option.label}</span>
-            </button>
-        ))}
-    </div>
-);
-
+// FileUpload Component
 const FileUpload = ({ file, onFile }: any) => {
     const [dragActive, setDragActive] = useState(false);
 
@@ -160,10 +96,12 @@ const FileUpload = ({ file, onFile }: any) => {
 const IntakeForm: React.FC = () => {
     const [currentScreen, setCurrentScreen] = useState(1);
     const [formData, setFormData] = useState<IntakeFormData>(initialFormData);
-    const [buttonState, setButtonState] = useState<'default' | 'saving' | 'saved'>('default');
+    const [buttonState, setButtonState] = useState<ButtonState>('default');
+    const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
+    const [showVibeResults, setShowVibeResults] = useState(false);
 
     const totalScreens = 5;
-    const canSkip = true; // All screens can be skipped in the intake form
+    const canSkip = currentScreen > 1; // First screen cannot be skipped
 
     const updateForm = (updates: Partial<IntakeFormData>) =>
         setFormData(prev => ({ ...prev, ...updates }));
@@ -172,11 +110,28 @@ const IntakeForm: React.FC = () => {
         updateForm({ brandGuide: file });
     };
 
+    const handleVibeComplete = (winners: string[]) => {
+        updateForm({ tones: winners });
+        setVibeSelectionComplete(true);
+        setShowVibeResults(true);
+    };
+
+    const handleVibeRetake = () => {
+        setShowVibeResults(false);
+        setVibeSelectionComplete(false);
+        updateForm({ tones: [] });
+    };
+
     const navigate = async (next: boolean) => {
         if (!next) {
             if (currentScreen > 1) {
                 setCurrentScreen(currentScreen - 1);
             }
+            return;
+        }
+
+        // Check if first screen is complete
+        if (currentScreen === 1 && !vibeSelectionComplete) {
             return;
         }
 
@@ -203,23 +158,148 @@ const IntakeForm: React.FC = () => {
     const screens = [
         {
             title: "Visual Direction",
-            subtitle: "Help us capture your vision",
+            subtitle: "Choose your preferred style in head-to-head battles",
+            content: (
+                <motion.div variants={fadeInLeft}>
+                    <KingOfTheHill
+                        onComplete={handleVibeComplete}
+                        onRetake={handleVibeRetake}
+                        showResultsInitially={vibeSelectionComplete && showVibeResults}
+                        completedTones={formData.tones}
+                    />
+                </motion.div>
+            )
+        },
+        {
+            title: "Key Features & Pages",
+            subtitle: "What pages or functionality do you need for your project?",
             content: (
                 <>
                     <motion.div variants={fadeInLeft} className="mb-md">
-                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">What vibe are you going for?</label>
-                        <p className="text-gray-500 dark:text-gray-400 text-para-sm mb-sm">Select all that apply</p>
-                        <SelectionGrid
-                            options={OPTIONS.tones}
-                            selected={formData.tones}
-                            onSelect={(id: string) => updateForm({
-                                tones: formData.tones.includes(id)
-                                    ? formData.tones.filter(t => t !== id)
-                                    : [...formData.tones, id]
-                            })}
-                            columns={4}
-                            multiSelect
-                        />
+                        <p className="text-para-sm text-gray-600 dark:text-gray-400 mb-md">
+                            Quickly select common options or type your own below.
+                        </p>
+
+                        {/* Suggested Chips */}
+                        <div className="mb-md">
+                            <div className="flex flex-wrap gap-sm">
+                                {suggestedPageChips.map((feature) => {
+                                    const isSelected = formData.keyFeatures.toLowerCase().includes(feature.toLowerCase());
+                                    return (
+                                        <button
+                                            key={feature}
+                                            type="button"
+                                            onClick={() => {
+                                                const currentFeatures = formData.keyFeatures.trim();
+                                                const featuresArray = currentFeatures ? currentFeatures.split('\n').filter(f => f.trim()) : [];
+
+                                                if (isSelected) {
+                                                    // Remove the feature
+                                                    const updatedFeatures = featuresArray.filter(f =>
+                                                        !f.toLowerCase().includes(feature.toLowerCase())
+                                                    );
+                                                    updateForm({ keyFeatures: updatedFeatures.join('\n') });
+                                                } else {
+                                                    // Add the feature
+                                                    featuresArray.push(feature);
+                                                    updateForm({ keyFeatures: featuresArray.join('\n') });
+                                                }
+                                            }}
+                                            className={`px-sm py-xs rounded-full text-para-xs transition-all ${isSelected
+                                                ? 'bg-accent-default text-white hover:bg-accent-hover'
+                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                }`}
+                                        >
+                                            {feature}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Visual Separator */}
+                        <div className="relative my-md">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                            </div>
+                            <div className="relative flex justify-center text-para-sm">
+                                <span className="px-sm bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                                    or add custom features
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Textarea */}
+                        <div>
+                            <label className="block mb-xs text-para-sm text-gray-700 dark:text-gray-200">
+                                Your selected features and custom additions
+                            </label>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-sm">
+                                You can add multiple pages or features, one per line.
+                            </p>
+                            <textarea
+                                value={formData.keyFeatures}
+                                onChange={(e) => updateForm({ keyFeatures: e.target.value })}
+                                placeholder="e.g. Homepage, Blog, Booking System"
+                                rows={6}
+                                className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg py-sm px-md border border-gray-200 dark:border-gray-700 focus:border-accent-default outline-none transition-all resize-none"
+                            />
+                        </div>
+                    </motion.div>
+                </>
+            )
+        },
+        {
+            title: "Style References & Colors",
+            subtitle: "Share websites that inspire you and your color preferences",
+            content: (
+                <>
+                    <motion.div variants={fadeInLeft} className="mb-md">
+                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Any websites or designs you like?</label>
+                        <p className="text-gray-500 dark:text-gray-400 text-para-sm mb-sm">Drop any links that inspire you</p>
+                        <div className="space-y-xs">
+                            {formData.inspirationUrls.map((url, index) => (
+                                <div key={index} className="flex gap-xs">
+                                    <div className="relative flex-1">
+                                        <Input
+                                            type="url"
+                                            value={url}
+                                            onChange={(e) => {
+                                                const newUrls = [...formData.inspirationUrls];
+                                                newUrls[index] = e.target.value;
+                                                updateForm({ inspirationUrls: newUrls });
+                                            }}
+                                            placeholder="https://inspiration-site.com"
+                                            className="pl-10"
+                                            variant='filled'
+                                        />
+                                        <FaLink className="absolute left-md top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                    </div>
+                                    {formData.inspirationUrls.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => updateForm({
+                                                inspirationUrls: formData.inspirationUrls.filter((_, i) => i !== index)
+                                            })}
+                                            className="text-gray-400 hover:text-red-400 transition-colors"
+                                        >
+                                            <FaTimesCircle className="text-xl" />
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                            {formData.inspirationUrls.length < 5 && (
+                                <button
+                                    type="button"
+                                    onClick={() => updateForm({
+                                        inspirationUrls: [...formData.inspirationUrls, '']
+                                    })}
+                                    className="flex items-center gap-xs text-accent-default hover:text-accent-hover text-para-sm transition-colors"
+                                >
+                                    <FaPlusCircle /> Add another link
+                                </button>
+                            )}
+                        </div>
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
                         <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Do you have any brand colors in mind?</label>
@@ -250,75 +330,6 @@ const IntakeForm: React.FC = () => {
                         </div>
                     </motion.div>
                 </>
-            )
-        },
-        {
-            title: "Key Features & Pages",
-            subtitle: "What functionality do you need?",
-            content: (
-                <motion.div variants={fadeInLeft} className="mb-lg">
-                    <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">List the key pages or features you need</label>
-                    <textarea
-                        value={formData.keyFeatures}
-                        onChange={(e) => updateForm({ keyFeatures: e.target.value })}
-                        placeholder="E.g., Homepage, About Us, Product catalog, Blog, Contact form, Newsletter signup, User dashboard..."
-                        rows={8}
-                        className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg py-sm px-md border border-gray-200 dark:border-gray-700 focus:border-accent-default outline-none transition-all resize-none"
-                    />
-                </motion.div>
-            )
-        },
-        {
-            title: "Style References",
-            subtitle: "Share websites or designs that inspire you",
-            content: (
-                <motion.div variants={fadeInLeft} className="mb-lg">
-                    <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Any websites or designs you like?</label>
-                    <p className="text-gray-500 dark:text-gray-400 text-para-sm mb-sm">Drop any links that inspire you</p>
-                    <div className="space-y-xs">
-                        {formData.inspirationUrls.map((url, index) => (
-                            <div key={index} className="flex gap-xs">
-                                <div className="relative flex-1">
-                                    <Input
-                                        type="url"
-                                        value={url}
-                                        onChange={(e) => {
-                                            const newUrls = [...formData.inspirationUrls];
-                                            newUrls[index] = e.target.value;
-                                            updateForm({ inspirationUrls: newUrls });
-                                        }}
-                                        placeholder="https://inspiration-site.com"
-                                        className="pl-10"
-                                        variant='filled'
-                                    />
-                                    <FaLink className="absolute left-md top-1/2 transform -translate-y-1/2 text-gray-400" />
-                                </div>
-                                {formData.inspirationUrls.length > 1 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => updateForm({
-                                            inspirationUrls: formData.inspirationUrls.filter((_, i) => i !== index)
-                                        })}
-                                        className="text-gray-400 hover:text-red-400 transition-colors"
-                                    >
-                                        <FaTimesCircle className="text-xl" />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                        {formData.inspirationUrls.length < 5 && (
-                            <button
-                                type="button"
-                                onClick={() => updateForm({
-                                    inspirationUrls: [...formData.inspirationUrls, '']
-                                })}
-                                className="flex items-center gap-xs text-accent-default hover:text-accent-hover text-para-sm transition-colors"
-                            >
-                                <FaPlusCircle /> Add another link
-                            </button>
-                        )}
-                    </div>
-                </motion.div>
             )
         },
         {
@@ -403,6 +414,9 @@ const IntakeForm: React.FC = () => {
 
     const currentScreenData = screens[currentScreen - 1];
 
+    // Check if we should hide the header (first screen with results showing)
+    const shouldHideHeader = currentScreen === 1 && showVibeResults;
+
     return (
         <div className="relative min-h-screen flex bg-slate-100 dark:bg-gray-900 transition-colors">
             <div className="flex-1 flex flex-col z-10">
@@ -418,18 +432,20 @@ const IntakeForm: React.FC = () => {
                             exit="exit"
                             className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg shadow-xl transition-colors"
                         >
-                            <ScreenHeader
-                                title={currentScreenData.title}
-                                subtitle={currentScreenData.subtitle}
-                                canSkip={canSkip}
-                                onSkip={() => navigate(true)}
-                                buttonState={buttonState}
-                                isLastStep={currentScreen === totalScreens}
-                            />
+                            {!shouldHideHeader && (
+                                <ScreenHeader
+                                    title={currentScreenData.title}
+                                    subtitle={currentScreenData.subtitle}
+                                    canSkip={canSkip}
+                                    onSkip={() => navigate(true)}
+                                    buttonState={buttonState}
+                                    isLastStep={currentScreen === totalScreens}
+                                />
+                            )}
 
                             {currentScreenData.content}
 
-                            <motion.div variants={fadeInLeft} className="flex justify-between">
+                            <motion.div variants={fadeInLeft} className="flex justify-between mt-md">
                                 {currentScreen > 1 && (
                                     <SimpleButton
                                         variant="outline"
@@ -440,18 +456,20 @@ const IntakeForm: React.FC = () => {
                                         Back
                                     </SimpleButton>
                                 )}
-                                <SimpleButton
-                                    variant="solid"
-                                    size="md"
-                                    onClick={() => navigate(true)}
-                                    disabled={buttonState !== 'default'}
-                                    className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
-                                >
-                                    {buttonState === 'saving' && currentScreen < totalScreens ? 'Saving...' :
-                                        buttonState === 'saved' && currentScreen < totalScreens ? <>Saved <FaCheck className="ml-xs" /></> :
-                                            currentScreen === totalScreens ? 'Start My Project' :
-                                                <>Next <FaArrowRight className="ml-xs" /></>}
-                                </SimpleButton>
+                                {(currentScreen > 1 || vibeSelectionComplete) && (
+                                    <SimpleButton
+                                        variant="solid"
+                                        size="md"
+                                        onClick={() => navigate(true)}
+                                        disabled={buttonState !== 'default' || (currentScreen === 1 && !vibeSelectionComplete)}
+                                        className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
+                                    >
+                                        {buttonState === 'saving' && currentScreen < totalScreens ? 'Saving...' :
+                                            buttonState === 'saved' && currentScreen < totalScreens ? <>Saved <FaCheck className="ml-xs" /></> :
+                                                currentScreen === totalScreens ? 'Start My Project' :
+                                                    <>Next <FaArrowRight className="ml-xs" /></>}
+                                    </SimpleButton>
+                                )}
                             </motion.div>
                         </motion.div>
                     </AnimatePresence>

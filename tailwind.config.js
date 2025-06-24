@@ -249,6 +249,7 @@ module.exports = {
         '5xl': '6rem'
       },
       fontSize: {
+        'para-xs': '0.675rem',
         'para-sm': '0.875rem',
         'para-md': '1rem',
         'para-lg': '1.125rem',

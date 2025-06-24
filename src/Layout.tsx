@@ -1,26 +1,22 @@
 import { Route, Routes } from "react-router-dom"
 import TestPreview from "./pages/TestPreview"
 import AuthLayout from "./components/auth/layoouts/AuthLayout"
-import IntakeFormContainer from "./components/intake-form/IntakeFormContainer"
-import IntakeFormRefactored from "./components/intake-form/IntakeFormRefactored"
 import OnboardingForm from "./components/intake-form/OnboardingForm"
-// import IntakeForm from "./components/intake-form/IntakeForm"
 import OnboardComplete from "./components/onboard-completed/OnboardComplete"
 import Dashboard from "./dashboard/Dashboard"
-import NewIntakeForm from "./components/intake-form/newIntakeForm"
+import IntakeForm from "./components/intake-form/IntakeForm"
+import { ROUTES } from "./routes/routes"
 
 const Layout = () => {
     return (
         <main>
             <Routes>
-                <Route path="/" element={<TestPreview />} />
-                <Route path="/auth/*" element={<AuthLayout variant="split" />} />
-                <Route path="/intake-form" element={<IntakeFormContainer />} />
-                <Route path="/intake-form-new" element={<IntakeFormRefactored />} />
-                <Route path="/first" element={<OnboardingForm />} />
-                <Route path="/onboardcomplete" element={<OnboardComplete />} />
-                <Route path="/intake" element={<NewIntakeForm />} />
-                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path={ROUTES.HOME} element={<TestPreview />} />
+                <Route path={`${ROUTES.AUTH}/*`} element={<AuthLayout variant="split" />} />
+                <Route path={ROUTES.INTAKE_FORM} element={<IntakeForm />} />
+                <Route path={ROUTES.ONBOARD_COMPLETE} element={<OnboardComplete />} />
+                <Route path={ROUTES.ONBOARDING} element={<OnboardingForm />} />
+                <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
             </Routes>
         </main>
     )
