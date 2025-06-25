@@ -12,6 +12,7 @@
     "watch:tokens": "npm run gen:tw && chokidar \"src/design-system/tokens/**/*.json\" -c \"npm run gen:tw\""
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.50.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.16.0",

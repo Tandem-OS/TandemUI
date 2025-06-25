@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom"
 import TestPreview from "./pages/TestPreview"
-import AuthLayout from "./components/auth/layoouts/AuthLayout"
+import AuthLayout from "./components/auth/layouts/AuthLayout" // Fixed typo: layoouts -> layouts
 
 const Layout = () => {
     return (

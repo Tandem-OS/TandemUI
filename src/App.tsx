@@ -1,12 +1,15 @@
-import { BrowserRouter } from "react-router-dom"
-import Layout from "./Layout"
+import { BrowserRouter } from "react-router-dom";
+import { AuthProvider } from "./lib/providers/AuthProvider"; // Adjust the import path as needed
+import Layout from "./Layout";
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <Layout />
+    <BrowserRouter> 
+      <AuthProvider>
+        <Layout />
+      </AuthProvider>
     </BrowserRouter>
-  )
-}
+  );
+};
 
-export default App
+export default App;

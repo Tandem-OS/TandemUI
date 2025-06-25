@@ -1,87 +1,152 @@
 import { useState } from 'react';
-import { FaEnvelope, FaUser } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import Input from './components/Input';
 import Heading from '../../demos/typography/Heading';
-import SimpleButton from '../../demos/buttons/SimpleButton';
+import { FaEnvelope, FaArrowLeft } from 'react-icons/fa';
+import FormButton from './components/FormButton';
+import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
 
 const ResetPasswordForm = () => {
-    const [email, setEmail] = useState('');
-    const [error, setError] = useState<string | null>(null);
+  const { resetPassword } = useAuth();
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+  const handleResetPassword = async () => {
+    if (!email.trim()) {
+      setError('Email is required');
+      return;
+    }
 
-        if (!email.trim()) {
-            setError('Email is required');
-            return;
-        }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email');
+      return;
+    }
 
-        setError(null);
-        console.log('Sending reset email to:', email);
-    };
+    setLoading(true);
+    setError('');
 
+    try {
+      const { error } = await resetPassword(email);
+
+      if (error) {
+        setError(error.message || 'Failed to send reset email');
+      } else {
+        setSuccess(true);
+      }
+    } catch (err) {
+      console.error('Reset password error:', err);
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="w-full max-w-md bg-gray-800 rounded-2xl px-8 py-6 space-y-6 shadow-xl"
+      <div className="w-full max-w-md bg-gray-800 rounded-2xl px-8 py-6 space-y-6 shadow-xl">
+        <Link
+          to="/auth"
+          className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
         >
-            {/* Heading */}
-            <div>
-                <Heading level="h4" color="accent" align="left" weight="bold" className="mb-4">
-                    Reset Password
-                </Heading>
-                <p className="text-gray-200 text-sm">
-                    Enter your email to reset your password
-                </p>
-            </div>
+          <FaArrowLeft />
+          <span>Back to login</span>
+        </Link>
 
-            {/* Input */}
-            <Input
-                label="Email"
-                name="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                icon={<FaEnvelope />}
-                variant="filled"
-                primaryColor="#4f46e5"
-                error={error || undefined}
-                className="bg-gray-900"
-            />
-
-            {/* Submit */}
-            <SimpleButton size="md" fullWidth type="submit" variant="solid">
-                Send Reset Email
-            </SimpleButton>
-
-            {/* Divider */}
-            <div className="flex items-center gap-4 text-gray-400 text-sm py-4">
-                <div className="flex-1 h-px bg-gray-600" />
-                <span className="text-xs uppercase">or</span>
-                <div className="flex-1 h-px bg-gray-600" />
-            </div>
-
-            {/* Guest Button */}
-            <SimpleButton
-                type="button"
-                variant="outline"
-                fullWidth
-                className="flex items-center justify-center gap-2 text-white bg-gray-700 hover:bg-gray-600"
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          
+          <Heading level="h4" color="accent" align="center" weight="bold">
+            Check Your Email
+          </Heading>
+          
+          <p className="text-gray-300">
+            We've sent a password reset link to <span className="font-medium text-white">{email}</span>
+          </p>
+          
+          <p className="text-sm text-gray-400">
+            Didn't receive the email? Check your spam folder or{' '}
+            <button
+              onClick={() => {
+                setSuccess(false);
+                setEmail('');
+              }}
+              className="text-accent-default hover:underline"
             >
-                <FaUser className="text-lg" />
-                Continue as Guest
-            </SimpleButton>
-
-            {/* Back to Sign In */}
-            <p className="text-center text-accent-default font-medium text-sm">
-                <Link to="/auth" className="hover:underline">
-                    Back to Sign In
-                </Link>
-            </p>
-        </form>
+              try again
+            </button>
+          </p>
+        </div>
+      </div>
     );
+  }
+
+  return (
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        handleResetPassword();
+      }}
+      className="w-full max-w-md bg-gray-800 rounded-2xl px-8 py-6 space-y-6 shadow-xl"
+    >
+      <Link
+        to="/auth"
+        className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
+      >
+        <FaArrowLeft />
+        <span>Back to login</span>
+      </Link>
+
+      <div>
+        <Heading level="h4" color="accent" align="left" weight="bold" className="mb-4">
+          Reset Password
+        </Heading>
+        <p className="text-gray-200 text-sm">
+          Enter your email and we'll send you a link to reset your password
+        </p>
+      </div>
+
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
+      <Input
+        label="Email"
+        name="email"
+        type="email"
+        value={email}
+        onChange={(e) => {
+          setEmail(e.target.value);
+          setError('');
+        }}
+        placeholder="Enter your email"
+        icon={<FaEnvelope />}
+        variant="filled"
+        primaryColor="#4f46e5"
+        error={error && !error.includes('Failed') ? error : undefined}
+        className="bg-gray-900"
+        disabled={loading}
+      />
+
+      <FormButton
+        size="md"
+        fullWidth
+        variant="solid"
+        type="submit"
+        isLoading={loading}
+        disabled={loading}
+      >
+        Send Reset Link
+      </FormButton>
+    </form>
+  );
 };
 
 export default ResetPasswordForm;

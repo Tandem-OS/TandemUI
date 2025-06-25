@@ -1,44 +1,96 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import Input from './components/Input';
 import Heading from '../../demos/typography/Heading';
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
-
-import FormButton from './components/FormButton'; // <-- your new FormButton
+import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
+import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
 
 const LoginForm = () => {
+  const navigate = useNavigate();
+  const { signIn, signInWithGoogle } = useAuth();
+  
   const [values, setValues] = useState({ email: '', password: '' });
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setValues(prev => ({ ...prev, [name]: value }));
     if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors(prev => ({ ...prev, [name]: '', general: '' }));
     }
   };
 
-  const handleLogin = async () => {
-    // note: onSubmit handler for FormButton
+  const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
-    if (!values.email.trim()) newErrors.email = 'Email is required';
-    if (!values.password.trim()) newErrors.password = 'Password is required';
-    if (Object.keys(newErrors).length) {
+    
+    // Email validation
+    if (!values.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(values.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    
+    // Password validation
+    if (!values.password.trim()) {
+      newErrors.password = 'Password is required';
+    } else if (values.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    return newErrors;
+  };
+
+  const handleLogin = async () => {
+    // Clear any previous errors
+    setErrors({});
+    
+    // Validate form
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
     setLoading(true);
     try {
-      // simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      console.log('Logged in!', values);
+      const { error } = await signIn(values.email, values.password);
+
+      if (error) {
+        // Handle specific error cases
+        if (error.message.includes('Invalid login credentials')) {
+          setErrors({ general: 'Invalid email or password' });
+        } else if (error.message.includes('Email not confirmed')) {
+          setErrors({ general: 'Please verify your email before logging in' });
+        } else {
+          setErrors({ general: error.message || 'An error occurred during login' });
+        }
+      } else {
+        // Success! Redirect to dashboard or home
+        console.log('Login successful!');
+        navigate('/dashboard'); // Adjust the route as needed
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Login error:', err);
+      setErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await signInWithGoogle();
+
+      if (error) {
+        setErrors({ general: error.message || 'Failed to sign in with Google' });
+      }
+      // Note: OAuth redirects the user, so no need to handle success here
+    } catch (err) {
+      console.error('Google login error:', err);
+      setErrors({ general: 'Failed to sign in with Google' });
     }
   };
 
@@ -48,9 +100,7 @@ const LoginForm = () => {
         e.preventDefault();
         handleLogin();
       }}
-      
       className="w-full max-w-md bg-gray-800 rounded-2xl px-8 py-6 space-y-6 shadow-xl"
-      
     >
       {/* Back to Home */}
       <Link
@@ -75,6 +125,13 @@ const LoginForm = () => {
         <p className="text-gray-200 text-sm">Login Your Account</p>
       </div>
 
+      {/* General Error Message */}
+      {errors.general && (
+        <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
+          {errors.general}
+        </div>
+      )}
+
       {/* Inputs */}
       <div className="space-y-3">
         <Input
@@ -89,6 +146,7 @@ const LoginForm = () => {
           primaryColor="#4f46e5"
           error={errors.email}
           className="bg-gray-900"
+          disabled={loading}
         />
 
         <div>
@@ -105,6 +163,7 @@ const LoginForm = () => {
             primaryColor="#4f46e5"
             error={errors.password}
             className="bg-gray-900"
+            disabled={loading}
           />
           <div className="text-right mt-0.5">
             <Link
@@ -125,6 +184,7 @@ const LoginForm = () => {
         type="submit"
         isLoading={loading}
         onSubmit={handleLogin}
+        disabled={loading}
       >
         Sign in
       </FormButton>
@@ -136,6 +196,8 @@ const LoginForm = () => {
           variant="outline"
           fullWidth
           className="flex items-center justify-center gap-2 mt-2"
+          onClick={handleGoogleLogin}
+          disabled={loading}
         >
           <img src="/images/icons/google.svg" className="w-5" alt="google" />
           Sign in with Google
@@ -144,7 +206,7 @@ const LoginForm = () => {
 
       {/* Sign Up Redirect */}
       <p className="text-center text-gray-200 text-sm">
-        Don’t have an account?{' '}
+        Don't have an account?{' '}
         <Link to="/auth/signup" className="underline text-accent-default font-medium">
           Sign Up
         </Link>
