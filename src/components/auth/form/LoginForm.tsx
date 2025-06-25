@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Input from './components/Input';
+import Heading from '../../demos/typography/Heading';
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
-
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
 import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
@@ -15,7 +14,6 @@ const LoginForm = () => {
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
