@@ -4,9 +4,9 @@ import clsx from 'clsx';
 import { cva } from 'class-variance-authority';
 
 interface InputProps {
-    label: string;
-    name: string;
-    type: 'text' | 'email' | 'password';
+    label?: string;
+    name?: string;
+    type: 'text' | 'email' | 'password' | 'url';
     value: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
@@ -15,14 +15,10 @@ interface InputProps {
     error?: string;
     onFocus?: () => void;
     onBlur?: () => void;
+    onKeyPress?: () => void;
     variant?: 'default' | 'outlined' | 'filled';
-    primaryColor?: string; // HEX
     className?: string;
 }
-
-// Helper for inline color (HEX)
-const getInlineColor = (color?: string) =>
-    color?.startsWith('#') ? color : undefined;
 
 const Input: React.FC<InputProps> = ({
     label,
@@ -30,6 +26,7 @@ const Input: React.FC<InputProps> = ({
     type,
     value,
     onChange,
+    onKeyPress,
     placeholder,
     icon,
     showPasswordToggle = false,
@@ -37,7 +34,6 @@ const Input: React.FC<InputProps> = ({
     onFocus,
     onBlur,
     variant = 'default',
-    primaryColor = '#6366f1',
     className = '',
 }) => {
     const [showPassword, setShowPassword] = useState(false);
@@ -51,16 +47,31 @@ const Input: React.FC<InputProps> = ({
             : type;
 
     const inputVariants = cva(
-        'w-full rounded-md py-2 px-3 transition-all outline-none border',
+        'w-full rounded-lg py-sm px-md transition-all outline-none border text-para-md',
         {
             variants: {
                 variant: {
-                    default: 'bg-white text-gray-800 placeholder-gray-400 border-gray-300',
-                    outlined: 'bg-transparent text-gray-100 placeholder-gray-400 border-gray-600',
-                    filled: 'bg-gray-900 text-white placeholder-gray-400 border-gray-700',
+                    default: [
+                        // Light mode
+                        'bg-white text-gray-800 placeholder-gray-400 border-gray-300 focus:border-accent-default',
+                        // Dark mode
+                        'dark:bg-gray-900 dark:text-white dark:placeholder-gray-500 dark:border-gray-700 dark:focus:border-accent-default'
+                    ].join(' '),
+                    outlined: [
+                        // Light mode
+                        'bg-transparent text-gray-800 placeholder-gray-400 border-gray-400 focus:border-accent-default',
+                        // Dark mode
+                        'dark:bg-transparent dark:text-gray-100 dark:placeholder-gray-400 dark:border-gray-600 dark:focus:border-accent-default'
+                    ].join(' '),
+                    filled: [
+                        // Light mode
+                        'bg-gray-100 text-gray-900 placeholder-gray-500 border-gray-200 focus:border-accent-default',
+                        // Dark mode
+                        'dark:bg-gray-900 dark:text-white dark:placeholder-gray-400 dark:border-gray-700 dark:focus:border-accent-default'
+                    ].join(' '),
                 },
                 error: {
-                    true: 'border-red-500',
+                    true: 'border-red-500 focus:border-red-500 dark:border-red-500 dark:focus:border-red-500',
                     false: '',
                 },
             },
@@ -71,20 +82,10 @@ const Input: React.FC<InputProps> = ({
         }
     );
 
-    // Primary color styling (HEX only)
-    const inlineBorderColor = getInlineColor(primaryColor);
-    const inlineFocusBorder = isFocused && inlineBorderColor
-        ? { borderColor: primaryColor }
-        : {};
-
-    const inlineIconColor = inlineBorderColor
-        ? { color: primaryColor }
-        : {};
-
     return (
         <div className="w-full">
             {label && (
-                <label className="block mb-1 text-sm text-gray-200">
+                <label className="block mb-xs text-para-sm text-gray-700 dark:text-gray-200">
                     {label}
                 </label>
             )}
@@ -92,8 +93,10 @@ const Input: React.FC<InputProps> = ({
             <div className="relative flex items-center">
                 {icon && (
                     <div
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2"
-                        style={inlineIconColor}
+                        className={clsx(
+                            "absolute left-md top-1/2 transform -translate-y-1/2 transition-colors",
+                            isFocused ? "text-accent-default" : "text-gray-400 dark:text-gray-400"
+                        )}
                     >
                         {icon}
                     </div>
@@ -107,6 +110,7 @@ const Input: React.FC<InputProps> = ({
                     name={name}
                     value={value}
                     onChange={onChange}
+                    onKeyPress={onKeyPress}
                     onFocus={() => {
                         setIsFocused(true);
                         onFocus?.();
@@ -124,13 +128,11 @@ const Input: React.FC<InputProps> = ({
                         },
                         className
                     )}
-                    style={error ? undefined : inlineFocusBorder}
                 />
 
                 {type === 'password' && showPasswordToggle && (
                     <div
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
-                        style={inlineIconColor}
+                        className="absolute right-md top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
                         onClick={() => setShowPassword(!showPassword)}
                     >
                         {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -139,7 +141,7 @@ const Input: React.FC<InputProps> = ({
             </div>
 
             {error && (
-                <p className="text-sm text-red-500 mt-1">{error}</p>
+                <p className="text-para-sm text-red-500 mt-xs">{error}</p>
             )}
         </div>
     );

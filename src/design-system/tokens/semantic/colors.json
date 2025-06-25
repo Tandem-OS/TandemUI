@@ -18,7 +18,9 @@
         "success": "#047857",
         "error": "#be123c",
         "warning": "#b45309",
-        "info": "#0369a1"
+        "info": "#0369a1",
+        "light": "#f9fafb",
+        "lightSecondary": "#d1d5db"
     },
     "border": {
         "default": "#000000",

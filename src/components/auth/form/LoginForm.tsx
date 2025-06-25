@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Input from './components/Input';
-import Heading from '../../demos/typography/Heading';
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
 import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
@@ -14,6 +15,7 @@ const LoginForm = () => {
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -100,29 +102,25 @@ const LoginForm = () => {
         e.preventDefault();
         handleLogin();
       }}
-      className="w-full max-w-md bg-gray-800 rounded-2xl px-8 py-6 space-y-6 shadow-xl"
+      className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
     >
       {/* Back to Home */}
-      <Link
-        to="/"
-        className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
-      >
-        <FaArrowLeft />
-        <span>Back to home</span>
-      </Link>
+      <div className="flex justify-end">
+        <Link
+          to="/"
+          className="flex items-center gap-sm text-para-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+        >
+          <FaArrowLeft />
+          <span>Back to home</span>
+        </Link>
+      </div>
 
       {/* Header */}
       <div>
-        <Heading
-          level="h4"
-          color="accent"
-          align="left"
-          weight="bold"
-          className="mb-4"
-        >
-          Welcome To Tandem
+        <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
+          AI meets creativity.
         </Heading>
-        <p className="text-gray-200 text-sm">Login Your Account</p>
+        <p className="text-gray-700 dark:text-gray-200 text-para-md mb-md">Login Your Account</p>
       </div>
 
       {/* General Error Message */}
@@ -133,7 +131,7 @@ const LoginForm = () => {
       )}
 
       {/* Inputs */}
-      <div className="space-y-3">
+      <div className="space-y-sm">
         <Input
           label="Email"
           name="email"
@@ -143,7 +141,6 @@ const LoginForm = () => {
           placeholder="Enter your email"
           icon={<FaEnvelope />}
           variant="filled"
-          primaryColor="#4f46e5"
           error={errors.email}
           className="bg-gray-900"
           disabled={loading}
@@ -160,15 +157,14 @@ const LoginForm = () => {
             icon={<FaLock />}
             showPasswordToggle
             variant="filled"
-            primaryColor="#4f46e5"
             error={errors.password}
             className="bg-gray-900"
             disabled={loading}
           />
-          <div className="text-right mt-0.5">
+          <div className="text-right mt-xs">
             <Link
               to="/auth/reset-password"
-              className="text-sm text-accent-default hover:underline"
+              className="text-para-sm text-accent-default hover:underline"
             >
               Forgot Password?
             </Link>
@@ -190,7 +186,7 @@ const LoginForm = () => {
       </FormButton>
 
       {/* Social Buttons */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-sm">
         <SimpleButton
           type="button"
           variant="outline"

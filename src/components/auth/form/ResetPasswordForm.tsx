@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaArrowLeft, FaEnvelope, FaUser } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import Input from './components/Input';
 import Heading from '../../demos/typography/Heading';

@@ -5,6 +5,7 @@ import Heading from '../../demos/typography/Heading';
 import { FaEnvelope, FaLock, FaUser, FaArrowLeft } from 'react-icons/fa';
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
 
 const RegisterForm = () => {
