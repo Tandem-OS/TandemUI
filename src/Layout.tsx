@@ -3,9 +3,9 @@ import TestPreview from "./pages/TestPreview"
 import AuthLayout from "./components/auth/layoouts/AuthLayout"
 import OnboardingForm from "./components/intake-form/OnboardingForm"
 import OnboardComplete from "./components/onboard-completed/OnboardComplete"
-import Dashboard from "./dashboard/Dashboard"
 import IntakeForm from "./components/intake-form/IntakeForm"
 import { ROUTES } from "./routes/routes"
+import DashboardRoutes from "./dashboards/DashboardRoutes"
 
 const Layout = () => {
     return (
@@ -16,7 +16,7 @@ const Layout = () => {
                 <Route path={ROUTES.INTAKE_FORM} element={<IntakeForm />} />
                 <Route path={ROUTES.ONBOARD_COMPLETE} element={<OnboardComplete />} />
                 <Route path={ROUTES.ONBOARDING} element={<OnboardingForm />} />
-                <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
+                <Route path={`${ROUTES.DASHBOARD}/*`} element={<DashboardRoutes />} />
             </Routes>
         </main>
     )

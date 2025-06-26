@@ -1,12 +1,17 @@
-import { BrowserRouter } from "react-router-dom"
-import Layout from "./Layout"
+// src/App.tsx
+import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider } from './contexts/ThemeContext';
+import Layout from './Layout';
 
-const App = () => {
+
+function App() {
   return (
-    <BrowserRouter>
-      <Layout />
-    </BrowserRouter>
-  )
+    <ThemeProvider>
+      <BrowserRouter>
+        <Layout />
+      </BrowserRouter>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;

@@ -96,3 +96,4 @@ export const fadeInLeft: Variants = {
         transition: { duration: 0.3 },
     },
 };
+
