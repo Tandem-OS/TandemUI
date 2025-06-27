@@ -47,7 +47,7 @@ const RegisterForm = () => {
         }
 
         console.log('Register form submitted with values:', values);
-        navigate("/first");
+        navigate("/onboard");
 
     };
 

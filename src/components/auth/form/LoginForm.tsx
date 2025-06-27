@@ -35,7 +35,7 @@ const LoginForm = () => {
       // simulate API delay
       await new Promise(resolve => setTimeout(resolve, 3000));
       console.log('Logged in!', values);
-      navigate("/first");
+      navigate("/onboard");
     } catch (err) {
       console.error(err);
     } finally {
