@@ -1,4 +1,3 @@
-// src/dashboards/designer-dashboard/DesignerDashboardLayout.tsx
 import React, { useState } from 'react';
 import DesignerDashSidebar from './components/DesignerDashSidebar';
 import DesignerDashTopbar from './components/DesignerDashTopbar';
@@ -7,12 +6,16 @@ import Drawer from '../../comman-components/Drawer';
 
 const DesignerDashboardLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
-        <DesignerDashSidebar />
+        <DesignerDashSidebar 
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        />
       </div>
 
       {/* Mobile Sidebar Drawer */}
@@ -28,7 +31,11 @@ const DesignerDashboardLayout: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Topbar */}
-        <DesignerDashTopbar onMenuClick={() => setIsMobileMenuOpen(true)} />
+        <DesignerDashTopbar 
+          onMenuClick={() => setIsMobileMenuOpen(true)}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        />
         
         {/* Main Content */}
         <DesignerDashMain />

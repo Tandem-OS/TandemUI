@@ -38,21 +38,28 @@ const Dropdown: React.FC<DropdownProps> = ({
     }, []);
 
     return (
-        <div ref={dropdownRef} className="relative">
-            {/* Trigger */}
-            <div onClick={() => setIsOpen(!isOpen)}>
+        <div ref={dropdownRef} className="relative inline-block">
+            {/* Trigger - Using button for stability */}
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="block"
+                type="button"
+            >
                 {trigger}
-            </div>
+            </button>
 
-            {/* Dropdown Menu */}
+            {/* Dropdown Menu - Always rendered but hidden */}
             <div
+                style={{
+                    visibility: isOpen ? 'visible' : 'hidden',
+                    opacity: isOpen ? 1 : 0,
+                    transform: isOpen ? 'translateY(0)' : 'translateY(-8px)',
+                    transition: 'opacity 150ms, transform 150ms, visibility 150ms'
+                }}
                 className={clsx(
-                    'absolute top-full mt-xs bg-white dark:bg-slate-950 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-xs z-50 transition-all duration-200',
+                    'absolute top-full mt-xs bg-white dark:bg-slate-950 rounded-lg shadow-lg border border-slate-200 dark:border-slate-800 py-xs z-50',
                     width,
-                    align === 'left' ? 'left-0' : 'right-0',
-                    isOpen
-                        ? 'opacity-100 translate-y-0'
-                        : 'opacity-0 -translate-y-2 pointer-events-none'
+                    align === 'left' ? 'left-0' : 'right-0'
                 )}
             >
                 {items.map((item, index) => (
@@ -66,6 +73,7 @@ const Dropdown: React.FC<DropdownProps> = ({
                                 setIsOpen(false);
                             }}
                             className="w-full px-md py-sm text-left hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors flex items-center gap-sm"
+                            type="button"
                         >
                             {item.icon && (
                                 <span className="text-h6-sm text-slate-500 dark:text-slate-400">

@@ -5,7 +5,7 @@ import OnboardingForm from "./components/intake-form/OnboardingForm"
 import OnboardComplete from "./components/onboard-completed/OnboardComplete"
 import IntakeForm from "./components/intake-form/IntakeForm"
 import { ROUTES } from "./routes/routes"
-import DashboardRoutes from "./dashboards/DashboardRoutes"
+import DashboardRoutes from "./dashboards/DasHboardRoutes"
 
 const Layout = () => {
     return (

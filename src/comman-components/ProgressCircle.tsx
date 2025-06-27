@@ -1,4 +1,3 @@
-// src/common-components/ProgressCircle.tsx
 import React from 'react';
 import { motion } from 'framer-motion';
 

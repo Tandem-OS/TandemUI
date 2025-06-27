@@ -1,4 +1,3 @@
-// src/dashboards/designer-dashboard/components/DesignerDashTopbar.tsx
 import React from 'react';
 import {
     RiArrowDownSLine,
@@ -8,16 +7,24 @@ import {
     RiMoonLine,
     RiSettings3Line,
     RiLogoutBoxLine,
-    RiUser3Line
+    RiUser3Line,
+    RiMenuUnfoldLine,
+    RiMenuFoldLine
 } from 'react-icons/ri';
 import { useTheme } from '../../../contexts/ThemeContext';
 import Dropdown from '../../../comman-components/Dropdown';
 
 interface DesignerDashTopbarProps {
     onMenuClick: () => void;
+    isSidebarCollapsed?: boolean;
+    onToggleSidebar?: () => void;
 }
 
-const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({ onMenuClick }) => {
+const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
+    onMenuClick,
+    isSidebarCollapsed,
+    onToggleSidebar
+}) => {
     const { theme, toggleTheme } = useTheme();
 
     const userMenuItems = [
@@ -43,9 +50,26 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({ onMenuClick }) 
     ];
 
     return (
-        <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-900 px-md lg:px-xl py-sm">
+        <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-900 px-md lg:pr-xl lg:pl-md py-sm">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-md">
+                    {/* Desktop Sidebar Toggle - only show when collapsed */}
+
+                    <button
+                        onClick={onToggleSidebar}
+                        className="hidden lg:block p-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                        {
+                            isSidebarCollapsed ?
+                                <RiMenuUnfoldLine className="text-h4-sm text-slate-700 dark:text-slate-200" />
+
+                                :
+                                <RiMenuFoldLine className="text-h4-sm text-slate-700 dark:text-slate-200" />
+
+                        }
+                    </button>
+
+
                     {/* Mobile Menu Button */}
                     <button
                         onClick={onMenuClick}
@@ -62,9 +86,9 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({ onMenuClick }) 
                         className="p-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                     >
                         {theme === 'light' ? (
-                            <RiMoonLine className="text-h5-sm text-slate-700 dark:text-slate-200" />
+                            <RiMoonLine className="h-5 w-5 text-slate-700 dark:text-slate-200" />
                         ) : (
-                            <RiSunLine className="text-h5-sm text-slate-700 dark:text-slate-200" />
+                            <RiSunLine className="h-5 w-5 text-slate-700 dark:text-slate-200" />
                         )}
                     </button>
 
@@ -72,8 +96,26 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({ onMenuClick }) 
                     <Dropdown
                         trigger={
                             <div className="flex items-center gap-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg px-sm py-xs transition-colors">
-                                <div className="w-8 h-8 lg:w-10 lg:h-10 bg-slate-300 dark:bg-slate-900 rounded-full flex items-center justify-center">
-                                    <RiUserLine className="text-h6-sm lg:text-h5-sm text-slate-600 dark:text-slate-300" />
+                                {/* Circular Avatar Image */}
+                                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-sm">
+                                    <img
+                                        src="/images/avatar.png"
+                                        alt="Profile Avatar"
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            // Fallback to icon if image fails to load
+                                            const target = e.currentTarget as HTMLImageElement;
+                                            target.style.display = 'none';
+                                            const fallbackDiv = target.nextElementSibling as HTMLElement;
+                                            if (fallbackDiv) {
+                                                fallbackDiv.style.display = 'flex';
+                                            }
+                                        }}
+                                    />
+                                    {/* Fallback icon if image doesn't load */}
+                                    <div className="w-full h-full bg-slate-300 dark:bg-slate-900 rounded-full flex items-center justify-center" style={{ display: 'none' }}>
+                                        <RiUserLine className="text-h6-sm lg:text-h5-sm text-slate-600 dark:text-slate-300" />
+                                    </div>
                                 </div>
                                 <span className="hidden lg:block text-para-sm font-medium text-slate-700 dark:text-slate-200">
                                     Schongham
