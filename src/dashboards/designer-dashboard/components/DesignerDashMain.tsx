@@ -14,7 +14,7 @@ import DaconsahPage from '../pages/DaconsahPage';
 
 const DesignerDashMain: React.FC = () => {
     return (
-        <main className="flex-1 bg-gray-100 dark:bg-slate-950 overflow-y-auto">
+        <main className="flex-1 bg-slate-50 dark:bg-slate-900 overflow-y-auto">
             <div className="p-md lg:p-lg">
                 <Routes>
                     <Route path="/" element={<DashboardHome />} />

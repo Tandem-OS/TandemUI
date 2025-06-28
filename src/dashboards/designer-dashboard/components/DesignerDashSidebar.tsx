@@ -49,8 +49,8 @@ const styles = {
         base: 'flex items-center rounded-lg transition-all duration-300 cursor-pointer border-l-4 relative',
         hover: 'hover:bg-slate-100 dark:hover:bg-slate-800/50',
         active: {
-            expanded: 'bg-accent-default/10 dark:bg-slate-800/70 border-l-accent-default',
-            collapsed: 'bg-accent-default/10 dark:bg-accent-default/20 border-l-accent-default'
+            expanded: 'bg-blue-500/10 dark:bg-slate-800/70 border-l-blue-500',
+            collapsed: 'bg-blue-500/10 dark:bg-blue-500/20 border-l-blue-500'
         },
         inactive: 'border-l-transparent',
         padding: {
@@ -61,7 +61,7 @@ const styles = {
     },
     iconBox: {
         base: 'w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 shadow-sm',
-        active: 'bg-accent-default shadow-md',
+        active: 'bg-blue-500 shadow-md',
         inactive: 'bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-700/50'
     },
     icon: {
@@ -207,7 +207,7 @@ const Logo: React.FC<LogoProps> = ({ isCollapsed }) => (
             transition={{ duration: 0.2 }}
             className={isCollapsed ? 'flex justify-center' : 'flex items-center gap-3'}
         >
-            <div className="w-10 h-10 bg-accent-default rounded-lg flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-lg">T</span>
             </div>
             {!isCollapsed && (
