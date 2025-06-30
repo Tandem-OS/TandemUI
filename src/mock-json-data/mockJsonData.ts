@@ -44,7 +44,7 @@ export const mockDashboardData = {
                 intake: { completed: true, locked: false },
                 swiper: { completed: true, locked: false },
                 scraper: { completed: true, locked: false },
-                testimonial: { completed: true, locked: true },
+                testimonial: { completed: false, locked: false },
                 finalReview: { completed: false, locked: true }
             },
             feedbackThreads: 3,
@@ -59,7 +59,7 @@ export const mockDashboardData = {
             stages: {
                 intake: { completed: true, locked: false },
                 swiper: { completed: true, locked: false },
-                scraper: { completed: true, locked: true },
+                scraper: { completed: true, locked: false },
                 testimonial: { completed: false, locked: true },
                 finalReview: { completed: false, locked: true }
             },
@@ -70,7 +70,7 @@ export const mockDashboardData = {
             id: '3',
             name: 'Evolve UI Redesign',
             status: 'final-review',
-            statusLabel: 'Final Review',
+            statusLabel: 'Review',
             progress: 92,
             stages: {
                 intake: { completed: true, locked: false },

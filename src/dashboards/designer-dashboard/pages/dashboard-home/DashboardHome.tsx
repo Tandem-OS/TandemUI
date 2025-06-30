@@ -1,10 +1,12 @@
 import React, { type ReactNode, useState } from 'react';
-import { RiArrowRightLine, RiLockLine, RiCheckLine, RiSettings4Line } from 'react-icons/ri';
+import { RiArrowRightLine, RiLockLine, RiCheckLine } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
-import { mockDashboardData } from '../../../mock-json-data/mockJsonData';
+import { mockDashboardData } from '../../../../mock-json-data/mockJsonData';
+import ProgressRing from '../../../../comman-components/ProgressRing';
+import ColorPicker from '../../../../comman-components/ColorPicker';
+import { type AccentColor } from '../../../../types/component.types';
 
 type PaddingSize = "sm" | "md" | "lg";
-type AccentColor = "blue" | "purple" | "emerald" | "rose" | "amber";
 
 interface CardProps {
   children: ReactNode;
@@ -87,66 +89,6 @@ type ProjectStatus = 'in-progress' | 'reviewing' | 'final-review' | 'completed';
 type ProjectStage = 'swiper' | 'scraper' | 'testimonial' | 'finalReview';
 type StageKey = 'intake' | 'swiper' | 'scraper' | 'testimonial' | 'finalReview';
 
-// Progress Ring
-interface ProgressRingProps {
-  percentage: number;
-  size?: number;
-  strokeWidth?: number;
-  color?: string;
-}
-
-const ProgressRing: React.FC<ProgressRingProps> = ({
-  percentage,
-  size = 120,
-  strokeWidth = 8,
-  color = "#3B82F6"
-}) => {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
-  return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg className="transform -rotate-90" width={size} height={size}>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={strokeWidth}
-          className="text-slate-200 dark:text-slate-700"
-        />
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          strokeLinecap="round"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.3 }}
-        >
-          <span className="text-4xl font-bold text-slate-800 dark:text-slate-200">
-            {percentage}%
-          </span>
-        </motion.div>
-      </div>
-    </div>
-  );
-};
-
 // Status Tag
 interface StatusTagProps {
   status: ProjectStatus;
@@ -181,7 +123,7 @@ const ContinueButton: React.FC<ContinueButtonProps> = ({ stage, colors, onClick 
     'swiper': 'Swiper',
     'scraper': 'Scraper',
     'testimonial': 'Testimonials',
-    'finalReview': 'Final Review'
+    'finalReview': 'Review'
   };
 
   return (
@@ -201,6 +143,7 @@ interface ProjectTimelineProps {
   colors: any;
 }
 
+// Project Timeline with Fixed Tooltip
 const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => {
   const stageNames: StageKey[] = ['intake', 'swiper', 'scraper', 'testimonial', 'finalReview'];
   const stageLabels: Record<StageKey, string> = {
@@ -215,20 +158,31 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
   const completedStages = Object.values(stages).filter((s: any) => s.completed).length;
   const progressWidth = (completedStages / stageNames.length) * 100;
 
+  // Function to get the previous stage that needs to be completed
+  const getPreviousStageToComplete = (currentStage: StageKey): string => {
+    const currentIndex = stageNames.indexOf(currentStage);
+    if (currentIndex > 0) {
+      const previousStage = stageNames[currentIndex - 1];
+      return `Complete ${stageLabels[previousStage]} to unlock ${stageLabels[currentStage]}`;
+    }
+    return 'Complete previous stages to unlock';
+  };
+
   return (
     <div className="relative w-full py-3">
       {/* Progress Line - Fixed thickness issue */}
-      <div className="absolute top-[40%] transform -translate-y-1/2 left-6 right-6 h-[2px] bg-slate-200 dark:bg-slate-700 rounded-full">
+      <div className="absolute max-lg:top-[35%] top-[38%] transform -translate-y-1/2 left-6 right-6 h-[2px] bg-slate-200 dark:bg-slate-700 rounded-full">
         <motion.div
           className={`h-full ${colors.primary} rounded-full`}
           initial={{ width: 0 }}
-          animate={{ width: `${progressWidth}%` }}
-          transition={{ duration: 1, ease: "easeOut" }}
+          whileInView={{ width: `${progressWidth}%` }}
+          transition={{ duration: 2, ease: "easeOut" }}
           style={{ height: '2px' }}
+          viewport={{ once: true }}
         />
       </div>
 
-      <div className="flex items-center justify-between px-2 relative z-10">
+      <div className="flex items-center justify-between lg:px-4 relative z-10">
         {stageNames.map((stage) => {
           const isCompleted = stages[stage].completed;
           const isLocked = stages[stage].locked;
@@ -241,11 +195,11 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
               onMouseLeave={() => setHoveredStage(null)}
             >
               <div
-                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center text-xs font-medium transition-all duration-200 cursor-pointer
+                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-200 cursor-pointer hover:shadow-md
                   ${isCompleted
-                    ? 'bg-emerald-500 text-white shadow-sm'
+                    ? 'bg-background-pastel-green text-black shadow-sm'
                     : isLocked
-                      ? 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+                      ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-500'
                       : `bg-white dark:bg-slate-800 ${colors.text} border ${colors.border} shadow-sm`
                   }`}
               >
@@ -258,21 +212,21 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
                 )}
               </div>
 
-              <span className="text-xs mt-1.5 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">
+              <span className="text-para-xs mt-1.5 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">
                 {stageLabels[stage]}
               </span>
 
-              {/* Premium Tooltip */}
+              {/* Tooltip */}
               <AnimatePresence>
                 {hoveredStage === stage && isLocked && (
                   <motion.div
-                    className="absolute bottom-full mb-2 px-3 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-para-xs rounded-lg shadow-xl"
+                    className="absolute bottom-full mb-2 px-2 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-para-xs rounded-lg shadow-xl"
                     initial={{ opacity: 0, y: 5, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 5, scale: 0.9 }}
                     transition={{ duration: 0.15 }}
                   >
-                    Complete previous stages to unlock
+                    {getPreviousStageToComplete(stage)}
                     <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900 dark:border-t-slate-100" />
                   </motion.div>
                 )}
@@ -285,68 +239,6 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
   );
 };
 
-// Fixed Color Picker
-interface ColorPickerProps {
-  accentColor: AccentColor;
-  setAccentColor: (color: AccentColor) => void;
-}
-
-const ColorPicker: React.FC<ColorPickerProps> = ({ accentColor, setAccentColor }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const colors: AccentColor[] = ['blue', 'purple', 'emerald', 'rose', 'amber'];
-
-  const colorPreview = {
-    blue: 'bg-blue-500',
-    purple: 'bg-purple-500',
-    emerald: 'bg-emerald-500',
-    rose: 'bg-rose-500',
-    amber: 'bg-amber-500'
-  };
-
-  return (
-    <div className="fixed top-[70px] right-[20px] z-50">
-      <motion.button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-3 rounded-full bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl transition-all duration-200 border border-slate-200 dark:border-slate-700"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        transition={{ duration: 0.15 }}
-      >
-        <RiSettings4Line className="w-6 h-6 text-slate-600 dark:text-slate-400" />
-      </motion.button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            className="absolute top-full right-0 mt-3 p-4 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700"
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-          >
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">Theme Color</p>
-            <div className="flex gap-3">
-              {colors.map((color) => (
-                <motion.button
-                  key={color}
-                  onClick={() => {
-                    setAccentColor(color);
-                    setIsOpen(false);
-                  }}
-                  className={`w-10 h-10 rounded-lg ${colorPreview[color]} shadow-lg ${accentColor === color ? `ring-2 ring-offset-2 ring-slate-400 dark:ring-slate-600 shadow-xl` : ''
-                    }`}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={{ duration: 0.15 }}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
 
 const DashboardHome: React.FC = () => {
   const data = mockDashboardData;
@@ -379,10 +271,27 @@ const DashboardHome: React.FC = () => {
             transition={{ duration: 0.4, delay: 0.1 }}
             className="h-full"
           >
-            <Card bgColor={colors.light} className={`${colors.border} h-full flex flex-col items-center justify-center`}>
-              <ProgressRing percentage={data.metrics.progressPercentage} color={colors.hex} />
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mt-4">Overall Progress</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Across all projects</p>
+            <Card
+              bgColor={colors.light}
+              className={`${colors.border} h-full flex flex-col items-center justify-between p-4`}
+            >
+              {/* Metric in Center */}
+              <div className="flex-1 flex items-end justify-center">
+                <ProgressRing
+                  percentage={data.metrics.progressPercentage}
+                  color={colors.hex}
+                />
+              </div>
+
+              {/* Bottom Text */}
+              <div className="w-full text-center py-4">
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
+                  Overall Progress
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Across all projects
+                </p>
+              </div>
             </Card>
           </motion.div>
 
@@ -393,44 +302,73 @@ const DashboardHome: React.FC = () => {
             transition={{ duration: 0.4, delay: 0.2 }}
             className="h-full"
           >
-            <Card bgColor={colors.light} className={`${colors.border} h-full flex flex-col items-center justify-center`}>
-              <motion.div
-                className={`text-5xl font-bold ${colors.text} mb-2`}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3, duration: 0.3 }}
-              >
-                {data.metrics.avgCompletionTime}
-                <span className="text-xl font-medium text-slate-600 dark:text-slate-400 ml-1">days</span>
-              </motion.div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Average Time</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">23% faster this month</p>
+            <Card
+              bgColor={colors.light}
+              className={`${colors.border} h-full flex flex-col items-center justify-between p-4`}
+            >
+              {/* Metric in Center */}
+              <div className="flex-1 flex items-end justify-center">
+                <motion.div
+                  className={`text-5xl font-bold ${colors.text}`}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3, duration: 0.3 }}
+                >
+                  {data.metrics.avgCompletionTime}
+                  <span className="text-xl font-medium text-slate-600 dark:text-slate-400 ml-1">
+                    days
+                  </span>
+                </motion.div>
+              </div>
+
+              {/* Bottom Text */}
+              <div className="w-full text-center py-4">
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
+                  Average Time
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  23% faster this month
+                </p>
+              </div>
             </Card>
           </motion.div>
 
-          {/* Conversion Card */}
+          {/* Conversion Rate Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
             className="h-full"
           >
-            <Card bgColor={colors.light} className={`${colors.border} h-full flex flex-col items-center justify-center`}>
-              <motion.div
-                className={`text-5xl font-bold ${colors.text} mb-2`}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4, duration: 0.3 }}
-              >
-                {data.metrics.conversionRate.percentage}%
-              </motion.div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Conversion Rate</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                {data.metrics.conversionRate.clientsOnboarded} clients converted
-              </p>
+            <Card
+              bgColor={colors.light}
+              className={`${colors.border} h-full flex flex-col items-center justify-between p-4`}
+            >
+              {/* Metric in Center */}
+              <div className="flex-1 flex items-end justify-center">
+                <motion.div
+                  className={`text-5xl font-bold ${colors.text}`}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4, duration: 0.3 }}
+                >
+                  {data.metrics.conversionRate.percentage}%
+                </motion.div>
+              </div>
+
+              {/* Bottom Text */}
+              <div className="w-full text-center py-4">
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
+                  Conversion Rate
+                </h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  {data.metrics.conversionRate.clientsOnboarded} clients converted
+                </p>
+              </div>
             </Card>
           </motion.div>
         </div>
+
 
         {/* Current Projects Section */}
         <motion.div
@@ -457,7 +395,7 @@ const DashboardHome: React.FC = () => {
                           <div className={`w-12 h-12 rounded-xl ${colors.light} flex items-center justify-center`}>
                             <span className={`text-sm font-bold ${colors.text}`}>{project.progress}%</span>
                           </div>
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-background-pastel-green rounded-full flex items-center justify-center">
                             <div className="w-2 h-2 bg-white rounded-full" />
                           </div>
                         </div>
@@ -490,7 +428,7 @@ const DashboardHome: React.FC = () => {
                         <div className={`w-14 h-14 rounded-xl ${colors.light} flex items-center justify-center`}>
                           <span className={`text-lg font-bold ${colors.text}`}>{project.progress}%</span>
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center">
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background-pastel-green rounded-full flex items-center justify-center">
                           <div className="w-2 h-2 bg-white rounded-full" />
                         </div>
                       </div>
@@ -520,7 +458,7 @@ const DashboardHome: React.FC = () => {
                 </motion.div>
               ))}
             </div>
-            
+
             {/* View All Projects Link */}
             <div className="flex justify-end mt-4">
               <motion.a
@@ -550,7 +488,7 @@ const DashboardHome: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">😊</span>
-                <span className="text-2xl font-bold text-slate-900 dark:text-white">{data.customerSatisfaction.overall}%</span>
+                <span className="text-2xl font-bold text-slate-800 dark:text-white">{data.customerSatisfaction.overall}%</span>
               </div>
             </div>
 
@@ -564,7 +502,7 @@ const DashboardHome: React.FC = () => {
                   transition={{ delay: 0.6 + index * 0.1, duration: 0.3 }}
                 >
                   <p className="text-sm font-medium text-slate-600 dark:text-slate-400 capitalize mb-2">After {stage}</p>
-                  <div className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{stats.rating}/10</div>
+                  <div className="text-2xl font-bold text-slate-800 dark:text-white mb-1">{stats.rating}/10</div>
                   <p className="text-sm text-slate-500 dark:text-slate-500">
                     {stats.happy}/{stats.total} happy
                   </p>

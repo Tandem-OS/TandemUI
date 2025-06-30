@@ -1,7 +1,7 @@
 // src/dashboards/designer-dashboard/components/DesignerDashMain.tsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import DashboardHome from '../pages/DashboardHome';
+import DashboardHome from '../pages/dashboard-home/DashboardHome';
 import ProjectsPage from '../pages/ProjectsPage';
 import BriefsPage from '../pages/BriefsPage';
 import AnalyticsOverview from '../pages/AnalyticsOverview';

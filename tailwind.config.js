@@ -186,7 +186,8 @@ module.exports = {
           error: 'red',
           warning: '#fffbeb',
           info: '#f0f9ff',
-          dark: '#1b1b1b'
+          dark: '#1b1b1b',
+          'pastel-green': '#7ce87c'
         },
         text: {
           primary: '#111827',
