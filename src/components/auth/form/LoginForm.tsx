@@ -2,17 +2,20 @@ import { useState } from 'react';
 import Input from './components/Input';
 import Heading from '../../demos/typography/Heading';
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import FormButton from './components/FormButton'; // <-- your new FormButton
 import SimpleButton from '../../demos/buttons/SimpleButton';
+
+import { login } from '../../../api/auth';
 
 const LoginForm = () => {
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
+   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setValues(prev => ({ ...prev, [name]: value }));
     if (errors[name as keyof typeof errors]) {
@@ -21,7 +24,6 @@ const LoginForm = () => {
   };
 
   const handleLogin = async () => {
-    // note: onSubmit handler for FormButton
     const newErrors: { email?: string; password?: string } = {};
     if (!values.email.trim()) newErrors.email = 'Email is required';
     if (!values.password.trim()) newErrors.password = 'Password is required';
@@ -32,11 +34,18 @@ const LoginForm = () => {
 
     setLoading(true);
     try {
-      // simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      console.log('Logged in!', values);
+      const res = await login(values.email, values.password);
+
+      if (res?.access_token) {
+        localStorage.setItem('token', res.access_token);
+        navigate('/dashboard'); // Redirect to dashboard or home page after successful login;
+      } else {
+        setErrors({ password: 'Invalid email or password' });
+      }
+
     } catch (err) {
       console.error(err);
+      setErrors({ password: 'Something went wrong. Please try again later.' });
     } finally {
       setLoading(false);
     }
@@ -107,11 +116,8 @@ const LoginForm = () => {
             className="bg-gray-900"
           />
           <div className="text-right mt-0.5">
-            <Link
-              to="/auth/reset-password"
-              className="text-sm text-accent-default hover:underline"
-            >
-              Forgot Password?
+            <Link to="/auth/forgot-password" className="text-sm text-accent-default"> 
+            Forgot your password?
             </Link>
           </div>
         </div>
