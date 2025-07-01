@@ -163,7 +163,7 @@ const OnboardComplete: React.FC = () => {
                                                     variant="outline"
                                                     size="lg"
                                                     className="w-full sm:w-auto min-w-[200px]"
-                                                    onClick={() => navigate('/intake')}
+                                                    onClick={() => navigate('/dashboard/designer')}
                                                 >
                                                     <FaHome className="mr-sm" />
                                                     Go to Dashboard

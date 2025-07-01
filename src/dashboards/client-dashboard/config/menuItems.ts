@@ -8,11 +8,11 @@ export const menuItems: MenuItem[] = [
     {
         id: 'projects',
         name: 'My Projects',
-        path: '/client-dashboard'
+        path: '/dashboard/client/my-project'
     },
     {
         id: 'support',
         name: 'Support',
-        path: '/support'
+        path: '/dashboard/client/support'
     }
 ];

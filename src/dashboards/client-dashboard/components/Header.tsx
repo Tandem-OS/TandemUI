@@ -39,7 +39,7 @@ const Header = () => {
                 <div className="container mx-auto px-md">
                     <div className="flex items-center justify-between h-16">
                         {/* Logo */}
-                        <Link to="/client-dashboard" className="flex items-center">
+                        <Link to="/dashboard/client" className="flex items-center">
                             <img
                                 src="/images/logo.png"
                                 alt="Logo"
