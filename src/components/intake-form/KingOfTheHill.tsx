@@ -270,14 +270,14 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                                             animate={{ scale: 1 }}
                                             className="absolute inset-0 bg-accent-default/20 flex items-center justify-center"
                                         >
-                                            <FaCheck className="text-white text-5xl" />
+                                            <FaCheck className="text-white text-icon-2xl" />
                                         </motion.div>
                                     )}
                                 </motion.button>
                             </div>
 
                             {/* VS */}
-                            <div className="text-2xl font-bold text-accent-default px-md">
+                            <div className="text-h2-sm font-bold text-accent-default px-md">
                                 VS
                             </div>
 
@@ -333,7 +333,7 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                                                 animate={{ scale: 1 }}
                                                 className="absolute inset-0 bg-accent-default/20 flex items-center justify-center"
                                             >
-                                                <FaCheck className="text-white text-5xl" />
+                                                <FaCheck className="text-white text-icon-2xl" />
                                             </motion.div>
                                         )}
                                     </motion.button>
@@ -370,8 +370,8 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                                 transformOrigin: 'center'
                             }}
                         >
-                            <div className="w-24 h-24 bg-yellow-100 dark:bg-yellow-900 dark:bg-opacity-20 rounded-full flex items-center justify-center mx-auto">
-                                <FaTrophy className="text-5xl text-yellow-500" />
+                            <div className="w-24 h-24 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center mx-auto">
+                                <FaTrophy className="text-icon-2xl text-yellow-500" />
                             </div>
                         </motion.div>
 
@@ -390,11 +390,11 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                                 transformOrigin: 'center'
                             }}
                         >
-                            <h3 className="text-2xl font-bold text-accent-default dark:text-accent-default mb-lg">
+                            <h3 className="text-h2-sm font-bold text-accent-default mb-lg">
                                 Your Visual Direction {sortedWinners.length === 1 ? 'Winner' : 'Winners'}!
                             </h3>
                             {sortedWinners.length !== 1 &&
-                                <p className="text-para-sm text-gray-600 dark:text-gray-400 mb-md">
+                                <p className="text-para-sm text-text-tertiary mb-md">
                                     Drag to reorder your preferences
                                 </p>
                             }
@@ -427,20 +427,20 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                                             className={`${index === 0 ? 'w-48 h-48' : 'w-40 h-50'
                                                 } object-cover`}
                                         />
-                                        <div className="absolute top-2 right-2">
+                                        <div className="absolute top-sm right-sm">
                                             {index === 0 ? (
-                                                <FaTrophy className="text-yellow-400 text-2xl" />
+                                                <FaTrophy className="text-yellow-400 text-icon-xl" />
                                             ) : index === 1 ? (
-                                                <FaMedal className="text-gray-400 text-xl" />
+                                                <FaMedal className="text-gray-400 text-icon-lg" />
                                             ) : (
-                                                <FaMedal className="text-orange-600 text-xl" />
+                                                <FaMedal className="text-orange-600 text-icon-lg" />
                                             )}
                                         </div>
-                                        <div className="absolute top-2 left-2 bg-black/50 p-1 rounded">
-                                            <FaGripVertical className="text-white text-sm" />
+                                        <div className="absolute top-sm left-sm bg-black/50 p-xs rounded">
+                                            <FaGripVertical className="text-white text-para-sm" />
                                         </div>
                                     </div>
-                                    <p className="mt-xs text-para-md font-medium text-gray-700 dark:text-gray-300">
+                                    <p className="mt-xs text-para-md font-medium text-text-primary">
                                         {winner.name}
                                     </p>
                                     <p className="text-para-sm font-bold text-accent-default">

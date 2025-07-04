@@ -9,7 +9,7 @@ const DesignerDashboardLayout: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-slate-900">
+    <div className="flex h-screen">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <DesignerDashSidebar 

@@ -5,6 +5,7 @@ import { mockDashboardData } from '../../../../mock-json-data/mockJsonData';
 import ProgressRing from '../../../../comman-components/ProgressRing';
 import ColorPicker from '../../../../comman-components/ColorPicker';
 import { type AccentColor } from '../../../../types/component.types';
+import Heading from '../../../../components/demos/typography/Heading';
 
 type PaddingSize = "sm" | "md" | "lg";
 
@@ -15,15 +16,15 @@ interface CardProps {
   bgColor?: string;
 }
 
-const Card = ({ children, className = "", padding = "md", bgColor = "bg-white dark:bg-slate-900" }: CardProps) => {
+const Card = ({ children, className = "", padding = "md", bgColor = "bg-background-primary-2" }: CardProps) => {
   const paddingClasses = {
-    sm: "p-4",
-    md: "p-6",
-    lg: "p-8"
+    sm: "p-md",
+    md: "p-lg",
+    lg: "p-xl"
   };
 
   return (
-    <div className={`${bgColor} rounded-2xl border border-slate-200 dark:border-slate-700 ${paddingClasses[padding]} shadow-sm hover:shadow-md transition-shadow duration-300 ${className}`}>
+    <div className={`${bgColor} rounded-2xl border border-border-default ${paddingClasses[padding]} shadow-sm hover:shadow-md transition-shadow duration-300 ${className}`}>
       {children}
     </div>
   );
@@ -105,7 +106,7 @@ const StatusTag: React.FC<StatusTagProps> = ({ status, label, colors }) => {
   };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusStyles[status]}`}>
+    <span className={`px-sm py-xs rounded-full text-para-xs font-medium border ${statusStyles[status]}`}>
       {label}
     </span>
   );
@@ -129,7 +130,7 @@ const ContinueButton: React.FC<ContinueButtonProps> = ({ stage, colors, onClick 
   return (
     <button
       onClick={onClick}
-      className={`w-full px-4 py-2.5 ${colors.primary} text-white rounded-lg font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-sm hover:shadow-lg hover:bg-opacity-80`}
+      className={`w-full px-md py-sm ${colors.primary} text-white rounded-lg font-medium text-para-sm transition-all duration-200 flex items-center justify-center gap-sm shadow-sm hover:shadow-lg hover:bg-opacity-80`}
     >
       {stageLabels[stage]}
       <RiArrowRightLine className="w-4 h-4" />
@@ -169,9 +170,9 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
   };
 
   return (
-    <div className="relative w-full py-3">
+    <div className="relative w-full py-sm">
       {/* Progress Line - Fixed thickness issue */}
-      <div className="absolute max-lg:top-[35%] top-[38%] transform -translate-y-1/2 left-6 right-6 h-[2px] bg-slate-200 dark:bg-slate-700 rounded-full">
+      <div className="absolute max-lg:top-[35%] top-[38%] transform -translate-y-1/2 left-6 right-6 h-[2px] bg-border-muted rounded-full">
         <motion.div
           className={`h-full ${colors.primary} rounded-full`}
           initial={{ width: 0 }}
@@ -182,7 +183,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
         />
       </div>
 
-      <div className="flex items-center justify-between lg:px-4 relative z-10">
+      <div className="flex items-center justify-between lg:px-md relative z-10">
         {stageNames.map((stage) => {
           const isCompleted = stages[stage].completed;
           const isLocked = stages[stage].locked;
@@ -195,12 +196,12 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
               onMouseLeave={() => setHoveredStage(null)}
             >
               <div
-                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-200 cursor-pointer hover:shadow-md
+                className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-para-xs font-medium transition-all duration-200 cursor-pointer hover:shadow-md
                   ${isCompleted
-                    ? 'bg-background-pastel-green text-black shadow-sm'
+                    ? 'bg-pastel-green text-black shadow-sm'
                     : isLocked
-                      ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-500'
-                      : `bg-white dark:bg-slate-800 ${colors.text} border ${colors.border} shadow-sm`
+                      ? 'bg-background-muted dark:bg-background-primary text-text-tertiary'
+                      : `bg-background-primary-2 ${colors.text} border ${colors.border} shadow-sm`
                   }`}
               >
                 {isCompleted ? (
@@ -212,7 +213,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
                 )}
               </div>
 
-              <span className="text-para-xs mt-1.5 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">
+              <span className="text-para-xs mt-xs text-text-secondary font-medium whitespace-nowrap">
                 {stageLabels[stage]}
               </span>
 
@@ -220,14 +221,14 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
               <AnimatePresence>
                 {hoveredStage === stage && isLocked && (
                   <motion.div
-                    className="absolute bottom-full mb-2 px-2 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-para-xs rounded-lg shadow-xl"
+                    className="absolute bottom-full mb-sm px-sm py-sm bg-background-dark text-text-light text-para-xs rounded-lg shadow-xl"
                     initial={{ opacity: 0, y: 5, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 5, scale: 0.9 }}
                     transition={{ duration: 0.15 }}
                   >
                     {getPreviousStageToComplete(stage)}
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-900 dark:border-t-slate-100" />
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-background-dark" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -239,31 +240,30 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
   );
 };
 
-
 const DashboardHome: React.FC = () => {
   const data = mockDashboardData;
   const { accentColor, setAccentColor, colors } = useAccentColor();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      <div className="space-y-8">
+    <div className="min-h-screen">
+      <div className="space-y-xl">
         {/* Welcome Header - Left Aligned, Minimal Spacing */}
         <motion.div
-          className="text-left pb-2"
+          className="text-left pb-sm"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-1">
+          <Heading level="h3">
             Welcome back, John ✨
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          </Heading>
+          <p className="text-text-secondary">
             Your creative projects are progressing beautifully
           </p>
         </motion.div>
 
         {/* Top 3 Cards - Accent colors with opacity, fixed alignment */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
           {/* Progress Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -273,7 +273,8 @@ const DashboardHome: React.FC = () => {
           >
             <Card
               bgColor={colors.light}
-              className={`${colors.border} h-full flex flex-col items-center justify-between p-4`}
+              className={`${colors.border} h-full flex flex-col items-center justify-between`}
+              padding="md"
             >
               {/* Metric in Center */}
               <div className="flex-1 flex items-end justify-center">
@@ -284,11 +285,11 @@ const DashboardHome: React.FC = () => {
               </div>
 
               {/* Bottom Text */}
-              <div className="w-full text-center py-4">
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
+              <div className="w-full text-center py-md">
+                <h3 className="text-h3-sm font-bold text-text-primary">
                   Overall Progress
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-para-sm text-text-secondary">
                   Across all projects
                 </p>
               </div>
@@ -304,29 +305,30 @@ const DashboardHome: React.FC = () => {
           >
             <Card
               bgColor={colors.light}
-              className={`${colors.border} h-full flex flex-col items-center justify-between p-4`}
+              className={`${colors.border} h-full flex flex-col items-center justify-between`}
+              padding="md"
             >
               {/* Metric in Center */}
-              <div className="flex-1 flex items-end justify-center">
+              <div className="flex-1 flex items-end justify-center leading-none">
                 <motion.div
-                  className={`text-5xl font-bold ${colors.text}`}
+                  className={`text-icon-2xl font-bold ${colors.text}`}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.3, duration: 0.3 }}
                 >
                   {data.metrics.avgCompletionTime}
-                  <span className="text-xl font-medium text-slate-600 dark:text-slate-400 ml-1">
+                  <span className="text-h5-sm font-medium text-text-secondary ml-xs">
                     days
                   </span>
                 </motion.div>
               </div>
 
               {/* Bottom Text */}
-              <div className="w-full text-center py-4">
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
+              <div className="w-full text-center py-md">
+                <h3 className="text-h3-sm font-bold text-text-primary">
                   Average Time
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-para-sm text-text-secondary">
                   23% faster this month
                 </p>
               </div>
@@ -342,12 +344,13 @@ const DashboardHome: React.FC = () => {
           >
             <Card
               bgColor={colors.light}
-              className={`${colors.border} h-full flex flex-col items-center justify-between p-4`}
+              className={`${colors.border} h-full flex flex-col items-center justify-between`}
+              padding="md"
             >
               {/* Metric in Center */}
-              <div className="flex-1 flex items-end justify-center">
+              <div className="flex-1 flex items-end justify-center leading-none">
                 <motion.div
-                  className={`text-5xl font-bold ${colors.text}`}
+                  className={`text-icon-2xl font-bold ${colors.text}`}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4, duration: 0.3 }}
@@ -357,11 +360,11 @@ const DashboardHome: React.FC = () => {
               </div>
 
               {/* Bottom Text */}
-              <div className="w-full text-center py-4">
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
+              <div className="w-full text-center py-md">
+                <h3 className="text-h3-sm font-bold text-text-primary">
                   Conversion Rate
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-para-sm text-text-secondary">
                   {data.metrics.conversionRate.clientsOnboarded} clients converted
                 </p>
               </div>
@@ -369,38 +372,37 @@ const DashboardHome: React.FC = () => {
           </motion.div>
         </div>
 
-
         {/* Current Projects Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
         >
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Active Projects</h2>
-          <Card className={`${colors.light} ${colors.border} p-4`}>
-            <div className="space-y-4">
+          <h2 className="text-h4-sm font-bold text-text-primary mb-md">Active Projects</h2>
+          <Card className={`${colors.light} ${colors.border}`} padding="md">
+            <div className="space-y-md">
               {data.projects.map((project, index) => (
                 <motion.div
                   key={project.id}
-                  className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 transition-all duration-200 hover:shadow-lg"
+                  className="bg-background-primary-2 rounded-xl p-md border border-border-default transition-all duration-200 hover:shadow-lg"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
                   {/* Mobile Layout */}
-                  <div className="block lg:hidden space-y-4">
+                  <div className="block lg:hidden space-y-md">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-sm">
                         <div className="relative">
                           <div className={`w-12 h-12 rounded-xl ${colors.light} flex items-center justify-center`}>
-                            <span className={`text-sm font-bold ${colors.text}`}>{project.progress}%</span>
+                            <span className={`text-para-sm font-bold ${colors.text}`}>{project.progress}%</span>
                           </div>
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-background-pastel-green rounded-full flex items-center justify-center">
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-pastel-green rounded-full flex items-center justify-center">
                             <div className="w-2 h-2 bg-white rounded-full" />
                           </div>
                         </div>
                         <div>
-                          <h4 className="font-semibold text-slate-900 dark:text-white">{project.name}</h4>
+                          <h4 className="font-semibold text-text-primary">{project.name}</h4>
                           <StatusTag status={project.status as ProjectStatus} label={project.statusLabel} colors={colors} />
                         </div>
                       </div>
@@ -408,10 +410,10 @@ const DashboardHome: React.FC = () => {
 
                     <ProjectTimeline stages={project.stages} colors={colors} />
 
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <div className="flex items-center justify-between gap-sm">
+                      <div className="flex items-center gap-sm text-para-sm text-text-secondary">
                         <div className={`w-8 h-8 rounded-lg ${colors.light} flex items-center justify-center`}>
-                          <span className="text-xs font-semibold">{project.feedbackThreads}</span>
+                          <span className="text-para-xs font-semibold">{project.feedbackThreads}</span>
                         </div>
                         <span>Feedback</span>
                       </div>
@@ -422,18 +424,18 @@ const DashboardHome: React.FC = () => {
                   </div>
 
                   {/* Desktop Layout */}
-                  <div className="hidden lg:grid grid-cols-12 gap-4 items-center">
-                    <div className="col-span-3 flex items-center gap-3">
+                  <div className="hidden lg:grid grid-cols-12 gap-md items-center">
+                    <div className="col-span-3 flex items-center gap-sm">
                       <div className="relative">
                         <div className={`w-14 h-14 rounded-xl ${colors.light} flex items-center justify-center`}>
-                          <span className={`text-lg font-bold ${colors.text}`}>{project.progress}%</span>
+                          <span className={`text-para-lg font-bold ${colors.text}`}>{project.progress}%</span>
                         </div>
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-background-pastel-green rounded-full flex items-center justify-center">
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-pastel-green rounded-full flex items-center justify-center">
                           <div className="w-2 h-2 bg-white rounded-full" />
                         </div>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-slate-900 dark:text-white">{project.name}</h4>
+                        <h4 className="font-semibold text-text-primary">{project.name}</h4>
                         <StatusTag status={project.status as ProjectStatus} label={project.statusLabel} colors={colors} />
                       </div>
                     </div>
@@ -443,9 +445,9 @@ const DashboardHome: React.FC = () => {
                     </div>
 
                     <div className="col-span-2 text-center">
-                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                      <div className="flex items-center gap-sm text-para-sm text-text-secondary">
                         <div className={`w-8 h-8 rounded-lg ${colors.light} flex items-center justify-center`}>
-                          <span className="text-xs font-semibold">{project.feedbackThreads}</span>
+                          <span className="text-para-xs font-semibold">{project.feedbackThreads}</span>
                         </div>
                         <span>Feedback</span>
                       </div>
@@ -460,10 +462,10 @@ const DashboardHome: React.FC = () => {
             </div>
 
             {/* View All Projects Link */}
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-end mt-md">
               <motion.a
                 href="#"
-                className={`inline-flex items-center gap-2 ${colors.text} font-medium hover:gap-3 transition-all duration-200`}
+                className={`inline-flex items-center gap-sm ${colors.text} font-medium hover:gap-sm transition-all duration-200`}
                 whileHover={{ x: 5 }}
                 transition={{ duration: 0.2 }}
               >
@@ -481,29 +483,29 @@ const DashboardHome: React.FC = () => {
           transition={{ duration: 0.4, delay: 0.5 }}
         >
           <Card className={`${colors.light} ${colors.border}`}>
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-lg">
               <div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Customer Satisfaction</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Overall happiness rating</p>
+                <h3 className="text-para-lg font-semibold text-text-primary">Customer Satisfaction</h3>
+                <p className="text-para-sm text-text-secondary">Overall happiness rating</p>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">😊</span>
-                <span className="text-2xl font-bold text-slate-800 dark:text-white">{data.customerSatisfaction.overall}%</span>
+              <div className="flex items-center gap-sm">
+                <span className="text-h3-sm">😊</span>
+                <span className="text-h3-sm font-bold text-text-primary">{data.customerSatisfaction.overall}%</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-md">
               {Object.entries(data.customerSatisfaction.byStage).map(([stage, stats], index) => (
                 <motion.div
                   key={stage}
-                  className="bg-white dark:bg-slate-800 rounded-lg p-4 text-center border border-slate-200 dark:border-slate-700 hover:shadow-lg duration-300"
+                  className="bg-background-primary-2 rounded-lg p-lg text-center border border-border-default hover:shadow-lg duration-300"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 + index * 0.1, duration: 0.3 }}
                 >
-                  <p className="text-sm font-medium text-slate-600 dark:text-slate-400 capitalize mb-2">After {stage}</p>
-                  <div className="text-2xl font-bold text-slate-800 dark:text-white mb-1">{stats.rating}/10</div>
-                  <p className="text-sm text-slate-500 dark:text-slate-500">
+                  <p className="text-para-sm font-medium text-text-secondary capitalize mb-sm">After {stage}</p>
+                  <div className="text-h3-sm font-bold text-text-primary mb-xs">{stats.rating}/10</div>
+                  <p className="text-para-sm text-text-tertiary">
                     {stats.happy}/{stats.total} happy
                   </p>
                 </motion.div>
@@ -513,7 +515,7 @@ const DashboardHome: React.FC = () => {
         </motion.div>
 
         {/* Project Overview & Taste Trends - Same Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
           {/* Project Overview */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -521,43 +523,43 @@ const DashboardHome: React.FC = () => {
             transition={{ duration: 0.4, delay: 0.6 }}
           >
             <Card className={`${colors.light} ${colors.border} h-full`}>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6">Project Overview</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <h3 className="text-para-lg font-semibold text-text-primary mb-lg">Project Overview</h3>
+              <div className="grid grid-cols-3 gap-md">
                 <div className="text-center">
                   <motion.div
-                    className={`text-3xl font-bold ${colors.text} mb-1`}
+                    className={`text-h1-sm font-bold ${colors.text} mb-xs`}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.7, duration: 0.3 }}
                   >
                     {data.projectStats.totalActive}
                   </motion.div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">Active</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Projects</p>
+                  <p className="text-para-sm font-medium text-text-primary">Active</p>
+                  <p className="text-para-xs text-text-tertiary">Projects</p>
                 </div>
-                <div className="text-center border-x border-slate-200 dark:border-slate-700">
+                <div className="text-center border-x border-border-default">
                   <motion.div
-                    className={`text-3xl font-bold ${colors.text} mb-1`}
+                    className={`text-h1-sm font-bold ${colors.text} mb-xs`}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.8, duration: 0.3 }}
                   >
                     {data.projectStats.approvalRate}%
                   </motion.div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">Approval</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Rate</p>
+                  <p className="text-para-sm font-medium text-text-primary">Approval</p>
+                  <p className="text-para-xs text-text-tertiary">Rate</p>
                 </div>
                 <div className="text-center">
                   <motion.div
-                    className={`text-3xl font-bold ${colors.text} mb-1`}
+                    className={`text-h1-sm font-bold ${colors.text} mb-xs`}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.9, duration: 0.3 }}
                   >
                     {data.projectStats.avgProjectTime}d
                   </motion.div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-white">Avg Time</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">To Complete</p>
+                  <p className="text-para-sm font-medium text-text-primary">Avg Time</p>
+                  <p className="text-para-xs text-text-tertiary">To Complete</p>
                 </div>
               </div>
             </Card>
@@ -570,15 +572,15 @@ const DashboardHome: React.FC = () => {
             transition={{ duration: 0.4, delay: 0.7 }}
           >
             <Card className={`${colors.light} ${colors.border} h-full`}>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Taste Trends</h3>
-              <div className="space-y-3">
-                <p className="text-base text-slate-600 dark:text-slate-400">
-                  This week, <span className={`font-semibold ${colors.text} text-lg`}>{data.tasteTrend.percentage}%</span> of clients chose
+              <h3 className="text-para-lg font-semibold text-text-primary mb-md">Taste Trends</h3>
+              <div className="space-y-sm">
+                <p className="text-para-md text-text-secondary">
+                  This week, <span className={`font-semibold ${colors.text} text-para-lg`}>{data.tasteTrend.percentage}%</span> of clients chose
                 </p>
-                <p className={`text-2xl font-bold ${colors.text}`}>
+                <p className={`text-h3-sm font-bold ${colors.text}`}>
                   {data.tasteTrend.trend}
                 </p>
-                <div className="pt-2">
+                <div className="pt-sm">
                   <motion.div
                     className={`w-full h-2 ${colors.light} rounded-full overflow-hidden`}
                     initial={{ width: 0 }}
@@ -600,14 +602,14 @@ const DashboardHome: React.FC = () => {
 
         {/* View Recent Projects Link at the end */}
         <motion.div
-          className="flex justify-end pt-4"
+          className="flex justify-end pt-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4, delay: 0.8 }}
         >
           <motion.a
             href="#"
-            className={`inline-flex items-center gap-2 ${colors.text} font-medium hover:gap-3 transition-all duration-200`}
+            className={`inline-flex items-center gap-sm ${colors.text} font-medium hover:gap-sm transition-all duration-200`}
             whileHover={{ x: 5 }}
             transition={{ duration: 0.2 }}
           >

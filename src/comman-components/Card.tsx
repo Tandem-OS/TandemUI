@@ -1,4 +1,3 @@
-// src/common-components/Card.tsx
 import React, { type ReactNode } from 'react';
 import { clsx } from 'clsx';
 
@@ -11,20 +10,20 @@ interface CardProps {
 const Card: React.FC<CardProps> = ({
     children,
     className = '',
-    padding = 'md'
+    padding = 'md',
 }) => {
     const paddingClasses = {
         none: '',
         sm: 'p-sm',
         md: 'p-md',
         lg: 'p-lg',
-        xl: 'p-xl'
+        xl: 'p-xl',
     };
 
     return (
         <div
             className={clsx(
-                'bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700',
+                'bg-background-primary rounded-2xl shadow-sm border border-border-default',
                 paddingClasses[padding],
                 className
             )}

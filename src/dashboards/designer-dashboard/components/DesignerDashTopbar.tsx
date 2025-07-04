@@ -3,16 +3,14 @@ import {
     RiArrowDownSLine,
     RiUserLine,
     RiMenuLine,
-    RiSunLine,
-    RiMoonLine,
     RiSettings3Line,
     RiLogoutBoxLine,
     RiUser3Line,
     RiMenuUnfoldLine,
     RiMenuFoldLine
 } from 'react-icons/ri';
-import { useTheme } from '../../../contexts/ThemeContext';
 import Dropdown from '../../../comman-components/Dropdown';
+import ThemeToggle from '../../../components/theme-toggle/ThemeToggle';
 
 interface DesignerDashTopbarProps {
     onMenuClick: () => void;
@@ -25,7 +23,6 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
     isSidebarCollapsed,
     onToggleSidebar
 }) => {
-    const { theme, toggleTheme } = useTheme();
 
     const userMenuItems = [
         {
@@ -50,54 +47,42 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
     ];
 
     return (
-        <header className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-900 px-md lg:pr-xl lg:pl-md py-sm">
+        <header className="bg-background-primary-2 border-b border-border-default px-md lg:pr-xl lg:pl-md py-sm">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-md">
                     {/* Desktop Sidebar Toggle - only show when collapsed */}
-
                     <button
                         onClick={onToggleSidebar}
-                        className="hidden lg:block p-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                        className="hidden lg:block p-sm rounded-lg hover:bg-background-muted transition-colors"
                     >
                         {
                             isSidebarCollapsed ?
-                                <RiMenuUnfoldLine className="text-h4-sm text-slate-700 dark:text-slate-200" />
-
+                                <RiMenuUnfoldLine className="text-h4-sm text-text-secondary" />
                                 :
-                                <RiMenuFoldLine className="text-h4-sm text-slate-700 dark:text-slate-200" />
-
+                                <RiMenuFoldLine className="text-h4-sm text-text-secondary" />
                         }
                     </button>
-
 
                     {/* Mobile Menu Button */}
                     <button
                         onClick={onMenuClick}
-                        className="lg:hidden p-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                        className="lg:hidden p-sm rounded-lg hover:bg-background-muted transition-colors"
                     >
-                        <RiMenuLine className="text-h4-sm text-slate-700 dark:text-slate-200" />
+                        <RiMenuLine className="text-h4-sm text-text-secondary" />
                     </button>
                 </div>
 
                 <div className="flex items-center gap-sm lg:gap-md">
                     {/* Theme Toggle */}
-                    <button
-                        onClick={toggleTheme}
-                        className="p-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                    >
-                        {theme === 'light' ? (
-                            <RiMoonLine className="h-5 w-5 text-slate-700 dark:text-slate-200" />
-                        ) : (
-                            <RiSunLine className="h-5 w-5 text-slate-700 dark:text-slate-200" />
-                        )}
-                    </button>
+
+                    <ThemeToggle />
 
                     {/* User Dropdown */}
                     <Dropdown
                         trigger={
-                            <div className="flex items-center gap-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900 rounded-lg px-sm py-xs transition-colors">
+                            <div className="flex items-center gap-sm cursor-pointer hover:bg-background-muted rounded-lg px-sm py-xs transition-colors">
                                 {/* Circular Avatar Image */}
-                                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-sm">
+                                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full overflow-hidden border-2 border-border-default shadow-sm">
                                     <img
                                         src="/images/avatar.png"
                                         alt="Profile Avatar"
@@ -113,14 +98,14 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
                                         }}
                                     />
                                     {/* Fallback icon if image doesn't load */}
-                                    <div className="w-full h-full bg-slate-300 dark:bg-slate-900 rounded-full flex items-center justify-center" style={{ display: 'none' }}>
-                                        <RiUserLine className="text-h6-sm lg:text-h5-sm text-slate-600 dark:text-slate-300" />
+                                    <div className="w-full h-full bg-background-muted rounded-full flex items-center justify-center" style={{ display: 'none' }}>
+                                        <RiUserLine className="text-h6-sm lg:text-h5-sm text-text-secondary" />
                                     </div>
                                 </div>
-                                <span className="hidden lg:block text-para-sm font-medium text-slate-700 dark:text-slate-200">
+                                <span className="hidden lg:block text-para-sm font-medium text-text-primary">
                                     Schongham
                                 </span>
-                                <RiArrowDownSLine className="text-h5-sm text-slate-500 dark:text-slate-400" />
+                                <RiArrowDownSLine className="text-h5-sm text-text-tertiary" />
                             </div>
                         }
                         items={userMenuItems}

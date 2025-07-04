@@ -32,7 +32,6 @@ const LoginForm = () => {
 
     setLoading(true);
     try {
-      // simulate API delay
       await new Promise(resolve => setTimeout(resolve, 3000));
       console.log('Logged in!', values);
       navigate("/onboard");
@@ -49,28 +48,25 @@ const LoginForm = () => {
         e.preventDefault();
         handleLogin();
       }}
-      className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
+      className="w-full max-w-md bg-background-primary rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl border border-border-default"
     >
-      {/* Back to Home */}
-      <div className="flex justify-end">
+      <div className="flex justify-end leading-none">
         <Link
           to="/"
-          className="flex items-center gap-sm text-para-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+          className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors"
         >
           <FaArrowLeft />
           <span>Back to home</span>
         </Link>
       </div>
 
-      {/* Header */}
       <div>
         <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
           AI meets creativity.
         </Heading>
-        <p className="text-gray-700 dark:text-gray-200 text-para-md mb-md">Login Your Account</p>
+        <p className="text-text-secondary text-para-sm mb-md">Login Your Account</p>
       </div>
 
-      {/* Inputs */}
       <div className="space-y-sm">
         <Input
           label="Email"
@@ -100,7 +96,7 @@ const LoginForm = () => {
           <div className="text-right mt-xs">
             <Link
               to="/auth/reset-password"
-              className="text-para-sm text-accent-default hover:underline"
+              className="text-para-sm text-accent-default hover:text-accent-hover hover:underline transition-colors"
             >
               Forgot Password?
             </Link>
@@ -108,7 +104,6 @@ const LoginForm = () => {
         </div>
       </div>
 
-      {/* Submit with FormButton */}
       <FormButton
         size="md"
         fullWidth
@@ -120,7 +115,6 @@ const LoginForm = () => {
         Sign in
       </FormButton>
 
-      {/* Social Buttons */}
       <div className="flex items-center gap-sm">
         <SimpleButton
           type="button"
@@ -133,10 +127,12 @@ const LoginForm = () => {
         </SimpleButton>
       </div>
 
-      {/* Sign Up Redirect */}
-      <p className="text-center text-gray-700 dark:text-gray-200 text-para-sm">
+      <p className="text-center text-text-secondary text-para-sm">
         Don't have an account?{' '}
-        <Link to="/auth/signup" className="underline text-accent-default font-medium">
+        <Link
+          to="/auth/signup"
+          className="underline text-accent-default hover:text-accent-hover font-medium transition-colors"
+        >
           Sign Up
         </Link>
       </p>

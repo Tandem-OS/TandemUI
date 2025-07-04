@@ -35,7 +35,7 @@ const Header = () => {
 
     return (
         <>
-            <header className="bg-white dark:bg-slate-950 sticky top-0 z-50 border-b border-slate-200 dark:border-slate-800">
+            <header className="bg-background-primary-2 sticky top-0 z-50 border-b border-border-default leading-none">
                 <div className="container mx-auto px-md">
                     <div className="flex items-center justify-between h-16">
                         {/* Logo */}
@@ -54,8 +54,8 @@ const Header = () => {
                                     key={item.id}
                                     to={item.path}
                                     className={clsx(
-                                        'text-para-md font-poppins text-slate-700 dark:text-slate-200',
-                                        'hover:text-accent-default dark:hover:text-accent-default',
+                                        'text-para-md font-poppins text-text-secondary',
+                                        'hover:text-accent-default',
                                         'transition-colors duration-200'
                                     )}
                                 >
@@ -64,7 +64,7 @@ const Header = () => {
                             ))}
 
                             {/* Theme Toggle */}
-                            <div className="ml-md">
+                            <div>
                                 <ThemeToggle />
                             </div>
 
@@ -72,14 +72,14 @@ const Header = () => {
                             <Dropdown
                                 trigger={
                                     <div className="flex items-center gap-sm cursor-pointer group">
-                                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 hover:border-accent-default dark:hover:border-accent-default transition-colors">
+                                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-border-default hover:border-accent-default transition-colors">
                                             <img
                                                 src={avatarUrl}
                                                 alt="Profile Avatar"
                                                 className="w-full h-full object-cover"
                                             />
                                         </div>
-                                        <RiArrowDownSLine className="text-slate-400 group-hover:text-accent-default transition-colors" />
+                                        <RiArrowDownSLine className="text-text-tertiary group-hover:text-accent-default transition-colors" />
                                     </div>
                                 }
                                 items={profileDropdownItems}
@@ -89,9 +89,9 @@ const Header = () => {
                         {/* Mobile Menu Button */}
                         <button
                             onClick={() => setIsDrawerOpen(true)}
-                            className="lg:hidden p-sm rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            className="lg:hidden p-sm rounded-lg hover:bg-background-muted transition-colors"
                         >
-                            <RiMenuLine className="text-h4-sm text-slate-700 dark:text-slate-200" />
+                            <RiMenuLine className="text-h4-sm text-text-secondary" />
                         </button>
                     </div>
                 </div>
@@ -107,14 +107,14 @@ const Header = () => {
                 <div className="p-lg">
                     {/* Drawer Header */}
                     <div className="mb-lg">
-                        <h3 className="text-h4-md font-poppins text-slate-900 dark:text-white">
+                        <h3 className="text-h4-md font-poppins text-text-primary">
                             Menu
                         </h3>
                     </div>
 
                     {/* Profile Section */}
-                    <div className="flex items-center gap-md mb-lg pb-lg border-b border-slate-200 dark:border-slate-800">
-                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-md mb-lg pb-lg border-b border-border-default">
+                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border-default">
                             <img
                                 src={avatarUrl}
                                 alt="Profile Avatar"
@@ -122,10 +122,10 @@ const Header = () => {
                             />
                         </div>
                         <div>
-                            <p className="text-para-md font-poppins text-slate-900 dark:text-white">
+                            <p className="text-para-md font-poppins text-text-primary">
                                 John Doe
                             </p>
-                            <p className="text-para-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-para-sm text-text-tertiary">
                                 john@example.com
                             </p>
                         </div>
@@ -140,9 +140,9 @@ const Header = () => {
                                 onClick={() => setIsDrawerOpen(false)}
                                 className={clsx(
                                     'block px-md py-sm rounded-lg text-para-md font-poppins',
-                                    'text-slate-700 dark:text-slate-200',
-                                    'hover:bg-slate-100 dark:hover:bg-slate-800',
-                                    'hover:text-accent-default dark:hover:text-accent-default',
+                                    'text-text-secondary',
+                                    'hover:bg-background-muted',
+                                    'hover:text-accent-default',
                                     'transition-all duration-200'
                                 )}
                             >
@@ -152,8 +152,8 @@ const Header = () => {
                     </nav>
 
                     {/* Theme Toggle Section */}
-                    <div className="flex items-center justify-between py-md border-t border-slate-200 dark:border-slate-800">
-                        <span className="text-para-md font-poppins text-slate-700 dark:text-slate-200">
+                    <div className="flex items-center justify-between py-md border-t border-border-default">
+                        <span className="text-para-md font-poppins text-text-secondary">
                             Dark Mode
                         </span>
                         <ThemeToggle />
@@ -168,8 +168,8 @@ const Header = () => {
                             }}
                             className={clsx(
                                 'w-full flex items-center gap-sm px-md py-sm rounded-lg',
-                                'text-para-md font-poppins text-slate-700 dark:text-slate-200',
-                                'hover:bg-slate-100 dark:hover:bg-slate-800',
+                                'text-para-md font-poppins text-text-secondary',
+                                'hover:bg-background-muted',
                                 'transition-colors duration-200'
                             )}
                         >
@@ -183,8 +183,8 @@ const Header = () => {
                             }}
                             className={clsx(
                                 'w-full flex items-center gap-sm px-md py-sm rounded-lg',
-                                'text-para-md font-poppins text-red-600 dark:text-red-400',
-                                'hover:bg-red-50 dark:hover:bg-red-950/20',
+                                'text-para-md font-poppins text-text-error',
+                                'hover:bg-background-error',
                                 'transition-colors duration-200'
                             )}
                         >

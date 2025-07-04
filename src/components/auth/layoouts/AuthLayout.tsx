@@ -14,14 +14,12 @@ interface AuthLayoutProps {
     variant?: AuthVariant;
 }
 
-// Properly typed transition
 const pageTransition = {
     type: "tween" as const,
     ease: "anticipate" as const,
     duration: 0.3,
 };
 
-// Route configuration for DRY code
 const routes = [
     { path: '/', element: LoginForm, key: 'login' },
     { path: 'signup', element: RegisterForm, key: 'signup' },
@@ -38,11 +36,10 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
             shapeColor: 'blue',
         }
         : {
-            bgGradient: 'bg-gradient-to-t from-accent-default to-accent-default-dark',
+            bgGradient: 'bg-accent-default',
             shapeColor: '#1f2937',
         };
 
-    // Reusable animated routes component
     const AnimatedRoutes = () => (
         <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
@@ -68,10 +65,9 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
         </AnimatePresence>
     );
 
-    const containerClasses = `relative min-h-screen flex ${isCentered ? '' : 'bg-slate-100 dark:bg-gray-900'}`;
+    const containerClasses = `relative min-h-screen flex ${isCentered ? '' : 'bg-background-secondary'}`;
     const backgroundClasses = `absolute inset-0 ${isCentered ? '' : 'hidden lg:block'}`;
 
-    // Common wrapper for forms
     const FormWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
         <>
             <FloatingShapesBackground
@@ -92,7 +88,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col flex-1 px-5 lg:px-0  z-10">
+                    <div className="flex flex-col flex-1 px-sm lg:px-none z-10">
                         <SimpleHeader />
                         <div className="flex-1 flex justify-center items-center">
                             <AnimatedRoutes />

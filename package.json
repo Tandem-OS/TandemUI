@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently --raw \"npm run watch:tokens\" \"vite\"",
-    "build": "tsc -b && vite build",
+    "dev": "npm run generate-tokens && concurrently --raw \"npm run watch:tokens\" \"vite\"",
+    "build": "npm run generate-tokens && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "gen:tw": "node ./src/design-system/scripts/generate-config.cjs",
-    "watch:tokens": "npm run gen:tw && chokidar \"src/design-system/tokens/**/*.json\" -c \"npm run gen:tw\""
+    "generate-tokens": "node ./src/design-system/scripts/generate-config.cjs",
+    "watch:tokens": "chokidar \"src/design-system/tokens/**/*.json\" -c \"npm run generate-tokens\""
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

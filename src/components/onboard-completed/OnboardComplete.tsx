@@ -6,6 +6,7 @@ import SimpleButton from '../demos/buttons/SimpleButton';
 import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 import { useNavigate } from 'react-router-dom';
 import SuccessAnimation from '../animations-components/SuccessAnimation';
+import Heading from '../demos/typography/Heading';
 
 const OnboardComplete: React.FC = () => {
     const navigate = useNavigate();
@@ -21,7 +22,7 @@ const OnboardComplete: React.FC = () => {
     }, []);
 
     return (
-        <div className="relative min-h-screen flex bg-slate-100 dark:bg-gray-900 transition-colors overflow-hidden">
+        <div className="relative min-h-screen flex bg-background-secondary transition-colors overflow-hidden">
 
             <div className="flex-1 flex flex-col z-10">
                 <SimpleHeader />
@@ -56,8 +57,8 @@ const OnboardComplete: React.FC = () => {
                                     transformOrigin: 'center'
                                 }}
                             >
-                                <div className="w-24 h-24 bg-accent-subtle dark:bg-opacity-20 rounded-full flex items-center justify-center">
-                                    <FaRocket className="text-5xl text-accent-default" />
+                                <div className="w-24 h-24 bg-accent-subtle dark:bg-gray-500/25 rounded-full flex items-center justify-center">
+                                    <FaRocket className="text-icon-2xl text-accent-default" />
                                 </div>
                             </motion.div>
 
@@ -71,16 +72,16 @@ const OnboardComplete: React.FC = () => {
                                     damping: 15,
                                     delay: 0.4
                                 }}
-                                className="mb-sm"
+                                
                                 style={{
                                     willChange: 'transform, opacity',
                                     transformOrigin: 'center'
                                 }}
                             >
 
-                                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white">
+                                <Heading level="h1">
                                     Let's Build
-                                </h1>
+                                </Heading>
                             </motion.div>
 
                             {/* Content wrapper with reserved space */}
@@ -100,10 +101,10 @@ const OnboardComplete: React.FC = () => {
                                                 transformOrigin: 'center'
                                             }}
                                         >
-                                            <p className="text-2xl md:text-3xl text-gray-700 dark:text-gray-300 mb-md font-semibold">
+                                            <p className="text-h3-sm md:text-h1-sm text-text-secondary mb-md font-semibold">
                                                 Your Vision starts here.
                                             </p>
-                                            <p className="text-para-md text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                                            <p className="text-para-md text-text-primary max-w-md mx-auto font-light mb-lg">
                                                 A seamless, visual journey tailored to your taste.
                                             </p>
                                         </motion.div>
@@ -151,7 +152,7 @@ const OnboardComplete: React.FC = () => {
                                                     <SimpleButton
                                                         variant="solid"
                                                         size="lg"
-                                                        className="w-full sm:w-auto min-w-[200px]"
+                                                        className="w-full sm:w-auto"
                                                         onClick={() => navigate("/intake")}
                                                     >
                                                         <FaPaintBrush className="mr-sm" />
@@ -162,7 +163,7 @@ const OnboardComplete: React.FC = () => {
                                                 <SimpleButton
                                                     variant="outline"
                                                     size="lg"
-                                                    className="w-full sm:w-auto min-w-[200px]"
+                                                    className="w-full sm:w-auto"
                                                     onClick={() => navigate('/dashboard/designer')}
                                                 >
                                                     <FaHome className="mr-sm" />

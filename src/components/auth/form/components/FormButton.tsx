@@ -1,31 +1,73 @@
-// components/FormButton.tsx
-import SimpleButton, { type SimpleButtonProps } from '../../../demos/buttons/SimpleButton'
+import { type FC, type ButtonHTMLAttributes } from 'react'
+import { cva } from 'class-variance-authority'
+import type { VariantProps } from 'class-variance-authority'
+import clsx from 'clsx'
+import SimpleButton from '../../../demos/buttons/SimpleButton'
 
-interface FormButtonProps extends Omit<SimpleButtonProps, 'onClick' | 'disabled'> {
-  isLoading?: boolean
-  onSubmit: () => Promise<void> | void
-}
+const formButtonStyles = cva(
+  'inline-flex items-center justify-center font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative rounded-lg flex items-center gap-sm',
+  {
+    variants: {
+      variant: {
+        solid: 'bg-accent-default hover:bg-accent-hover text-accent-foreground shadow-lg hover:shadow-xl',
+        outline: 'border-2 border-accent-default text-accent-default hover:text-accent-foreground bg-transparent hover:bg-accent-default',
+        ghost: 'bg-transparent text-accent-default hover:bg-accent-subtle',
+      },
+      size: {
+        sm: 'py-xs px-sm text-btn-sm min-h-[2.25rem]',
+        md: 'py-sm px-md text-btn-md min-h-[2.75rem]',
+        lg: 'py-md px-lg text-btn-lg min-h-[3.25rem]',
+      },
+      fullWidth: {
+        true: 'w-full',
+      },
+    },
+    defaultVariants: {
+      variant: 'solid',
+      size: 'md',
+      fullWidth: false,
+    },
+  }
+);
 
-const FormButton: React.FC<FormButtonProps> = ({
-  isLoading = false,
-  onSubmit,
+
+export type FormButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
+  VariantProps<typeof formButtonStyles> & {
+    className?: string
+    isLoading?: boolean
+    onSubmit?: () => void
+  }
+
+const FormButton: FC<FormButtonProps> = ({
+  variant = 'solid',
+  size = 'md',
+  fullWidth = false,
+  className,
   children,
+  isLoading = false,
+  disabled,
+  onSubmit,
+  onClick,
   ...rest
 }) => {
-  const handleClick = async () => {
-    try {
-      await onSubmit()
-    } catch (err) {
-      console.error(err)
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (onClick) {
+      onClick(e);
     }
-  }
+    if (onSubmit && !e.defaultPrevented) {
+      onSubmit();
+    }
+  };
 
   return (
     <SimpleButton
-      {...rest}
+      className={clsx(
+        formButtonStyles({ variant, size, fullWidth }),
+        className,
+      )}
+      disabled={disabled || isLoading}
       onClick={handleClick}
-      disabled={isLoading}
-      className="flex items-center justify-center gap-sm"
+      {...rest}
     >
       {children}
 

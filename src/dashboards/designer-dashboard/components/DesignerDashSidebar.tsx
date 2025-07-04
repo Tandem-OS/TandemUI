@@ -47,31 +47,30 @@ interface DesignerDashSidebarProps {
 const styles = {
     menuItem: {
         base: 'flex items-center rounded-lg transition-all duration-300 cursor-pointer border-l-4 relative',
-        hover: 'hover:bg-slate-100 dark:hover:bg-slate-800/50',
         active: {
-            expanded: 'bg-blue-500/10 dark:bg-slate-800/70 border-l-blue-500',
-            collapsed: 'bg-blue-500/10 dark:bg-blue-500/20 border-l-blue-500'
+            expanded: 'bg-accent-subtle border-l-accent-default',
+            collapsed: 'bg-accent-subtle border-l-accent-default'
         },
         inactive: 'border-l-transparent',
         padding: {
-            level0: 'px-3 py-3 mb-2',
-            nested: 'px-4 py-2.5 mb-1.5 ml-3',
+            level0: 'px-sm py-sm mb-sm',
+            nested: 'px-md py-sm mb-xs ml-sm',
             collapsed: 'h-12 w-12 mx-auto justify-center'
         }
     },
     iconBox: {
         base: 'w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 shadow-sm',
-        active: 'bg-blue-500 shadow-md',
-        inactive: 'bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-700/50'
+        active: 'bg-accent-default shadow-md',
+        inactive: 'bg-background-muted dark:bg-background-primary hover:bg-background-accent'
     },
     icon: {
         base: 'transition-colors duration-200',
-        active: 'text-white',
-        inactive: 'text-gray-600 dark:text-gray-400'
+        active: 'text-accent-foreground',
+        inactive: 'text-text-secondary'
     },
     text: {
-        active: 'text-gray-900 dark:text-white',
-        inactive: 'text-gray-700 dark:text-gray-300'
+        active: 'text-text-primary',
+        inactive: 'text-text-secondary'
     }
 };
 
@@ -79,7 +78,7 @@ const styles = {
 const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
     const [isHovered, setIsHovered] = useState<boolean>(false);
     const [position, setPosition] = useState<Position>({ top: 0, left: 0 });
-    const [isPositioned, setIsPositioned] = useState<boolean>(false); // New state to track if position is calculated
+    const [isPositioned, setIsPositioned] = useState<boolean>(false);
     const triggerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -93,10 +92,9 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
             top: rect.top + rect.height / 2, 
             left: rect.right + 8 
         });
-        setIsPositioned(true); // Mark as positioned after calculation
+        setIsPositioned(true);
     }, [isHovered]);
 
-    // Reset positioned state when hover ends
     useEffect(() => {
         if (!isHovered) {
             setIsPositioned(false);
@@ -114,9 +112,9 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
             >
                 {children}
             </div>
-            {isHovered && isPositioned && ReactDOM.createPortal( // Only show when positioned
+            {isHovered && isPositioned && ReactDOM.createPortal(
                 <div
-                    className="fixed px-3 py-1.5 bg-gray-900 dark:bg-gray-700 text-white text-sm rounded-md shadow-lg pointer-events-none whitespace-nowrap z-[99999] transition-opacity duration-150 opacity-100"
+                    className="fixed px-sm py-xs bg-background-dark text-text-light text-para-sm rounded-md shadow-lg pointer-events-none whitespace-nowrap z-[99999] transition-opacity duration-150 opacity-100"
                     style={{ 
                         top: `${position.top}px`, 
                         left: `${position.left}px`, 
@@ -124,7 +122,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
                     }}
                 >
                     {content}
-                    <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[6px] border-r-gray-900 dark:border-r-gray-700" />
+                    <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[6px] border-r-background-dark" />
                 </div>,
                 document.body
             )}
@@ -147,7 +145,6 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
 
     const itemClasses = clsx(
         styles.menuItem.base,
-        styles.menuItem.hover,
         isActive ? (isCollapsed ? styles.menuItem.active.collapsed : styles.menuItem.active.expanded) : styles.menuItem.inactive,
         isCollapsed ? styles.menuItem.padding.collapsed : (level === 0 ? styles.menuItem.padding.level0 : styles.menuItem.padding.nested)
     );
@@ -162,11 +159,11 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
         isActive ? styles.icon.active : styles.icon.inactive
     );
     
-    const textClasses = clsx('text-para font-medium leading-[1]', isActive ? styles.text.active : styles.text.inactive);
+    const textClasses = clsx('text-para-md font-medium leading-[1]', isActive ? styles.text.active : styles.text.inactive);
 
     const content = (
         <>
-            <div className={clsx('flex items-center', !isCollapsed && 'gap-3 flex-1')}>
+            <div className={clsx('flex items-center', !isCollapsed && 'gap-sm flex-1')}>
                 <div className={iconBoxClasses}>
                     <Icon style={ICON_SIZE} className={iconClasses} />
                 </div>
@@ -175,7 +172,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
             {!isCollapsed && hasChildren && (
                 <RiArrowDownSLine
                     style={ICON_SIZE}
-                    className={clsx('text-gray-500 dark:text-gray-400 transition-transform duration-200', isExpanded && 'rotate-180')}
+                    className={clsx('text-text-tertiary transition-transform duration-200', isExpanded && 'rotate-180')}
                 />
             )}
         </>
@@ -205,15 +202,15 @@ const Logo: React.FC<LogoProps> = ({ isCollapsed }) => (
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className={isCollapsed ? 'flex justify-center' : 'flex items-center gap-3'}
+            className={isCollapsed ? 'flex justify-center' : 'flex items-center gap-sm'}
         >
-            <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-lg">T</span>
+            <div className="w-11 h-11 bg-accent-default rounded-lg flex items-center justify-center shadow-md">
+                <span className="text-accent-foreground font-bold text-h5-lg">T</span>
             </div>
             {!isCollapsed && (
                 <div className="flex flex-col">
-                    <span className="text-lg font-bold text-gray-900 dark:text-white">Tandem</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Design Studio</span>
+                    <span className="text-para-lg font-bold text-text-primary">Tandem</span>
+                    <span className="text-para-xs text-text-secondary">Design Studio</span>
                 </div>
             )}
         </motion.div>
@@ -281,7 +278,7 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
         };
 
         return (
-            <div key={item.id} className={level === 0 ? 'mb-1' : ''}>
+            <div key={item.id} className={level === 0 ? 'mb-xs' : ''}>
                 <Tooltip content={item.name} show={isCollapsed && level === 0}>
                     <MenuItemComponent
                         item={item}
@@ -294,7 +291,7 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
                     />
                 </Tooltip>
                 {hasChildren && isExpanded && !isCollapsed && (
-                    <div className="mt-1">
+                    <div className="mt-xs">
                         {item.children!.map(child => renderMenuItem(child, level + 1))}
                     </div>
                 )}
@@ -307,17 +304,17 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
             initial={false}
             animate={{ width: isCollapsed ? 80 : 256 }}
             transition={ANIMATION_CONFIG}
-            className="h-screen bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-900 flex flex-col"
+            className="h-screen bg-background-primary-2 border-r border-border-default flex flex-col"
         >
             {/* Header */}
-            <div className="border-b border-slate-200 dark:border-slate-900 flex flex-col">
-                <div className="px-4 py-3">
+            <div className="border-b border-border-default flex flex-col">
+                <div className="px-md py-2.5">
                     <Logo isCollapsed={isCollapsed} />
                 </div>
             </div>
 
             {/* Menu Items */}
-            <nav className="flex-1 px-3 py-4 overflow-y-auto">
+            <nav className="flex-1 px-sm py-md overflow-y-auto">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={isCollapsed ? 'collapsed' : 'expanded'}

@@ -1,140 +1,166 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaEnvelope, FaLock } from 'react-icons/fa';
 import Input from './components/Input';
 import Heading from '../../demos/typography/Heading';
-import { FaArrowLeft, FaEnvelope, FaLock } from 'react-icons/fa';
-import SimpleButton from '../../demos/buttons/SimpleButton';
-import { Link, useNavigate } from 'react-router-dom';
+import FormButton from './components/FormButton';
 
-const RegisterForm = () => {
-    const [values, setValues] = useState({ email: '', password: '', confirmPassword: '' });
-    const [errors, setErrors] = useState<{
-        email?: string;
-        password?: string;
-        confirmPassword?: string;
-    }>({});
-    const navigate = useNavigate();
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setValues((prev) => ({ ...prev, [name]: value }));
+interface RegisterValues {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
 
-        if (errors[name as keyof typeof errors]) {
-            setErrors((prev) => ({ ...prev, [name]: '' }));
-        }
-    };
+interface RegisterErrors {
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+}
 
-    const handleRegister = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+const RegisterForm: React.FC = () => {
+  const [values, setValues] = useState<RegisterValues>({
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
 
-        const newErrors: typeof errors = {};
+  const [errors, setErrors] = useState<RegisterErrors>({});
+  const [loading, setLoading] = useState<boolean>(false);
+  const navigate = useNavigate();
 
-        if (!values.email.trim()) {
-            newErrors.email = 'Email is required';
-        }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void => {
+    const { name, value } = e.target;
+    setValues(prev => ({ ...prev, [name]: value }));
 
-        if (!values.password.trim()) {
-            newErrors.password = 'Password is required';
-        }
+    if (errors[name as keyof RegisterErrors]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
 
-        if (!values.confirmPassword.trim()) {
-            newErrors.confirmPassword = 'Confirm Password is required';
-        } else if (values.password !== values.confirmPassword) {
-            newErrors.confirmPassword = 'Passwords do not match';
-        }
+  const handleRegister = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
+    e.preventDefault();
+    const newErrors: RegisterErrors = {};
 
-        if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            return;
-        }
+    if (!values.email.trim()) {
+      newErrors.email = 'Email is required';
+    }
 
-        console.log('Register form submitted with values:', values);
-        navigate("/onboard");
+    if (!values.password.trim()) {
+      newErrors.password = 'Password is required';
+    }
 
-    };
+    if (!values.confirmPassword.trim()) {
+      newErrors.confirmPassword = 'Confirm Password is required';
+    } else if (values.password !== values.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
 
-    return (
-        <form
-            onSubmit={handleRegister}
-            className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await new Promise<void>(resolve => setTimeout(resolve, 3000));
+      console.log('Registered with values:', values);
+      navigate('/onboard');
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form
+      onSubmit={handleRegister}
+      className="w-full max-w-md bg-background-primary rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl border border-border-default"
+    >
+      <div className="flex justify-end leading-none">
+        <Link
+          to="/"
+          className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors"
         >
-            {/* Back to Home */}
-            <div className="flex justify-end">
-                <Link
-                    to="/"
-                    className="flex items-center gap-sm text-para-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                    <FaArrowLeft />
-                    <span>Back to home</span>
-                </Link>
-            </div>
+          <FaArrowLeft />
+          <span>Back to home</span>
+        </Link>
+      </div>
 
-            {/* Heading */}
-            <div>
-                <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
-                    Join Tandem
-                </Heading>
-                <p className="text-gray-700 dark:text-gray-200 text-para-md mb-md">
-                    Create Your Account
-                </p>
-            </div>
+      <div>
+        <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
+          Join Tandem
+        </Heading>
+        <p className="text-text-secondary text-para-md mb-md">
+          Create Your Account
+        </p>
+      </div>
 
-            {/* Input Fields */}
-            <div className="space-y-sm">
-                <Input
-                    label="Email"
-                    name="email"
-                    type="email"
-                    value={values.email}
-                    onChange={handleChange}
-                    placeholder="Enter your email"
-                    icon={<FaEnvelope />}
-                    variant="filled"
-                    error={errors.email}
-                    className="bg-white dark:bg-gray-900"
-                />
+      <div className="space-y-sm">
+        <Input
+          label="Email"
+          name="email"
+          type="email"
+          value={values.email}
+          onChange={handleChange}
+          placeholder="Enter your email"
+          icon={<FaEnvelope />}
+          variant="filled"
+          error={errors.email}
+        />
 
-                <Input
-                    label="Password"
-                    name="password"
-                    type="password"
-                    value={values.password}
-                    onChange={handleChange}
-                    placeholder="Enter your password"
-                    icon={<FaLock />}
-                    showPasswordToggle
-                    variant="filled"
-                    error={errors.password}
-                    className="bg-white dark:bg-gray-900"
-                />
+        <Input
+          label="Password"
+          name="password"
+          type="password"
+          value={values.password}
+          onChange={handleChange}
+          placeholder="Enter your password"
+          icon={<FaLock />}
+          showPasswordToggle
+          variant="filled"
+          error={errors.password}
+        />
 
-                <Input
-                    label="Confirm Password"
-                    name="confirmPassword"
-                    type="password"
-                    value={values.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Confirm your password"
-                    icon={<FaLock />}
-                    showPasswordToggle
-                    variant="filled"
-                    error={errors.confirmPassword}
-                    className="bg-white dark:bg-gray-900"
-                />
-            </div>
+        <Input
+          label="Confirm Password"
+          name="confirmPassword"
+          type="password"
+          value={values.confirmPassword}
+          onChange={handleChange}
+          placeholder="Confirm your password"
+          icon={<FaLock />}
+          showPasswordToggle
+          variant="filled"
+          error={errors.confirmPassword}
+        />
+      </div>
 
-            {/* Submit Button */}
-            <SimpleButton size="md" fullWidth type="submit" variant="solid">
-                Sign up
-            </SimpleButton>
+      <FormButton
+        size="md"
+        fullWidth
+        variant="solid"
+        type="submit"
+        isLoading={loading}
+      >
+        Sign up
+      </FormButton>
 
-            {/* Redirect */}
-            <p className="text-center text-gray-700 dark:text-gray-200 text-para-sm">
-                Already have an account?{' '}
-                <Link to="/auth/" className="underline text-accent-default font-medium">
-                    Sign In
-                </Link>
-            </p>
-        </form>
-    );
+      <p className="text-center text-text-secondary text-para-sm">
+        Already have an account?{' '}
+        <Link
+          to="/auth/"
+          className="underline text-accent-default hover:text-accent-hover font-medium transition-colors"
+        >
+          Sign In
+        </Link>
+      </p>
+    </form>
+  );
 };
 
 export default RegisterForm;

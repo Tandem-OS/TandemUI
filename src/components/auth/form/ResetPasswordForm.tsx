@@ -6,90 +6,85 @@ import Heading from '../../demos/typography/Heading';
 import SimpleButton from '../../demos/buttons/SimpleButton';
 
 const ResetPasswordForm = () => {
-    const [email, setEmail] = useState('');
-    const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-        if (!email.trim()) {
-            setError('Email is required');
-            return;
-        }
+    if (!email.trim()) {
+      setError('Email is required');
+      return;
+    }
 
-        setError(null);
-        console.log('Sending reset email to:', email);
-    };
+    setError(null);
+    console.log('Sending reset email to:', email);
+  };
 
-    return (
-        <form
-            onSubmit={handleSubmit}
-            className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-md bg-background-primary rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl border border-border-default"
+    >
+      <div className="flex justify-end leading-none">
+        <Link
+          to="/"
+          className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors"
         >
-            <div className="flex justify-end">
-                <Link
-                    to="/"
-                    className="flex items-center gap-sm text-para-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                    <FaArrowLeft />
-                    <span>Back to home</span>
-                </Link>
-            </div>
-            {/* Heading */}
-            <div>
-                <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
-                    Reset Password
-                </Heading>
-                <p className="text-gray-700 dark:text-gray-200 text-para-md mb-md">
-                    Enter your email to reset your password
-                </p>
-            </div>
+          <FaArrowLeft />
+          <span>Back to home</span>
+        </Link>
+      </div>
 
-            {/* Input */}
-            <Input
-                label="Email"
-                name="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                icon={<FaEnvelope />}
-                variant="filled"
-                error={error || undefined}
-                className="bg-white dark:bg-gray-900"
-            />
+      <div>
+        <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
+          Reset Password
+        </Heading>
+        <p className="text-text-secondary text-para-md mb-md">
+          Enter your email to reset your password
+        </p>
+      </div>
 
-            {/* Submit */}
-            <SimpleButton size="md" fullWidth type="submit" variant="solid">
-                Send Reset Email
-            </SimpleButton>
+      <Input
+        label="Email"
+        name="email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Enter your email"
+        icon={<FaEnvelope />}
+        variant="filled"
+        error={error || undefined}
+        className="bg-background-primary"
+      />
 
-            {/* Divider */}
-            <div className="flex items-center gap-md text-gray-500 dark:text-gray-400 text-para-sm py-md">
-                <div className="flex-1 h-hairline bg-gray-300 dark:bg-gray-600" />
-                <span className="text-h7-sm uppercase">or</span>
-                <div className="flex-1 h-hairline bg-gray-300 dark:bg-gray-600" />
-            </div>
+      <SimpleButton size="md" fullWidth type="submit" variant="solid">
+        Send Reset Email
+      </SimpleButton>
 
-            {/* Guest Button */}
-            <SimpleButton
-                type="button"
-                variant="outline"
-                fullWidth
-                className="flex items-center justify-center gap-sm text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-            >
-                <FaUser className="text-para-lg" />
-                Continue as Guest
-            </SimpleButton>
+      <div className="flex items-center gap-md text-text-tertiary text-para-sm py-md">
+        <div className="flex-1 h-px bg-border-muted" />
+        <span className="text-para-xs uppercase">or</span>
+        <div className="flex-1 h-px bg-border-muted" />
+      </div>
 
-            {/* Back to Sign In */}
-            <p className="text-center text-accent-default font-medium text-para-sm">
-                <Link to="/auth" className="hover:underline">
-                    Back to Sign In
-                </Link>
-            </p>
-        </form>
-    );
+      <SimpleButton
+        type="button"
+        variant="outline"
+        fullWidth
+        className="flex items-center justify-center gap-sm text-text-primary bg-background-muted"
+      >
+        <FaUser className="text-para-lg" />
+        Continue as Guest
+      </SimpleButton>
+
+      <p className="text-center text-accent-default hover:text-accent-hover font-medium text-para-sm">
+        <Link to="/auth" className="hover:underline transition-colors">
+          Back to Sign In
+        </Link>
+      </p>
+    </form>
+  );
 };
 
 export default ResetPasswordForm;
