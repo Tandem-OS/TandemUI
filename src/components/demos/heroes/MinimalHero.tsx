@@ -56,7 +56,6 @@ const MinimalHero: React.FC<HeroBuilderProps> = ({
           <MotionHeading
             level="h1"
             weight="extrabold"
-            color="dark"
             align={layout === 'split' ? 'left' : 'center'}
             className="mb-xl"
             variants={variant}
@@ -69,7 +68,6 @@ const MinimalHero: React.FC<HeroBuilderProps> = ({
           <MotionHeading
             level="h4"
             weight="light"
-            color="darkSecondary"
             align={layout === 'split' ? 'left' : 'center'}
             className="max-w-3xl"
             variants={variant}
