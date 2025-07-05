@@ -6,11 +6,12 @@ import { FaEnvelope, FaLock, FaUser, FaArrowLeft } from 'react-icons/fa';
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
 import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
+import { signUp } from '../../../lib/requests/AuthRequest';
 
 const RegisterForm = () => {
   const navigate = useNavigate();
-  const { signUp, signInWithGoogle } = useAuth();
-  
+  const { signInWithGoogle } = useAuth();
+
   const [values, setValues] = useState({
     name: '',
     email: '',
@@ -25,6 +26,7 @@ const RegisterForm = () => {
     general?: string;
   }>({});
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -36,41 +38,42 @@ const RegisterForm = () => {
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
-    
+
     // Name validation
     if (!values.name.trim()) {
       newErrors.name = 'Name is required';
     } else if (values.name.trim().length < 2) {
       newErrors.name = 'Name must be at least 2 characters';
     }
-    
+
     // Email validation
     if (!values.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(values.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
     // Password validation
     if (!values.password) {
       newErrors.password = 'Password is required';
     } else if (values.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     // Confirm password validation
     if (!values.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
     } else if (values.password !== values.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
+
     return newErrors;
   };
 
   const handleSignup = async () => {
     setErrors({});
-    
+    setSuccessMessage('');
+
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -79,21 +82,9 @@ const RegisterForm = () => {
 
     setLoading(true);
     try {
-      const { error } = await signUp(values.email, values.password);
-      
-      if (error) {
-        if (error.message.includes('already registered')) {
-          setErrors({ email: 'This email is already registered' });
-        } else {
-          setErrors({ general: error.message || 'Failed to create account' });
-        }
-      } else {
-        // Show success message
-        setErrors({ 
-          general: 'Account created! Please check your email to verify your account.' 
-        });
-        
-        // Optionally redirect after a delay
+      const response = await signUp(values);
+      if (response.data.success) {
+        setSuccessMessage('Account created! Please check your email to verify your account.');
         setTimeout(() => {
           navigate('/auth');
         }, 3000);
@@ -149,13 +140,18 @@ const RegisterForm = () => {
         <p className="text-gray-200 text-sm">Join Tandem today</p>
       </div>
 
+      {successMessage && (
+        <div className="px-4 py-3 rounded-lg text-sm bg-green-500/10 border border-green-500/50 text-green-400">
+          {successMessage}
+        </div>
+      )}
+
       {/* Success/Error Message */}
       {errors.general && (
-        <div className={`px-4 py-3 rounded-lg text-sm ${
-          errors.general.includes('Account created') 
-            ? 'bg-green-500/10 border border-green-500/50 text-green-400'
-            : 'bg-red-500/10 border border-red-500/50 text-red-400'
-        }`}>
+        <div className={`px-4 py-3 rounded-lg text-sm ${errors.general.includes('Account created')
+          ? 'bg-green-500/10 border border-green-500/50 text-green-400'
+          : 'bg-red-500/10 border border-red-500/50 text-red-400'
+          }`}>
           {errors.general}
         </div>
       )}

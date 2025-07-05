@@ -4,10 +4,11 @@ import { Link } from 'react-router-dom';
 import Input from './components/Input';
 import Heading from '../../demos/typography/Heading';
 import FormButton from './components/FormButton';
-import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
+// import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
+import { forgotPassword } from '../../../lib/requests/AuthRequest';
 
 const ResetPasswordForm = () => {
-  const { resetPassword } = useAuth();
+  // const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -28,12 +29,14 @@ const ResetPasswordForm = () => {
     setError('');
 
     try {
-      const { error } = await resetPassword(email);
-
-      if (error) {
-        setError(error.message || 'Failed to send reset email');
-      } else {
+      const response = await forgotPassword(email);
+      // Check if response has expected structure
+      if (response?.data?.message === 'Password reset email sent') {
         setSuccess(true);
+      } else if (response?.data?.detail) {
+        setError(response.data.detail); // Show backend error
+      } else {
+        setError('Something went wrong. Please try again.');
       }
     } catch (err) {
       console.error('Reset password error:', err);
@@ -60,15 +63,15 @@ const ResetPasswordForm = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          
+
           <Heading level="h4" color="accent" align="center" weight="bold">
             Check Your Email
           </Heading>
-          
+
           <p className="text-gray-300">
             We've sent a password reset link to <span className="font-medium text-white">{email}</span>
           </p>
-          
+
           <p className="text-sm text-gray-400">
             Didn't receive the email? Check your spam folder or{' '}
             <button

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import RegisterForm from '../form/RegisterForm';
 import LoginForm from '../form/LoginForm';
 import ResetPasswordForm from '../form/ResetPasswordForm';
+import NewPasswordForm from '../form/NewPasswordForm';
 import FloatingShapesBackground from '../../animations-components/FloatingShapesBackground';
 import { pageVariants } from "../../../lib/animations/variants";
 import SimpleHeader from '../../Headers/SimpleHeader/SimpleHeader';
@@ -26,6 +27,7 @@ const routes = [
     { path: '/', element: LoginForm, key: 'login' },
     { path: 'signup', element: RegisterForm, key: 'signup' },
     { path: 'reset-password', element: ResetPasswordForm, key: 'reset' },
+    { path: 'new-password', element: NewPasswordForm, key: 'password' },
 ];
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
