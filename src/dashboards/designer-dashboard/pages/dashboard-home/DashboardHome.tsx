@@ -268,6 +268,10 @@ const DashboardHome: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            whileHover={{
+              y: -8,
+              transition: { duration: 0.2, ease: "easeOut" }
+            }}
             transition={{ duration: 0.4, delay: 0.1 }}
             className="h-full"
           >
@@ -301,6 +305,10 @@ const DashboardHome: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
+            whileHover={{
+              y: -8,
+              transition: { duration: 0.2, ease: "easeOut" }
+            }}
             className="h-full"
           >
             <Card
@@ -340,6 +348,10 @@ const DashboardHome: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
+            whileHover={{
+              y: -8,
+              transition: { duration: 0.2, ease: "easeOut" }
+            }}
             className="h-full"
           >
             <Card
@@ -501,7 +513,11 @@ const DashboardHome: React.FC = () => {
                   className="bg-background-primary-2 rounded-lg p-lg text-center border border-border-default hover:shadow-lg duration-300"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 + index * 0.1, duration: 0.3 }}
+                  whileHover={{
+                    y: -8,
+                    transition: { duration: 0.2, ease: "easeOut" }
+                  }}
+                  transition={{ delay: index * 0.1, duration: 0.3 }}
                 >
                   <p className="text-para-sm font-medium text-text-secondary capitalize mb-sm">After {stage}</p>
                   <div className="text-h3-sm font-bold text-text-primary mb-xs">{stats.rating}/10</div>
@@ -521,6 +537,7 @@ const DashboardHome: React.FC = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.6 }}
+            
           >
             <Card className={`${colors.light} ${colors.border} h-full`}>
               <h3 className="text-para-lg font-semibold text-text-primary mb-lg">Project Overview</h3>

@@ -390,7 +390,7 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                                 transformOrigin: 'center'
                             }}
                         >
-                            <h3 className="text-h2-sm font-bold text-accent-default mb-lg">
+                            <h3 className="text-h3-sm md:text-h2-sm font-bold text-accent-default mb-lg">
                                 Your Visual Direction {sortedWinners.length === 1 ? 'Winner' : 'Winners'}!
                             </h3>
                             {sortedWinners.length !== 1 &&

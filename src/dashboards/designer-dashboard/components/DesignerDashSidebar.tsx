@@ -46,12 +46,12 @@ interface DesignerDashSidebarProps {
 // ===== STYLE CONFIGURATION =====
 const styles = {
     menuItem: {
-        base: 'flex items-center rounded-lg transition-all duration-300 cursor-pointer border-l-4 relative',
+        base: 'flex items-center rounded-lg transition-all duration-300 cursor-pointer border-l-4 relative group',
         active: {
             expanded: 'bg-accent-subtle border-l-accent-default',
             collapsed: 'bg-accent-subtle border-l-accent-default'
         },
-        inactive: 'border-l-transparent',
+        inactive: 'border-l-transparent hover:bg-accent-subtle hover:border-l-accent-default',
         padding: {
             level0: 'px-sm py-sm mb-sm',
             nested: 'px-md py-sm mb-xs ml-sm',
@@ -61,16 +61,16 @@ const styles = {
     iconBox: {
         base: 'w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 shadow-sm',
         active: 'bg-accent-default shadow-md',
-        inactive: 'bg-background-muted dark:bg-background-primary hover:bg-background-accent'
+        inactive: 'bg-background-muted dark:bg-background-primary group-hover:bg-accent-default group-hover:shadow-md'
     },
     icon: {
         base: 'transition-colors duration-200',
         active: 'text-accent-foreground',
-        inactive: 'text-text-secondary'
+        inactive: 'text-text-secondary group-hover:text-accent-foreground'
     },
     text: {
         active: 'text-text-primary',
-        inactive: 'text-text-secondary'
+        inactive: 'text-text-secondary group-hover:text-text-primary'
     }
 };
 
@@ -159,7 +159,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
         isActive ? styles.icon.active : styles.icon.inactive
     );
     
-    const textClasses = clsx('text-para-md font-medium leading-[1]', isActive ? styles.text.active : styles.text.inactive);
+    const textClasses = clsx('text-para-md font-medium leading-[1] transition-colors duration-200', isActive ? styles.text.active : styles.text.inactive);
 
     const content = (
         <>
@@ -172,7 +172,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
             {!isCollapsed && hasChildren && (
                 <RiArrowDownSLine
                     style={ICON_SIZE}
-                    className={clsx('text-text-tertiary transition-transform duration-200', isExpanded && 'rotate-180')}
+                    className={clsx('text-text-tertiary transition-all duration-200 group-hover:text-text-primary', isExpanded && 'rotate-180')}
                 />
             )}
         </>

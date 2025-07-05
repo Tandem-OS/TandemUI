@@ -67,20 +67,22 @@ const getDropzoneClass = (isDragActive: boolean) =>
     }`;
 
 const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastStep }: any) => (
-    <motion.div variants={fadeInLeft} className="mb-lg flex justify-between items-start">
-        <div>
-            <Heading level="h3" color="accent">{title}</Heading>
-            <p className="text-para-md text-text-secondary">{subtitle}</p>
+    <motion.div variants={fadeInLeft} className="mb-lg">
+        <div className='flex justify-between items-start'>
+            <div>
+                <Heading level="h3" color="accent" className='mb-sm'>{title}</Heading>
+            </div>
+            {canSkip && (
+                <button
+                    onClick={onSkip}
+                    disabled={buttonState !== 'default'}
+                    className="text-text-tertiary hover:text-text-secondary text-para-sm underline transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+                >
+                    {isLastStep ? 'Skip and Submit' : 'Skip this step'}
+                </button>
+            )}
         </div>
-        {canSkip && (
-            <button
-                onClick={onSkip}
-                disabled={buttonState !== 'default'}
-                className="text-text-tertiary hover:text-text-secondary text-para-sm underline transition-colors disabled:opacity-50"
-            >
-                {isLastStep ? 'Skip and Submit' : 'Skip this step'}
-            </button>
-        )}
+        <p className="text-para-md text-text-secondary">{subtitle}</p>
     </motion.div>
 );
 
@@ -315,7 +317,7 @@ const OnboardingForm: React.FC = () => {
 
                 <SimpleHeader />
 
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center max-md:mb-md">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentScreen}
@@ -323,7 +325,7 @@ const OnboardingForm: React.FC = () => {
                             initial="initial"
                             animate="animate"
                             exit="exit"
-                            className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-xl py-lg shadow-xl transition-colors border border-border-default"
+                            className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
                         >
                             <ScreenHeader
                                 title={currentScreenData.title}

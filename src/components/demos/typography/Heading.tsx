@@ -9,12 +9,14 @@ const headingStyles = cva(
     {
         variants: {
             level: {
-                h1: 'text-h1-md sm:text-h1-lg',
-                h2: 'text-h2-md sm:text-h2-lg',
-                h3: 'text-h3-md sm:text-h3-lg',
-                h4: 'text-h4-md sm:text-h4-lg',
-                h5: 'text-h5-md sm:text-h5-lg',
-                h6: 'text-h6-md sm:text-h6-lg',
+                h1: 'text-h1-sm sm:text-h1-md md:text-h1-lg',
+                h2: 'text-h2-sm sm:text-h2-md md:text-h2-lg',
+                h3: 'text-h3-sm sm:text-h3-md md:text-h3-lg',
+                h4: 'text-h4-sm sm:text-h4-md md:text-h4-lg',
+                h5: 'text-h5-sm sm:text-h5-md md:text-h5-lg',
+                h6: 'text-h6-sm sm:text-h6-md md:text-h6-lg',
+
+
             },
             color: {
                 primary: 'text-text-primary',

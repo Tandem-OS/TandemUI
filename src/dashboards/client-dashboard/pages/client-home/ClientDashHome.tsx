@@ -161,7 +161,6 @@ const StatusCard: React.FC<StatusCardProps> = ({
 const ClientDashHome: React.FC = () => {
     const navigate = useNavigate();
     const [progress, setProgress] = useState(0);
-    const [isReady, setIsReady] = useState(false);
 
     // Prevent scroll issues on mount
     useEffect(() => {
@@ -178,7 +177,6 @@ const ClientDashHome: React.FC = () => {
         // Enable content after DOM settles
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                setIsReady(true);
                 setTimeout(() => setProgress(65), 800);
             });
         });
@@ -204,13 +202,9 @@ const ClientDashHome: React.FC = () => {
         { title: "Design Approval", status: "pending" as const, icon: <RiCheckDoubleLine />, action: "Review", route: '/client-dashboard/approval', delay: 0.3 }
     ];
 
-    // Show placeholder while mounting to prevent layout shift
-    if (!isReady) {
-        return <div className="min-h-screen bg-background-secondary-2" />;
-    }
 
     return (
-        <div className="min-h-screen bg-background-secondary-2 overflow-x-hidden">
+        <div className="min-h-screen overflow-x-hidden">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
                 {/* Welcome Section */}
                 <motion.div

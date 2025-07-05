@@ -3,7 +3,7 @@ import Header from "./components/Header";
 
 const ClientDashboardLayout = () => {
     return (
-        <div className="min-h-screen bg-background-secondary">
+        <div className="min-h-screen bg-background-secondary-2">
             <Header />
             <div>
                 <ClientDashMain />

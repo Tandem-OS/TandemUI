@@ -5,9 +5,14 @@ import type { HeroBuilderProps } from '../../../types/component.types'
 import {
     fadeInUp,
     slideIn,
-    greenOverlayVariant,
+    overlayVariant,
     staggerContainer,
 } from '../../../lib/animations/variants'
+import Heading from '../typography/Heading'
+import SimpleButton from '../buttons/SimpleButton'
+
+const MotionHeading = motion(Heading)
+const MotionButton = motion(SimpleButton)
 
 const CreativeHero: React.FC<HeroBuilderProps> = ({
     headline = "Let's Dezign Something",
@@ -15,16 +20,7 @@ const CreativeHero: React.FC<HeroBuilderProps> = ({
     ctaText = 'Get Started',
     layout = 'centered',
     animation = 'fade',
-    colors = {},
 }) => {
-    const defaultColors = {
-        primary: '#22c55e',
-        secondary: '#10b981',
-        text: '#ffffff',
-    }
-
-    const mergedColors = { ...defaultColors, ...colors }
-
     const variant = animation === 'fade' ? fadeInUp : animation === 'slide' ? slideIn : undefined
 
     // Determine layout classes
@@ -50,14 +46,11 @@ const CreativeHero: React.FC<HeroBuilderProps> = ({
             {/* Green gradient overlay animation */}
             {animation !== 'none' && (
                 <motion.div
-                    className="absolute inset-x-0 bottom-0"
+                    className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-accent-default/10 to-transparent z-1"
                     style={{
                         height: '20%',
-                        background: `linear-gradient(to top, ${colors.primary}, transparent)`,
-                        zIndex: 1,
-                        opacity: "0.1"
                     }}
-                    variants={greenOverlayVariant}
+                    variants={overlayVariant}
                     initial="hidden"
                     whileInView="show"
                     viewport={{ once: true, amount: 0.3 }}
@@ -67,7 +60,7 @@ const CreativeHero: React.FC<HeroBuilderProps> = ({
             {/* Animated Content */}
             <motion.div
                 className={
-                    'relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 flex h-full ' +
+                    'relative z-10 container mx-auto px-md sm:px-lg lg:px-xl flex h-full ' +
                     layoutClasses
                 }
                 variants={staggerContainer}
@@ -75,33 +68,37 @@ const CreativeHero: React.FC<HeroBuilderProps> = ({
                 whileInView="show"
                 viewport={{ once: true, amount: 0.3 }}
             >
-                <motion.h1
-                    className="text-4xl sm:text-5xl md:text-7xl font-semibold leading-tight mb-6 max-w-4xl"
-                    style={{ color: mergedColors.primary }}
+                <MotionHeading
+                    level="h1"
+                    color="accent"
+                    weight="semibold"
+                    align={layout === 'split' ? 'left' : 'center'}
+                    className="mb-lg max-w-4xl"
                     variants={variant}
                 >
                     {headline}
-                </motion.h1>
+                </MotionHeading>
 
-                <motion.h2
-                    className="text-lg sm:text-xl md:text-3xl font-light max-w-3xl mb-8"
-                    style={{ color: mergedColors.text }}
+                <MotionHeading
+                    level="h3"
+                    color="light"
+                    weight="light"
+                    align={layout === 'split' ? 'left' : 'center'}
+                    className="max-w-3xl mb-xl"
                     variants={variant}
                 >
                     {subheadline}
-                </motion.h2>
+                </MotionHeading>
 
-                <motion.button
-                    className="font-medium py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition duration-300 text-lg"
-                    style={{
-                        backgroundColor: mergedColors.primary,
-                        borderColor: mergedColors.secondary,
-                        color: mergedColors.text,
-                    }}
+                <MotionButton
+                    variant="solid"
+                    size="lg"
+                    shape="rounded"
+                    className="font-medium shadow-lg hover:shadow-xl transition duration-300"
                     variants={variant}
                 >
                     {ctaText}
-                </motion.button>
+                </MotionButton>
             </motion.div>
         </section>
     )

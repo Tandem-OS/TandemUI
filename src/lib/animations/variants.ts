@@ -48,7 +48,7 @@ export const staggerContainer: Variants = {
 };
 
 // Fixed ease typing here using Transition['ease']
-export const greenOverlayVariant: Variants = {
+export const overlayVariant: Variants = {
     hidden: { height: '0%' },
     show: {
         height: '30%',
