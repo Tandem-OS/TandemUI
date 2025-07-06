@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState } from 'react';
 import { RiArrowRightLine, RiLockLine, RiCheckLine } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
-import { mockDashboardData } from '../../../../mock-json-data/mockJsonData';
+import { mockDashboardData } from '../../../../mock-data/designer-dash-home.mock.';
 import ProgressRing from '../../../../comman-components/ProgressRing';
 import ColorPicker from '../../../../comman-components/ColorPicker';
 import { type AccentColor } from '../../../../types/component.types';
@@ -537,7 +537,7 @@ const DashboardHome: React.FC = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4, delay: 0.6 }}
-            
+
           >
             <Card className={`${colors.light} ${colors.border} h-full`}>
               <h3 className="text-para-lg font-semibold text-text-primary mb-lg">Project Overview</h3>
