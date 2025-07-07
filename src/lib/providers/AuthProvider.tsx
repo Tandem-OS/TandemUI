@@ -1,6 +1,5 @@
 // src/contexts/AuthProvider.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { supabase } from '../config/supabase';
 
 // Define types inline or import from supabase auth types

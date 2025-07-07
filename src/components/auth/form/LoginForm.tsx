@@ -1,16 +1,17 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import Input from './components/Input';
 import Heading from '../../demos/typography/Heading';
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
 import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
+import { Login } from '../../../lib/requests/AuthRequest';
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const { signIn, signInWithGoogle } = useAuth();
-  
+
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [loading, setLoading] = useState(false);
@@ -25,28 +26,28 @@ const LoginForm = () => {
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
-    
+
     // Email validation
     if (!values.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(values.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
+
     // Password validation
     if (!values.password.trim()) {
       newErrors.password = 'Password is required';
     } else if (values.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
+
     return newErrors;
   };
 
   const handleLogin = async () => {
     // Clear any previous errors
     setErrors({});
-    
+
     // Validate form
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
@@ -56,21 +57,13 @@ const LoginForm = () => {
 
     setLoading(true);
     try {
-      const { error } = await signIn(values.email, values.password);
-
-      if (error) {
-        // Handle specific error cases
-        if (error.message.includes('Invalid login credentials')) {
-          setErrors({ general: 'Invalid email or password' });
-        } else if (error.message.includes('Email not confirmed')) {
-          setErrors({ general: 'Please verify your email before logging in' });
-        } else {
-          setErrors({ general: error.message || 'An error occurred during login' });
-        }
-      } else {
-        // Success! Redirect to dashboard or home
-        console.log('Login successful!');
-        navigate('/dashboard'); // Adjust the route as needed
+      const response = await Login(values);
+      if (response.data.success) {
+        const { access_token, refresh_token, login_time } = response.data;
+        localStorage.setItem('access_token', access_token);
+        localStorage.setItem('refresh_token', refresh_token);
+        localStorage.setItem('login_time', login_time);
+        navigate('/dashboard');
       }
     } catch (err) {
       console.error('Login error:', err);
