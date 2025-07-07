@@ -25,6 +25,21 @@ export const Login = async (values: LoginValues) => {
   return await api.post('/login', values);
 };
 
+export const logout = async () => {
+  const token = localStorage.getItem('access_token');
+
+  if (token) {
+    await api.post('/logout', {}, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  }
+};
+
 export const forgotPassword = async (email: string) => {
   return await api.post('/forgot-password', { email });
 };
