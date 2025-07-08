@@ -1,6 +1,7 @@
 // IntakeForm.tsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
     FaLink, FaFileUpload, FaPlusCircle, FaTimesCircle,
     FaArrowRight, FaCheck, FaCalendarAlt
@@ -11,6 +12,7 @@ import SimpleButton from '../demos/buttons/SimpleButton';
 import Heading from '../demos/typography/Heading';
 import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 import { KingOfTheHill } from './KingOfTheHill';
+import FiveStarFeedback from '../../comman-components/FiveStarFeedback';
 import { initialFormData, suggestedPageChips, OPTIONS } from './constants';
 import { type IntakeFormData, type ButtonState } from './types';
 
@@ -96,11 +98,13 @@ const FileUpload = ({ file, onFile }: any) => {
 };
 
 const IntakeForm: React.FC = () => {
+    const navigateHook = useNavigate();
     const [currentScreen, setCurrentScreen] = useState(1);
     const [formData, setFormData] = useState<IntakeFormData>(initialFormData);
     const [buttonState, setButtonState] = useState<ButtonState>('default');
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
+    const [showFeedback, setShowFeedback] = useState(false);
 
     const totalScreens = 5;
     const canSkip = currentScreen > 1; // First screen cannot be skipped
@@ -124,7 +128,20 @@ const IntakeForm: React.FC = () => {
         updateForm({ tones: [] });
     };
 
-    const navigate = async (next: boolean) => {
+    // Handle feedback submission
+    const handleFeedbackSubmit = (rating: number, message: string) => {
+        console.log('Feedback submitted:', { rating, message, stageName: 'Intake Form', projectId: 1 });
+        // Navigate to dashboard
+        navigateHook('/dashboard/client');
+    };
+
+    // Handle feedback skip
+    const handleFeedbackSkip = () => {
+        console.log('Feedback skipped for Intake Form');
+        navigateHook('/dashboard/client');
+    };
+
+    const navigateScreen = async (next: boolean) => {
         if (!next) {
             if (currentScreen > 1) {
                 setCurrentScreen(currentScreen - 1);
@@ -137,10 +154,19 @@ const IntakeForm: React.FC = () => {
             return;
         }
 
-        // Final submission - direct alert, no animation
+        // Final submission - show feedback
         if (currentScreen === totalScreens) {
-            alert('Intake form submitted successfully!');
-            console.log('Intake data:', formData);
+            setButtonState('saving');
+
+            // Simulate form submission
+            setTimeout(() => {
+                setButtonState('saved');
+                setTimeout(() => {
+                    console.log('Intake data:', formData);
+                    setShowFeedback(true);
+                    setButtonState('default');
+                }, 500);
+            }, 1000);
             return;
         }
 
@@ -415,8 +441,8 @@ const IntakeForm: React.FC = () => {
 
     const currentScreenData = screens[currentScreen - 1];
 
-    // Check if we should hide the header (first screen with results showing)
-    const shouldHideHeader = currentScreen === 1 && showVibeResults;
+    // Check if we should hide the header (first screen with results showing or feedback screen)
+    const shouldHideHeader = (currentScreen === 1 && showVibeResults) || showFeedback;
 
     return (
         <div className="relative min-h-screen flex bg-background-secondary transition-colors">
@@ -425,54 +451,72 @@ const IntakeForm: React.FC = () => {
 
                 <div className="flex-1 flex items-center justify-center px-lg max-md:mb-md">
                     <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentScreen}
-                            variants={containerVariant}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
-                        >
-                            {!shouldHideHeader && (
-                                <ScreenHeader
-                                    title={currentScreenData.title}
-                                    subtitle={currentScreenData.subtitle}
-                                    canSkip={canSkip}
-                                    onSkip={() => navigate(true)}
-                                    buttonState={buttonState}
-                                    isLastStep={currentScreen === totalScreens}
+                        {showFeedback ? (
+                            <motion.div
+                                key="feedback"
+                                variants={containerVariant}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                className="w-full max-w-lg mx-auto"
+                            >
+                                <FiveStarFeedback
+                                    question="How was the intake process?"
+                                    onSubmit={handleFeedbackSubmit}
+                                    onSkip={handleFeedbackSkip}
+                                    autoSkipSeconds={10}
                                 />
-                            )}
-
-                            {currentScreenData.content}
-
-                            <motion.div variants={fadeInLeft} className="flex justify-between mt-md">
-                                {currentScreen > 1 && (
-                                    <SimpleButton
-                                        variant="outline"
-                                        size="md"
-                                        onClick={() => navigate(false)}
-                                        disabled={buttonState !== 'default'}
-                                    >
-                                        Back
-                                    </SimpleButton>
-                                )}
-                                {(currentScreen > 1 || vibeSelectionComplete) && (
-                                    <SimpleButton
-                                        variant="solid"
-                                        size="md"
-                                        onClick={() => navigate(true)}
-                                        disabled={buttonState !== 'default' || (currentScreen === 1 && !vibeSelectionComplete)}
-                                        className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
-                                    >
-                                        {buttonState === 'saving' && currentScreen < totalScreens ? 'Saving...' :
-                                            buttonState === 'saved' && currentScreen < totalScreens ? <>Saved <FaCheck className="ml-xs" /></> :
-                                                currentScreen === totalScreens ? 'Start My Project' :
-                                                    <>Next <FaArrowRight className="ml-xs" /></>}
-                                    </SimpleButton>
-                                )}
                             </motion.div>
-                        </motion.div>
+                        ) : (
+                            <motion.div
+                                key={currentScreen}
+                                variants={containerVariant}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
+                            >
+                                {!shouldHideHeader && (
+                                    <ScreenHeader
+                                        title={currentScreenData.title}
+                                        subtitle={currentScreenData.subtitle}
+                                        canSkip={canSkip}
+                                        onSkip={() => navigateScreen(true)}
+                                        buttonState={buttonState}
+                                        isLastStep={currentScreen === totalScreens}
+                                    />
+                                )}
+
+                                {currentScreenData.content}
+
+                                <motion.div variants={fadeInLeft} className="flex justify-between mt-md">
+                                    {currentScreen > 1 && (
+                                        <SimpleButton
+                                            variant="outline"
+                                            size="md"
+                                            onClick={() => navigateScreen(false)}
+                                            disabled={buttonState !== 'default'}
+                                        >
+                                            Back
+                                        </SimpleButton>
+                                    )}
+                                    {(currentScreen > 1 || vibeSelectionComplete) && (
+                                        <SimpleButton
+                                            variant="solid"
+                                            size="md"
+                                            onClick={() => navigateScreen(true)}
+                                            disabled={buttonState !== 'default' || (currentScreen === 1 && !vibeSelectionComplete)}
+                                            className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
+                                        >
+                                            {buttonState === 'saving' && currentScreen < totalScreens ? 'Saving...' :
+                                                buttonState === 'saved' && currentScreen < totalScreens ? <>Saved <FaCheck className="ml-xs" /></> :
+                                                    currentScreen === totalScreens ? 'Start My Project' :
+                                                        <>Next <FaArrowRight className="ml-xs" /></>}
+                                        </SimpleButton>
+                                    )}
+                                </motion.div>
+                            </motion.div>
+                        )}
                     </AnimatePresence>
                 </div>
             </div>

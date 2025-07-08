@@ -11,9 +11,15 @@ import clickAudio from "../../assets/audio/clickAudio.mp3";
 
 const playAudio = (audioSrc: string, volumePercent: number = 100) => {
     const audio = new Audio(audioSrc);
-    audio.volume = Math.min(Math.max(volumePercent / 100, 0), 1); // Clamp between 0 and 1
+    audio.volume = Math.min(Math.max(volumePercent / 100, 0), 1);
     audio.play().catch(error => console.log('Audio playback failed:', error));
 };
+
+// New interface for tracking head-to-head comparisons
+interface Comparison {
+    winnerId: number;
+    loserId: number;
+}
 
 interface KingOfTheHillProps {
     onComplete: (winners: string[]) => void;
@@ -32,6 +38,7 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     const [challenger, setChallenger] = useState<typeof vibesImages[0] | null>(null);
     const [remainingOptions, setRemainingOptions] = useState<typeof vibesImages>([]);
     const [scores, setScores] = useState<VibeScore[]>([]);
+    const [comparisons, setComparisons] = useState<Comparison[]>([]); // New state for tracking comparisons
     const [selectedCard, setSelectedCard] = useState<number | null>(null);
     const [showResults, setShowResults] = useState(showResultsInitially);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -53,6 +60,51 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
         }
     }, [challenger, previousChallengerId, isInitialized]);
 
+    // Tournament ranking algorithm
+    const calculateTournamentRanking = (scores: VibeScore[], comparisons: Comparison[]) => {
+        // Create a map of head-to-head results
+        const headToHead = new Map<string, boolean>();
+        
+        comparisons.forEach(comp => {
+            headToHead.set(`${comp.winnerId}-${comp.loserId}`, true);
+            headToHead.set(`${comp.loserId}-${comp.winnerId}`, false);
+        });
+
+        // Get only participants who actually appeared in comparisons (actually played)
+        const participantIds = new Set<number>();
+        comparisons.forEach(comp => {
+            participantIds.add(comp.winnerId);
+            participantIds.add(comp.loserId);
+        });
+        
+        const participants = scores.filter(s => participantIds.has(s.id));
+        
+        // Sort using tournament logic
+        const sorted = participants.sort((a, b) => {
+            // First check head-to-head if they played against each other
+            const aBeatsB = headToHead.get(`${a.id}-${b.id}`);
+            const bBeatsA = headToHead.get(`${b.id}-${a.id}`);
+            
+            if (aBeatsB === true) return -1; // a wins
+            if (bBeatsA === true) return 1;  // b wins
+            
+            // If no direct comparison, use win percentage
+            const aWinRate = a.wins / (a.wins + a.losses || 1);
+            const bWinRate = b.wins / (b.wins + b.losses || 1);
+            
+            if (aWinRate !== bWinRate) {
+                return bWinRate - aWinRate; // Higher win rate first
+            }
+            
+            // If same win rate, prefer more total games (more proven)
+            const aTotalGames = a.wins + a.losses;
+            const bTotalGames = b.wins + b.losses;
+            return bTotalGames - aTotalGames;
+        });
+
+        return sorted;
+    };
+
     const initializeGame = () => {
         // Initialize scores
         const initialScores = vibesImages.map(vibe => ({
@@ -61,6 +113,7 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
             losses: 0
         }));
         setScores(initialScores);
+        setComparisons([]); // Reset comparisons
 
         // Set initial match
         const shuffled = [...vibesImages].sort(() => Math.random() - 0.5);
@@ -110,7 +163,7 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 initializeGame();
             }
         }
-    }, []); // Empty dependency array - only run once on mount
+    }, []);
 
     const handleSelection = (winnerId: number, loserId: number) => {
         if (selectedCard !== null || isTransitioning) return;
@@ -131,6 +184,10 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
 
         setScores(newScores);
 
+        // Record the comparison
+        const newComparisons = [...comparisons, { winnerId, loserId }];
+        setComparisons(newComparisons);
+
         // Add shake animation to winner
         setShakeWinner(winnerId);
 
@@ -149,16 +206,14 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 // Play win audio when showing results
                 playAudio(winAudio);
 
-                // Get vibes that actually won at least once
-                const winnersOnly = newScores.filter(s => s.wins > 0);
-                const sorted = winnersOnly.sort((a, b) => {
-                    const ratioA = a.wins / (a.wins + a.losses || 1);
-                    const ratioB = b.wins / (b.wins + b.losses || 1);
-                    return ratioB - ratioA;
-                });
-
+                // Use tournament ranking instead of simple win/loss ratio
+                const rankedResults = calculateTournamentRanking(newScores, newComparisons);
+                
+                // Only show actual winners (those with wins > 0), not all participants
+                const actualWinners = rankedResults.filter(s => s.wins > 0);
+                
                 // Take top 3 or less if fewer winners
-                const topVibes = sorted.slice(0, Math.min(3, sorted.length));
+                const topVibes = actualWinners.slice(0, Math.min(3, actualWinners.length));
                 setSortedWinners(topVibes);
 
                 // Call onComplete with the sorted names
@@ -169,7 +224,7 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 setTimeout(() => {
                     setShowConfetti(false);
                 }, 4000);
-            }, 800); // Small delay for shake animation to complete
+            }, 800);
         } else {
             // Continue with next challenger - update immediately
             setTimeout(() => {
@@ -181,7 +236,7 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 setRemainingOptions(remainingOptions.slice(1));
                 setSelectedCard(null);
                 setIsTransitioning(false);
-            }, 800); // Quick transition for better flow
+            }, 800);
         }
     };
 

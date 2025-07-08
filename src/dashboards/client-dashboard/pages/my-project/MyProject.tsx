@@ -243,7 +243,6 @@ const MyProject: React.FC = () => {
                                     >
                                         <ProjectCard
                                             project={project}
-                                            onViewProject={(id) => console.log('View project:', id)}
                                         />
                                     </motion.div>
                                 ))}
