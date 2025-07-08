@@ -59,8 +59,11 @@ const LoginForm = () => {
     try {
       const response = await Login(values);
       if (response.data.success) {
-        console.log('Login successful!');
-        navigate('/dashboard'); // Adjust the route as needed
+        const { access_token, refresh_token, login_time } = response.data;
+        localStorage.setItem('access_token', access_token);
+        localStorage.setItem('refresh_token', refresh_token);
+        localStorage.setItem('login_time', login_time);
+        navigate('/dashboard');
       }
     } catch (err) {
       console.error('Login error:', err);
