@@ -6,11 +6,11 @@ import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
 import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
-import { Login } from '../../../lib/requests/AuthRequest';
+import { Login, getGoogleOAuthURL } from '../../../lib/requests/AuthRequest';
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle } = useAuth();
+  // const { signIn, signInWithGoogle } = useAuth();
 
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
@@ -75,17 +75,18 @@ const LoginForm = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      const { error } = await signInWithGoogle();
-
-      if (error) {
-        setErrors({ general: error.message || 'Failed to sign in with Google' });
+      const res = await getGoogleOAuthURL();
+     const data = res.data; 
+      if (data.success && data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("No URL returned");
       }
-      // Note: OAuth redirects the user, so no need to handle success here
-    } catch (err) {
-      console.error('Google login error:', err);
-      setErrors({ general: 'Failed to sign in with Google' });
+    } catch (error) {
+      console.error("Google OAuth initiation failed:", error);
     }
   };
+
 
   return (
     <form

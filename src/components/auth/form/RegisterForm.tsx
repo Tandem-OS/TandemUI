@@ -6,7 +6,7 @@ import { FaEnvelope, FaLock, FaUser, FaArrowLeft } from 'react-icons/fa';
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
 import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
-import { signUp } from '../../../lib/requests/AuthRequest';
+import { getGoogleOAuthURL, signUp } from '../../../lib/requests/AuthRequest';
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -99,9 +99,17 @@ const RegisterForm = () => {
 
   const handleGoogleSignup = async () => {
     try {
-      const { error } = await signInWithGoogle();
-      if (error) {
-        setErrors({ general: error.message || 'Failed to sign up with Google' });
+      const response = await getGoogleOAuthURL();
+
+      const redirectUrl = response?.data?.url;
+
+      if (redirectUrl) {
+        setSuccessMessage('Account created! Please Login to your account.');
+        setTimeout(() => {
+          navigate('/auth');
+        }, 3000);
+      } else {
+        throw new Error('OAuth URL missing in response');
       }
     } catch (err) {
       console.error('Google signup error:', err);

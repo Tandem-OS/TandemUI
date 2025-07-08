@@ -8,6 +8,7 @@ import NewPasswordForm from '../form/NewPasswordForm';
 import FloatingShapesBackground from '../../animations-components/FloatingShapesBackground';
 import { pageVariants } from "../../../lib/animations/variants";
 import SimpleHeader from '../../Headers/SimpleHeader/SimpleHeader';
+import GoogleLogin from '../form/GoogleLogin';
 
 export type AuthVariant = 'split' | 'centered';
 
@@ -28,6 +29,7 @@ const routes = [
     { path: 'signup', element: RegisterForm, key: 'signup' },
     { path: 'reset-password', element: ResetPasswordForm, key: 'reset' },
     { path: 'new-password', element: NewPasswordForm, key: 'password' },
+    { path: 'google-login', element: GoogleLogin, key: 'google' },
 ];
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
