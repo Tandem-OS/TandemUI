@@ -57,8 +57,7 @@ const MinimalHero: React.FC<HeroBuilderProps> = ({
             level="h1"
             color="primary"
             weight="extrabold"
-            align={layout === 'split' ? 'left' : 'center'}
-            className="mb-0 dark:text-slate-800"
+            className={`mb-0 dark:text-slate-800 ${layout === 'split' ? 'text-left' : 'text-center'}`}
             variants={variant}
           >
             {headline}
@@ -70,8 +69,7 @@ const MinimalHero: React.FC<HeroBuilderProps> = ({
             level="h4"
             color="secondary"
             weight="light"
-            align={layout === 'split' ? 'left' : 'center'}
-            className="max-w-3xl text-slate-800"
+            className={`max-w-3xl text-slate-800 ${layout === 'split' ? 'text-left' : 'text-center'}`}
             variants={variant}
           >
             {subheadline}

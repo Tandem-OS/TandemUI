@@ -31,7 +31,6 @@ const headingStyles = cva(
                 info: 'text-text-info',
             },
             align: {
-                left: 'text-left',
                 center: 'text-center',
                 right: 'text-right',
             },
@@ -47,7 +46,6 @@ const headingStyles = cva(
         defaultVariants: {
             level: 'h1',
             color: 'primary',
-            align: 'left',
             weight: 'bold',
         },
     }
@@ -68,7 +66,7 @@ const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(
         return (
             <Tag
                 ref={ref}
-                className={clsx(headingStyles({ level, color, align, weight }), className)}
+                className={clsx(headingStyles({ level, color, weight }), className)}
                 {...rest}
             >
                 {children}

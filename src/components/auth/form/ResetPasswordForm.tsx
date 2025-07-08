@@ -37,7 +37,7 @@ const ResetPasswordForm = () => {
       </div>
 
       <div>
-        <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
+        <Heading level="h4" color="accent" weight="bold" className="mb-md">
           Reset Password
         </Heading>
         <p className="text-text-secondary text-para-md mb-md">

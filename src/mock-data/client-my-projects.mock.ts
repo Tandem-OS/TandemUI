@@ -118,3 +118,79 @@ export const mockProjects: Project[] = [
         tags: ['Real Estate', 'Search', 'Filtering', 'Property Management']
     }
 ];
+
+export const mockProjectOverview = {
+    id: '1',
+    title: 'E-commerce Platform Redesign with Advanced Analytics Dashboard',
+    category: 'Web Design',
+    designer: 'Sarah Johnson',
+    designerImage: '/images/avatar.png',
+    designerRating: 4.9,
+    progress: 80,
+    createdAt: '2024-01-15',
+    tags: ['UI/UX', 'E-commerce', 'Responsive', 'Analytics'],
+    totalStages: 6,
+    completedStages: 4,
+    stages: [
+        {
+            id: 'intake',
+            name: 'Intake',
+            status: 'completed',
+            description: 'Requirements'
+        },
+        {
+            id: 'swiper',
+            name: 'Swiper',
+            status: 'completed',
+            description: 'Design exploration'
+        },
+        {
+            id: 'scraper',
+            name: 'Scraper',
+            status: 'completed',
+            description: 'Data collection'
+        },
+        {
+            id: 'testimonials',
+            name: 'Testimonials',
+            status: 'completed',
+            description: 'Client feedback'
+        },
+        {
+            id: 'review',
+            name: 'Review',
+            status: 'current',
+            description: 'Final review'
+        },
+        {
+            id: 'delivery',
+            name: 'Project Delivered',
+            status: 'pending',
+            description: 'Final delivery'
+        }
+    ],
+    feedbackCount: 8,
+    feedback: [
+        {
+            id: '1',
+            message: 'The new dashboard layout is fantastic! The data visualization is exactly what we needed.',
+            timestamp: '2024-02-14T14:30:00Z',
+            status: 'resolved',
+            priority: 'high'
+        },
+        {
+            id: '2',
+            message: 'Mobile responsiveness looks perfect. Great attention to detail.',
+            timestamp: '2024-02-13T09:15:00Z',
+            status: 'resolved',
+            priority: 'medium'
+        },
+        {
+            id: '3',
+            message: 'Could we adjust the color contrast on the secondary buttons?',
+            timestamp: '2024-02-12T16:45:00Z',
+            status: 'pending',
+            priority: 'low'
+        }
+    ]
+};

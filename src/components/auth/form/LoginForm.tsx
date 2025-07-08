@@ -61,7 +61,7 @@ const LoginForm = () => {
       </div>
 
       <div>
-        <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
+        <Heading level="h4" color="accent" weight="bold" className="mb-md">
           AI meets creativity.
         </Heading>
         <p className="text-text-secondary text-para-sm mb-md">Login Your Account</p>

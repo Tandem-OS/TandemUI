@@ -36,7 +36,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
 
   return (
     <div className={`relative ${className}`}>
-      <div className="absolute top-5 left-0 pl-lg flex items-center pointer-events-none">
+      <div className="absolute top-5 left-0 pl-md lg:pl-lg flex items-center pointer-events-none">
         <FaSearch className="text-text-secondary text-icon-sm" />
       </div>
       <input
@@ -45,7 +45,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        className="w-full pl-2xl pr-md py-md bg-background-primary-2 border border-border-default rounded-2xl text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent-default focus:border-accent-default transition-all duration-300 text-para-md hover:shadow-md"
+        className="w-full pl-11 lg:pl-2xl pr-md py-md bg-background-primary-2 border border-border-default rounded-2xl text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent-default focus:border-accent-default transition-all duration-300 text-para-sm lg:text-para-md hover:shadow-md"
       />
       {showClearButton && value && (
         <button

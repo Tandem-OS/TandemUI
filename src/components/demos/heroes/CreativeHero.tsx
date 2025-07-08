@@ -72,8 +72,7 @@ const CreativeHero: React.FC<HeroBuilderProps> = ({
                     level="h1"
                     color="accent"
                     weight="semibold"
-                    align={layout === 'split' ? 'left' : 'center'}
-                    className="mb-lg max-w-4xl"
+                    className={`mb-lg max-w-4xl ${layout === 'split' ? 'text-left' : 'text-center'}`}
                     variants={variant}
                 >
                     {headline}
@@ -83,8 +82,8 @@ const CreativeHero: React.FC<HeroBuilderProps> = ({
                     level="h3"
                     color="light"
                     weight="light"
-                    align={layout === 'split' ? 'left' : 'center'}
-                    className="max-w-3xl mb-xl"
+                    className={`max-w-3xl mb-xl ${layout === 'split' ? 'text-left' : 'text-center'}`}
+
                     variants={variant}
                 >
                     {subheadline}

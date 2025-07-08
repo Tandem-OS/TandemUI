@@ -44,8 +44,7 @@ const ModernHero: React.FC<HeroBuilderProps> = ({
                             level="h1"
                             color="primary"
                             weight="medium"
-                            align={layout === 'centered' ? 'center' : 'left'}
-                            className="mb-lg"
+                            className={`mb-lg ${layout === 'centered' ? 'text-center': 'text-left'}`}
                             variants={variant}
                         >
                             {headline}
@@ -55,8 +54,7 @@ const ModernHero: React.FC<HeroBuilderProps> = ({
                             level="h3"
                             color="primary"
                             weight="light"
-                            align={layout === 'centered' ? 'center' : 'left'}
-                            className={`max-w-3xl mb-xl ${layout !== "centered" ? "mx-none" : "mx-auto"}`}
+                            className={`max-w-3xl mb-xl ${layout !== "centered" ? "mx-none text-center" : "mx-auto text-left"}`}
                             variants={variant}
                         >
                             {subheadline}
