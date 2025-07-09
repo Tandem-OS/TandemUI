@@ -5,30 +5,7 @@ import SimpleButton from '../../../../components/demos/buttons/SimpleButton';
 import { motion, useInView } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-// --- MOCK DATA FOR THE DESIGNER ---
-const mockDesignerData = {
-    name: "Alex Denton",
-    logoUrl: "/images/avatar.png",
-    enableRating: true,
-    ratingQuestion: "How would you rate your experience with Alex?",
-    questions: [
-        {
-            id: "unique",
-            label: "What makes this designer unique to work with? (Optional)",
-            placeholder: "e.g., Their communication style, creativity, attention to detail..."
-        },
-        {
-            id: "recommend",
-            label: "Why would you recommend them to others? (Optional)",
-            placeholder: "e.g., They delivered on time and exceeded expectations..."
-        }
-    ],
-    emojiMap: {
-        0: '😊', 1: '😡', 2: '😞', 3: '😐', 4: '😊', 5: '🤩'
-    }
-};
-
+import { mockDesignerFeedbackQuestions } from '../../../../mock-data/testimonial-questions-mock';
 
 // --- TYPE DEFINITIONS ---
 interface RatingBoxProps {
@@ -43,7 +20,7 @@ interface FeedbackAnswers {
 }
 
 interface ReviewStepProps {
-    designer: typeof mockDesignerData;
+    designer: typeof mockDesignerFeedbackQuestions;
     rating: number;
     setRating: (rating: number) => void;
     answers: FeedbackAnswers;
@@ -287,7 +264,7 @@ const DesignerTestimonial: FC = () => {
         setStep(2);
         try {
             const submissionData = {
-                designerName: mockDesignerData.name,
+                designerName: mockDesignerFeedbackQuestions.name,
                 rating,
                 answers,
                 submittedAt: new Date().toISOString()
@@ -312,7 +289,7 @@ const DesignerTestimonial: FC = () => {
             case 1:
                 return (
                     <ReviewStep
-                        designer={mockDesignerData}
+                        designer={mockDesignerFeedbackQuestions}
                         rating={rating}
                         setRating={setRating}
                         answers={answers}

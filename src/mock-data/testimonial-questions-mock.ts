@@ -16,3 +16,27 @@ export const mockFeedbackQuestionData = {
         }
     ]
 };
+
+// --- MOCK DATA FOR THE DESIGNER FEEDBACK ---
+
+export const mockDesignerFeedbackQuestions = {
+    name: "Alex Denton",
+    logoUrl: "/images/avatar.png",
+    enableRating: true,
+    ratingQuestion: "How would you rate your experience with Alex?",
+    questions: [
+        {
+            id: "unique",
+            label: "What makes this designer unique to work with? (Optional)",
+            placeholder: "e.g., Their communication style, creativity, attention to detail..."
+        },
+        {
+            id: "recommend",
+            label: "Why would you recommend them to others? (Optional)",
+            placeholder: "e.g., They delivered on time and exceeded expectations..."
+        }
+    ],
+    emojiMap: {
+        0: '😊', 1: '😡', 2: '😞', 3: '😐', 4: '😊', 5: '🤩'
+    }
+};
