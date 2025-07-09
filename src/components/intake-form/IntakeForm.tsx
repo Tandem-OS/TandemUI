@@ -13,6 +13,7 @@ import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 import { KingOfTheHill } from './KingOfTheHill';
 import { initialFormData, suggestedPageChips, OPTIONS } from './constants';
 import { type IntakeFormData, type ButtonState } from './types';
+import { submitIntakeStep } from '../../lib/requests/IntakeRequest';
 
 const getButtonClass = (isSelected: boolean, disabled = false) =>
     `transition-all ${isSelected
@@ -114,6 +115,7 @@ const IntakeForm: React.FC = () => {
         updateForm({ tones: winners });
         setVibeSelectionComplete(true);
         setShowVibeResults(true);
+        console.log(winners)
     };
 
     const handleVibeRetake = () => {
@@ -137,22 +139,64 @@ const IntakeForm: React.FC = () => {
 
         // Final submission - direct alert, no animation
         if (currentScreen === totalScreens) {
-            alert('Intake form submitted successfully!');
-            console.log('Intake data:', formData);
+            try {
+                alert('Intake form submitted successfully!');
+
+                const { brandGuide, ...rest } = formData;
+
+                const email = localStorage.getItem("user_email");
+                if (!email) {
+                    throw new Error("No user email found in local storage");
+                }
+
+                const payload = {
+                    ...rest,
+                    userEmail: email
+                };
+
+                await submitIntakeStep(payload);
+                console.log('Intake data:', payload);
+
+            } catch (error) {
+                console.error('Error submitting intake form:', error);
+                alert('Submission failed. Please try again.');
+            }
             return;
         }
 
         // Forward navigation
         setButtonState('saving');
+        try {
+            const { tones, keyFeatures, inspirationUrls, colorStrategy, customColors, currentSiteUrl, additionalDetails, deadline, notSureDeadline } = formData;
+
+            const partialPayload = {
+                userEmail: localStorage.getItem("user_email") || "guest@example.com", // Or grab from auth context
+                tones,
+                keyFeatures,
+                inspirationUrls,
+                colorStrategy,
+                customColors,
+                currentSiteUrl,
+                additionalDetails,
+                deadline,
+                notSureDeadline,
+                submitted_at: new Date().toISOString()
+            };
+            console.log(partialPayload)
+            await submitIntakeStep(partialPayload);
+        } catch (err) {
+            console.error("Intake submission failed", err);
+        }
+
+        setButtonState('saved');
         setTimeout(() => {
-            setButtonState('saved');
-            setTimeout(() => {
-                if (currentScreen < totalScreens) {
-                    setCurrentScreen(currentScreen + 1);
-                }
-                setButtonState('default');
-            }, 500);
-        }, 1000);
+            if (currentScreen < totalScreens) {
+                setCurrentScreen(currentScreen + 1);
+            } else {
+                alert("Form completed!");
+            }
+            setButtonState('default');
+        }, 500);
     };
 
     const screens = [
