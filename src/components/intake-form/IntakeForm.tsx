@@ -1,6 +1,7 @@
 // IntakeForm.tsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
     FaLink, FaFileUpload, FaPlusCircle, FaTimesCircle,
     FaArrowRight, FaCheck, FaCalendarAlt
@@ -11,36 +12,39 @@ import SimpleButton from '../demos/buttons/SimpleButton';
 import Heading from '../demos/typography/Heading';
 import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 import { KingOfTheHill } from './KingOfTheHill';
+import FiveStarFeedback from '../../comman-components/FiveStarFeedback';
 import { initialFormData, suggestedPageChips, OPTIONS } from './constants';
 import { type IntakeFormData, type ButtonState } from './types';
 
 const getButtonClass = (isSelected: boolean, disabled = false) =>
     `transition-all ${isSelected
-        ? 'border-accent-default bg-accent-subtle bg-opacity-20 text-accent-default dark:text-white'
-        : 'border-gray-300 hover:border-gray-400 text-gray-700 dark:border-gray-600 dark:hover:border-gray-500 dark:text-gray-300'} ${disabled ? 'disabled:opacity-50' : ''}`;
+        ? 'border-accent-default bg-accent-subtle/20 text-accent-default'
+        : 'border-border-default hover:border-border-focus text-text-secondary'} ${disabled ? 'disabled:opacity-50' : ''}`;
 
 const getDropzoneClass = (isDragActive: boolean) =>
     `relative border-2 border-dashed rounded-lg p-lg text-center transition-all ${isDragActive
-        ? 'border-accent-default bg-accent-subtle bg-opacity-10'
-        : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
+        ? 'border-accent-default bg-accent-subtle'
+        : 'border-border-muted hover:border-border-default'
     }`;
 
 // ScreenHeader Component
 const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastStep }: any) => (
-    <motion.div variants={fadeInLeft} className="mb-lg flex justify-between items-start">
-        <div>
-            <Heading level="h3" color="accent">{title}</Heading>
-            <p className="text-para-md text-gray-700 dark:text-gray-300 mt-sm">{subtitle}</p>
+    <motion.div variants={fadeInLeft} className="mb-lg">
+        <div className='flex justify-between items-start gap-sm'>
+            <div>
+                <Heading level="h3" color="accent" className='mb-sm'>{title}</Heading>
+            </div>
+            {canSkip && (
+                <button
+                    onClick={onSkip}
+                    disabled={buttonState !== 'default'}
+                    className="text-text-tertiary hover:text-text-secondary text-para-sm underline transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+                >
+                    {isLastStep ? 'Skip and Submit' : 'Skip this step'}
+                </button>
+            )}
         </div>
-        {canSkip && (
-            <button
-                onClick={onSkip}
-                disabled={buttonState !== 'default'}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-para-sm underline transition-colors disabled:opacity-50"
-            >
-                {isLastStep ? 'Skip and Submit' : 'Skip this step'}
-            </button>
-        )}
+        <p className="text-para-md text-text-secondary mt-sm">{subtitle}</p>
     </motion.div>
 );
 
@@ -78,15 +82,15 @@ const FileUpload = ({ file, onFile }: any) => {
             />
             {file ? (
                 <div className="flex items-center justify-between">
-                    <span className="text-gray-700 dark:text-gray-300 text-para-sm">{(file as File).name}</span>
+                    <span className="text-text-secondary text-para-sm">{(file as File).name}</span>
                     <label htmlFor="brandguide-upload" className="text-accent-default hover:text-accent-hover cursor-pointer text-para-sm">
                         Change file
                     </label>
                 </div>
             ) : (
                 <label htmlFor="brandguide-upload" className="cursor-pointer block">
-                    <FaFileUpload className="mx-auto text-gray-400 dark:text-gray-400 text-3xl mb-xs" />
-                    <p className="text-gray-700 dark:text-gray-300 text-para-md mb-xs">Drop brand guide here or click to upload</p>
+                    <FaFileUpload className="mx-auto text-text-tertiary text-icon-2xl mb-xs" />
+                    <p className="text-text-secondary text-para-md mb-xs">Drop brand guide here or click to upload</p>
                 </label>
             )}
         </div>
@@ -94,11 +98,13 @@ const FileUpload = ({ file, onFile }: any) => {
 };
 
 const IntakeForm: React.FC = () => {
+    const navigateHook = useNavigate();
     const [currentScreen, setCurrentScreen] = useState(1);
     const [formData, setFormData] = useState<IntakeFormData>(initialFormData);
     const [buttonState, setButtonState] = useState<ButtonState>('default');
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
+    const [showFeedback, setShowFeedback] = useState(false);
 
     const totalScreens = 5;
     const canSkip = currentScreen > 1; // First screen cannot be skipped
@@ -122,7 +128,20 @@ const IntakeForm: React.FC = () => {
         updateForm({ tones: [] });
     };
 
-    const navigate = async (next: boolean) => {
+    // Handle feedback submission
+    const handleFeedbackSubmit = (rating: number, message: string) => {
+        console.log('Feedback submitted:', { rating, message, stageName: 'Intake Form', projectId: 1 });
+        // Navigate to dashboard
+        navigateHook('/dashboard/client');
+    };
+
+    // Handle feedback skip
+    const handleFeedbackSkip = () => {
+        console.log('Feedback skipped for Intake Form');
+        navigateHook('/dashboard/client');
+    };
+
+    const navigateScreen = async (next: boolean) => {
         if (!next) {
             if (currentScreen > 1) {
                 setCurrentScreen(currentScreen - 1);
@@ -135,10 +154,19 @@ const IntakeForm: React.FC = () => {
             return;
         }
 
-        // Final submission - direct alert, no animation
+        // Final submission - show feedback
         if (currentScreen === totalScreens) {
-            alert('Intake form submitted successfully!');
-            console.log('Intake data:', formData);
+            setButtonState('saving');
+
+            // Simulate form submission
+            setTimeout(() => {
+                setButtonState('saved');
+                setTimeout(() => {
+                    console.log('Intake data:', formData);
+                    setShowFeedback(true);
+                    setButtonState('default');
+                }, 500);
+            }, 1000);
             return;
         }
 
@@ -176,13 +204,13 @@ const IntakeForm: React.FC = () => {
             content: (
                 <>
                     <motion.div variants={fadeInLeft} className="mb-md">
-                        <p className="text-para-sm text-gray-600 dark:text-gray-400 mb-md">
+                        <p className="text-para-sm text-text-tertiary mb-md">
                             Quickly select common options or type your own below.
                         </p>
 
                         {/* Suggested Chips */}
                         <div className="mb-md">
-                            <div className="flex flex-wrap gap-sm">
+                            <div className="flex flex-wrap gap-xs">
                                 {suggestedPageChips.map((feature) => {
                                     const isSelected = formData.keyFeatures.toLowerCase().includes(feature.toLowerCase());
                                     return (
@@ -206,8 +234,8 @@ const IntakeForm: React.FC = () => {
                                                 }
                                             }}
                                             className={`px-sm py-xs rounded-full text-para-xs transition-all ${isSelected
-                                                ? 'bg-accent-default text-white hover:bg-accent-hover'
-                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                                ? 'bg-accent-default text-accent-foreground hover:bg-accent-hover'
+                                                : 'bg-background-muted text-text-secondary hover:bg-background-secondary'
                                                 }`}
                                         >
                                             {feature}
@@ -220,10 +248,10 @@ const IntakeForm: React.FC = () => {
                         {/* Visual Separator */}
                         <div className="relative my-md">
                             <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
+                                <div className="w-full border-t border-border-muted"></div>
                             </div>
                             <div className="relative flex justify-center text-para-sm">
-                                <span className="px-sm bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                                <span className="px-sm bg-background-primary text-text-tertiary">
                                     or add custom features
                                 </span>
                             </div>
@@ -231,10 +259,10 @@ const IntakeForm: React.FC = () => {
 
                         {/* Textarea */}
                         <div>
-                            <label className="block mb-xs text-para-sm text-gray-700 dark:text-gray-200">
+                            <label className="block mb-xs text-para-sm text-text-secondary">
                                 Your selected features and custom additions
                             </label>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-sm">
+                            <p className="text-para-xs text-text-tertiary mb-sm">
                                 You can add multiple pages or features, one per line.
                             </p>
                             <textarea
@@ -242,7 +270,7 @@ const IntakeForm: React.FC = () => {
                                 onChange={(e) => updateForm({ keyFeatures: e.target.value })}
                                 placeholder="e.g. Homepage, Blog, Booking System"
                                 rows={6}
-                                className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg py-sm px-md border border-gray-200 dark:border-gray-700 focus:border-accent-default outline-none transition-all resize-none"
+                                className="w-full bg-background-primary text-text-primary rounded-lg py-sm px-md border border-border-default focus:border-border-focus outline-none transition-all resize-none"
                             />
                         </div>
                     </motion.div>
@@ -255,8 +283,8 @@ const IntakeForm: React.FC = () => {
             content: (
                 <>
                     <motion.div variants={fadeInLeft} className="mb-md">
-                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Any websites or designs you like?</label>
-                        <p className="text-gray-500 dark:text-gray-400 text-para-sm mb-sm">Drop any links that inspire you</p>
+                        <label className="block mb-sm text-para-sm text-text-secondary">Any websites or designs you like?</label>
+                        <p className="text-text-tertiary text-para-sm mb-sm">Drop any links that inspire you</p>
                         <div className="space-y-xs">
                             {formData.inspirationUrls.map((url, index) => (
                                 <div key={index} className="flex gap-xs">
@@ -270,10 +298,9 @@ const IntakeForm: React.FC = () => {
                                                 updateForm({ inspirationUrls: newUrls });
                                             }}
                                             placeholder="https://inspiration-site.com"
-                                            className="pl-10"
                                             variant='filled'
+                                            icon={<FaLink />}
                                         />
-                                        <FaLink className="absolute left-md top-1/2 transform -translate-y-1/2 text-gray-400" />
                                     </div>
                                     {formData.inspirationUrls.length > 1 && (
                                         <button
@@ -281,9 +308,9 @@ const IntakeForm: React.FC = () => {
                                             onClick={() => updateForm({
                                                 inspirationUrls: formData.inspirationUrls.filter((_, i) => i !== index)
                                             })}
-                                            className="text-gray-400 hover:text-red-400 transition-colors"
+                                            className="text-text-tertiary hover:text-text-error transition-colors"
                                         >
-                                            <FaTimesCircle className="text-xl" />
+                                            <FaTimesCircle className="text-icon-lg" />
                                         </button>
                                     )}
                                 </div>
@@ -302,7 +329,7 @@ const IntakeForm: React.FC = () => {
                         </div>
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
-                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Do you have any brand colors in mind?</label>
+                        <label className="block mb-sm text-para-sm text-text-secondary">Do you have any brand colors in mind?</label>
                         <div className="space-y-sm">
                             <div className="flex gap-sm">
                                 {OPTIONS.colorStrategies.map(strategy => (
@@ -338,21 +365,21 @@ const IntakeForm: React.FC = () => {
             content: (
                 <>
                     <motion.div variants={fadeInLeft} className="mb-md">
-                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Do you have a current site?</label>
+                        <label className="block mb-sm text-para-sm text-text-secondary">Do you have a current site?</label>
                         <div className="relative">
                             <Input
                                 type="url"
                                 value={formData.currentSiteUrl}
                                 onChange={(e) => updateForm({ currentSiteUrl: e.target.value })}
                                 placeholder="https://your-current-site.com"
-                                className="pl-10"
                                 variant='filled'
+                                icon={<FaLink />}
+
                             />
-                            <FaLink className="absolute left-md top-1/2 transform -translate-y-1/2 text-gray-400" />
                         </div>
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
-                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Upload brand guide (optional)</label>
+                        <label className="block mb-sm text-para-sm text-text-secondary">Upload brand guide (optional)</label>
                         <FileUpload
                             file={formData.brandGuide}
                             onFile={handleFile}
@@ -367,7 +394,7 @@ const IntakeForm: React.FC = () => {
             content: (
                 <>
                     <motion.div variants={fadeInLeft} className="mb-md">
-                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">When do you need this delivered?</label>
+                        <label className="block mb-sm text-para-sm text-text-secondary">When do you need this delivered?</label>
                         <div className="space-y-sm">
                             {!formData.notSureDeadline && (
                                 <div className="relative">
@@ -375,9 +402,9 @@ const IntakeForm: React.FC = () => {
                                         type="date"
                                         value={formData.deadline}
                                         onChange={(e) => updateForm({ deadline: e.target.value })}
-                                        className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg py-sm px-md border border-gray-200 dark:border-gray-700 focus:border-accent-default outline-none transition-all"
+                                        className="w-full bg-background-primary text-text-primary rounded-lg py-sm px-md border border-border-default focus:border-border-focus outline-none transition-all"
                                     />
-                                    <FaCalendarAlt className="absolute right-md top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                    <FaCalendarAlt className="absolute right-md top-1/2 transform -translate-y-1/2 text-text-tertiary pointer-events-none" />
                                 </div>
                             )}
                             <label className="flex items-center gap-sm cursor-pointer">
@@ -385,23 +412,23 @@ const IntakeForm: React.FC = () => {
                                     type="checkbox"
                                     checked={formData.notSureDeadline}
                                     onChange={(e) => updateForm({ notSureDeadline: e.target.checked, deadline: e.target.checked ? '' : formData.deadline })}
-                                    className="w-4 h-4 text-accent-default bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded focus:ring-accent-default"
+                                    className="w-md h-md text-accent-default bg-background-primary border-border-default rounded focus:ring-accent-default"
                                 />
-                                <span className="text-gray-700 dark:text-gray-300 text-para-sm">Flexible timeline</span>
+                                <span className="text-text-secondary text-para-sm">Flexible timeline</span>
                             </label>
                         </div>
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
-                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Any remaining details?</label>
+                        <label className="block mb-sm text-para-sm text-text-secondary">Any remaining details?</label>
                         <div className="relative">
                             <textarea
                                 value={formData.additionalDetails}
                                 onChange={(e) => e.target.value.length <= 500 && updateForm({ additionalDetails: e.target.value })}
                                 placeholder="Special requirements, specific functionality needs, or anything else we should know..."
                                 rows={5}
-                                className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg py-sm px-md border border-gray-200 dark:border-gray-700 focus:border-accent-default outline-none transition-all resize-none"
+                                className="w-full bg-background-primary text-text-primary rounded-lg py-sm px-md border border-border-default focus:border-border-focus outline-none transition-all resize-none"
                             />
-                            <span className={`absolute bottom-sm right-md text-para-sm ${formData.additionalDetails.length > 450 ? 'text-yellow-400' : 'text-gray-500'
+                            <span className={`absolute bottom-sm right-md text-para-sm ${formData.additionalDetails.length > 450 ? 'text-text-warning' : 'text-text-tertiary'
                                 }`}>
                                 {formData.additionalDetails.length}/500
                             </span>
@@ -414,64 +441,82 @@ const IntakeForm: React.FC = () => {
 
     const currentScreenData = screens[currentScreen - 1];
 
-    // Check if we should hide the header (first screen with results showing)
-    const shouldHideHeader = currentScreen === 1 && showVibeResults;
+    // Check if we should hide the header (first screen with results showing or feedback screen)
+    const shouldHideHeader = (currentScreen === 1 && showVibeResults) || showFeedback;
 
     return (
-        <div className="relative min-h-screen flex bg-slate-100 dark:bg-gray-900 transition-colors">
+        <div className="relative min-h-screen flex bg-background-secondary transition-colors">
             <div className="flex-1 flex flex-col z-10">
                 <SimpleHeader />
 
-                <div className="flex-1 flex items-center justify-center px-lg">
+                <div className="flex-1 flex items-center justify-center px-lg max-md:mb-md">
                     <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentScreen}
-                            variants={containerVariant}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg shadow-xl transition-colors"
-                        >
-                            {!shouldHideHeader && (
-                                <ScreenHeader
-                                    title={currentScreenData.title}
-                                    subtitle={currentScreenData.subtitle}
-                                    canSkip={canSkip}
-                                    onSkip={() => navigate(true)}
-                                    buttonState={buttonState}
-                                    isLastStep={currentScreen === totalScreens}
+                        {showFeedback ? (
+                            <motion.div
+                                key="feedback"
+                                variants={containerVariant}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                className="w-full max-w-lg mx-auto"
+                            >
+                                <FiveStarFeedback
+                                    question="How was the intake process?"
+                                    onSubmit={handleFeedbackSubmit}
+                                    onSkip={handleFeedbackSkip}
+                                    autoSkipSeconds={10}
                                 />
-                            )}
-
-                            {currentScreenData.content}
-
-                            <motion.div variants={fadeInLeft} className="flex justify-between mt-md">
-                                {currentScreen > 1 && (
-                                    <SimpleButton
-                                        variant="outline"
-                                        size="md"
-                                        onClick={() => navigate(false)}
-                                        disabled={buttonState !== 'default'}
-                                    >
-                                        Back
-                                    </SimpleButton>
-                                )}
-                                {(currentScreen > 1 || vibeSelectionComplete) && (
-                                    <SimpleButton
-                                        variant="solid"
-                                        size="md"
-                                        onClick={() => navigate(true)}
-                                        disabled={buttonState !== 'default' || (currentScreen === 1 && !vibeSelectionComplete)}
-                                        className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
-                                    >
-                                        {buttonState === 'saving' && currentScreen < totalScreens ? 'Saving...' :
-                                            buttonState === 'saved' && currentScreen < totalScreens ? <>Saved <FaCheck className="ml-xs" /></> :
-                                                currentScreen === totalScreens ? 'Start My Project' :
-                                                    <>Next <FaArrowRight className="ml-xs" /></>}
-                                    </SimpleButton>
-                                )}
                             </motion.div>
-                        </motion.div>
+                        ) : (
+                            <motion.div
+                                key={currentScreen}
+                                variants={containerVariant}
+                                initial="initial"
+                                animate="animate"
+                                exit="exit"
+                                className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
+                            >
+                                {!shouldHideHeader && (
+                                    <ScreenHeader
+                                        title={currentScreenData.title}
+                                        subtitle={currentScreenData.subtitle}
+                                        canSkip={canSkip}
+                                        onSkip={() => navigateScreen(true)}
+                                        buttonState={buttonState}
+                                        isLastStep={currentScreen === totalScreens}
+                                    />
+                                )}
+
+                                {currentScreenData.content}
+
+                                <motion.div variants={fadeInLeft} className="flex justify-between mt-md">
+                                    {currentScreen > 1 && (
+                                        <SimpleButton
+                                            variant="outline"
+                                            size="md"
+                                            onClick={() => navigateScreen(false)}
+                                            disabled={buttonState !== 'default'}
+                                        >
+                                            Back
+                                        </SimpleButton>
+                                    )}
+                                    {(currentScreen > 1 || vibeSelectionComplete) && (
+                                        <SimpleButton
+                                            variant="solid"
+                                            size="md"
+                                            onClick={() => navigateScreen(true)}
+                                            disabled={buttonState !== 'default' || (currentScreen === 1 && !vibeSelectionComplete)}
+                                            className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
+                                        >
+                                            {buttonState === 'saving' && currentScreen < totalScreens ? 'Saving...' :
+                                                buttonState === 'saved' && currentScreen < totalScreens ? <>Saved <FaCheck className="ml-xs" /></> :
+                                                    currentScreen === totalScreens ? 'Start My Project' :
+                                                        <>Next <FaArrowRight className="ml-xs" /></>}
+                                        </SimpleButton>
+                                    )}
+                                </motion.div>
+                            </motion.div>
+                        )}
                     </AnimatePresence>
                 </div>
             </div>

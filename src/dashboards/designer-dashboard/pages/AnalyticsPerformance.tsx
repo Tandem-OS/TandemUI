@@ -4,7 +4,7 @@ import React from 'react';
 const AnalyticsPerformance: React.FC = () => {
   return (
     <div>
-      <h1 className="text-h3-sm lg:text-h2-sm font-semibold text-gray-900 dark:text-white">Analytics Performance</h1>
+      <h1 className="text-h3-sm lg:text-h2-sm font-semibold text-text-primary">Analytics Performance</h1>
     </div>
   );
 };

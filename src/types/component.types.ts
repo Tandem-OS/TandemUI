@@ -23,3 +23,6 @@ export interface HeroBuilderProps {
         text?: string;
     };
 }
+
+
+export type AccentColor = "blue" | "purple" | "emerald" | "rose" | "amber";

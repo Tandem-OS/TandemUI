@@ -5,11 +5,13 @@ import OnboardingForm from "./components/intake-form/OnboardingForm"
 import OnboardComplete from "./components/onboard-completed/OnboardComplete"
 import IntakeForm from "./components/intake-form/IntakeForm"
 import { ROUTES } from "./routes/routes"
-import DashboardRoutes from "./dashboards/DashboardRoutes"
+import DashboardRoutes from "./dashboards/DasHboardRoutes"
+import ScrollToTop from "./comman-components/ScrollToTop"
 
 const Layout = () => {
     return (
         <main>
+            <ScrollToTop />
             <Routes>
                 <Route path={ROUTES.HOME} element={<TestPreview />} />
                 <Route path={`${ROUTES.AUTH}/*`} element={<AuthLayout variant="split" />} />

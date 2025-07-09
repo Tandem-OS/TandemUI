@@ -1,7 +1,7 @@
 // src/dashboards/designer-dashboard/components/DesignerDashMain.tsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import DashboardHome from '../pages/DashboardHome';
+import DashboardHome from '../pages/dashboard-home/DashboardHome';
 import ProjectsPage from '../pages/ProjectsPage';
 import BriefsPage from '../pages/BriefsPage';
 import AnalyticsOverview from '../pages/AnalyticsOverview';
@@ -14,7 +14,7 @@ import DaconsahPage from '../pages/DaconsahPage';
 
 const DesignerDashMain: React.FC = () => {
     return (
-        <main className="flex-1 bg-gray-100 dark:bg-slate-950 overflow-y-auto">
+        <main className="flex-1 bg-background-secondary-2 overflow-y-auto">
             <div className="p-md lg:p-lg">
                 <Routes>
                     <Route path="/" element={<DashboardHome />} />

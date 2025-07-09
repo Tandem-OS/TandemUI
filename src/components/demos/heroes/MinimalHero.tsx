@@ -38,7 +38,7 @@ const MinimalHero: React.FC<HeroBuilderProps> = ({
       <motion.div
         className={clsx(
           'relative z-10 font-poppins container mx-auto',
-          'px-sm sm:px-3 lg:px-xl',
+          'px-sm sm:px-md lg:px-xl',
           'flex flex-col justify-center min-h-[75vh] md:min-h-screen',
           layoutClasses
         )}
@@ -50,28 +50,26 @@ const MinimalHero: React.FC<HeroBuilderProps> = ({
         <motion.div
           className={clsx(
             layout === 'split' ? 'text-left' : 'text-center',
-            'max-w-5xl space-y-lg md:space-y-md'
+            'max-w-5xl space-y-lg md:space-y-xl'
           )}
         >
           <MotionHeading
             level="h1"
+            color="primary"
             weight="extrabold"
-            color="dark"
-            align={layout === 'split' ? 'left' : 'center'}
-            className="mb-xl"
+            className={`mb-0 dark:text-slate-800 ${layout === 'split' ? 'text-left' : 'text-center'}`}
             variants={variant}
           >
             {headline}
           </MotionHeading>
 
-          <Divider className='mx-auto' width="sm" />
+          <Divider className='mx-auto' width="md" />
 
           <MotionHeading
             level="h4"
             weight="light"
-            color="darkSecondary"
-            align={layout === 'split' ? 'left' : 'center'}
-            className="max-w-3xl"
+            color="primary"
+            className={`max-w-3xl dark:text-black  ${layout === 'split' ? 'text-left' : 'text-center'}`}
             variants={variant}
           >
             {subheadline}

@@ -1,30 +1,20 @@
-import { useEffect, useState } from "react";
 import { FaSun, FaMoon } from 'react-icons/fa';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const ThemeToggle = () => {
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-    useEffect(() => {
-        const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-        const initialTheme = savedTheme || 'light';
-        setTheme(initialTheme);
-        document.documentElement.classList.toggle('dark', initialTheme === 'dark');
-    }, []);
-
-    const toggleTheme = () => {
-        const newTheme = theme === 'light' ? 'dark' : 'light';
-        setTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
-        document.documentElement.classList.toggle('dark', newTheme === 'dark');
-    };
+    const { theme, toggleTheme } = useTheme();
 
     return (
         <button
             onClick={toggleTheme}
-            className="p-sm rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            className="text-text-secondary leading-none"
             aria-label="Toggle theme"
         >
-            {theme === 'light' ? <FaMoon className="text-lg" /> : <FaSun className="text-lg" />}
+            {theme === 'light' ? (
+                <FaMoon className="text-para-lg leading-none" />
+            ) : (
+                <FaSun className="text-para-lg leading-none" />
+            )}
         </button>
     );
 };

@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import Input from './components/Input';
 import Heading from '../../demos/typography/Heading';
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
-import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
 import { Login, getGoogleOAuthURL } from '../../../lib/requests/AuthRequest';
 
 const LoginForm = () => {
@@ -94,25 +93,23 @@ const LoginForm = () => {
         e.preventDefault();
         handleLogin();
       }}
-      className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl"
+      className="w-full max-w-md bg-background-primary rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl border border-border-default"
     >
-      {/* Back to Home */}
-      <div className="flex justify-end">
+      <div className="flex justify-end leading-none">
         <Link
           to="/"
-          className="flex items-center gap-sm text-para-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+          className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors"
         >
           <FaArrowLeft />
           <span>Back to home</span>
         </Link>
       </div>
 
-      {/* Header */}
       <div>
-        <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
+        <Heading level="h4" color="accent" weight="bold" className="mb-md">
           AI meets creativity.
         </Heading>
-        <p className="text-gray-700 dark:text-gray-200 text-para-md mb-md">Login Your Account</p>
+        <p className="text-text-secondary text-para-sm mb-md">Login Your Account</p>
       </div>
 
       {/* General Error Message */}
@@ -122,7 +119,13 @@ const LoginForm = () => {
         </div>
       )}
 
-      {/* Inputs */}
+      {/* General Error Message */}
+      {errors.general && (
+        <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
+          {errors.general}
+        </div>
+      )}
+
       <div className="space-y-sm">
         <Input
           label="Email"
@@ -134,8 +137,6 @@ const LoginForm = () => {
           icon={<FaEnvelope />}
           variant="filled"
           error={errors.email}
-          className="bg-gray-900"
-          disabled={loading}
         />
 
         <div>
@@ -150,13 +151,11 @@ const LoginForm = () => {
             showPasswordToggle
             variant="filled"
             error={errors.password}
-            className="bg-gray-900"
-            disabled={loading}
           />
           <div className="text-right mt-xs">
             <Link
               to="/auth/reset-password"
-              className="text-para-sm text-accent-default hover:underline"
+              className="text-para-sm text-accent-default hover:text-accent-hover hover:underline transition-colors"
             >
               Forgot Password?
             </Link>
@@ -164,7 +163,6 @@ const LoginForm = () => {
         </div>
       </div>
 
-      {/* Submit with FormButton */}
       <FormButton
         size="md"
         fullWidth
@@ -177,7 +175,6 @@ const LoginForm = () => {
         Sign in
       </FormButton>
 
-      {/* Social Buttons */}
       <div className="flex items-center gap-sm">
         <SimpleButton
           type="button"
@@ -192,10 +189,12 @@ const LoginForm = () => {
         </SimpleButton>
       </div>
 
-      {/* Sign Up Redirect */}
-      <p className="text-center text-gray-200 text-sm">
+      <p className="text-center text-text-secondary text-para-sm">
         Don't have an account?{' '}
-        <Link to="/auth/signup" className="underline text-accent-default font-medium">
+        <Link
+          to="/auth/signup"
+          className="underline text-accent-default hover:text-accent-hover font-medium transition-colors"
+        >
           Sign Up
         </Link>
       </p>

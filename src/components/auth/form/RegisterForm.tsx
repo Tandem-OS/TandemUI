@@ -5,12 +5,12 @@ import Heading from '../../demos/typography/Heading';
 import { FaEnvelope, FaLock, FaUser, FaArrowLeft } from 'react-icons/fa';
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
-import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
+// import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
 import { getGoogleOAuthURL, signUp } from '../../../lib/requests/AuthRequest';
 
 const RegisterForm = () => {
   const navigate = useNavigate();
-  const { signInWithGoogle } = useAuth();
+  // const { signInWithGoogle } = useAuth();
 
   const [values, setValues] = useState({
     name: '',
@@ -123,29 +123,25 @@ const RegisterForm = () => {
         e.preventDefault();
         handleSignup();
       }}
-      className="w-full max-w-md bg-gray-800 rounded-2xl px-8 py-6 space-y-6 shadow-xl"
+      className="w-full max-w-md bg-background-primary rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl border border-border-default xl:mb-lg"
     >
-      {/* Back to Home */}
-      <Link
-        to="/"
-        className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
-      >
-        <FaArrowLeft />
-        <span>Back to home</span>
-      </Link>
-
-      {/* Header */}
-      <div>
-        <Heading
-          level="h4"
-          color="accent"
-          align="left"
-          weight="bold"
-          className="mb-4"
+      <div className="flex justify-end leading-none">
+        <Link
+          to="/"
+          className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors"
         >
-          Create Your Account
+          <FaArrowLeft />
+          <span>Back to home</span>
+        </Link>
+      </div>
+
+      <div>
+        <Heading level="h4" color="accent" weight="bold" className="mb-md">
+          Join Tandem
         </Heading>
-        <p className="text-gray-200 text-sm">Join Tandem today</p>
+        <p className="text-text-secondary text-para-md mb-md">
+          Create Your Account
+        </p>
       </div>
 
       {successMessage && (
@@ -175,10 +171,7 @@ const RegisterForm = () => {
           placeholder="Enter your full name"
           icon={<FaUser />}
           variant="filled"
-          primaryColor="#4f46e5"
           error={errors.name}
-          className="bg-gray-900"
-          disabled={loading}
         />
 
         <Input
@@ -190,10 +183,7 @@ const RegisterForm = () => {
           placeholder="Enter your email"
           icon={<FaEnvelope />}
           variant="filled"
-          primaryColor="#4f46e5"
           error={errors.email}
-          className="bg-gray-900"
-          disabled={loading}
         />
 
         <Input
@@ -202,14 +192,11 @@ const RegisterForm = () => {
           type="password"
           value={values.password}
           onChange={handleChange}
-          placeholder="Create a password"
+          placeholder="Enter your password"
           icon={<FaLock />}
           showPasswordToggle
           variant="filled"
-          primaryColor="#4f46e5"
           error={errors.password}
-          className="bg-gray-900"
-          disabled={loading}
         />
 
         <Input
@@ -222,23 +209,18 @@ const RegisterForm = () => {
           icon={<FaLock />}
           showPasswordToggle
           variant="filled"
-          primaryColor="#4f46e5"
           error={errors.confirmPassword}
-          className="bg-gray-900"
-          disabled={loading}
         />
       </div>
 
-      {/* Submit Button */}
       <FormButton
         size="md"
         fullWidth
         variant="solid"
         type="submit"
         isLoading={loading}
-        disabled={loading}
       >
-        Create Account
+        Sign up
       </FormButton>
 
       {/* Social Buttons */}
@@ -256,10 +238,12 @@ const RegisterForm = () => {
         </SimpleButton>
       </div>
 
-      {/* Sign In Redirect */}
-      <p className="text-center text-gray-200 text-sm">
+      <p className="text-center text-text-secondary text-para-sm">
         Already have an account?{' '}
-        <Link to="/auth" className="underline text-accent-default font-medium">
+        <Link
+          to="/auth/"
+          className="underline text-accent-default hover:text-accent-hover font-medium transition-colors"
+        >
           Sign In
         </Link>
       </p>
