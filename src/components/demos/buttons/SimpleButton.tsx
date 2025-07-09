@@ -1,7 +1,6 @@
-import { type FC, type ButtonHTMLAttributes } from 'react'
-import { cva } from 'class-variance-authority'
-import type { VariantProps } from 'class-variance-authority'
-import clsx from 'clsx'
+import { type FC, type ButtonHTMLAttributes } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import clsx from 'clsx';
 
 const buttonStyles = cva(
     'inline-flex items-center justify-center font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
@@ -19,9 +18,16 @@ const buttonStyles = cva(
                 circular: 'rounded-full aspect-square',
             },
             size: {
+                // ✅ Each size is now inherently responsive.
+                
+                // Small size: Always stays small to be explicit.
                 sm: 'py-xs px-sm text-btn-sm min-h-[2.25rem]',
-                md: 'py-sm px-md text-btn-md min-h-[2.75rem]',
-                lg: 'py-md px-lg text-btn-lg min-h-[3.25rem]',
+                
+                // Medium size: Starts small on mobile, becomes medium on tablets and up.
+                md: 'py-xs px-sm text-btn-sm min-h-[2.25rem] sm:py-sm sm:px-md sm:text-btn-md sm:min-h-[2.75rem]',
+                
+                // Large size: Starts as medium on mobile/tablets, becomes large on desktops and up.
+                lg: 'py-sm px-md text-btn-md min-h-[2.75rem] lg:py-md lg:px-lg lg:text-btn-lg lg:min-h-[3.25rem]',
             },
             fullWidth: {
                 true: 'w-full',
@@ -30,7 +36,7 @@ const buttonStyles = cva(
         defaultVariants: {
             variant: 'solid',
             shape: 'rounded',
-            size: 'md',
+            size: 'md', // The default button is now responsive out-of-the-box
             fullWidth: false,
         },
     }
@@ -39,13 +45,13 @@ const buttonStyles = cva(
 export type SimpleButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
     VariantProps<typeof buttonStyles> & {
         className?: string
-    }
+    };
 
 const SimpleButton: FC<SimpleButtonProps> = ({
-    variant = 'solid',
-    shape = 'rounded',
-    size = 'md',
-    fullWidth = false,
+    variant,
+    shape,
+    size,
+    fullWidth,
     className,
     children,
     ...rest
@@ -59,6 +65,6 @@ const SimpleButton: FC<SimpleButtonProps> = ({
     >
         {children}
     </button>
-)
+);
 
-export default SimpleButton
+export default SimpleButton;

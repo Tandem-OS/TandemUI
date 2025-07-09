@@ -67,9 +67,9 @@ const MinimalHero: React.FC<HeroBuilderProps> = ({
 
           <MotionHeading
             level="h4"
-            color="secondary"
             weight="light"
-            className={`max-w-3xl text-slate-800 ${layout === 'split' ? 'text-left' : 'text-center'}`}
+            color="primary"
+            className={`max-w-3xl dark:text-black  ${layout === 'split' ? 'text-left' : 'text-center'}`}
             variants={variant}
           >
             {subheadline}

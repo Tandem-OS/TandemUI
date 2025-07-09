@@ -5,7 +5,9 @@ import type { ElementType, HTMLAttributes } from 'react'
 import clsx from 'clsx'
 
 const headingStyles = cva(
-    'leading-tight text-left',
+    // IMPROVEMENT: Removed 'text-left' from the base class.
+    // Alignment is now handled entirely by the 'align' variant.
+    'leading-tight', 
     {
         variants: {
             level: {
@@ -15,8 +17,6 @@ const headingStyles = cva(
                 h4: 'text-h4-sm sm:text-h4-md md:text-h4-lg',
                 h5: 'text-h5-sm sm:text-h5-md md:text-h5-lg',
                 h6: 'text-h6-sm sm:text-h6-md md:text-h6-lg',
-
-
             },
             color: {
                 primary: 'text-text-primary',
@@ -60,13 +60,14 @@ export type HeadingProps = React.PropsWithChildren<
 >
 
 const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(
-    ({ level = 'h1', color = 'primary', align = 'left', weight = 'bold', className, children, ...rest }, ref) => {
+    ({ level = 'h1', color, align, weight, className, children, ...rest }, ref) => {
         const Tag = level as ElementType
 
         return (
             <Tag
                 ref={ref}
-                className={clsx(headingStyles({ level, color, weight }), className)}
+                // FIX: Added the 'align' prop to the headingStyles function call.
+                className={clsx(headingStyles({ level, color, align, weight }), className)}
                 {...rest}
             >
                 {children}

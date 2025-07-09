@@ -121,7 +121,7 @@ const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className={`bg-background-primary rounded-2xl px-xl py-xl border border-border-default shadow-sm ${className}`}
+            className={`bg-background-primary rounded-2xl p-lg lg:p-xl border border-border-default shadow-sm ${className}`}
         >
             {/* Skip Button at Top Right */}
             <div className={`flex ${!hasInteracted ? 'justify-between' : 'justify-end'} mb-md h-6`}>

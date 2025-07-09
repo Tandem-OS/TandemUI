@@ -292,6 +292,7 @@ module.exports = {
         "para-sm": "0.875rem",
         "para-md": "1rem",
         "para-lg": "1.125rem",
+        "para-xl": "1.25rem",
         "h1-sm": "2.25rem",
         "h1-md": "3rem",
         "h1-lg": "4rem",
