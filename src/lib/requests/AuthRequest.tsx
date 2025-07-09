@@ -47,3 +47,13 @@ export const forgotPassword = async (email: string) => {
 export const resetPassword = async (values: ResetPasswordValues) => {
   return await api.post('/reset-password', values);
 };
+
+export const getGoogleOAuthURL = async () => {
+  return await api.get('/auth/google', { withCredentials: true });
+};
+
+export const exchangeCodeForTokens = async (code: string) => {
+  const res = await api.post('/auth/callback', { code }, { withCredentials: true });
+  return res.data;
+};
+
