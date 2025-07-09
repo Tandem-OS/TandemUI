@@ -1,17 +1,20 @@
-// src/App.tsx
-import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
-import Layout from './Layout';
+import { BrowserRouter } from "react-router-dom"
+import Layout from "./Layout"
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "./lib/providers/AuthProvider";
+import SessionManager from "./components/auth/form/SessionManager";
 
-
-function App() {
+const App = () => {
   return (
     <ThemeProvider>
       <BrowserRouter>
-        <Layout />
+      <AuthProvider>
+        <SessionManager />
+          <Layout />
+      </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>
-  );
-}
+  );;
+};
 
 export default App;
