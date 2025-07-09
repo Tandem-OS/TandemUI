@@ -86,6 +86,7 @@ const RatingBox: FC<RatingBoxProps> = ({ rating, setRating, question, emojiMap }
                     <h3 className="text-para-lg sm:text-h5-sm lg:text-h4-sm font-medium text-white">
                         {question}
                     </h3>
+                    <p className="text-para-md lg:text-para-lg text-white/90 font-semibold hidden sm:block">Your rating</p>
                     <div className="flex items-center justify-center sm:justify-start gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <button
@@ -102,6 +103,9 @@ const RatingBox: FC<RatingBoxProps> = ({ rating, setRating, question, emojiMap }
                                 <FaStar className="w-full h-full" />
                             </button>
                         ))}
+                        <span className="text-para-lg md:text-para-xl text-white font-medium leading-none hidden sm:inline sm:pt-1">
+                            {rating}/5
+                        </span>
                     </div>
                 </div>
             </div>
