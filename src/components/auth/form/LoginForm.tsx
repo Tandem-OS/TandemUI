@@ -59,6 +59,7 @@ const LoginForm = () => {
       const response = await Login(values);
       if (response.data.success) {
         const { access_token, refresh_token, login_time, user } = response.data;
+        localStorage.setItem('access_token', user.id);
         localStorage.setItem('access_token', access_token);
         localStorage.setItem('refresh_token', refresh_token);
         localStorage.setItem('login_time', login_time);

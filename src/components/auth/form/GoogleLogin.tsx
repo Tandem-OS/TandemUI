@@ -11,6 +11,7 @@ const GoogleLogin = () => {
         try {
             const data = await exchangeCodeForTokens(code);
             if (data.access_token && data.refresh_token) {
+                localStorage.setItem('id', data.user.id);
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('refresh_token', data.refresh_token);
                 localStorage.setItem('login_time', Date.now().toString());

@@ -163,18 +163,18 @@ const IntakeForm: React.FC = () => {
 
                 const { brandGuide, ...rest } = formData;
 
-                const email = localStorage.getItem("user_email");
-                if (!email) {
+                const id = localStorage.getItem("id");
+                if (!id) {
                     throw new Error("No user email found in local storage");
                 }
 
                 const payload = {
                     ...rest,
-                    userEmail: email
+                    id: id
                 };
 
                 await submitIntakeStep(payload);
-                console.log('Intake data:', payload);
+                navigateHook("/dashboard/client")
 
             } catch (error) {
                 console.error('Error submitting intake form:', error);
@@ -189,16 +189,16 @@ const IntakeForm: React.FC = () => {
             const { tones, keyFeatures, inspirationUrls, colorStrategy, customColors, currentSiteUrl, additionalDetails, deadline, notSureDeadline } = formData;
 
             const partialPayload = {
-                userEmail: localStorage.getItem("user_email") || "guest@example.com", // Or grab from auth context
+                id: localStorage.getItem("id"),
                 tones,
-                keyFeatures,
-                inspirationUrls,
-                colorStrategy,
-                customColors,
-                currentSiteUrl,
-                additionalDetails,
+                key_features: keyFeatures,
+                inspiration_urls: inspirationUrls,
+                color_strategy: colorStrategy,
+                custom_colors: customColors,
+                current_site_url: currentSiteUrl,
+                additional_details: additionalDetails,
                 deadline,
-                notSureDeadline,
+                not_sure_deadline: notSureDeadline,
                 submitted_at: new Date().toISOString()
             };
             console.log(partialPayload)
