@@ -97,7 +97,7 @@ const NewPasswordForm = () => {
 
             {/* Header */}
             <div>
-                <Heading level="h4" color="accent" align="left" weight="bold" className="mb-md">
+                <Heading level="h4" color="accent" weight="bold" className="mb-md">
                     Enter New Password
                 </Heading>
                 <p className="text-gray-700 dark:text-gray-200 text-para-md mb-md"> Enter your new password to get login</p>
@@ -130,7 +130,6 @@ const NewPasswordForm = () => {
                         variant="filled"
                         error={errors.password}
                         className="bg-gray-900"
-                        disabled={loading}
                     />
                 </div>
             </div>
