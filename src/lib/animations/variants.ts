@@ -1,7 +1,13 @@
+// src/lib/variants.ts
+
 import { type Variants, type Transition } from 'framer-motion';
 
 const defaultEase: Transition['ease'] = 'easeOut';
 
+/**
+ * Standard fade in with upward movement
+ * Perfect for text content and CTAs
+ */
 export const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: {
@@ -11,6 +17,10 @@ export const fadeInUp: Variants = {
     },
 };
 
+/**
+ * Slide in from left
+ * Great for hero content and feature blocks
+ */
 export const slideIn: Variants = {
     hidden: { opacity: 0, x: -50 },
     show: {
@@ -20,6 +30,23 @@ export const slideIn: Variants = {
     },
 };
 
+/**
+ * Slide in from right
+ * Perfect for images and secondary content
+ */
+export const slideInRight: Variants = {
+    hidden: { opacity: 0, x: 50 },
+    show: {
+        opacity: 1,
+        x: 0,
+        transition: { duration: 0.6, ease: defaultEase },
+    },
+};
+
+/**
+ * Bounce in with spring animation
+ * Great for interactive elements and CTAs
+ */
 export const bounceIn: Variants = {
     hidden: { scale: 0 },
     show: {
@@ -28,6 +55,10 @@ export const bounceIn: Variants = {
     },
 };
 
+/**
+ * Simple fade in
+ * Subtle animation for backgrounds and containers
+ */
 export const fadeIn: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -36,6 +67,10 @@ export const fadeIn: Variants = {
     },
 };
 
+/**
+ * Stagger container for multiple children
+ * Creates cascading animation effect
+ */
 export const staggerContainer: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -47,7 +82,38 @@ export const staggerContainer: Variants = {
     },
 };
 
-// Fixed ease typing here using Transition['ease']
+/**
+ * Hero stagger container
+ * Optimized timing for hero sections
+ */
+export const heroStagger: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.2,
+            delayChildren: 0.1,
+        },
+    },
+};
+
+/**
+ * Scale in with fade
+ * Perfect for images and media content
+ */
+export const scaleIn: Variants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    show: {
+        opacity: 1,
+        scale: 1,
+        transition: { duration: 0.6, ease: defaultEase },
+    },
+};
+
+/**
+ * Overlay reveal animation
+ * For background overlays and modals
+ */
 export const overlayVariant: Variants = {
     hidden: { height: '0%' },
     show: {
@@ -59,6 +125,10 @@ export const overlayVariant: Variants = {
     },
 };
 
+/**
+ * Page transition variants
+ * For route-based animations
+ */
 export const pageVariants: Variants = {
     initial: {
         opacity: 0,
@@ -76,6 +146,10 @@ export const pageVariants: Variants = {
     },
 };
 
+/**
+ * Container animation with stagger
+ * For content blocks and sections
+ */
 export const containerVariant: Variants = {
     initial: { opacity: 0, y: 20 },
     animate: {
@@ -88,6 +162,10 @@ export const containerVariant: Variants = {
     },
 };
 
+/**
+ * Fade in from left
+ * Alternative to slideIn with shorter distance
+ */
 export const fadeInLeft: Variants = {
     initial: { opacity: 0, x: -20 },
     animate: {
@@ -97,3 +175,32 @@ export const fadeInLeft: Variants = {
     },
 };
 
+/**
+ * Button hover animation
+ * For interactive elements
+ */
+export const buttonHover: Variants = {
+    rest: { scale: 1 },
+    hover: {
+        scale: 1.05,
+        transition: { duration: 0.2, ease: 'easeInOut' },
+    },
+    tap: {
+        scale: 0.95,
+        transition: { duration: 0.1 },
+    },
+};
+
+/**
+ * Image parallax effect
+ * For hero images and backgrounds
+ */
+export const imageParallax: Variants = {
+    hidden: { opacity: 0, y: 20, scale: 1.1 },
+    show: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: { duration: 0.8, ease: defaultEase },
+    },
+};
