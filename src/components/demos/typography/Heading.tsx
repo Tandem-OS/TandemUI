@@ -5,7 +5,9 @@ import type { ElementType, HTMLAttributes } from 'react'
 import clsx from 'clsx'
 
 const headingStyles = cva(
-    'leading-tight text-left',
+    // IMPROVEMENT: Removed 'text-left' from the base class.
+    // Alignment is now handled entirely by the 'align' variant.
+    'leading-tight', 
     {
         variants: {
             level: {
@@ -17,49 +19,54 @@ const headingStyles = cva(
                 h6: 'text-h6-sm sm:text-h6-md md:text-h6-lg',
             },
             color: {
-                dark: 'text-gray-900',
-                darkSecondary: 'text-gray-700',
-                tertiary: 'text-gray-600',
+                primary: 'text-text-primary',
+                secondary: 'text-text-secondary',
+                tertiary: 'text-text-tertiary',
                 accent: 'text-accent-default',
-                light: 'text-white',
-                lightSecondary: 'text-gray-200',
+                light: 'text-text-light',
+                lightSecondary: 'text-text-lightSecondary',
+                success: 'text-text-success',
+                error: 'text-text-error',
+                warning: 'text-text-warning',
+                info: 'text-text-info',
             },
             align: {
-                left: 'text-left',
                 center: 'text-center',
                 right: 'text-right',
             },
             weight: {
                 light: 'font-light',
                 normal: 'font-normal',
+                medium: 'font-medium',
+                semibold: 'font-semibold',
                 bold: 'font-bold',
                 extrabold: 'font-extrabold',
-                semiBold: 'font-semibold',
             },
         },
         defaultVariants: {
             level: 'h1',
-            color: 'dark',
-            align: 'left',
+            color: 'primary',
             weight: 'bold',
         },
     }
-)
+);
+
 
 export type HeadingProps = React.PropsWithChildren<
-    VariantProps<typeof headingStyles> & 
+    VariantProps<typeof headingStyles> &
     HTMLAttributes<HTMLHeadingElement> & {
         className?: string
     }
 >
 
 const Heading = forwardRef<HTMLHeadingElement, HeadingProps>(
-    ({ level = 'h1', color = 'dark', align = 'left', weight = 'bold', className, children, ...rest }, ref) => {
+    ({ level = 'h1', color, align, weight, className, children, ...rest }, ref) => {
         const Tag = level as ElementType
 
         return (
             <Tag
                 ref={ref}
+                // FIX: Added the 'align' prop to the headingStyles function call.
                 className={clsx(headingStyles({ level, color, align, weight }), className)}
                 {...rest}
             >

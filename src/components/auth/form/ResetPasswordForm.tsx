@@ -6,6 +6,7 @@ import Heading from '../../demos/typography/Heading';
 import FormButton from './components/FormButton';
 // import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
 import { forgotPassword } from '../../../lib/requests/AuthRequest';
+import SimpleButton from '../../demos/buttons/SimpleButton';
 
 const ResetPasswordForm = () => {
   // const { resetPassword } = useAuth();
@@ -48,16 +49,16 @@ const ResetPasswordForm = () => {
 
   if (success) {
     return (
-      <div className="w-full max-w-md bg-gray-800 rounded-2xl px-8 py-6 space-y-6 shadow-xl">
+      <div className="w-full max-w-md bg-background-primary rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl border border-border-default">
         <Link
           to="/auth"
-          className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
+          className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors"
         >
           <FaArrowLeft />
           <span>Back to login</span>
         </Link>
 
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-lg">
           <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
             <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -95,21 +96,21 @@ const ResetPasswordForm = () => {
         e.preventDefault();
         handleResetPassword();
       }}
-      className="w-full max-w-md bg-gray-800 rounded-2xl px-8 py-6 space-y-6 shadow-xl"
+      className="w-full max-w-md bg-background-primary rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl border border-border-default"
     >
       <Link
         to="/auth"
-        className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
+        className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors"
       >
         <FaArrowLeft />
         <span>Back to login</span>
       </Link>
 
       <div>
-        <Heading level="h4" color="accent" align="left" weight="bold" className="mb-4">
+        <Heading level="h4" color="accent" weight="bold" className="mb-4">
           Reset Password
         </Heading>
-        <p className="text-gray-200 text-sm">
+        <p className="text-text-secondary text-para-sm mb-md">
           Enter your email and we'll send you a link to reset your password
         </p>
       </div>
@@ -132,11 +133,9 @@ const ResetPasswordForm = () => {
         placeholder="Enter your email"
         icon={<FaEnvelope />}
         variant="filled"
-        primaryColor="#4f46e5"
         error={error && !error.includes('Failed') ? error : undefined}
-        className="bg-gray-900"
-        disabled={loading}
       />
+
 
       <FormButton
         size="md"
@@ -148,6 +147,28 @@ const ResetPasswordForm = () => {
       >
         Send Reset Link
       </FormButton>
+
+      <div className="flex items-center gap-md text-text-tertiary text-para-sm py-md">
+        <div className="flex-1 h-px bg-border-muted" />
+        <span className="text-para-xs uppercase">or</span>
+        <div className="flex-1 h-px bg-border-muted" />
+      </div>
+
+      <SimpleButton
+        type="button"
+        variant="outline"
+        fullWidth
+        className="flex items-center justify-center gap-sm text-text-primary bg-background-muted"
+      >
+        <FaUser className="text-para-lg" />
+        Continue as Guest
+      </SimpleButton>
+
+      <p className="text-center text-accent-default hover:text-accent-hover font-medium text-para-sm">
+        <Link to="/auth" className="hover:underline transition-colors">
+          Back to Sign In
+        </Link>
+      </p>
     </form>
   );
 };

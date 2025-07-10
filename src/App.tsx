@@ -1,18 +1,20 @@
-import { BrowserRouter } from "react-router-dom";
-import { AuthProvider } from "./lib/providers/AuthProvider"; // Adjust the import path as needed
-import Layout from "./Layout";
+import { BrowserRouter } from "react-router-dom"
+import Layout from "./Layout"
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "./lib/providers/AuthProvider";
 import SessionManager from "./components/auth/form/SessionManager";
 
 const App = () => {
-
   return (
-    <BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
       <AuthProvider>
         <SessionManager />
-        <Layout />
+          <Layout />
       </AuthProvider>
-    </BrowserRouter>
-  );
+      </BrowserRouter>
+    </ThemeProvider>
+  );;
 };
 
 export default App;

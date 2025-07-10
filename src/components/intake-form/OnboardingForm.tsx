@@ -57,30 +57,32 @@ const OPTIONS = {
 // Utility functions
 const getButtonClass = (isSelected: boolean, disabled = false) =>
     `transition-all ${isSelected
-        ? 'border-accent-default bg-accent-subtle bg-opacity-20 text-accent-default dark:text-white'
-        : 'border-gray-300 hover:border-gray-400 text-gray-700 dark:border-gray-600 dark:hover:border-gray-500 dark:text-gray-300'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
+        ? 'border-accent-default bg-accent-subtle/20 text-accent-default'
+        : 'border-border-default hover:border-border-focus text-text-secondary'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
 
 const getDropzoneClass = (isDragActive: boolean) =>
     `relative border-2 border-dashed rounded-lg p-lg text-center transition-all ${isDragActive
-        ? 'border-accent-default bg-accent-subtle bg-opacity-10'
-        : 'border-gray-300 hover:border-gray-400 dark:border-gray-600 dark:hover:border-gray-500'
+        ? 'border-accent-default bg-accent-subtle'
+        : 'border-border-muted hover:border-border-default'
     }`;
 
 const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastStep }: any) => (
-    <motion.div variants={fadeInLeft} className="mb-lg flex justify-between items-start">
-        <div>
-            <Heading level="h3" color="accent">{title}</Heading>
-            <p className="text-para-md text-gray-700 dark:text-gray-300">{subtitle}</p>
+    <motion.div variants={fadeInLeft} className="mb-lg">
+        <div className='flex justify-between items-start'>
+            <div>
+                <Heading level="h3" color="accent" className='mb-sm'>{title}</Heading>
+            </div>
+            {canSkip && (
+                <button
+                    onClick={onSkip}
+                    disabled={buttonState !== 'default'}
+                    className="text-text-tertiary hover:text-text-secondary text-para-sm underline transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+                >
+                    {isLastStep ? 'Skip and Submit' : 'Skip this step'}
+                </button>
+            )}
         </div>
-        {canSkip && (
-            <button
-                onClick={onSkip}
-                disabled={buttonState !== 'default'}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-para-sm underline transition-colors disabled:opacity-50"
-            >
-                {isLastStep ? 'Skip and Submit' : 'Skip this step'}
-            </button>
-        )}
+        <p className="text-para-md text-text-secondary">{subtitle}</p>
     </motion.div>
 );
 
@@ -140,9 +142,9 @@ const FileUpload = ({ file, onFile }: any) => {
                 </div>
             ) : (
                 <label htmlFor="logo-upload" className="cursor-pointer block">
-                    <FaCloudUploadAlt className="mx-auto text-gray-400 dark:text-gray-400 text-5xl mb-sm" />
-                    <p className="text-gray-700 dark:text-gray-300 text-para-md mb-xs">Drag and drop or click to upload</p>
-                    <p className="text-gray-500 dark:text-gray-500 text-para-sm">Upload your logo (optional)</p>
+                    <FaCloudUploadAlt className="mx-auto text-text-tertiary text-icon-2xl mb-sm" />
+                    <p className="text-text-secondary text-para-md mb-xs">Drag and drop or click to upload</p>
+                    <p className="text-text-tertiary text-para-sm">Upload your logo (optional)</p>
                 </label>
             )}
         </div>
@@ -253,13 +255,13 @@ const OnboardingForm: React.FC = () => {
             canSkip: true,
             content: (
                 <motion.div variants={fadeInLeft} className="mb-lg">
-                    <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Describe your business or brand</label>
+                    <label className="block mb-sm text-para-sm text-text-secondary">Describe your business or brand</label>
                     <textarea
                         value={formData.businessDescription}
                         onChange={(e) => updateForm({ businessDescription: e.target.value })}
                         placeholder="Tell us about your business, what you do, your target audience, and what makes you unique..."
                         rows={6}
-                        className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg py-sm px-md border border-gray-200 dark:border-gray-700 focus:border-accent-default outline-none transition-all resize-none"
+                        className="w-full bg-background-primary text-text-primary rounded-lg py-sm px-md border border-border-default focus:border-border-focus outline-none transition-all resize-none"
                     />
                 </motion.div>
             )
@@ -271,7 +273,7 @@ const OnboardingForm: React.FC = () => {
             content: (
                 <>
                     <motion.div variants={fadeInLeft} className="mb-md">
-                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Do you already have a budget range in mind?</label>
+                        <label className="block mb-sm text-para-sm text-text-secondary">Do you already have a budget range in mind?</label>
                         <SelectionGrid
                             options={OPTIONS.budgets}
                             selected={formData.budget}
@@ -287,19 +289,19 @@ const OnboardingForm: React.FC = () => {
                                     notReadyToShare: e.target.checked,
                                     budget: e.target.checked ? '' : formData.budget
                                 })}
-                                className="w-4 h-4 text-accent-default bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 rounded focus:ring-accent-default"
+                                className="w-md h-md text-accent-default bg-background-primary border-border-default rounded focus:ring-accent-default"
                             />
-                            <span className="text-gray-700 dark:text-gray-300 text-para-sm">Not ready to share</span>
+                            <span className="text-text-secondary text-para-sm">Not ready to share</span>
                         </label>
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
-                        <label className="block mb-sm text-para-sm text-gray-700 dark:text-gray-200">Any additional notes? (optional)</label>
+                        <label className="block mb-sm text-para-sm text-text-secondary">Any additional notes? (optional)</label>
                         <textarea
                             value={formData.notes}
                             onChange={(e) => updateForm({ notes: e.target.value })}
                             placeholder="Anything else you'd like us to know before we get started..."
                             rows={4}
-                            className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-white rounded-lg py-sm px-md border border-gray-200 dark:border-gray-700 focus:border-accent-default outline-none transition-all resize-none"
+                            className="w-full bg-background-primary text-text-primary rounded-lg py-sm px-md border border-border-default focus:border-border-focus outline-none transition-all resize-none"
                         />
                     </motion.div>
                 </>
@@ -310,12 +312,12 @@ const OnboardingForm: React.FC = () => {
     const currentScreenData = screens[currentScreen - 1];
 
     return (
-        <div className="relative min-h-screen flex bg-slate-100 dark:bg-gray-900 transition-colors">
+        <div className="relative min-h-screen flex bg-background-secondary transition-colors">
             <div className="flex-1 flex flex-col px-lg z-10">
 
                 <SimpleHeader />
 
-                <div className="flex-1 flex items-center justify-center">
+                <div className="flex-1 flex items-center justify-center max-md:mb-md">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentScreen}
@@ -323,7 +325,7 @@ const OnboardingForm: React.FC = () => {
                             initial="initial"
                             animate="animate"
                             exit="exit"
-                            className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-2xl px-xl py-lg shadow-xl transition-colors"
+                            className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
                         >
                             <ScreenHeader
                                 title={currentScreenData.title}

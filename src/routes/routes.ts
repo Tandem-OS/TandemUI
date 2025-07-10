@@ -3,6 +3,6 @@ export const ROUTES = {
     AUTH: "/auth",
     INTAKE_FORM: "/intake",
     ONBOARD_COMPLETE: "/onboardcomplete",
-    ONBOARDING: "/first",
+    ONBOARDING: "/onboard",
     DASHBOARD: "/dashboard",
 };
