@@ -14,7 +14,6 @@ const GoogleLogin = () => {
     const handleLogin = async (code: string) => {
         try {
             const data = await exchangeCodeForTokens(code);
-            debugger;
             if (data.access_token && data.refresh_token) {
                 dispatch(setAuth({
                     access_token: data.access_token,
