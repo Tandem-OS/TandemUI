@@ -9,6 +9,7 @@ import SimpleButton from '../demos/buttons/SimpleButton';
 import Heading from '../demos/typography/Heading';
 import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 import { useNavigate } from 'react-router-dom';
+import { createProject } from '../../lib/requests/ProjectRequest';
 
 // Types
 interface OnboardingFormData {
@@ -190,8 +191,40 @@ const OnboardingForm: React.FC = () => {
 
         // Final submission - direct alert, no animation for last screen
         if (currentScreen === totalScreens) {
-            console.log('Onboarding data:', formData);
-            navigate("/onboardcomplete")
+            console.log("Onboarding data:", formData);
+
+            const id = localStorage.getItem("id");
+            const user_email = localStorage.getItem("user_email");
+
+            if (!id || !user_email) {
+                console.error("Missing user ID or email in localStorage.");
+                return;
+            }
+
+            const { projectName, logo, projectType, businessDescription, budget, notReadyToShare, notes } = formData;
+
+            const payload = {
+                id,
+                user_email,
+                project_name: projectName,
+                logo: logo || "",
+                project_type: projectType,
+                business_description: businessDescription,
+                budget,
+                not_ready_to_share: notReadyToShare,
+                notes: notes || "",
+            };
+
+            try {
+                const result = await createProject(payload);
+                debugger;
+                if (result.status === 200) {
+                    navigate("/onboardcomplete");
+                }
+            } catch (error) {
+                console.error("Project creation failed:", error);
+            }
+
             return;
         }
 

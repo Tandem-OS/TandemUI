@@ -21,7 +21,7 @@ const GoogleLogin = () => {
             }
         } catch (err) {
             console.error("Google login failed:", err);
-            navigate('/login');
+            navigate('/auth');
         }
     };
 
@@ -34,7 +34,7 @@ const GoogleLogin = () => {
 
         if (!code) {
             console.error("No code found in URL");
-            navigate('/login');
+            navigate('/auth');
             return;
         }
 

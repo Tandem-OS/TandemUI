@@ -64,6 +64,7 @@ const LoginForm = () => {
         localStorage.setItem('refresh_token', refresh_token);
         localStorage.setItem('login_time', login_time);
         localStorage.setItem('user_email', user.email);
+        localStorage.setItem('id', user.id);
         navigate('/dashboard');
       }
     } catch (err) {

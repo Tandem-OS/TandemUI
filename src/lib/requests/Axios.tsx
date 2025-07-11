@@ -42,7 +42,7 @@ api.interceptors.response.use(
       // Remove tokens and redirect to login
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-      window.location.href = '/login'; // Or use router.push('/login') in React Router
+      window.location.href = '/auth';
 
       return Promise.reject(error);
     }
