@@ -15,6 +15,9 @@ import { KingOfTheHill } from './KingOfTheHill';
 import FiveStarFeedback from '../../comman-components/FiveStarFeedback';
 import { initialFormData, suggestedPageChips, OPTIONS } from './constants';
 import { type IntakeFormData, type ButtonState } from './types';
+import { submitIntakeStep } from '../../lib/requests/IntakeRequest';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 
 const getButtonClass = (isSelected: boolean, disabled = false) =>
     `transition-all ${isSelected
@@ -106,6 +109,9 @@ const IntakeForm: React.FC = () => {
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback, setShowFeedback] = useState(false);
 
+    const accessToken = useSelector((state: RootState) => state.auth.tokens.access);
+    const userId = useSelector((state: RootState) => state.auth.user.id);
+
     const totalScreens = 5;
     const canSkip = currentScreen > 1; // First screen cannot be skipped
 
@@ -120,6 +126,7 @@ const IntakeForm: React.FC = () => {
         updateForm({ tones: winners });
         setVibeSelectionComplete(true);
         setShowVibeResults(true);
+        console.log(winners)
     };
 
     const handleVibeRetake = () => {
@@ -156,31 +163,59 @@ const IntakeForm: React.FC = () => {
 
         // Final submission - show feedback
         if (currentScreen === totalScreens) {
-            setButtonState('saving');
+            try {
+                alert('Intake form submitted successfully!');
 
-            // Simulate form submission
-            setTimeout(() => {
-                setButtonState('saved');
-                setTimeout(() => {
-                    console.log('Intake data:', formData);
-                    setShowFeedback(true);
-                    setButtonState('default');
-                }, 500);
-            }, 1000);
+                const { brandGuide, ...rest } = formData;
+
+                const payload = {
+                    ...rest,
+                    id: userId
+                };
+
+                await submitIntakeStep(payload);
+                navigateHook("/dashboard/client")
+
+            } catch (error) {
+                console.error('Error submitting intake form:', error);
+                alert('Submission failed. Please try again.');
+            }
             return;
         }
 
         // Forward navigation
         setButtonState('saving');
+        try {
+            const { tones, keyFeatures, inspirationUrls, colorStrategy, customColors, currentSiteUrl, additionalDetails, deadline, notSureDeadline } = formData;
+
+            const partialPayload = {
+                id: userId,
+                tones,
+                key_features: keyFeatures,
+                inspiration_urls: inspirationUrls,
+                color_strategy: colorStrategy,
+                custom_colors: customColors,
+                current_site_url: currentSiteUrl,
+                additional_details: additionalDetails,
+                deadline,
+                not_sure_deadline: notSureDeadline,
+                submitted_at: new Date().toISOString()
+            };
+            console.log(partialPayload)
+            await submitIntakeStep(partialPayload);
+        } catch (err) {
+            console.error("Intake submission failed", err);
+        }
+
+        setButtonState('saved');
         setTimeout(() => {
-            setButtonState('saved');
-            setTimeout(() => {
-                if (currentScreen < totalScreens) {
-                    setCurrentScreen(currentScreen + 1);
-                }
-                setButtonState('default');
-            }, 500);
-        }, 1000);
+            if (currentScreen < totalScreens) {
+                setCurrentScreen(currentScreen + 1);
+            } else {
+                alert("Form completed!");
+            }
+            setButtonState('default');
+        }, 500);
     };
 
     const screens = [

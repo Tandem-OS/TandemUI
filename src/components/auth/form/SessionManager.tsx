@@ -21,7 +21,7 @@ const SessionManager = () => {
         localStorage.removeItem("refresh_token");
         localStorage.removeItem("login_time");
 
-        navigate("/login");
+        navigate("/auth");
       }
     };
 

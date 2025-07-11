@@ -5,12 +5,10 @@ import Heading from '../../demos/typography/Heading';
 import { FaEnvelope, FaLock, FaUser, FaArrowLeft } from 'react-icons/fa';
 import FormButton from './components/FormButton';
 import SimpleButton from '../../demos/buttons/SimpleButton';
-// import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
 import { getGoogleOAuthURL, signUp } from '../../../lib/requests/AuthRequest';
 
 const RegisterForm = () => {
   const navigate = useNavigate();
-  // const { signInWithGoogle } = useAuth();
 
   const [values, setValues] = useState({
     name: '',
@@ -99,20 +97,15 @@ const RegisterForm = () => {
 
   const handleGoogleSignup = async () => {
     try {
-      const response = await getGoogleOAuthURL();
-
-      const redirectUrl = response?.data?.url;
-
-      if (redirectUrl) {
-        setSuccessMessage('Account created! Please Login to your account.');
-        setTimeout(() => {
-          navigate('/auth');
-        }, 3000);
+      const res = await getGoogleOAuthURL();
+      const data = res.data;
+      if (data.success && data.url) {
+        window.location.href = data.url;
       } else {
-        throw new Error('OAuth URL missing in response');
+        throw new Error("No URL returned");
       }
-    } catch (err) {
-      console.error('Google signup error:', err);
+    } catch (error) {
+      console.error("Google OAuth initiation failed:", error);
       setErrors({ general: 'Failed to sign up with Google' });
     }
   };
