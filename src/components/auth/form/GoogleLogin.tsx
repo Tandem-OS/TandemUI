@@ -1,8 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { exchangeCodeForTokens } from '../../../lib/requests/AuthRequest';
+import { useDispatch } from 'react-redux';
+import { setAuth } from '../../../features/authentication/authSlice';
+
 
 const GoogleLogin = () => {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
     const hasFetched = useRef(false);
@@ -10,11 +14,18 @@ const GoogleLogin = () => {
     const handleLogin = async (code: string) => {
         try {
             const data = await exchangeCodeForTokens(code);
+            debugger;
             if (data.access_token && data.refresh_token) {
-                localStorage.setItem('id', data.user.id);
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('refresh_token', data.refresh_token);
-                localStorage.setItem('login_time', Date.now().toString());
+                dispatch(setAuth({
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token,
+                    login_time: data.login_time,
+                    user: {
+                        id: data.user.id,
+                        email: data.user.email,
+                    }
+                }));
+
                 navigate('/dashboard');
             } else {
                 throw new Error("Token exchange failed");
