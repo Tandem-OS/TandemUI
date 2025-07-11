@@ -1,58 +1,18 @@
-// src/components-lib/Hero/Hero_01/Hero_01.meta.ts
-
 /**
- * Metadata interface for Hero_01 component
- * This is self-contained - no external dependencies
+ * Hero_01 Metadata
+ * Used by Swiper system, AI engine, and RAG for component matching
+ * Based on SplitHeroHeader1 from design system
  */
-export interface Hero_01Metadata {
-    /** Unique identifier for the component */
-    component_id: string;
-    
-    /** Section category */
-    section: "hero";
-    
-    /** Visual tone characteristics */
-    tone: ("minimal" | "professional")[];
-    
-    /** Layout structure type */
-    layout: "split";
-    
-    /** Primary business intent */
-    intent: "conversion";
-    
-    /** Visual structure arrangement */
-    structure: "image-right";
-    
-    /** Target industry fit */
-    industryFit: ("B2B" | "SaaS" | "Startup")[];
-    
-    /** Visual density and spacing */
-    visualDensity: "clean";
-    
-    /** Animation presence */
-    animation: boolean;
-    
-    /** Call-to-action style */
-    ctaType: "multiple";
-    
-    /** Trust-building elements level */
-    trustLevel: "medium";
-}
-
-/**
- * Hero_01 component metadata
- * Used by AI engine, Swiper, and RAG system
- */
-export const Hero_01_Meta: Hero_01Metadata = {
+export const metadata = {
     component_id: "Hero_01",
-    section: "hero",
-    tone: ["minimal", "professional"],
-    layout: "split",
-    intent: "conversion",
-    structure: "image-right",
-    industryFit: ["B2B", "SaaS", "Startup"],
-    visualDensity: "clean",
-    animation: true,
-    ctaType: "multiple",
-    trustLevel: "medium"
+    id: "SplitHeroHeader1",
+    section_type: "hero",
+    layout_structure: "two-column",
+    tone: ["minimal", "modern", "tech"],
+    intent: "convert",
+    industry_fit: ["saas", "b2b", "startup"],
+    supports_uploads: true,
+    dark_mode_compatible: true,
+    interactive_elements: ["button"],
+    image_position: "right"
 };

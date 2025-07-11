@@ -227,6 +227,7 @@ module.exports = {
           "default": "rgb(var(--border-default) / <alpha-value>)",
           "focus": "rgb(var(--border-focus) / <alpha-value>)",
           "muted": "rgb(var(--border-muted) / <alpha-value>)",
+          "dark": "rgb(var(--border-dark) / <alpha-value>)",
           "success": "rgb(var(--border-success) / <alpha-value>)",
           "error": "rgb(var(--border-error) / <alpha-value>)",
           "warning": "rgb(var(--border-warning) / <alpha-value>)",
