@@ -1,12 +1,12 @@
-import { Route, Routes } from "react-router-dom"
-import TestPreview from "./pages/TestPreview"
-import AuthLayout from "./components/auth/layouts/AuthLayout"
-import OnboardingForm from "./components/intake-form/OnboardingForm"
-import OnboardComplete from "./components/onboard-completed/OnboardComplete"
-import IntakeForm from "./components/intake-form/IntakeForm"
-import { ROUTES } from "./routes/routes"
-import DashboardRoutes from "./dashboards/DasHboardRoutes"
-import ScrollToTop from "./comman-components/ScrollToTop"
+import { Route, Routes } from "react-router-dom";
+import TestPreview from "./pages/TestPreview";
+import AuthLayout from "./components/auth/layouts/AuthLayout";
+import OnboardingForm from "./components/intake-form/OnboardingForm";
+import OnboardComplete from "./components/onboard-completed/OnboardComplete";
+import IntakeForm from "./components/intake-form/IntakeForm";
+import { ROUTES } from "./routes/routes";
+import DashboardRoutes from "./dashboards/DashboardRoutes";
+import ScrollToTop from "./comman-components/ScrollToTop";
 
 const Layout = () => {
     return (
@@ -21,7 +21,7 @@ const Layout = () => {
                 <Route path={`${ROUTES.DASHBOARD}/*`} element={<DashboardRoutes />} />
             </Routes>
         </main>
-    )
-}
+    );
+};
 
-export default Layout
+export default Layout;
