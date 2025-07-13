@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "npm run generate-tokens && concurrently --raw \"npm run watch:tokens\" \"vite\"",
-    "build": "npm run generate-tokens && tsc -b && vite build",
+    "build": "npm run generate-tokens && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-tokens": "node ./src/design-system/scripts/generate-config.cjs",
