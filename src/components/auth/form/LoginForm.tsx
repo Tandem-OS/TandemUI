@@ -93,126 +93,118 @@ const LoginForm = () => {
     }
   };
 
-  const callRefresh = async () => {
-    const result = await handleRefreshToken();
-    console.log(result)
-  }
-
   return (
-    <>
-      <form
-        onSubmit={e => {
-          e.preventDefault();
-          handleLogin();
-        }}
-        className="w-full max-w-md bg-background-primary rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl border border-border-default"
-      >
-        <div className="flex justify-end leading-none">
-          <Link
-            to="/"
-            className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors"
-          >
-            <FaArrowLeft />
-            <span>Back to home</span>
-          </Link>
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        handleLogin();
+      }}
+      className="w-full max-w-md bg-background-primary rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl border border-border-default"
+    >
+      <div className="flex justify-end leading-none">
+        <Link
+          to="/"
+          className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors"
+        >
+          <FaArrowLeft />
+          <span>Back to home</span>
+        </Link>
+      </div>
+
+      <div>
+        <Heading level="h4" color="accent" weight="bold" className="mb-md">
+          AI meets creativity.
+        </Heading>
+        <p className="text-text-secondary text-para-sm mb-md">Login Your Account</p>
+      </div>
+
+      {/* General Error Message */}
+      {errors.general && (
+        <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
+          {errors.general}
         </div>
+      )}
+
+      {/* General Error Message */}
+      {errors.general && (
+        <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
+          {errors.general}
+        </div>
+      )}
+
+      <div className="space-y-sm">
+        <Input
+          label="Email"
+          name="email"
+          type="email"
+          value={values.email}
+          onChange={handleChange}
+          placeholder="Enter your email"
+          icon={<FaEnvelope />}
+          variant="filled"
+          error={errors.email}
+        />
 
         <div>
-          <Heading level="h4" color="accent" weight="bold" className="mb-md">
-            AI meets creativity.
-          </Heading>
-          <p className="text-text-secondary text-para-sm mb-md">Login Your Account</p>
-        </div>
-
-        {/* General Error Message */}
-        {errors.general && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
-            {errors.general}
-          </div>
-        )}
-
-        {/* General Error Message */}
-        {errors.general && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
-            {errors.general}
-          </div>
-        )}
-
-        <div className="space-y-sm">
           <Input
-            label="Email"
-            name="email"
-            type="email"
-            value={values.email}
+            label="Password"
+            name="password"
+            type="password"
+            value={values.password}
             onChange={handleChange}
-            placeholder="Enter your email"
-            icon={<FaEnvelope />}
+            placeholder="Enter your password"
+            icon={<FaLock />}
+            showPasswordToggle
             variant="filled"
-            error={errors.email}
+            error={errors.password}
           />
-
-          <div>
-            <Input
-              label="Password"
-              name="password"
-              type="password"
-              value={values.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              icon={<FaLock />}
-              showPasswordToggle
-              variant="filled"
-              error={errors.password}
-            />
-            <div className="text-right mt-xs">
-              <Link
-                to="/auth/reset-password"
-                className="text-para-sm text-accent-default hover:text-accent-hover hover:underline transition-colors"
-              >
-                Forgot Password?
-              </Link>
-            </div>
+          <div className="text-right mt-xs">
+            <Link
+              to="/auth/reset-password"
+              className="text-para-sm text-accent-default hover:text-accent-hover hover:underline transition-colors"
+            >
+              Forgot Password?
+            </Link>
           </div>
         </div>
+      </div>
 
-        <FormButton
-          size="md"
+      <FormButton
+        size="md"
+        fullWidth
+        variant="solid"
+        type="submit"
+        isLoading={loading}
+        onSubmit={handleLogin}
+        disabled={loading}
+      >
+        Sign in
+      </FormButton>
+
+      <div className="flex items-center gap-sm">
+        <SimpleButton
+          type="button"
+          variant="outline"
           fullWidth
-          variant="solid"
-          type="submit"
-          isLoading={loading}
-          onSubmit={handleLogin}
+          className="flex items-center justify-center gap-2 mt-2"
+          onClick={handleGoogleLogin}
           disabled={loading}
         >
-          Sign in
-        </FormButton>
+          <img src="/images/icons/google.svg" className="w-5" alt="google" />
+          Sign in with Google
+        </SimpleButton>
+      </div>
 
-        <div className="flex items-center gap-sm">
-          <SimpleButton
-            type="button"
-            variant="outline"
-            fullWidth
-            className="flex items-center justify-center gap-2 mt-2"
-            onClick={handleGoogleLogin}
-            disabled={loading}
-          >
-            <img src="/images/icons/google.svg" className="w-5" alt="google" />
-            Sign in with Google
-          </SimpleButton>
-        </div>
-
-        <p className="text-center text-text-secondary text-para-sm">
-          Don't have an account?{' '}
-          <Link
-            to="/auth/signup"
-            className="underline text-accent-default hover:text-accent-hover font-medium transition-colors"
-          >
-            Sign Up
-          </Link>
-        </p>
-      </form>
-      <button onClick={callRefresh}>handleRefreshToken</button>
-    </>
+      <p className="text-center text-text-secondary text-para-sm">
+        Don't have an account?{' '}
+        <Link
+          to="/auth/signup"
+          className="underline text-accent-default hover:text-accent-hover font-medium transition-colors"
+        >
+          Sign Up
+        </Link>
+      </p>
+    </form>
   );
 };
 
