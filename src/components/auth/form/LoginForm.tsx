@@ -69,7 +69,7 @@ const LoginForm = () => {
             email: response.data.user.email,
           }
         }));
-        navigate("/dashboard");
+        navigate("/dashboard/designer");
       }
     } catch (err) {
       console.error('Login error:', err);

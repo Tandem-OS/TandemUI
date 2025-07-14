@@ -25,7 +25,7 @@ const GoogleLogin = () => {
                     }
                 }));
 
-                navigate('/dashboard');
+                navigate('/dashboard/designer');
             } else {
                 throw new Error("Token exchange failed");
             }

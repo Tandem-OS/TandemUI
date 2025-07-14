@@ -108,7 +108,7 @@ const IntakeForm: React.FC = () => {
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
-    
+
     const userId = useSelector((state: RootState) => state.auth.user.id);
 
     const totalScreens = 5;
@@ -164,7 +164,7 @@ const IntakeForm: React.FC = () => {
         if (currentScreen === totalScreens) {
             try {
                 alert('Intake form submitted successfully!');
-
+                console.log(formData)
                 const { brandGuide, ...rest } = formData;
 
                 const payload = {
@@ -185,7 +185,7 @@ const IntakeForm: React.FC = () => {
         // Forward navigation
         setButtonState('saving');
         try {
-            const { tones, keyFeatures, inspirationUrls, colorStrategy, customColors, currentSiteUrl, additionalDetails, deadline, notSureDeadline } = formData;
+            const { tones, keyFeatures, inspirationUrls, colorStrategy, customColors, currentSiteUrl, additionalDetails, deadline, notSureDeadline, brandGuide } = formData;
 
             const partialPayload = {
                 id: userId,
@@ -198,9 +198,16 @@ const IntakeForm: React.FC = () => {
                 additional_details: additionalDetails,
                 deadline,
                 not_sure_deadline: notSureDeadline,
+                brand_guide_metadata: brandGuide
+                    ? {
+                        name: brandGuide.name,
+                        type: brandGuide.type,
+                        size: brandGuide.size,
+                        lastModified: brandGuide.lastModified
+                    }
+                    : null,
                 submitted_at: new Date().toISOString()
             };
-            console.log(partialPayload)
             await submitIntakeStep(partialPayload);
         } catch (err) {
             console.error("Intake submission failed", err);

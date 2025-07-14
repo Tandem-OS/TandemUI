@@ -10,6 +10,8 @@ import Heading from '../demos/typography/Heading';
 import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 import { useNavigate } from 'react-router-dom';
 import { createProject } from '../../lib/requests/ProjectRequest';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 
 // Types
 interface OnboardingFormData {
@@ -158,6 +160,7 @@ const OnboardingForm: React.FC = () => {
     const [buttonState, setButtonState] = useState<'default' | 'saving' | 'saved'>('default');
     const navigate = useNavigate();
 
+    const designer_email = useSelector((state: RootState) => state.auth.user.email)!;
     const totalScreens = 4;
 
     const updateForm = (updates: Partial<OnboardingFormData>) =>
@@ -193,19 +196,11 @@ const OnboardingForm: React.FC = () => {
         if (currentScreen === totalScreens) {
             console.log("Onboarding data:", formData);
 
-            const id = localStorage.getItem("id");
-            const user_email = localStorage.getItem("user_email");
-
-            if (!id || !user_email) {
-                console.error("Missing user ID or email in localStorage.");
-                return;
-            }
-
             const { projectName, logo, projectType, businessDescription, budget, notReadyToShare, notes } = formData;
 
             const payload = {
-                id,
-                user_email,
+                designer_email,
+                client_email: 'client@gmail.com',
                 project_name: projectName,
                 logo: logo || "",
                 project_type: projectType,
