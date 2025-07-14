@@ -1,4 +1,6 @@
 import api from './Axios';
+import { store } from '../../store';
+import { logout, updateTokens } from '../../features/authentication/authSlice';
 
 interface SignUpValues {
   email: string;
@@ -25,18 +27,10 @@ export const Login = async (values: LoginValues) => {
   return await api.post('/login', values);
 };
 
-export const logout = async () => {
-  const token = localStorage.getItem('access_token');
-
-  if (token) {
-    await api.post('/logout', {}, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+export const handleLogout = async () => {
+  const response = await api.post('/logout');
+  if (response.status == 200) {
+    store.dispatch(logout());
   }
 };
 
@@ -57,3 +51,16 @@ export const exchangeCodeForTokens = async (code: string) => {
   return res.data;
 };
 
+export const handleRefreshToken = async () => {
+  const token = store.getState().auth.tokens.refresh;
+  if (!token) throw new Error("No refresh token");
+
+  const response = await api.post("/refresh", {}, {
+    headers: { "refresh-token": token },
+  });
+
+  const { access_token, refresh_token } = response.data;
+  store.dispatch(updateTokens({ access_token, refresh_token }));
+
+  return access_token;
+};

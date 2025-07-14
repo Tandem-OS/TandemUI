@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { store } from '../../store';
+import { logout } from '../../features/authentication/authSlice';
+import { handleRefreshToken } from './AuthRequest';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_API_URL,
@@ -27,25 +29,17 @@ api.interceptors.response.use(
 
       // Optionally call /logout
       try {
-        await axios.post(
-          `${import.meta.env.VITE_BACKEND_API_URL}/logout`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-            },
-          }
-        );
-      } catch (logoutErr) {
-        console.warn('Logout failed during auto-expiration:', logoutErr);
+        const newAccessToken = await handleRefreshToken();
+
+        // Attach new access token to the original request and retry
+        originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+        return api(originalRequest);
+      } catch (err) {
+
+        store.dispatch(logout());
+        window.location.href = "/auth";
+        return Promise.reject(err);
       }
-
-      // Remove tokens and redirect to login
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      window.location.href = '/auth';
-
-      return Promise.reject(error);
     }
 
     return Promise.reject(error);
