@@ -107,7 +107,10 @@ const IntakeForm: React.FC = () => {
     const [buttonState, setButtonState] = useState<ButtonState>('default');
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
-    const [showFeedback, setShowFeedback] = useState(false);
+    const [showFeedback] = useState(false);
+
+    // const accessToken = useSelector((state: RootState) => state.auth.tokens.access);
+    const userId = useSelector((state: RootState) => state.auth.user.id);
 
     const accessToken = useSelector((state: RootState) => state.auth.tokens.access);
     const userId = useSelector((state: RootState) => state.auth.user.id);
