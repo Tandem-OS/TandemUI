@@ -11,11 +11,16 @@ import {
 } from 'react-icons/ri';
 import Dropdown from '../../../comman-components/Dropdown';
 import ThemeToggle from '../../../components/theme-toggle/ThemeToggle';
+import { handleLogout } from '../../../lib/requests/AuthRequest';
 
 interface DesignerDashTopbarProps {
     onMenuClick: () => void;
     isSidebarCollapsed?: boolean;
     onToggleSidebar?: () => void;
+}
+
+const logout = async () => {
+    await handleLogout();
 }
 
 const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
@@ -41,7 +46,7 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
             id: 'logout',
             label: 'Logout',
             icon: <RiLogoutBoxLine />,
-            onClick: () => console.log('Logout clicked'),
+            onClick: () => logout(),
             divider: true
         }
     ];

@@ -1,6 +1,7 @@
 import api from './Axios';
 import { store } from '../../store';
 import { logout, updateTokens } from '../../features/authentication/authSlice';
+import { broadcastLogout } from '../../utils/logoutChannel';
 
 interface SignUpValues {
   email: string;
@@ -28,8 +29,10 @@ export const Login = async (values: LoginValues) => {
 };
 
 export const handleLogout = async () => {
-  const response = await api.post('/logout');
-  if (response.status == 200) {
+  const user_id = store.getState().auth.user.id;
+  const response = await api.post('/logout', user_id);
+  if (response.data.success) {
+    broadcastLogout();
     store.dispatch(logout());
   }
 };
