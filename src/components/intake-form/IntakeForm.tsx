@@ -163,6 +163,8 @@ const IntakeForm: React.FC = () => {
         // Final submission - show feedback
         if (currentScreen === totalScreens) {
             try {
+                alert('Intake form submitted successfully!');
+                console.log(formData)
                 const { brandGuide, ...rest } = formData;
                 const payload = {
                     ...rest,
