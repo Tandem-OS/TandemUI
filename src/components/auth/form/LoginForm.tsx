@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Input from './components/Input';
-import Heading from '../../demos/typography/Heading';
+import Input from '@/components/auth/form/components/Input';
+import Heading from '@/components/demos/typography/Heading'; 
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
-import FormButton from './components/FormButton';
-import SimpleButton from '../../demos/buttons/SimpleButton';
-import { Login, getGoogleOAuthURL } from '../../../lib/requests/AuthRequest';
+import FormButton from '@/components/auth/form/components/FormButton';
+import SimpleButton from '@/components/demos/buttons/SimpleButton';
+import { Login, getGoogleOAuthURL } from '@/lib/requests/AuthRequest';
 import { useDispatch } from 'react-redux';
-import { setAuth } from '../../../features/authentication/authSlice';
+import { setAuth } from '@/features/authentication/authSlice';
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -69,7 +69,7 @@ const LoginForm = () => {
             email: response.data.user.email,
           }
         }));
-        navigate("/dashboard");
+        navigate("/dashboard/designer");
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -92,7 +92,6 @@ const LoginForm = () => {
       console.error("Google OAuth initiation failed:", error);
     }
   };
-
 
   return (
     <form

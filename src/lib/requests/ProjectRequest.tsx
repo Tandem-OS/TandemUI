@@ -1,8 +1,8 @@
-import api from "./Axios";
+import api from "@/lib/requests/Axios";
 
 interface ProjectCreationValues {
-  id: string; // UUID
-  user_email: string;
+  designer_email: string;
+  client_email: string;
   project_name: string;
   logo: string;
   project_type: string;

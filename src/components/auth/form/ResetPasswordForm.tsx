@@ -1,15 +1,13 @@
 import { useState } from 'react';
 import { FaArrowLeft, FaEnvelope, FaUser } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import Input from './components/Input';
-import Heading from '../../demos/typography/Heading';
-import FormButton from './components/FormButton';
-// import { useAuth } from '../../../lib/providers/AuthProvider'; // Fixed import path
-import { forgotPassword } from '../../../lib/requests/AuthRequest';
-import SimpleButton from '../../demos/buttons/SimpleButton';
+import Input from '@/components/auth/form/components/Input';
+import Heading from '@/components/demos/typography/Heading';
+import FormButton from '@/components/auth/form/components/FormButton';
+import { forgotPassword } from '@/lib/requests/AuthRequest';
+import SimpleButton from '@/components/demos/buttons/SimpleButton';
 
 const ResetPasswordForm = () => {
-  // const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);

@@ -60,8 +60,22 @@ const authSlice = createSlice({
       state.loginTime = null;
       state.isAuthenticated = false;
     },
+    updateTokens: (
+      state,
+      action: PayloadAction<{
+        access_token?: string;
+        refresh_token?: string;
+      }>
+    ) => {
+      if (action.payload.access_token !== undefined) {
+        state.tokens.access = action.payload.access_token;
+      }
+      if (action.payload.refresh_token !== undefined) {
+        state.tokens.refresh = action.payload.refresh_token;
+      }
+    }
   },
 });
 
-export const { setAuth, logout } = authSlice.actions;
+export const { setAuth, logout, updateTokens } = authSlice.actions;
 export default authSlice.reducer;

@@ -1,4 +1,4 @@
-// IntakeForm.tsx
+// IntakeForm
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -6,18 +6,18 @@ import {
     FaLink, FaFileUpload, FaPlusCircle, FaTimesCircle,
     FaArrowRight, FaCheck, FaCalendarAlt
 } from 'react-icons/fa';
-import { containerVariant, fadeInLeft } from '../../lib/animations/variants';
-import Input from '../auth/form/components/Input';
-import SimpleButton from '../demos/buttons/SimpleButton';
-import Heading from '../demos/typography/Heading';
-import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
-import { KingOfTheHill } from './KingOfTheHill';
-import FiveStarFeedback from '../../comman-components/FiveStarFeedback';
-import { initialFormData, suggestedPageChips, OPTIONS } from './constants';
-import { type IntakeFormData, type ButtonState } from './types';
-import { submitIntakeStep } from '../../lib/requests/IntakeRequest';
+import { containerVariant, fadeInLeft } from '@/lib/animations/variants';
+import Input from '@/components/auth/form/components/Input';
+import SimpleButton from '@/components/demos/buttons/SimpleButton';
+import Heading from '@/components/demos/typography/Heading';
+import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader';
+import { KingOfTheHill } from '@/components/intake-form/KingOfTheHill';
+import FiveStarFeedback from '@/comman-components/FiveStarFeedback';
+import { initialFormData, suggestedPageChips, OPTIONS } from '@/components/intake-form/constants';
+import { type IntakeFormData, type ButtonState } from '@/components/intake-form/types';
+import { submitIntakeStep } from '@/lib/requests/IntakeRequest';
 import { useSelector } from 'react-redux';
-import type { RootState } from '../../store';
+import type { RootState } from '@/store';
 
 const getButtonClass = (isSelected: boolean, disabled = false) =>
     `transition-all ${isSelected
@@ -109,8 +109,7 @@ const IntakeForm: React.FC = () => {
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
 
-    // const accessToken = useSelector((state: RootState) => state.auth.tokens.access);
-    const userId = useSelector((state: RootState) => state.auth.user.id);
+    const designerEmail = useSelector((state: RootState) => state.auth.user.email)!;
 
     const totalScreens = 5;
     const canSkip = currentScreen > 1; // First screen cannot be skipped
@@ -164,32 +163,43 @@ const IntakeForm: React.FC = () => {
         // Final submission - show feedback
         if (currentScreen === totalScreens) {
             try {
-                alert('Intake form submitted successfully!');
-
                 const { brandGuide, ...rest } = formData;
-
                 const payload = {
                     ...rest,
-                    id: userId
+                    designer_email: designerEmail,
+                    client_email: 'client@gmail.com'
                 };
 
                 await submitIntakeStep(payload);
-                navigateHook("/dashboard/client")
+                alert('Intake form submitted successfully!');
+                navigateHook("/dashboard/client");
 
             } catch (error) {
                 console.error('Error submitting intake form:', error);
                 alert('Submission failed. Please try again.');
             }
-            return;
+            return; // Stop here regardless
         }
 
         // Forward navigation
         setButtonState('saving');
         try {
-            const { tones, keyFeatures, inspirationUrls, colorStrategy, customColors, currentSiteUrl, additionalDetails, deadline, notSureDeadline } = formData;
+            const {
+                tones,
+                keyFeatures,
+                inspirationUrls,
+                colorStrategy,
+                customColors,
+                currentSiteUrl,
+                additionalDetails,
+                deadline,
+                notSureDeadline,
+                brandGuide
+            } = formData;
 
-            const partialPayload = {
-                id: userId,
+            const payload = {
+                designer_email: designerEmail,
+                client_email: "client@gmail.com",
                 tones,
                 key_features: keyFeatures,
                 inspiration_urls: inspirationUrls,
@@ -199,23 +209,29 @@ const IntakeForm: React.FC = () => {
                 additional_details: additionalDetails,
                 deadline,
                 not_sure_deadline: notSureDeadline,
-                submitted_at: new Date().toISOString()
+                brand_guide_metadata: brandGuide
+                    ? {
+                        name: brandGuide.name,
+                        type: brandGuide.type,
+                        size: brandGuide.size,
+                        lastModified: brandGuide.lastModified,
+                    }
+                    : null,
             };
-            console.log(partialPayload)
-            await submitIntakeStep(partialPayload);
+
+            await submitIntakeStep(payload); // Only proceed if this succeeds
+
+            setButtonState('saved');
+            setTimeout(() => {
+                setCurrentScreen(currentScreen + 1);
+                setButtonState('default');
+            }, 500);
+
         } catch (err) {
             console.error("Intake submission failed", err);
+            alert("Something went wrong while saving this step. Please try again.");
+            setButtonState('default'); // Reset so user can retry
         }
-
-        setButtonState('saved');
-        setTimeout(() => {
-            if (currentScreen < totalScreens) {
-                setCurrentScreen(currentScreen + 1);
-            } else {
-                alert("Form completed!");
-            }
-            setButtonState('default');
-        }, 500);
     };
 
     const screens = [
