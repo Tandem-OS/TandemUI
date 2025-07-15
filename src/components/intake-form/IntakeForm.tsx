@@ -109,7 +109,7 @@ const IntakeForm: React.FC = () => {
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
 
-    const userId = useSelector((state: RootState) => state.auth.user.id);
+    const designerEmail = useSelector((state: RootState) => state.auth.user.email)!;
 
     const totalScreens = 5;
     const canSkip = currentScreen > 1; // First screen cannot be skipped
@@ -163,32 +163,43 @@ const IntakeForm: React.FC = () => {
         // Final submission - show feedback
         if (currentScreen === totalScreens) {
             try {
-                alert('Intake form submitted successfully!');
-                console.log(formData)
                 const { brandGuide, ...rest } = formData;
-
                 const payload = {
                     ...rest,
-                    id: userId
+                    designer_email: designerEmail,
+                    client_email: 'client@gmail.com'
                 };
 
                 await submitIntakeStep(payload);
-                navigateHook("/dashboard/client")
+                alert('Intake form submitted successfully!');
+                navigateHook("/dashboard/client");
 
             } catch (error) {
                 console.error('Error submitting intake form:', error);
                 alert('Submission failed. Please try again.');
             }
-            return;
+            return; // Stop here regardless
         }
 
         // Forward navigation
         setButtonState('saving');
         try {
-            const { tones, keyFeatures, inspirationUrls, colorStrategy, customColors, currentSiteUrl, additionalDetails, deadline, notSureDeadline, brandGuide } = formData;
+            const {
+                tones,
+                keyFeatures,
+                inspirationUrls,
+                colorStrategy,
+                customColors,
+                currentSiteUrl,
+                additionalDetails,
+                deadline,
+                notSureDeadline,
+                brandGuide
+            } = formData;
 
-            const partialPayload = {
-                id: userId,
+            const payload = {
+                designer_email: designerEmail,
+                client_email: "client@gmail.com",
                 tones,
                 key_features: keyFeatures,
                 inspiration_urls: inspirationUrls,
@@ -203,25 +214,24 @@ const IntakeForm: React.FC = () => {
                         name: brandGuide.name,
                         type: brandGuide.type,
                         size: brandGuide.size,
-                        lastModified: brandGuide.lastModified
+                        lastModified: brandGuide.lastModified,
                     }
                     : null,
-                submitted_at: new Date().toISOString()
             };
-            await submitIntakeStep(partialPayload);
+
+            await submitIntakeStep(payload); // Only proceed if this succeeds
+
+            setButtonState('saved');
+            setTimeout(() => {
+                setCurrentScreen(currentScreen + 1);
+                setButtonState('default');
+            }, 500);
+
         } catch (err) {
             console.error("Intake submission failed", err);
+            alert("Something went wrong while saving this step. Please try again.");
+            setButtonState('default'); // Reset so user can retry
         }
-
-        setButtonState('saved');
-        setTimeout(() => {
-            if (currentScreen < totalScreens) {
-                setCurrentScreen(currentScreen + 1);
-            } else {
-                alert("Form completed!");
-            }
-            setButtonState('default');
-        }, 500);
     };
 
     const screens = [
