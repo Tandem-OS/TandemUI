@@ -163,6 +163,8 @@ const IntakeForm: React.FC = () => {
         // Final submission - show feedback
         if (currentScreen === totalScreens) {
             try {
+                alert('Intake form submitted successfully!');
+                console.log(formData)
                 const { brandGuide, ...rest } = formData;
                 const payload = {
                     ...rest,
@@ -184,18 +186,7 @@ const IntakeForm: React.FC = () => {
         // Forward navigation
         setButtonState('saving');
         try {
-            const {
-                tones,
-                keyFeatures,
-                inspirationUrls,
-                colorStrategy,
-                customColors,
-                currentSiteUrl,
-                additionalDetails,
-                deadline,
-                notSureDeadline,
-                brandGuide
-            } = formData;
+            const { tones, keyFeatures, inspirationUrls, colorStrategy, customColors, currentSiteUrl, additionalDetails, deadline, notSureDeadline, brandGuide } = formData;
 
             const payload = {
                 designer_email: designerEmail,
