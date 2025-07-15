@@ -18,6 +18,7 @@ interface InputProps {
   onKeyPress?: () => void;
   variant?: 'default' | 'outlined' | 'filled';
   className?: string;
+  disabled?: boolean;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -34,6 +35,7 @@ const Input: React.FC<InputProps> = ({
   onFocus,
   onBlur,
   variant = 'default',
+  disabled,
   className = '',
 }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -97,6 +99,7 @@ const Input: React.FC<InputProps> = ({
           type={inputType}
           name={name}
           value={value}
+          disabled={disabled}
           onChange={onChange}
           onKeyPress={onKeyPress}
           onFocus={() => {
@@ -111,7 +114,7 @@ const Input: React.FC<InputProps> = ({
           className={clsx(
             inputVariants({ variant, error: !!error }),
             {
-              'pl-10': icon, 
+              'pl-10': icon,
               'pr-10': type === 'password' && showPasswordToggle,
               'py-sm': true,
             },

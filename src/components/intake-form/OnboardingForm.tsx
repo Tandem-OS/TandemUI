@@ -217,7 +217,6 @@ const OnboardingForm: React.FC = () => {
 
             try {
                 const result = await createProject(payload);
-                debugger;
                 if (result.status === 200) {
                     navigate("/onboardcomplete");
                 }

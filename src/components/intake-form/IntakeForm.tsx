@@ -16,6 +16,8 @@ import FiveStarFeedback from '../../comman-components/FiveStarFeedback';
 import { initialFormData, suggestedPageChips, OPTIONS } from './constants';
 import { type IntakeFormData, type ButtonState } from './types';
 import { submitIntakeStep } from '../../lib/requests/IntakeRequest';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 
 const getButtonClass = (isSelected: boolean, disabled = false) =>
     `transition-all ${isSelected
@@ -105,7 +107,10 @@ const IntakeForm: React.FC = () => {
     const [buttonState, setButtonState] = useState<ButtonState>('default');
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
-    const [showFeedback, setShowFeedback] = useState(false);
+    const [showFeedback] = useState(false);
+
+    // const accessToken = useSelector((state: RootState) => state.auth.tokens.access);
+    const userId = useSelector((state: RootState) => state.auth.user.id);
 
     const totalScreens = 5;
     const canSkip = currentScreen > 1; // First screen cannot be skipped
@@ -163,14 +168,9 @@ const IntakeForm: React.FC = () => {
 
                 const { brandGuide, ...rest } = formData;
 
-                const id = localStorage.getItem("id");
-                if (!id) {
-                    throw new Error("No user email found in local storage");
-                }
-
                 const payload = {
                     ...rest,
-                    id: id
+                    id: userId
                 };
 
                 await submitIntakeStep(payload);
@@ -189,7 +189,7 @@ const IntakeForm: React.FC = () => {
             const { tones, keyFeatures, inspirationUrls, colorStrategy, customColors, currentSiteUrl, additionalDetails, deadline, notSureDeadline } = formData;
 
             const partialPayload = {
-                id: localStorage.getItem("id"),
+                id: userId,
                 tones,
                 key_features: keyFeatures,
                 inspiration_urls: inspirationUrls,
