@@ -3,11 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaCloudUploadAlt, FaArrowRight, FaCheck,
 } from 'react-icons/fa';
-import { containerVariant, fadeInLeft } from '../../lib/animations/variants';
-import Input from '../auth/form/components/Input';
-import SimpleButton from '../demos/buttons/SimpleButton';
-import Heading from '../demos/typography/Heading';
-import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
+import { containerVariant, fadeInLeft } from '@/lib/animations/variants.ts';
+import Input from '@/components/auth/form/components/Input.tsx';
+import SimpleButton from '@/components/demos/buttons/SimpleButton.tsx';
+import Heading from '@/components/demos/typography/Heading.tsx';
+import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader.tsx';
 import { useNavigate } from 'react-router-dom';
 import { createProject } from '../../lib/requests/ProjectRequest';
 import { useSelector } from 'react-redux';

@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { store } from '../../store';
-import { logout } from '../../features/authentication/authSlice';
-import { handleRefreshToken } from './AuthRequest';
+import { store } from '@/store';
+import { logout } from '@/features/authentication/authSlice';
+import { handleRefreshToken } from '@/lib/requests/AuthRequest';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_API_URL,

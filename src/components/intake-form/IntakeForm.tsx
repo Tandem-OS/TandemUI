@@ -1,4 +1,4 @@
-// IntakeForm.tsx
+// IntakeForm
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -6,18 +6,18 @@ import {
     FaLink, FaFileUpload, FaPlusCircle, FaTimesCircle,
     FaArrowRight, FaCheck, FaCalendarAlt
 } from 'react-icons/fa';
-import { containerVariant, fadeInLeft } from '../../lib/animations/variants';
-import Input from '../auth/form/components/Input';
-import SimpleButton from '../demos/buttons/SimpleButton';
-import Heading from '../demos/typography/Heading';
-import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
-import { KingOfTheHill } from './KingOfTheHill';
-import FiveStarFeedback from '../../comman-components/FiveStarFeedback';
-import { initialFormData, suggestedPageChips, OPTIONS } from './constants';
-import { type IntakeFormData, type ButtonState } from './types';
-import { submitIntakeStep } from '../../lib/requests/IntakeRequest';
+import { containerVariant, fadeInLeft } from '@/lib/animations/variants';
+import Input from '@/components/auth/form/components/Input';
+import SimpleButton from '@/components/demos/buttons/SimpleButton';
+import Heading from '@/components/demos/typography/Heading';
+import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader';
+import { KingOfTheHill } from '@/components/intake-form/KingOfTheHill';
+import FiveStarFeedback from '@/comman-components/FiveStarFeedback';
+import { initialFormData, suggestedPageChips, OPTIONS } from '@/components/intake-form/constants';
+import { type IntakeFormData, type ButtonState } from '@/components/intake-form/types';
+import { submitIntakeStep } from '@/lib/requests/IntakeRequest';
 import { useSelector } from 'react-redux';
-import type { RootState } from '../../store';
+import type { RootState } from '@/store';
 
 const getButtonClass = (isSelected: boolean, disabled = false) =>
     `transition-all ${isSelected

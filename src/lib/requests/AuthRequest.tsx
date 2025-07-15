@@ -1,7 +1,7 @@
-import api from './Axios';
-import { store } from '../../store';
-import { logout, updateTokens } from '../../features/authentication/authSlice';
-import { broadcastLogout } from '../../utils/logoutChannel';
+import api from "@/lib/requests/Axios";
+import { store } from '@/store';
+import { logout, updateTokens } from '@/features/authentication/authSlice';
+import { broadcastLogout } from '@/utils/logoutChannel';
 
 interface SignUpValues {
   email: string;
