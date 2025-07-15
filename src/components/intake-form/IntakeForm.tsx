@@ -165,7 +165,7 @@ const IntakeForm: React.FC = () => {
             try {
                 alert('Intake form submitted successfully!');
                 console.log(formData)
-                const { brandGuide, ...rest } = formData;
+                const { ...rest } = formData;
                 const payload = {
                     ...rest,
                     designer_email: designerEmail,
