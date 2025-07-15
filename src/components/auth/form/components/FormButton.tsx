@@ -1,8 +1,9 @@
-import { type FC, type ButtonHTMLAttributes } from 'react'
+// src/components/auth/form/components/FormButton.tsx
+
+import { type FC, type ButtonHTMLAttributes, type CSSProperties } from 'react'
 import { cva } from 'class-variance-authority'
 import type { VariantProps } from 'class-variance-authority'
 import clsx from 'clsx'
-import SimpleButton from '../../../demos/buttons/SimpleButton'
 
 const formButtonStyles = cva(
   'inline-flex items-center justify-center font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed relative rounded-lg flex items-center gap-sm',
@@ -12,6 +13,7 @@ const formButtonStyles = cva(
         solid: 'bg-accent-default hover:bg-accent-hover text-accent-foreground shadow-lg hover:shadow-xl',
         outline: 'border-2 border-accent-default text-accent-default hover:text-accent-foreground bg-transparent hover:bg-accent-default',
         ghost: 'bg-transparent text-accent-default hover:bg-accent-subtle',
+        basic: 'border-2 transition-all duration-200 cursor-pointer', // No theme colors, just structure
       },
       size: {
         sm: 'py-xs px-sm text-btn-sm min-h-[2.25rem]',
@@ -30,10 +32,10 @@ const formButtonStyles = cva(
   }
 );
 
-
 export type FormButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof formButtonStyles> & {
     className?: string
+    style?: CSSProperties
     isLoading?: boolean
     onSubmit?: () => void
   }
@@ -43,6 +45,7 @@ const FormButton: FC<FormButtonProps> = ({
   size = 'md',
   fullWidth = false,
   className,
+  style,
   children,
   isLoading = false,
   disabled,
@@ -60,11 +63,12 @@ const FormButton: FC<FormButtonProps> = ({
   };
 
   return (
-    <SimpleButton
+    <button
       className={clsx(
         formButtonStyles({ variant, size, fullWidth }),
         className,
       )}
+      style={style}
       disabled={disabled || isLoading}
       onClick={handleClick}
       {...rest}
@@ -109,7 +113,7 @@ const FormButton: FC<FormButtonProps> = ({
           />
         </svg>
       )}
-    </SimpleButton>
+    </button>
   )
 }
 

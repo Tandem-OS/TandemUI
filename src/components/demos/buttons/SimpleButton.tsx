@@ -1,4 +1,4 @@
-import { type FC, type ButtonHTMLAttributes } from 'react';
+import { type FC, type ButtonHTMLAttributes, type CSSProperties } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import clsx from 'clsx';
 
@@ -13,6 +13,8 @@ const buttonStyles = cva(
           'border-2 border-accent-default text-accent-default hover:text-accent-foreground bg-transparent hover:bg-accent-default',
         ghost:
           'bg-transparent text-accent-default hover:bg-accent-subtle',
+        basic:
+          'border-2 transition-all duration-200 cursor-pointer', // No design system colors, just structure
       },
       shape: {
         rounded: 'rounded-lg',
@@ -41,6 +43,7 @@ const buttonStyles = cva(
 export type SimpleButtonProps = ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof buttonStyles> & {
     className?: string;
+    style?: CSSProperties;
   };
 
 const SimpleButton: FC<SimpleButtonProps> = ({
@@ -49,6 +52,7 @@ const SimpleButton: FC<SimpleButtonProps> = ({
   size,
   fullWidth,
   className,
+  style,
   children,
   ...rest
 }) => (
@@ -57,6 +61,7 @@ const SimpleButton: FC<SimpleButtonProps> = ({
       buttonStyles({ variant, shape, size, fullWidth }),
       className
     )}
+    style={style}
     {...rest}
   >
     {children}

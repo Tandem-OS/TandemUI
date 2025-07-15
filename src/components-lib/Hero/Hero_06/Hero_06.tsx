@@ -1,11 +1,132 @@
-import React, { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { type Hero_06Props } from './Hero_06.types';
+import React, { useState, useRef, useMemo, useCallback, type CSSProperties } from 'react';
+import { motion, type Variants } from 'framer-motion';
+import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
 import Heading from '../../../components/demos/typography/Heading';
 import SimpleButton from '../../../components/demos/buttons/SimpleButton';
 import Para from '../../../comman-components/Para';
 import VideoPlayBtn from '../../../comman-components/VideoPlayBtn';
+import { type Hero_06Props, defaultColors } from './Hero_06.types';
+
+// Types
+type ColorValue = { light?: string; dark?: string };
+type ButtonHoverConfig = {
+    background?: ColorValue;
+    text?: ColorValue;
+    border?: ColorValue;
+};
+
+// Centralized hook for all style calculations
+const useComponentStyles = (colors: Hero_06Props['colors'], theme: 'light' | 'dark') => {
+    return useMemo(() => {
+        const getColor = (config: ColorValue | undefined, fallback: string): string => {
+            if (!config) return fallback;
+            return (theme === 'dark' ? config.dark : config.light) ?? config.light ?? fallback;
+        };
+
+        const mergedColors = {
+            background: { ...defaultColors.background, ...colors?.background },
+            title: { ...defaultColors.title, ...colors?.title },
+            description: { ...defaultColors.description, ...colors?.description },
+            primaryButton: {
+                ...(defaultColors.primaryButton ?? {}),
+                ...(colors?.primaryButton ?? {}),
+                hover: {
+                    ...(defaultColors.primaryButton?.hover ?? {}),
+                    ...(colors?.primaryButton?.hover ?? {}),
+                },
+            },
+            secondaryButton: {
+                ...(defaultColors.secondaryButton ?? {}),
+                ...(colors?.secondaryButton ?? {}),
+                hover: {
+                    ...(defaultColors.secondaryButton?.hover ?? {}),
+                    ...(colors?.secondaryButton?.hover ?? {}),
+                },
+            },
+            video: {
+                ...(defaultColors.video ?? {}),
+                ...(colors?.video ?? {}),
+                playButton: {
+                    ...(defaultColors.video?.playButton ?? {}),
+                    ...(colors?.video?.playButton ?? {}),
+                },
+            },
+        };
+
+        const createButtonStyles = (config: typeof mergedColors.primaryButton): CSSProperties => ({
+            background: getColor(config.background, 'transparent'),
+            color: getColor(config.text, '#000000'),
+            borderColor: getColor(config.border, '#000000'),
+            borderWidth: '2px',
+            borderStyle: 'solid',
+        });
+
+        return {
+            background: { background: getColor(mergedColors.background, '#ffffff') },
+            title: { color: getColor(mergedColors.title, '#111827') },
+            description: { color: getColor(mergedColors.description, '#4b5563') },
+            primaryButton: createButtonStyles(mergedColors.primaryButton),
+            secondaryButton: createButtonStyles(mergedColors.secondaryButton),
+            primaryButtonHover: mergedColors.primaryButton.hover || {},
+            secondaryButtonHover: mergedColors.secondaryButton.hover || {},
+            videoOverlay: { backgroundColor: getColor(mergedColors.video.overlay, 'rgba(0, 0, 0, 0.3)') },
+            videoPlayButton: mergedColors.video.playButton,
+            getColor,
+        };
+    }, [colors, theme]);
+};
+
+// Action Button Component with optimized hover handling
+const ActionButton: React.FC<{
+    cta: string;
+    baseStyles: CSSProperties;
+    hoverConfig: ButtonHoverConfig;
+    getColor: (config: ColorValue | undefined, fallback: string) => string;
+}> = ({ cta, baseStyles, hoverConfig, getColor }) => {
+    const handleHover = useCallback((e: React.MouseEvent<HTMLButtonElement>, isHovering: boolean) => {
+        const target = e.currentTarget.style;
+
+        if (isHovering && hoverConfig) {
+            target.background = getColor(hoverConfig.background, baseStyles.background as string);
+            target.color = getColor(hoverConfig.text, baseStyles.color as string);
+            target.borderColor = getColor(hoverConfig.border, baseStyles.borderColor as string);
+        } else {
+            target.background = baseStyles.background as string;
+            target.color = baseStyles.color as string;
+            target.borderColor = baseStyles.borderColor as string;
+        }
+    }, [baseStyles, hoverConfig, getColor]);
+
+    return (
+        <div className="w-full md:w-auto">
+            <SimpleButton
+                variant="basic"
+                size="lg"
+                fullWidth
+                className="md:w-auto transition-all duration-200 hover:shadow-lg"
+                style={baseStyles}
+                onMouseEnter={(e) => handleHover(e, true)}
+                onMouseLeave={(e) => handleHover(e, false)}
+            >
+                {cta}
+            </SimpleButton>
+        </div>
+    );
+};
+
+// Animation props helper
+const getAnimationProps = (variant: Variants, delay: number = 0, amount: number = 0, animated: boolean = true) => {
+    if (!animated) return {};
+    return {
+        initial: "hidden",
+        whileInView: "show",
+        viewport: { once: true, amount: amount || undefined },
+        variants: variant,
+        transition: { delay }
+    };
+};
+
 /**
  * Hero_06 Component
  * Split layout hero section with video on left, content on right
@@ -21,12 +142,15 @@ const Hero_06: React.FC<Hero_06Props> = ({
     animated = true,
     autoPlay = false,
     loop = true,
-    className = ""
+    className = "",
+    colors
 }) => {
+    const { theme } = useTheme();
+    const styles = useComponentStyles(colors, theme);
     const [isPlaying, setIsPlaying] = useState(autoPlay);
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    const handlePlayPause = () => {
+    const handlePlayPause = useCallback(() => {
         if (videoRef.current) {
             if (isPlaying) {
                 videoRef.current.pause();
@@ -35,10 +159,13 @@ const Hero_06: React.FC<Hero_06Props> = ({
             }
             setIsPlaying(!isPlaying);
         }
-    };
+    }, [isPlaying]);
 
     return (
-        <section className={`relative w-full lg:h-screen bg-background-primary lg:overflow-hidden ${className}`}>
+        <section
+            className={`relative w-full lg:h-screen lg:overflow-hidden ${className}`}
+            style={styles.background}
+        >
             <div className="w-full h-full">
                 <div className="grid grid-cols-1 lg:grid-cols-2 lg:h-screen">
 
@@ -46,13 +173,13 @@ const Hero_06: React.FC<Hero_06Props> = ({
                     <div className="relative h-96 lg:h-screen order-2 lg:order-1">
                         <motion.div
                             className="relative w-full h-full overflow-hidden"
-                            initial={animated ? "hidden" : "show"}
-                            whileInView="show"
-                            viewport={{ once: true, amount: 0.3 }}
-                            variants={animated ? fadeIn : undefined}
+                            {...getAnimationProps(fadeIn, 0, 0.3, animated)}
                         >
-                            {/* Dark overlay */}
-                            <div className="absolute inset-0 bg-black/30 z-10" />
+                            {/* Video overlay */}
+                            <div 
+                                className="absolute inset-0 z-10" 
+                                style={styles.videoOverlay}
+                            />
 
                             {/* Video element */}
                             <video
@@ -74,6 +201,9 @@ const Hero_06: React.FC<Hero_06Props> = ({
                                     isPlaying={isPlaying}
                                     onClick={handlePlayPause}
                                     size="lg"
+                                    variant={colors ? 'basic' : 'default'}
+                                    colors={colors ? styles.videoPlayButton : undefined}
+                                    theme={theme}
                                 />
                             </div>
                         </motion.div>
@@ -81,43 +211,29 @@ const Hero_06: React.FC<Hero_06Props> = ({
 
                     {/* Content Column */}
                     <motion.div
-                        className="flex flex-col justify-center px-lg py-xl lg:px-2xl xl:px-5xl 2xl:px-6xl bg-background-primary order-1 lg:order-2 min-h-[50vh] lg:min-h-0"
-                        initial={animated ? "hidden" : "show"}
-                        whileInView="show"
-                        viewport={{ once: true, amount: 0.3 }}
-                        variants={animated ? fadeInUp : undefined}
+                        className="flex flex-col justify-center px-lg py-xl lg:px-2xl xl:px-5xl 2xl:px-6xl order-1 lg:order-2 min-h-[50vh] lg:min-h-0"
+                        {...getAnimationProps(fadeInUp, 0, 0.3, animated)}
                     >
                         <div className="xl:max-w-lg space-y-md lg:space-y-lg">
 
                             {/* Main Heading */}
-                            <motion.div
-                                initial={animated ? "hidden" : "show"}
-                                whileInView="show"
-                                viewport={{ once: true }}
-                                variants={animated ? fadeInUp : undefined}
-                            >
+                            <motion.div {...getAnimationProps(fadeInUp, 0, 0, animated)}>
                                 <Heading
                                     level="h1"
-                                    color="primary"
                                     weight="bold"
                                     className="text-h2-sm lg:text-h1-md"
+                                    style={styles.title}
                                 >
                                     {title}
                                 </Heading>
                             </motion.div>
 
                             {/* Description */}
-                            <motion.div
-                                initial={animated ? "hidden" : "show"}
-                                whileInView="show"
-                                viewport={{ once: true }}
-                                variants={animated ? fadeInUp : undefined}
-                                transition={{ delay: 0.1 }}
-                            >
+                            <motion.div {...getAnimationProps(fadeInUp, 0.1, 0, animated)}>
                                 <Para
                                     size="md"
-                                    color="secondary"
                                     className="lg:text-para-lg leading-relaxed"
+                                    style={styles.description}
                                 >
                                     {description}
                                 </Para>
@@ -126,43 +242,20 @@ const Hero_06: React.FC<Hero_06Props> = ({
                             {/* CTA Buttons */}
                             <motion.div
                                 className="flex flex-col md:flex-row gap-md"
-                                initial={animated ? "hidden" : "show"}
-                                whileInView="show"
-                                viewport={{ once: true }}
-                                variants={animated ? fadeInUp : undefined}
-                                transition={{ delay: 0.2 }}
+                                {...getAnimationProps(fadeInUp, 0.2, 0, animated)}
                             >
-                                {/* Primary CTA */}
-                                <motion.div
-                                    whileHover={animated ? { scale: 1.02 } : undefined}
-                                    whileTap={animated ? { scale: 0.98 } : undefined}
-                                    className="w-full md:w-auto"
-                                >
-                                    <SimpleButton
-                                        variant="solid"
-                                        size="lg"
-                                        fullWidth
-                                        className="md:w-auto"
-                                    >
-                                        {primaryCta}
-                                    </SimpleButton>
-                                </motion.div>
-
-                                {/* Secondary CTA */}
-                                <motion.div
-                                    whileHover={animated ? { scale: 1.02 } : undefined}
-                                    whileTap={animated ? { scale: 0.98 } : undefined}
-                                    className="w-full md:w-auto"
-                                >
-                                    <SimpleButton
-                                        variant="outline"
-                                        size="lg"
-                                        fullWidth
-                                        className="md:w-auto"
-                                    >
-                                        {secondaryCta}
-                                    </SimpleButton>
-                                </motion.div>
+                                <ActionButton
+                                    cta={primaryCta}
+                                    baseStyles={styles.primaryButton}
+                                    hoverConfig={styles.primaryButtonHover}
+                                    getColor={styles.getColor}
+                                />
+                                <ActionButton
+                                    cta={secondaryCta}
+                                    baseStyles={styles.secondaryButton}
+                                    hoverConfig={styles.secondaryButtonHover}
+                                    getColor={styles.getColor}
+                                />
                             </motion.div>
                         </div>
                     </motion.div>

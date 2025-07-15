@@ -1,18 +1,42 @@
-/**
- * Hero_01 Metadata
- * Used by Swiper system, AI engine, and RAG for component matching
- * Based on SplitHeroHeader1 from design system
- */
-export const metadata = {
-    component_id: "Hero_01",
-    id: "SplitHeroHeader1",
-    section_type: "hero",
-    layout_structure: "two-column",
-    tone: ["minimal", "modern", "tech"],
-    intent: "convert",
-    industry_fit: ["saas", "b2b", "startup"],
-    supports_uploads: true,
-    dark_mode_compatible: true,
+// src/components-lib/Hero/Hero_01/Hero_01.meta.ts
+
+export const Hero_01_metadata = {
+  // --- High-Level Properties (For AI Filtering) ---
+  component_id: "Hero_01",
+  design_system_id: "SplitHeroHeader1",
+  section: "hero",
+  layout: "two-column",
+  structure: "image-right",
+  tone: ["minimal", "modern", "tech"],
+  intent: "convert",
+  industry_fit: ["saas", "b2b", "startup"],
+
+  /**
+   * Defines the component's features for quick filtering.
+   */
+  capabilities: {
+    animation: true,
+    dark_mode: true,
+    image_upload: true,
     interactive_elements: ["button"],
-    image_position: "right"
+  },
+
+  // --- Customization Controls (For AI/Editor to Modify Props) ---
+  customization: {
+    text: [ 
+        "title", 
+        "description" 
+    ],
+    cta: [ 
+        "primaryCta", 
+        "secondaryCta" 
+    ],
+    media: [ 
+        "imageSrc" 
+    ],
+    colors: true,
+    settings: [ 
+        "animated" 
+    ]
+  }
 };

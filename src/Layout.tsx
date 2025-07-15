@@ -7,10 +7,14 @@ import IntakeForm from "./components/intake-form/IntakeForm"
 import { ROUTES } from "./routes/routes"
 import DashboardRoutes from "./dashboards/DasHboardRoutes"
 import DemoPage from "./pages/DemoPage"
+import ThemeToggle from "./components/theme-toggle/ThemeToggle"
 
 const Layout = () => {
     return (
         <main>
+            <div className="fixed top-5 right-5 z-50">
+                <ThemeToggle />
+            </div>
             <Routes>
                 <Route path={ROUTES.HOME} element={<DemoPage />} />
                 <Route path={`${ROUTES.AUTH}/*`} element={<AuthLayout variant="split" />} />
