@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Input from './components/Input';
-import Heading from '../../demos/typography/Heading';
+import Input from '@/components/auth/form/components/Input';
+import Heading from '@/components/demos/typography/Heading';
 import { FaEnvelope, FaLock, FaUser, FaArrowLeft } from 'react-icons/fa';
-import FormButton from './components/FormButton';
-import SimpleButton from '../../demos/buttons/SimpleButton';
-import { getGoogleOAuthURL, signUp } from '../../../lib/requests/AuthRequest';
+import FormButton from '@/components/auth/form/components/FormButton';
+import SimpleButton from '@/components/demos/buttons/SimpleButton';
+import { getGoogleOAuthURL, signUp } from '@/lib/requests/AuthRequest';
 
 const RegisterForm = () => {
   const navigate = useNavigate();

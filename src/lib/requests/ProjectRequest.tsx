@@ -1,4 +1,4 @@
-import api from "./Axios";
+import api from "@/lib/requests/Axios";
 
 interface ProjectCreationValues {
   designer_email: string;

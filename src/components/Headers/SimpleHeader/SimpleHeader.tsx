@@ -1,4 +1,4 @@
-import ThemeToggle from "../../theme-toggle/ThemeToggle";
+import ThemeToggle from "@/components/theme-toggle/ThemeToggle";
 
 const SimpleHeader = () => {
   return (
