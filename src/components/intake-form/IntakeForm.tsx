@@ -110,45 +110,45 @@ const IntakeForm: React.FC = () => {
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
 
+    const fetchForm = async (client_email: string) => {
+        setLoading(true);
+        try {
+            const response = await getIntakeByClientEmail({ client_email });
 
-    const client_email = "client@gmail.com";
-    useEffect(() => {
-        async function fetchForm() {
-            setLoading(true);
-            try {
-                const response = await getIntakeByClientEmail({ client_email });
-
-                const data = response?.data?.data;
-                if (data) {
-                    const transformed = {
-                        tones: data.tones || [],
-                        keyFeatures: (data.key_features || []).join(', '),
-                        inspirationUrls: data.inspiration_urls || [''],
-                        colorStrategy: data.color_strategy || 'match-logo',
-                        customColors: (data.custom_colors || []).join(', '),
-                        deadline: data.deadline || '',
-                        notSureDeadline: data.not_sure_deadline || false,
-                        currentSiteUrl: data.current_site_url || '',
-                        brandGuide: data.brand_guide_metadata || null,
-                        additionalDetails: data.additional_details || '',
-                    };
-
-                    setFormData(transformed);
-                    setLoading(false);
-                } else {
-                    setFormData(initialFormData);
-                    setLoading(false)
-                }
-            } catch (err) {
-                console.error("Error loading form data:", err);
+            const data = response?.data?.data;
+            if (data) {
+                const transformed = {
+                    tones: data.tones || [],
+                    keyFeatures: (data.key_features || []).join(', '),
+                    inspirationUrls: data.inspiration_urls || [''],
+                    colorStrategy: data.color_strategy || 'match-logo',
+                    customColors: (data.custom_colors || []).join(', '),
+                    deadline: data.deadline || '',
+                    notSureDeadline: data.not_sure_deadline || false,
+                    currentSiteUrl: data.current_site_url || '',
+                    brandGuide: data.brand_guide_metadata || null,
+                    additionalDetails: data.additional_details || '',
+                };
+                setFormData(transformed);
+                setLoading(false);
+            } else {
                 setFormData(initialFormData);
                 setLoading(false)
             }
+        } catch (err) {
+            console.error("Error loading form data:", err);
+            setFormData(initialFormData);
             setLoading(false)
         }
+        setLoading(false)
+    }
+
+    const client_email = "client@gmail.com";
+
+    useEffect(() => {
 
         if (client_email) {
-            fetchForm();
+            fetchForm(client_email);
         }
     }, [client_email]);
 

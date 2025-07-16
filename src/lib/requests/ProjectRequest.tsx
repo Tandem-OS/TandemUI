@@ -12,6 +12,14 @@ interface ProjectCreationValues {
   notes: string;
 }
 
+interface ProjectGetClientEmail {
+  client_email: string;
+}
+
 export const createProject = async (values: ProjectCreationValues) => {
   return await api.post("/projects", values);
+};
+
+export const getProjectByClientEmail = async (value: ProjectGetClientEmail) => {
+  return await api.post("/projects/client_email", value);
 };
