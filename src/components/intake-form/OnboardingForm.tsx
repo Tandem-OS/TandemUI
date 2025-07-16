@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaCloudUploadAlt, FaArrowRight, FaCheck,
@@ -9,7 +9,7 @@ import SimpleButton from '@/components/demos/buttons/SimpleButton.tsx';
 import Heading from '@/components/demos/typography/Heading.tsx';
 import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader.tsx';
 import { useNavigate } from 'react-router-dom';
-import { createProject } from '../../lib/requests/ProjectRequest';
+import { createProject, getProjectByClientEmail } from '@/lib/requests/ProjectRequest.tsx';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../store';
 
@@ -157,10 +157,51 @@ const FileUpload = ({ file, onFile }: any) => {
 const OnboardingForm: React.FC = () => {
     const [currentScreen, setCurrentScreen] = useState(1);
     const [formData, setFormData] = useState<OnboardingFormData>(initialFormData);
+    const [loading, setLoading] = useState(false);
     const [buttonState, setButtonState] = useState<'default' | 'saving' | 'saved'>('default');
     const navigate = useNavigate();
 
     const designer_email = useSelector((state: RootState) => state.auth.user.email)!;
+
+    const fetchForm = async (client_email: string) => {
+        setLoading(true);
+        try {
+            const response = await getProjectByClientEmail({ client_email });
+
+            const data = response?.data?.data;
+            if (data) {
+                const transformed = {
+                    projectName: data.project_name || '',
+                    logo: data.logo || null,
+                    projectType: data.project_type || '',
+                    businessDescription: data.business_description || '',
+                    budget: data.budget || '',
+                    notReadyToShare: data.not_ready_to_share || false,
+                    notes: data.notes || '',
+                };
+
+                setFormData(transformed);
+                setLoading(false);
+            } else {
+                setFormData(initialFormData);
+                setLoading(false)
+            }
+        } catch (err) {
+            console.error("Error loading form data:", err);
+            setFormData(initialFormData);
+            setLoading(false)
+        }
+        setLoading(false)
+    }
+
+    const client_email = "client@gmail.com";
+
+    useEffect(() => {
+        if (client_email) {
+            fetchForm(client_email);
+        }
+    }, [client_email]);
+
     const totalScreens = 4;
 
     const updateForm = (updates: Partial<OnboardingFormData>) =>
@@ -339,61 +380,70 @@ const OnboardingForm: React.FC = () => {
     const currentScreenData = screens[currentScreen - 1];
 
     return (
-        <div className="relative min-h-screen flex bg-background-secondary transition-colors">
-            <div className="flex-1 flex flex-col px-lg z-10">
 
-                <SimpleHeader />
-
-                <div className="flex-1 flex items-center justify-center max-md:mb-md">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentScreen}
-                            variants={containerVariant}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
-                        >
-                            <ScreenHeader
-                                title={currentScreenData.title}
-                                subtitle={currentScreenData.subtitle}
-                                canSkip={currentScreenData.canSkip}
-                                onSkip={() => navigater(true)}
-                                buttonState={buttonState}
-                                isLastStep={currentScreen === totalScreens}
-                            />
-
-                            {currentScreenData.content}
-
-                            <motion.div variants={fadeInLeft} className="flex justify-between">
-                                {currentScreen > 1 && (
-                                    <SimpleButton
-                                        variant="outline"
-                                        size="md"
-                                        onClick={() => navigater(false)}
-                                        disabled={buttonState !== 'default'}
-                                    >
-                                        Back
-                                    </SimpleButton>
-                                )}
-                                <SimpleButton
-                                    variant="solid"
-                                    size="md"
-                                    onClick={() => navigater(true)}
-                                    disabled={buttonState !== 'default' || !isScreenValid(currentScreen)}
-                                    className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
-                                >
-                                    {buttonState === 'saving' ? 'Saving...' :
-                                        buttonState === 'saved' ? <>Saved <FaCheck className="ml-xs" /></> :
-                                            currentScreen === totalScreens ? 'Submit Now' :
-                                                <>Next <FaArrowRight className="ml-xs" /></>}
-                                </SimpleButton>
-                            </motion.div>
-                        </motion.div>
-                    </AnimatePresence>
+        <>
+            {loading ? (
+                <div className="flex justify-center items-center min-h-[300px]">
+                    Loading
                 </div>
-            </div>
-        </div >
+            ) :
+                <div className="relative min-h-screen flex bg-background-secondary transition-colors">
+                    <div className="flex-1 flex flex-col px-lg z-10">
+
+                        <SimpleHeader />
+
+                        <div className="flex-1 flex items-center justify-center max-md:mb-md">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={currentScreen}
+                                    variants={containerVariant}
+                                    initial="initial"
+                                    animate="animate"
+                                    exit="exit"
+                                    className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
+                                >
+                                    <ScreenHeader
+                                        title={currentScreenData.title}
+                                        subtitle={currentScreenData.subtitle}
+                                        canSkip={currentScreenData.canSkip}
+                                        onSkip={() => navigater(true)}
+                                        buttonState={buttonState}
+                                        isLastStep={currentScreen === totalScreens}
+                                    />
+
+                                    {currentScreenData.content}
+
+                                    <motion.div variants={fadeInLeft} className="flex justify-between">
+                                        {currentScreen > 1 && (
+                                            <SimpleButton
+                                                variant="outline"
+                                                size="md"
+                                                onClick={() => navigater(false)}
+                                                disabled={buttonState !== 'default'}
+                                            >
+                                                Back
+                                            </SimpleButton>
+                                        )}
+                                        <SimpleButton
+                                            variant="solid"
+                                            size="md"
+                                            onClick={() => navigater(true)}
+                                            disabled={buttonState !== 'default' || !isScreenValid(currentScreen)}
+                                            className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
+                                        >
+                                            {buttonState === 'saving' ? 'Saving...' :
+                                                buttonState === 'saved' ? <>Saved <FaCheck className="ml-xs" /></> :
+                                                    currentScreen === totalScreens ? 'Submit Now' :
+                                                        <>Next <FaArrowRight className="ml-xs" /></>}
+                                        </SimpleButton>
+                                    </motion.div>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                </div >
+            }
+        </>
     );
 };
 

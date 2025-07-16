@@ -1,5 +1,5 @@
 // IntakeForm
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -15,7 +15,7 @@ import { KingOfTheHill } from '@/components/intake-form/KingOfTheHill';
 import FiveStarFeedback from '@/comman-components/FiveStarFeedback';
 import { initialFormData, suggestedPageChips, OPTIONS } from '@/components/intake-form/constants';
 import { type IntakeFormData, type ButtonState } from '@/components/intake-form/types';
-import { submitIntakeStep } from '@/lib/requests/IntakeRequest';
+import { submitIntakeStep, getIntakeByClientEmail } from '@/lib/requests/IntakeRequest';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 
@@ -103,11 +103,55 @@ const FileUpload = ({ file, onFile }: any) => {
 const IntakeForm: React.FC = () => {
     const navigateHook = useNavigate();
     const [currentScreen, setCurrentScreen] = useState(1);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<IntakeFormData>(initialFormData);
     const [buttonState, setButtonState] = useState<ButtonState>('default');
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
+
+    const fetchForm = async (client_email: string) => {
+        setLoading(true);
+        try {
+            const response = await getIntakeByClientEmail({ client_email });
+
+            const data = response?.data?.data;
+            if (data) {
+                const transformed = {
+                    tones: data.tones || [],
+                    keyFeatures: (data.key_features || []).join(', '),
+                    inspirationUrls: data.inspiration_urls || [''],
+                    colorStrategy: data.color_strategy || 'match-logo',
+                    customColors: (data.custom_colors || []).join(', '),
+                    deadline: data.deadline || '',
+                    notSureDeadline: data.not_sure_deadline || false,
+                    currentSiteUrl: data.current_site_url || '',
+                    brandGuide: data.brand_guide_metadata || null,
+                    additionalDetails: data.additional_details || '',
+                };
+                setFormData(transformed);
+                setLoading(false);
+            } else {
+                setFormData(initialFormData);
+                setLoading(false)
+            }
+        } catch (err) {
+            console.error("Error loading form data:", err);
+            setFormData(initialFormData);
+            setLoading(false)
+        }
+        setLoading(false)
+    }
+
+    const client_email = "client@gmail.com";
+
+    useEffect(() => {
+
+        if (client_email) {
+            fetchForm(client_email);
+        }
+    }, [client_email]);
+
 
     const designerEmail = useSelector((state: RootState) => state.auth.user.email)!;
 
@@ -165,7 +209,7 @@ const IntakeForm: React.FC = () => {
             try {
                 alert('Intake form submitted successfully!');
                 console.log(formData)
-                const { brandGuide, ...rest } = formData;
+                const { ...rest } = formData;
                 const payload = {
                     ...rest,
                     designer_email: designerEmail,
@@ -186,7 +230,18 @@ const IntakeForm: React.FC = () => {
         // Forward navigation
         setButtonState('saving');
         try {
-            const { tones, keyFeatures, inspirationUrls, colorStrategy, customColors, currentSiteUrl, additionalDetails, deadline, notSureDeadline, brandGuide } = formData;
+            const {
+                tones,
+                keyFeatures,
+                inspirationUrls,
+                colorStrategy,
+                customColors,
+                currentSiteUrl,
+                additionalDetails,
+                deadline,
+                notSureDeadline,
+                brandGuide
+            } = formData;
 
             const payload = {
                 designer_email: designerEmail,
@@ -485,84 +540,91 @@ const IntakeForm: React.FC = () => {
 
     // Check if we should hide the header (first screen with results showing or feedback screen)
     const shouldHideHeader = (currentScreen === 1 && showVibeResults) || showFeedback;
-
     return (
-        <div className="relative min-h-screen flex bg-background-secondary transition-colors">
-            <div className="flex-1 flex flex-col z-10">
-                <SimpleHeader />
-
-                <div className="flex-1 flex items-center justify-center px-lg max-md:mb-md">
-                    <AnimatePresence mode="wait">
-                        {showFeedback ? (
-                            <motion.div
-                                key="feedback"
-                                variants={containerVariant}
-                                initial="initial"
-                                animate="animate"
-                                exit="exit"
-                                className="w-full max-w-lg mx-auto"
-                            >
-                                <FiveStarFeedback
-                                    question="How was the intake process?"
-                                    onSubmit={handleFeedbackSubmit}
-                                    onSkip={handleFeedbackSkip}
-                                    autoSkipSeconds={10}
-                                />
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key={currentScreen}
-                                variants={containerVariant}
-                                initial="initial"
-                                animate="animate"
-                                exit="exit"
-                                className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
-                            >
-                                {!shouldHideHeader && (
-                                    <ScreenHeader
-                                        title={currentScreenData.title}
-                                        subtitle={currentScreenData.subtitle}
-                                        canSkip={canSkip}
-                                        onSkip={() => navigateScreen(true)}
-                                        buttonState={buttonState}
-                                        isLastStep={currentScreen === totalScreens}
-                                    />
-                                )}
-
-                                {currentScreenData.content}
-
-                                <motion.div variants={fadeInLeft} className="flex justify-between mt-md">
-                                    {currentScreen > 1 && (
-                                        <SimpleButton
-                                            variant="outline"
-                                            size="md"
-                                            onClick={() => navigateScreen(false)}
-                                            disabled={buttonState !== 'default'}
-                                        >
-                                            Back
-                                        </SimpleButton>
-                                    )}
-                                    {(currentScreen > 1 || vibeSelectionComplete) && (
-                                        <SimpleButton
-                                            variant="solid"
-                                            size="md"
-                                            onClick={() => navigateScreen(true)}
-                                            disabled={buttonState !== 'default' || (currentScreen === 1 && !vibeSelectionComplete)}
-                                            className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
-                                        >
-                                            {buttonState === 'saving' && currentScreen < totalScreens ? 'Saving...' :
-                                                buttonState === 'saved' && currentScreen < totalScreens ? <>Saved <FaCheck className="ml-xs" /></> :
-                                                    currentScreen === totalScreens ? 'Start My Project' :
-                                                        <>Next <FaArrowRight className="ml-xs" /></>}
-                                        </SimpleButton>
-                                    )}
-                                </motion.div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+        <>
+            {loading ? (
+                <div className="flex justify-center items-center min-h-[300px]">
+                    Loading
                 </div>
-            </div>
-        </div>
+            ) :
+                <div className="relative min-h-screen flex bg-background-secondary transition-colors">
+                    <div className="flex-1 flex flex-col z-10">
+                        <SimpleHeader />
+
+                        <div className="flex-1 flex items-center justify-center px-lg max-md:mb-md">
+                            <AnimatePresence mode="wait">
+                                {showFeedback ? (
+                                    <motion.div
+                                        key="feedback"
+                                        variants={containerVariant}
+                                        initial="initial"
+                                        animate="animate"
+                                        exit="exit"
+                                        className="w-full max-w-lg mx-auto"
+                                    >
+                                        <FiveStarFeedback
+                                            question="How was the intake process?"
+                                            onSubmit={handleFeedbackSubmit}
+                                            onSkip={handleFeedbackSkip}
+                                            autoSkipSeconds={10}
+                                        />
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key={currentScreen}
+                                        variants={containerVariant}
+                                        initial="initial"
+                                        animate="animate"
+                                        exit="exit"
+                                        className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
+                                    >
+                                        {!shouldHideHeader && (
+                                            <ScreenHeader
+                                                title={currentScreenData.title}
+                                                subtitle={currentScreenData.subtitle}
+                                                canSkip={canSkip}
+                                                onSkip={() => navigateScreen(true)}
+                                                buttonState={buttonState}
+                                                isLastStep={currentScreen === totalScreens}
+                                            />
+                                        )}
+
+                                        {currentScreenData.content}
+
+                                        <motion.div variants={fadeInLeft} className="flex justify-between mt-md">
+                                            {currentScreen > 1 && (
+                                                <SimpleButton
+                                                    variant="outline"
+                                                    size="md"
+                                                    onClick={() => navigateScreen(false)}
+                                                    disabled={buttonState !== 'default'}
+                                                >
+                                                    Back
+                                                </SimpleButton>
+                                            )}
+                                            {(currentScreen > 1 || vibeSelectionComplete) && (
+                                                <SimpleButton
+                                                    variant="solid"
+                                                    size="md"
+                                                    onClick={() => navigateScreen(true)}
+                                                    disabled={buttonState !== 'default' || (currentScreen === 1 && !vibeSelectionComplete)}
+                                                    className={`${currentScreen === 1 ? 'ml-auto' : ''} min-w-[150px]`}
+                                                >
+                                                    {buttonState === 'saving' && currentScreen < totalScreens ? 'Saving...' :
+                                                        buttonState === 'saved' && currentScreen < totalScreens ? <>Saved <FaCheck className="ml-xs" /></> :
+                                                            currentScreen === totalScreens ? 'Start My Project' :
+                                                                <>Next <FaArrowRight className="ml-xs" /></>}
+                                                </SimpleButton>
+                                            )}
+                                        </motion.div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                </div>
+            }
+        </>
     );
 };
 
