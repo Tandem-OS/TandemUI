@@ -74,7 +74,7 @@ const Hero_03: React.FC<Hero_03Props> = ({
 
     return (
         <section
-            className={`relative w-full lg:h-screen ${className}`}
+            className={`relative w-full lg:h-screen lg:overflow-hidden ${className}`}
             style={styles.background}
         >
             <div className="w-full h-full">

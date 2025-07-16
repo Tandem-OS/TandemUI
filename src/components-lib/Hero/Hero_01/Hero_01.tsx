@@ -137,7 +137,7 @@ const Hero_01: React.FC<Hero_01Props> = ({
 
     return (
         <section
-            className={`relative w-full lg:h-screen ${className}`}
+            className={`relative w-full lg:h-screen lg:overflow-hidden ${className}`}
             style={styles.background}
         >
             <div className="grid grid-cols-1 lg:grid-cols-2 lg:h-screen">

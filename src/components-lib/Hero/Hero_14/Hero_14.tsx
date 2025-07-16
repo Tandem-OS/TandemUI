@@ -1,11 +1,12 @@
-import React, { type CSSProperties, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp } from '../../../lib/animations/variants';
 import Heading from '../../../components/demos/typography/Heading';
 import SimpleButton from '../../../components/demos/buttons/SimpleButton';
 import Para from '../../../comman-components/Para';
-import { type Hero_10Props, defaultColors } from './Hero_10.types';
+import VideoPlayBtn from '../../../comman-components/VideoPlayBtn';
+import { type Hero_14Props, defaultColors } from './Hero_14.types';
 
 // Types
 type ColorValue = { light?: string; dark?: string };
@@ -16,7 +17,7 @@ type ButtonHoverConfig = {
 };
 
 // Centralized hook for all style calculations
-const useComponentStyles = (colors: Hero_10Props['colors'], theme: 'light' | 'dark') => {
+const useComponentStyles = (colors: Hero_14Props['colors'], theme: 'light' | 'dark') => {
     return useMemo(() => {
         const getColor = (config: ColorValue | undefined, fallback: string): string => {
             if (!config) return fallback;
@@ -43,6 +44,14 @@ const useComponentStyles = (colors: Hero_10Props['colors'], theme: 'light' | 'da
                     ...(colors?.secondaryButton?.hover ?? {}),
                 },
             },
+            video: {
+                ...(defaultColors.video ?? {}),
+                ...(colors?.video ?? {}),
+                playButton: {
+                    ...(defaultColors.video?.playButton ?? {}),
+                    ...(colors?.video?.playButton ?? {}),
+                },
+            },
         };
 
         const createButtonStyles = (config: typeof mergedColors.primaryButton): CSSProperties => ({
@@ -61,6 +70,8 @@ const useComponentStyles = (colors: Hero_10Props['colors'], theme: 'light' | 'da
             secondaryButton: createButtonStyles(mergedColors.secondaryButton),
             primaryButtonHover: mergedColors.primaryButton.hover || {},
             secondaryButtonHover: mergedColors.secondaryButton.hover || {},
+            videoOverlay: { backgroundColor: getColor(mergedColors.video.overlay, 'rgba(0, 0, 0, 0.3)') },
+            videoPlayButton: mergedColors.video.playButton,
             getColor,
         };
     }, [colors, theme]);
@@ -114,56 +125,89 @@ const getAnimationProps = (delay: number = 0, animated: boolean = true) => {
 };
 
 /**
- * Hero_10 Component
- * Two-column hero with background - content/CTAs on left bottom, heading on right top
- * Mobile maintains same layout as Hero_09 (heading top, content bottom)
- * Features dual CTAs and viewport-triggered animations
+ * Hero_14 Component
+ * Two-column hero with video background - heading on left top, content on right bottom
+ * Mobile: heading top, space, description + CTAs bottom
+ * Features video player with play/pause controls and viewport-triggered animations
  */
-const Hero_10: React.FC<Hero_10Props> = ({
+const Hero_14: React.FC<Hero_14Props> = ({
     title = "Medium length hero heading goes here",
     description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat.",
     primaryCta = "Button",
     secondaryCta = "Button",
-    backgroundSrc = "/images/component-lib-images/hero/placeholder-hero-bg.png",
-    backgroundAlt = "Hero background",
+    videoSrc = "/images/component-lib-images/hero/placeholder-video.mp4",
+    videoThumbnailSrc = "/images/component-lib-images/hero/video-bg-thumbnail.png",
     animated = true,
+    videoAutoPlay = false,
+    videoLoop = true,
     overlayOpacity = 50,
     className = "",
     colors
 }) => {
     const { theme } = useTheme();
     const styles = useComponentStyles(colors, theme);
+    const [isPlaying, setIsPlaying] = useState(videoAutoPlay);
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     // Fallback for deprecated overlayOpacity prop
     const overlayStyle = colors?.overlay
         ? styles.overlay
         : { backgroundColor: `rgba(0, 0, 0, ${overlayOpacity / 100})` };
 
+    const handlePlayPause = useCallback(() => {
+        if (videoRef.current) {
+            if (isPlaying) {
+                videoRef.current.pause();
+            } else {
+                videoRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
+        }
+    }, [isPlaying]);
+
     return (
         <section className={`relative w-full min-h-screen lg:h-screen lg:overflow-hidden ${className}`}>
-            {/* Background Image */}
+            {/* Background Video */}
             <div className="absolute inset-0">
-                <img
-                    src={backgroundSrc}
-                    alt={backgroundAlt}
+                <video
+                    ref={videoRef}
                     className="w-full h-full object-cover object-center"
-                    loading="eager"
-                />
-                {/* Overlay */}
+                    poster={videoThumbnailSrc}
+                    loop={videoLoop}
+                    muted
+                    playsInline
+                    onEnded={() => setIsPlaying(false)}
+                >
+                    <source src={videoSrc} type="video/mp4" />
+                    Your browser does not support the video tag.
+                </video>
+                
+                {/* Video Overlay */}
                 <div
                     className="absolute inset-0"
                     style={overlayStyle}
                 />
             </div>
 
-            {/* Content Container */}
-            <div className="relative z-10 w-full h-full min-h-screen lg:h-screen py-2xl">
-                <div className="grid grid-cols-1 lg:grid-cols-2 h-[85vh] lg:h-full">
-                    {/* Mobile: Heading Top / Desktop: Content Bottom (Left Column) */}
-                    <div className="order-1 lg:order-1 px-lg pb-xl lg:px-2xl xl:px-3xl 2xl:px-4xl pt-lg lg:pt-xl xl:pt-2xl lg:flex lg:items-end lg:pb-xl">
-                        {/* Mobile Heading (visible on mobile only) */}
+            {/* Video Play Button (Centered) -- YEH CHANGE KIYA HAI BHAI -- */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                <VideoPlayBtn
+                    isPlaying={isPlaying}
+                    onClick={handlePlayPause}
+                    size="lg"
+                    variant={colors ? 'basic' : 'default'}
+                    colors={colors ? styles.videoPlayButton : undefined}
+                    theme={theme}
+                />
+            </div>
+
+            {/* Content Container - Reduced spacing for mobile */}
+            <div className="relative z-10 w-full h-full min-h-screen lg:h-screen py-md lg:py-2xl">
+                <div className="grid grid-cols-1 lg:grid-cols-2 h-[95vh] lg:h-full">
+                    {/* Left Column - Heading (Desktop: Top, Mobile: Top with reduced padding) */}
+                    <div className="order-1 lg:order-1 px-lg pb-sm lg:pb-xl lg:px-2xl xl:px-3xl 2xl:px-4xl pt-sm lg:pt-xl xl:pt-2xl lg:flex lg:items-start">
                         <motion.div
-                            className="w-full lg:hidden"
+                            className="w-full"
                             {...getAnimationProps(0, animated)}
                         >
                             <Heading
@@ -174,45 +218,13 @@ const Hero_10: React.FC<Hero_10Props> = ({
                             >
                                 {title}
                             </Heading>
-                        </motion.div>
-
-                        {/* Desktop Content (visible on desktop only) */}
-                        <motion.div
-                            className="hidden lg:block w-full space-y-md lg:space-y-lg"
-                            {...getAnimationProps(0.1, animated)}
-                        >
-                            {/* Description */}
-                            <Para
-                                size="md"
-                                className="lg:text-para-lg leading-relaxed"
-                                style={styles.description}
-                            >
-                                {description}
-                            </Para>
-
-                            {/* CTA Buttons */}
-                            <div className="flex gap-md">
-                                <ActionButton
-                                    cta={primaryCta}
-                                    baseStyles={styles.primaryButton}
-                                    hoverConfig={styles.primaryButtonHover}
-                                    getColor={styles.getColor}
-                                />
-                                <ActionButton
-                                    cta={secondaryCta}
-                                    baseStyles={styles.secondaryButton}
-                                    hoverConfig={styles.secondaryButtonHover}
-                                    getColor={styles.getColor}
-                                />
-                            </div>
                         </motion.div>
                     </div>
 
-                    {/* Mobile: Content Bottom / Desktop: Heading Top (Right Column) */}
-                    <div className="order-2 lg:order-2 flex items-end lg:items-start px-lg pb-xl lg:px-2xl xl:px-2xl 2xl:px-4xl lg:pt-xl xl:pt-2xl">
-                        {/* Mobile Content (visible on mobile only) */}
+                    {/* Right Column - Content (Desktop: Bottom, Mobile: Bottom with reduced padding) */}
+                    <div className="order-2 lg:order-2 flex items-end px-lg pb-sm lg:pb-xl lg:px-2xl xl:px-2xl 2xl:px-4xl pt-sm lg:pt-xl">
                         <motion.div
-                            className="w-full space-y-md lg:space-y-lg lg:hidden"
+                            className="w-full space-y-md lg:space-y-lg"
                             {...getAnimationProps(0.1, animated)}
                         >
                             {/* Description */}
@@ -239,21 +251,6 @@ const Hero_10: React.FC<Hero_10Props> = ({
                                     getColor={styles.getColor}
                                 />
                             </div>
-                        </motion.div>
-
-                        {/* Desktop Heading (visible on desktop only) */}
-                        <motion.div
-                            className="hidden lg:block w-full"
-                            {...getAnimationProps(0, animated)}
-                        >
-                            <Heading
-                                level="h1"
-                                weight="bold"
-                                className="text-h2-sm lg:text-h1-md xl:text-h1-md"
-                                style={styles.title}
-                            >
-                                {title}
-                            </Heading>
                         </motion.div>
                     </div>
                 </div>
@@ -262,4 +259,4 @@ const Hero_10: React.FC<Hero_10Props> = ({
     );
 };
 
-export default Hero_10;
+export default Hero_14;

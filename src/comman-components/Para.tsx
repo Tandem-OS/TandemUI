@@ -27,7 +27,6 @@ const paraStyles = cva(
         info: 'text-text-info',
       },
       align: {
-        left: 'text-left',
         center: 'text-center',
         right: 'text-right',
         justify: 'text-justify',
@@ -42,7 +41,6 @@ const paraStyles = cva(
     defaultVariants: {
       size: 'md',
       color: 'secondary',
-      align: 'left',
       weight: 'normal',
     },
   }
