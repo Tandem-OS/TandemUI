@@ -60,11 +60,36 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
         }
     }, [challenger, previousChallengerId, isInitialized]);
 
+    useEffect(() => {
+    if (completedTones.length && !isInitialized) {
+        const preScored: VibeScore[] = completedTones.map((toneLabel) => {
+            const match = vibesImages.find(vibe => vibe.name.toLowerCase() === toneLabel.toLowerCase());
+            if (match) {
+                return {
+                    ...match,
+                    wins: 1,
+                    losses: 0,
+                    score: 1,
+                };
+            }
+            return null;
+        }).filter(Boolean) as VibeScore[];
+
+        if (preScored.length) {
+            setScores(preScored);
+            setSortedWinners(preScored);
+            setShowResults(true);
+            setIsInitialized(true);
+            onComplete(preScored.map(v => v.name));
+        }
+    }
+}, [completedTones, isInitialized]);
+
     // Tournament ranking algorithm
     const calculateTournamentRanking = (scores: VibeScore[], comparisons: Comparison[]) => {
         // Create a map of head-to-head results
         const headToHead = new Map<string, boolean>();
-        
+
         comparisons.forEach(comp => {
             headToHead.set(`${comp.winnerId}-${comp.loserId}`, true);
             headToHead.set(`${comp.loserId}-${comp.winnerId}`, false);
@@ -76,26 +101,26 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
             participantIds.add(comp.winnerId);
             participantIds.add(comp.loserId);
         });
-        
+
         const participants = scores.filter(s => participantIds.has(s.id));
-        
+
         // Sort using tournament logic
         const sorted = participants.sort((a, b) => {
             // First check head-to-head if they played against each other
             const aBeatsB = headToHead.get(`${a.id}-${b.id}`);
             const bBeatsA = headToHead.get(`${b.id}-${a.id}`);
-            
+
             if (aBeatsB === true) return -1; // a wins
             if (bBeatsA === true) return 1;  // b wins
-            
+
             // If no direct comparison, use win percentage
             const aWinRate = a.wins / (a.wins + a.losses || 1);
             const bWinRate = b.wins / (b.wins + b.losses || 1);
-            
+
             if (aWinRate !== bWinRate) {
                 return bWinRate - aWinRate; // Higher win rate first
             }
-            
+
             // If same win rate, prefer more total games (more proven)
             const aTotalGames = a.wins + a.losses;
             const bTotalGames = b.wins + b.losses;
@@ -208,10 +233,10 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
 
                 // Use tournament ranking instead of simple win/loss ratio
                 const rankedResults = calculateTournamentRanking(newScores, newComparisons);
-                
+
                 // Only show actual winners (those with wins > 0), not all participants
                 const actualWinners = rankedResults.filter(s => s.wins > 0);
-                
+
                 // Take top 3 or less if fewer winners
                 const topVibes = actualWinners.slice(0, Math.min(3, actualWinners.length));
                 setSortedWinners(topVibes);
