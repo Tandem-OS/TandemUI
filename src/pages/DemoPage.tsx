@@ -17,7 +17,6 @@ const DemoPage: React.FC = () => {
                 secondaryCta="Button"
                 animated={true}
             />
-
             <Hero_02
                 title="Medium length hero heading goes here"
                 description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat."
@@ -25,7 +24,6 @@ const DemoPage: React.FC = () => {
                 secondaryCta="Button"
                 animated={true}
             />
-
             <Hero_03
                 title="Medium length hero heading goes here"
                 description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat."
@@ -34,7 +32,6 @@ const DemoPage: React.FC = () => {
                 newsletterMessage="By clicking Subscribe you're confirming that you agree with our Terms and Conditions."
                 animated={true}
             />
-
             <Hero_04
                 title="Medium length hero heading goes here"
                 description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat."
@@ -49,21 +46,20 @@ const DemoPage: React.FC = () => {
                 primaryCta="Button"
                 secondaryCta="Button"
                 videoSrc="/images/component-lib-images/hero/placeholder-video.mp4"
-                thumbnailSrc="/images/component-lib-images/hero/placeholer-video-thumbnail.png"
-                autoPlay={false}
-                loop={true}
+                videoThumbnailSrc="/images/component-lib-images/hero/placeholer-video-thumbnail.png"
+                videoAutoPlay={false}
+                videoLoop={true}
                 animated={true}
             />
-
             <Hero_06
                 title="Medium length hero heading goes here"
                 description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat."
                 primaryCta="Button"
                 secondaryCta="Button"
                 videoSrc="/images/component-lib-images/hero/placeholder-video.mp4"
-                thumbnailSrc="/images/component-lib-images/hero/placeholer-video-thumbnail.png"
-                autoPlay={false}
-                loop={true}
+                videoThumbnailSrc="/images/component-lib-images/hero/placeholer-video-thumbnail.png"
+                videoAutoPlay={false}
+                videoLoop={true}
                 animated={true}
             />
             <Hero_07
@@ -78,7 +74,6 @@ const DemoPage: React.FC = () => {
                 videoLoop={true}
                 animated={true}
             />
-
             <Hero_08
                 title="Medium length hero heading goes here"
                 description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat."
@@ -100,7 +95,6 @@ const DemoPage: React.FC = () => {
                 overlayOpacity={50}
                 animated={true}
             />
-
             <Hero_10
                 title="Medium length hero heading goes here"
                 description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat."

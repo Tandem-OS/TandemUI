@@ -79,7 +79,6 @@ const Hero_08: React.FC<Hero_08Props> = ({
     animated = true,
     videoAutoPlay = false,
     videoLoop = true,
-    onNewsletterSubmit,
     className = "",
     colors
 }) => {
@@ -183,7 +182,6 @@ const Hero_08: React.FC<Hero_08Props> = ({
                                     placeholder={newsletterPlaceholder}
                                     buttonText={newsletterButtonText}
                                     message={newsletterMessage}
-                                    onSubmit={onNewsletterSubmit}
                                     colors={styles.newsletter}
                                     theme={theme}
                                 />

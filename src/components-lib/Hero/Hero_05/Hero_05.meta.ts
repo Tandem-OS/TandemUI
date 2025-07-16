@@ -20,7 +20,7 @@ export const Hero_05_metadata = {
     video_upload: true,
     video_playback: true,
     interactive_elements: ["video_playback", "button", "play_pause"],
-    media_support: true,
+    
   },
 
   // --- Customization Controls (For AI/Editor to Modify Props) ---
@@ -44,47 +44,4 @@ export const Hero_05_metadata = {
         "loop" 
     ]
   },
-
-  // --- Technical Details ---
-  dependencies: [
-    "framer-motion",
-    "react-icons/fa",
-    "VideoPlayBtn",
-    "SimpleButton"
-  ],
-
-  // --- Usage Context ---
-  best_for: [
-    "product_demos",
-    "app_showcases", 
-    "video_testimonials",
-    "brand_storytelling",
-    "saas_landing_pages",
-    "cinematic_presentations"
-  ],
-
-  // --- Performance Notes ---
-  performance: {
-    lazy_loading: true,
-    video_optimization: true,
-    animations: "conditional",
-    poster_images: true
-  },
-
-  // --- Media Specifications ---
-  media_specs: {
-    video_formats: ["mp4", "webm", "ogg"],
-    recommended_resolution: "1920x1080",
-    max_file_size: "50MB",
-    autoplay_policy: "muted_only",
-    poster_required: true
-  },
-
-  // --- Visual Notes ---
-  visual_notes: {
-    layout_direction: "content_left_video_right",
-    video_controls: "custom_play_button",
-    overlay_support: true,
-    responsive_video: true
-  }
 };

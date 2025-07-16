@@ -19,8 +19,6 @@ export const Hero_04_metadata = {
     dark_mode: true,
     image_upload: true,
     interactive_elements: ["form_input", "button", "newsletter"],
-    lead_capture: true,
-    email_collection: true,
   },
 
   // --- Customization Controls (For AI/Editor to Modify Props) ---
@@ -41,42 +39,6 @@ export const Hero_04_metadata = {
     settings: [ 
         "animated" 
     ],
-    actions: [
-        "onNewsletterSubmit"
-    ]
   },
 
-  // --- Technical Details ---
-  dependencies: [
-    "framer-motion",
-    "react-icons/fa",
-    "Input",
-    "FormButton", 
-    "Newsletter"
-  ],
-
-  // --- Usage Context ---
-  best_for: [
-    "landing_pages",
-    "lead_magnets", 
-    "newsletter_signup",
-    "email_collection",
-    "content_marketing",
-    "app_landing_pages"
-  ],
-
-  // --- Performance Notes ---
-  performance: {
-    lazy_loading: true,
-    animations: "conditional",
-    form_validation: true
-  },
-
-  // --- Visual Differences ---
-  visual_notes: {
-    layout_direction: "image_left_content_right",
-    content_alignment: "left_aligned",
-    image_position: "left_column",
-    form_placement: "right_column"
-  }
 };

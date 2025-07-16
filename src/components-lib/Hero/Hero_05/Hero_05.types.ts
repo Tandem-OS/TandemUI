@@ -68,16 +68,16 @@ export interface Hero_05Props {
   videoSrc?: string;
 
   /** Video thumbnail image */
-  thumbnailSrc?: string;
+  videoThumbnailSrc?: string;
 
   /** Enable framer motion animations */
   animated?: boolean;
 
   /** Auto play video on load */
-  autoPlay?: boolean;
+  videoAutoPlay?: boolean;
 
   /** Loop video */
-  loop?: boolean;
+  videoLoop?: boolean;
 
   /** Additional CSS classes */
   className?: string;

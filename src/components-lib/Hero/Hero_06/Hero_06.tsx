@@ -138,16 +138,16 @@ const Hero_06: React.FC<Hero_06Props> = ({
     primaryCta = "Button",
     secondaryCta = "Button",
     videoSrc = "/images/component-lib-images/hero/placeholder-video.mp4",
-    thumbnailSrc = "/images/component-lib-images/hero/placeholder-video-thumbnail.png",
+    videoThumbnailSrc = "/images/component-lib-images/hero/placeholder-video-thumbnail.png",
     animated = true,
-    autoPlay = false,
-    loop = true,
+    videoAutoPlay = false,
+    videoLoop = true,
     className = "",
     colors
 }) => {
     const { theme } = useTheme();
     const styles = useComponentStyles(colors, theme);
-    const [isPlaying, setIsPlaying] = useState(autoPlay);
+    const [isPlaying, setIsPlaying] = useState(videoAutoPlay);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     const handlePlayPause = useCallback(() => {
@@ -176,8 +176,8 @@ const Hero_06: React.FC<Hero_06Props> = ({
                             {...getAnimationProps(fadeIn, 0, 0.3, animated)}
                         >
                             {/* Video overlay */}
-                            <div 
-                                className="absolute inset-0 z-10" 
+                            <div
+                                className="absolute inset-0 z-10"
                                 style={styles.videoOverlay}
                             />
 
@@ -185,8 +185,8 @@ const Hero_06: React.FC<Hero_06Props> = ({
                             <video
                                 ref={videoRef}
                                 className="w-full h-full object-cover object-center"
-                                poster={thumbnailSrc}
-                                loop={loop}
+                                poster={videoThumbnailSrc}
+                                loop={videoLoop}
                                 muted
                                 playsInline
                                 onEnded={() => setIsPlaying(false)}

@@ -30,7 +30,7 @@
             "default": "{colors.gray.200}",
             "focus": "{colors.blue.500}",
             "muted": "{colors.gray.300}",
-            "dark": "{color.gray-800}",
+            "dark": "{colors.gray.800}",
             "success": "{colors.emerald.500}",
             "error": "{colors.rose.500}",
             "warning": "{colors.amber.500}",

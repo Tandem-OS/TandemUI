@@ -19,55 +19,25 @@ export const Hero_03_metadata = {
     dark_mode: true,
     image_upload: true,
     interactive_elements: ["form_input", "button", "newsletter"],
-    lead_capture: true,
-    email_collection: true,
   },
 
   // --- Customization Controls (For AI/Editor to Modify Props) ---
   customization: {
-    text: [ 
-        "title", 
-        "description" 
+    text: [
+      "title",
+      "description"
     ],
-    form: [ 
-        "newsletterPlaceholder", 
-        "newsletterButtonText", 
-        "newsletterMessage" 
+    form: [
+      "newsletterPlaceholder",
+      "newsletterButtonText",
+      "newsletterMessage"
     ],
-    media: [ 
-        "imageSrc" 
+    media: [
+      "imageSrc"
     ],
     colors: true,
-    settings: [ 
-        "animated" 
+    settings: [
+      "animated"
     ],
-    actions: [
-        "onNewsletterSubmit"
-    ]
   },
-
-  // --- Technical Details ---
-  dependencies: [
-    "framer-motion",
-    "react-icons/fa",
-    "Input",
-    "FormButton", 
-    "Newsletter"
-  ],
-
-  // --- Usage Context ---
-  best_for: [
-    "landing_pages",
-    "lead_magnets", 
-    "newsletter_signup",
-    "email_collection",
-    "content_marketing"
-  ],
-
-  // --- Performance Notes ---
-  performance: {
-    lazy_loading: true,
-    animations: "conditional",
-    form_validation: true
-  }
 };

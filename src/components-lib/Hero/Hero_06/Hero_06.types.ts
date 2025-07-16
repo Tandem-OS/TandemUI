@@ -54,34 +54,34 @@ export interface Hero_06Colors {
 export interface Hero_06Props {
   /** Main headline text */
   title?: string;
-  
+
   /** Supporting description text */
   description?: string;
-  
+
   /** Primary CTA button text */
   primaryCta?: string;
-  
+
   /** Secondary CTA button text */
   secondaryCta?: string;
-  
+
   /** Video source URL */
   videoSrc?: string;
-  
+
   /** Video thumbnail image */
-  thumbnailSrc?: string;
-  
+  videoThumbnailSrc?: string;
+
   /** Enable framer motion animations */
   animated?: boolean;
-  
+
   /** Auto play video on load */
-  autoPlay?: boolean;
-  
+  videoAutoPlay?: boolean;
+
   /** Loop video */
-  loop?: boolean;
-  
+  videoLoop?: boolean;
+
   /** Additional CSS classes */
   className?: string;
-  
+
   /** Custom color configuration */
   colors?: Hero_06Colors;
 }

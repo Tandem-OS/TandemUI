@@ -82,9 +82,6 @@ export interface Hero_08Props {
   /** Loop video */
   videoLoop?: boolean;
 
-  /** Newsletter submit handler */
-  onNewsletterSubmit?: (email: string) => void;
-
   /** Additional CSS classes */
   className?: string;
 

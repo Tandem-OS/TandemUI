@@ -66,9 +66,6 @@ export interface Hero_03Props {
   /** Enable framer motion animations */
   animated?: boolean;
 
-  /** Newsletter submit handler */
-  onNewsletterSubmit?: (email: string) => void;
-
   /** Additional CSS classes */
   className?: string;
 

@@ -66,7 +66,6 @@ const Hero_04: React.FC<Hero_04Props> = ({
     imageSrc = "/images/component-lib-images/hero/placeholder-img.png",
     imageAlt = "Hero section image",
     animated = true,
-    onNewsletterSubmit,
     className = "",
     colors
 }) => {
@@ -134,7 +133,6 @@ const Hero_04: React.FC<Hero_04Props> = ({
                                     placeholder={newsletterPlaceholder}
                                     buttonText={newsletterButtonText}
                                     message={newsletterMessage}
-                                    onSubmit={onNewsletterSubmit}
                                     colors={styles.newsletter}
                                     theme={theme}
                                 />
