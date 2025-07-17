@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { FaFilter, FaProjectDiagram, FaChartLine, FaSortAmountDown, FaPlus, FaClock, FaUser, FaFont, FaCalendarAlt, FaChevronDown, FaSpinner } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import Heading from "../../../../components/demos/typography/Heading";
@@ -6,6 +6,7 @@ import ProjectCard from './components/ProjectCard';
 import Dropdown from '../../../../comman-components/Dropdown';
 import { mockProjects } from '../../../../mock-data/client-my-projects.mock';
 import SearchBox from '../../../../comman-components/SearchBox';
+import { getAllProjectsByDesignerEmail } from '@/lib/requests/ProjectRequest';
 
 type FilterType = 'all' | 'in-progress' | 'completed';
 type SortType = 'recent' | 'progress' | 'name' | 'designer';
@@ -22,6 +23,18 @@ const MyProject: React.FC = () => {
         visibleCards: INITIAL_CARDS,
         isLoading: false
     });
+
+    const [project, setProject] = useState();
+
+    const fetchProjects = async () => {
+        const response = await getAllProjectsByDesignerEmail();
+
+        const rawData = response.data 
+    }
+
+    useEffect(() => {
+        fetchProjects();
+    }, [])
 
     const updateState = useCallback((updates: Partial<typeof state>) => {
         setState(prev => ({ ...prev, ...updates }));
@@ -74,9 +87,9 @@ const MyProject: React.FC = () => {
     const handleLoadMore = async () => {
         updateState({ isLoading: true });
         await new Promise(resolve => setTimeout(resolve, 800));
-        updateState({ 
+        updateState({
             visibleCards: Math.min(state.visibleCards + CARDS_PER_LOAD, filteredProjects.length),
-            isLoading: false 
+            isLoading: false
         });
     };
 
@@ -135,9 +148,9 @@ const MyProject: React.FC = () => {
         <div className="min-h-screen">
             <div className="container mx-auto px-md sm:px-lg lg:px-xl py-lg sm:py-xl lg:py-2xl">
                 {/* Header */}
-                <motion.div 
-                    initial={{ opacity: 0, y: -10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
                     className="mb-lg sm:mb-2xl lg:mb-3xl">
                     <div className="flex max-lg:flex-col lg:justify-between gap-lg sm:gap-xl mb-lg sm:mb-2xl">
@@ -148,13 +161,13 @@ const MyProject: React.FC = () => {
                             </p>
                         </div>
                         <div className="grid grid-cols-2 lg:flex lg:justify-center xl:justify-start gap-md sm:gap-lg">
-                            <StatCard 
+                            <StatCard
                                 icon={<FaProjectDiagram className="text-icon-md sm:text-icon-lg text-accent-default" />}
                                 iconClass="bg-accent-subtle"
                                 label="Total Projects"
                                 value={stats.total}
                             />
-                            <StatCard 
+                            <StatCard
                                 icon={<FaChartLine className="text-icon-md sm:text-icon-lg text-text-success" />}
                                 iconClass="bg-background-success"
                                 label="Avg Progress"
@@ -208,18 +221,16 @@ const MyProject: React.FC = () => {
                                 key={key}
                                 {...motionProps}
                                 onClick={() => updateState({ activeFilter: key as FilterType })}
-                                className={`px-md md:px-xl py-sm md:py-md rounded-xl text-para-sm font-medium transition-all duration-300 border ${
-                                    state.activeFilter === key
-                                        ? 'bg-accent-default text-accent-foreground border-accent-default shadow-lg'
-                                        : 'bg-background-primary-2 text-text-secondary hover:text-text-primary border-border-default hover:shadow-md hover:border-accent-default/30'
-                                }`}
+                                className={`px-md md:px-xl py-sm md:py-md rounded-xl text-para-sm font-medium transition-all duration-300 border ${state.activeFilter === key
+                                    ? 'bg-accent-default text-accent-foreground border-accent-default shadow-lg'
+                                    : 'bg-background-primary-2 text-text-secondary hover:text-text-primary border-border-default hover:shadow-md hover:border-accent-default/30'
+                                    }`}
                             >
                                 {label}
-                                <span className={`ml-sm px-sm md:px-md py-xs rounded-full text-para-xs font-medium ${
-                                    state.activeFilter === key
-                                        ? 'bg-accent-foreground/20 text-accent-foreground'
-                                        : 'bg-background-secondary-2 text-text-tertiary'
-                                }`}>
+                                <span className={`ml-sm px-sm md:px-md py-xs rounded-full text-para-xs font-medium ${state.activeFilter === key
+                                    ? 'bg-accent-foreground/20 text-accent-foreground'
+                                    : 'bg-background-secondary-2 text-text-tertiary'
+                                    }`}>
                                     {count}
                                 </span>
                             </motion.button>
@@ -267,11 +278,10 @@ const MyProject: React.FC = () => {
                                         {...motionProps}
                                         onClick={handleLoadMore}
                                         disabled={state.isLoading}
-                                        className={`flex items-center gap-md px-lg py-md rounded-lg text-para-sm font-medium transition-all duration-200 max-md:justify-center ${
-                                            state.isLoading
-                                                ? 'bg-background-muted text-text-tertiary cursor-not-allowed'
-                                                : 'bg-background-primary-2 border border-border-default hover:border-accent-default hover:shadow-md text-text-primary'
-                                        }`}
+                                        className={`flex items-center gap-md px-lg py-md rounded-lg text-para-sm font-medium transition-all duration-200 max-md:justify-center ${state.isLoading
+                                            ? 'bg-background-muted text-text-tertiary cursor-not-allowed'
+                                            : 'bg-background-primary-2 border border-border-default hover:border-accent-default hover:shadow-md text-text-primary'
+                                            }`}
                                     >
                                         {state.isLoading ? (
                                             <>

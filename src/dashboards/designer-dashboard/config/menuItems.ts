@@ -32,6 +32,12 @@ export const menuItems: MenuItem[] = [
         path: '/dashboard/designer/projects'
     },
     {
+        id: 'my-projects',
+        name: 'My Projects',
+        icon: RiBriefcaseLine,
+        path: '/dashboard/designer/my-project'
+    },
+    {
         id: 'briefs',
         name: 'Briefs',
         icon: RiBriefcaseLine,
@@ -87,5 +93,5 @@ export const menuItems: MenuItem[] = [
         icon: RiUserLine,
         path: '/dashboard/designer/daconsah'
     },
-    
+
 ];

@@ -5,7 +5,7 @@ export interface Project {
     designer: string;
     designerImage: string;
     progress: number;
-    status: 'in-progress' | 'completed';
+     status: 'completed' | 'in-progress' | 'not-started';
     currentStage: string;
     feedbackCount: number;
     createdAt: string;
