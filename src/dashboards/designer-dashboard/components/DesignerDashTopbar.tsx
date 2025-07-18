@@ -12,6 +12,9 @@ import {
 import Dropdown from '../../../comman-components/Dropdown';
 import ThemeToggle from '../../../components/theme-toggle/ThemeToggle';
 import { handleLogout } from '../../../lib/requests/AuthRequest';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store';
+import { useNavigate } from 'react-router-dom';
 
 interface DesignerDashTopbarProps {
     onMenuClick: () => void;
@@ -29,12 +32,20 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
     onToggleSidebar
 }) => {
 
+    const navigate = useNavigate();
+
+    const handleProfile = () => {
+        navigate('/dashboard/designer/profile-view')
+    }
+
+    const designerName = useSelector((state: RootState) => state.auth.user.name)!;
+
     const userMenuItems = [
         {
             id: 'profile',
             label: 'My Profile',
             icon: <RiUser3Line />,
-            onClick: () => console.log('Profile clicked')
+            onClick: () => handleProfile()
         },
         {
             id: 'settings',
@@ -108,7 +119,7 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
                                     </div>
                                 </div>
                                 <span className="hidden lg:block text-para-sm font-medium text-text-primary">
-                                    Schongham
+                                    {designerName}
                                 </span>
                                 <RiArrowDownSLine className="text-h5-sm text-text-tertiary" />
                             </div>

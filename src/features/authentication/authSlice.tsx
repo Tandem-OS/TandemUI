@@ -9,6 +9,7 @@ interface Tokens {
 interface User {
   id: string | null;
   email: string | null;
+  name: string | null;
 }
 
 interface AuthState {
@@ -26,6 +27,7 @@ const initialState: AuthState = {
   user: {
     id: null,
     email: null,
+    name: null
   },
   loginTime: null,
   isAuthenticated: false,
@@ -44,6 +46,7 @@ const authSlice = createSlice({
         user?: {
           id?: string;
           email?: string;
+          name?: string
         };
       }>
     ) => {
@@ -51,12 +54,14 @@ const authSlice = createSlice({
       state.tokens.refresh = action.payload.refresh_token ?? null;
       state.user.id = action.payload.user?.id ?? null;
       state.user.email = action.payload.user?.email ?? null;
+      state.user.name = action.payload.user?.name ?? null;
       state.loginTime = action.payload.login_time ?? null;
       state.isAuthenticated = true;
     },
     logout: (state) => {
       state.tokens = { access: null, refresh: null };
-      state.user = { id: null, email: null };
+      state.user = { id: null, email: null, name: null };
+      state
       state.loginTime = null;
       state.isAuthenticated = false;
     },
