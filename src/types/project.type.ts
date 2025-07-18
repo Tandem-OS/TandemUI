@@ -5,11 +5,12 @@ export interface Project {
     designer: string;
     designerImage: string;
     progress: number;
-     status: 'completed' | 'in-progress' | 'not-started';
+    status: 'in-progress' | 'completed';
     currentStage: string;
     feedbackCount: number;
     createdAt: string;
     completedAt?: string;
     description: string;
     tags: string[];
+    
 }

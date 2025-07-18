@@ -12,6 +12,7 @@ import WebsiteScraperPage from '../pages/WebsiteScraperPage';
 import TestimonialsPage from '../pages/TestimonialsPage';
 import DaconsahPage from '../pages/DaconsahPage';
 import MyProject from '@/dashboards/client-dashboard/pages/my-project/MyProject';
+import ProjectOverview from '@/dashboards/client-dashboard/pages/project-overview/ProjectOverview';
 
 const DesignerDashMain: React.FC = () => {
     return (
@@ -21,6 +22,7 @@ const DesignerDashMain: React.FC = () => {
                     <Route path="/" element={<DashboardHome />} />
                     <Route path="/projects" element={<ProjectsPage />} />
                     <Route path="/my-project" element={<MyProject />} />
+                    <Route path="/my-project/project-overview/:id" element={<ProjectOverview />} />
                     <Route path="/briefs" element={<BriefsPage />} />
                     <Route path="/analytics/overview" element={<AnalyticsOverview />} />
                     <Route path="/analytics/performance" element={<AnalyticsPerformance />} />
