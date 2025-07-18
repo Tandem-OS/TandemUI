@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { FaClock, FaComment, FaPaperPlane, FaEye, FaStar, FaDownload, FaShare, FaPlay, FaLock, FaChartLine, FaComments, FaCheck } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import BrowserMockup from '../client-home/components/BroserMockup';
-import { mockProjectOverview } from '../../../../mock-data/client-my-projects.mock';
 import { getProjectById } from '@/lib/requests/ProjectRequest';
 import { useParams } from 'react-router-dom';
 import type { Project } from '@/types/project.type';
