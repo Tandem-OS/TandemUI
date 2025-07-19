@@ -1,7 +1,39 @@
-// src/components-lib/Hero/Hero_01/Hero_01.types.ts
+import { type ReactNode } from 'react';
 
 /**
- * Color configuration for Hero_01 - All colors are optional for full flexibility
+ * Button variants for styling
+ */
+export type CustomButtonVariant = "solid" | "outline";
+
+/**
+ * Button sizes
+ */
+export type ButtonSize = "sm" | "md" | "lg";
+
+/**
+ * CTA Button Props
+ * All properties are now optional to allow for partial overrides.
+ * The component's internal logic will merge these with default values.
+ */
+export interface ButtonProps {
+  text?: string;
+  href?: string;
+  variant?: CustomButtonVariant;
+  size?: ButtonSize;
+  icon?: ReactNode;
+}
+
+/**
+ * Image Props
+ * Making these optional as well for consistency.
+ */
+export interface ImageProps {
+  src?: string;
+  alt?: string;
+}
+
+/**
+ * Color configuration for Hero_01
  */
 export interface Hero_01Colors {
   background?: {
@@ -44,31 +76,29 @@ export interface Hero_01Colors {
 export interface Hero_01Props {
   /** Main headline text */
   title?: string;
-  
   /** Supporting description text */
   description?: string;
-  
-  /** Primary CTA button text */
-  primaryCta?: string;
-  
-  /** Secondary CTA button text */
-  secondaryCta?: string;
-  
-  /** Hero image source */
-  imageSrc?: string;
-  
-  /** Image alt text for accessibility */
-  imageAlt?: string;
-  
+  /** Primary CTA button props */
+  primaryCTA?: ButtonProps;
+  /** Secondary CTA button props */
+  secondaryCTA?: ButtonProps;
+  /** Hero image props */
+  image?: ImageProps;
   /** Enable framer motion animations */
   animated?: boolean;
-  
   /** Additional CSS classes */
   className?: string;
-  
   /** Custom color configuration */
   colors?: Hero_01Colors;
 }
+
+/**
+ * Text length limits from metadata
+ */
+export const TEXT_LIMITS = {
+  title: 60,
+  description: 220,
+} as const;
 
 /**
  * Default color configuration
@@ -86,7 +116,7 @@ export const defaultColors: Hero_01Colors = {
     light: '#4b5563',
     dark: '#d1d5db'
   },
-  primaryButton: {
+  primaryButton: { // Default for "solid" variant
     background: { light: '#4f46e5', dark: '#6366f1' },
     text: { light: '#ffffff', dark: '#ffffff' },
     border: { light: '#4f46e5', dark: '#6366f1' },
@@ -96,7 +126,7 @@ export const defaultColors: Hero_01Colors = {
       border: { light: '#3730a3', dark: '#4f46e5' }
     }
   },
-  secondaryButton: {
+  secondaryButton: { // Default for "outline" variant
     background: { light: 'transparent', dark: 'transparent' },
     text: { light: '#4f46e5', dark: '#6366f1' },
     border: { light: '#4f46e5', dark: '#6366f1' },
