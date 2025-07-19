@@ -6,14 +6,15 @@ import IntakeForm from "./components/intake-form/IntakeForm"
 import { ROUTES } from "./routes/routes"
 import DashboardRoutes from "./dashboards/DasHboardRoutes"
 import DemoPage from "./pages/DemoPage"
-import ThemeToggle from "./components/theme-toggle/ThemeToggle"
+// import ThemeToggle from "./components/theme-toggle/ThemeToggle"
+import ScraperIntelligencePage from "./pages/scraper/ScraperIntelligencePage"
 
 const Layout = () => {
     return (
         <main>
-            <div className="fixed top-5 right-5 z-50">
+            {/* <div className="fixed top-5 right-5 z-50">
                 <ThemeToggle />
-            </div>
+            </div> */}
             <Routes>
                 <Route path={ROUTES.HOME} element={<DemoPage />} />
                 <Route path={`${ROUTES.AUTH}/*`} element={<AuthLayout variant="split" />} />
@@ -21,6 +22,7 @@ const Layout = () => {
                 <Route path={ROUTES.ONBOARD_COMPLETE} element={<OnboardComplete />} />
                 <Route path={ROUTES.ONBOARDING} element={<OnboardingForm />} />
                 <Route path={`${ROUTES.DASHBOARD}/*`} element={<DashboardRoutes />} />
+                <Route path={`/scraper`} element={<ScraperIntelligencePage />} />
             </Routes>
         </main>
     )
