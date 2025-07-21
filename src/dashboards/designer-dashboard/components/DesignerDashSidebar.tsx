@@ -240,9 +240,12 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
     }, [externalCollapsed]);
 
     const isItemActive = useCallback((item: MenuItem): boolean => {
-        return location.pathname === item.path ||
-            item.children?.some(child => location.pathname === child.path) || false;
-    }, [location.pathname]);
+    const matchBasePath = location.pathname.startsWith(item.path ?? '');
+    const matchChild = item.children?.some(child =>
+        location.pathname.startsWith(child.path ?? '')
+    );
+    return matchBasePath || !!matchChild;
+}, [location.pathname]);
 
     const toggleExpanded = useCallback((itemId: string): void => {
         if (isCollapsed) return;

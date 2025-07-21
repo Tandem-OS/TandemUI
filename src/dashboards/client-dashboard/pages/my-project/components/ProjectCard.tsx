@@ -134,7 +134,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                             transition: { duration: 0.2, ease: "easeOut" }
                         }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => navigate(`/dashboard/client/project-overview/${project.id}`)}
+                        onClick={() => navigate(`/dashboard/designer/my-project/project-overview/${project.id}`)}
                         className="flex items-center justify-center gap-sm px-lg py-sm sm:px-xl sm:py-md bg-accent-default hover:bg-accent-hover text-accent-foreground text-para-xs sm:text-para-sm font-medium rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg group-hover:shadow-xl w-full sm:w-auto"
                     >
                         <span>View</span>

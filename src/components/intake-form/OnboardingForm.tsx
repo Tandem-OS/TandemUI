@@ -194,7 +194,7 @@ const OnboardingForm: React.FC = () => {
         setLoading(false)
     }
 
-    const client_email = "client@gmail.com";
+    const client_email = "client2@gmail.com";
 
     useEffect(() => {
         if (client_email) {
@@ -241,7 +241,7 @@ const OnboardingForm: React.FC = () => {
 
             const payload = {
                 designer_email,
-                client_email: 'client@gmail.com',
+                client_email: 'client2@gmail.com',
                 project_name: projectName,
                 logo: logo || "",
                 project_type: projectType,
