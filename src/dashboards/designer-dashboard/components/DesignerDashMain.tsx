@@ -13,6 +13,7 @@ import TestimonialsPage from '../pages/TestimonialsPage';
 import DaconsahPage from '../pages/DaconsahPage';
 import MyProject from '@/dashboards/client-dashboard/pages/my-project/MyProject';
 import ProjectOverview from '@/dashboards/client-dashboard/pages/project-overview/ProjectOverview';
+import ProfileView from '@/components/profile/ProfileView';
 
 const DesignerDashMain: React.FC = () => {
     return (
@@ -31,6 +32,7 @@ const DesignerDashMain: React.FC = () => {
                     <Route path="/website-scraper" element={<WebsiteScraperPage />} />
                     <Route path="/testimonials" element={<TestimonialsPage />} />
                     <Route path="/daconsah" element={<DaconsahPage />} />
+                    <Route path="/profile-view" element={<ProfileView />} />
                 </Routes>
             </div>
         </main>
