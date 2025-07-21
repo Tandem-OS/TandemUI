@@ -16,7 +16,15 @@ import type { RootState } from '../../store';
 // Types
 interface OnboardingFormData {
     projectName: string;
-    logo: string | null;
+    logo: string | null; // logo_url
+    logo_metadata?: {
+        name: string;
+        size: number;
+        type: string;
+        width: number;
+        height: number;
+        preview_base64?: string;
+    } | null;
     projectType: string;
     businessDescription: string;
     budget: string;
@@ -172,7 +180,8 @@ const OnboardingForm: React.FC = () => {
             if (data) {
                 const transformed = {
                     projectName: data.project_name || '',
-                    logo: data.logo || null,
+                    logo: data.logo_metadata?.preview_base64 || null,
+                    logoMetadata: data.logo_metadata || null,
                     projectType: data.project_type || '',
                     businessDescription: data.business_description || '',
                     budget: data.budget || '',
@@ -189,7 +198,7 @@ const OnboardingForm: React.FC = () => {
         } catch (err) {
             console.error("Error loading form data:", err);
             setFormData(initialFormData);
-            setLoading(false)
+            setLoading(false);
         }
         setLoading(false)
     }
@@ -210,7 +219,23 @@ const OnboardingForm: React.FC = () => {
     const handleFile = (file: File) => {
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
-            reader.onload = (e) => updateForm({ logo: e.target?.result as string });
+            reader.onload = (e) => {
+                const image = new Image();
+                image.onload = () => {
+                    updateForm({
+                        logo: e.target?.result as string,
+                        logo_metadata: {
+                            name: file.name,
+                            size: file.size,
+                            type: file.type,
+                            width: image.width,
+                            height: image.height,
+                            preview_base64: e.target?.result as string,
+                        }
+                    });
+                };
+                image.src = e.target?.result as string;
+            };
             reader.readAsDataURL(file);
         }
     };
@@ -252,6 +277,7 @@ const OnboardingForm: React.FC = () => {
             };
 
             try {
+                console.log(payload)
                 const result = await createProject(payload);
                 if (result.status === 200) {
                     navigate("/onboardcomplete");
