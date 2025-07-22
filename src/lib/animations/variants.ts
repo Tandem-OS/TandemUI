@@ -204,3 +204,22 @@ export const imageParallax: Variants = {
         transition: { duration: 0.8, ease: defaultEase },
     },
 };
+
+// Simple smooth animation variants - TypeScript friendly
+export const smoothExpand: Variants = {
+    initial: {
+        opacity: 0,
+        scaleY: 0,
+        transformOrigin: 'top'
+    },
+    animate: {
+        opacity: 1,
+        scaleY: 1,
+        transformOrigin: 'top'
+    },
+    exit: {
+        opacity: 0,
+        scaleY: 0,
+        transformOrigin: 'top'
+    }
+};

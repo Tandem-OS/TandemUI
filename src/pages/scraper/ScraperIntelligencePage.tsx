@@ -1,29 +1,81 @@
-// ScraperIntelligencePage.tsx
+// src/scraper/ScraperIntelligencePage.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaGlobe,
     FaLightbulb,
     FaImage,
-    FaThumbsUp,
-    FaThumbsDown,
-    FaHeart,
     FaArrowRight,
     FaCode,
     FaUser,
     FaPalette,
-    FaEye,
-    FaCopy,
-    FaBullseye,
-    FaLayerGroup,
     FaCheck,
     FaCircle
 } from 'react-icons/fa';
+import { FaArrowLeftLong } from "react-icons/fa6";
 
-// Data objects ko yahan constants file se import kiya gaya hai
+
+// Import components
+import ChatPanel from './components/ChatPanel';
+import LayoutPlan from './components/LayoutPlan';
+import StartFromIdea from './components/StartFromIdea';
+import SectionCard from './components/SectionCard';
+import Heading from '../../components/demos/typography/Heading';
+import Para from '../../comman-components/Para';
+// Import constants
 import { dummyScrapedData, quickSuggestions, processingSteps } from './constants';
 
+
+// Toast Component
+const Toast = ({ message, type = 'success' }: { message: string; type?: 'success' | 'error' }) => (
+    <motion.div
+        initial={{ opacity: 0, y: -20, x: '-50%' }}
+        animate={{ opacity: 1, y: 0, x: '-50%' }}
+        exit={{ opacity: 0, y: -20, x: '-50%' }}
+        className={`fixed top-4 sm:top-6 left-1/2 transform -translate-x-1/2 px-md sm:px-lg py-sm sm:py-md rounded-lg sm:rounded-xl shadow-xl flex items-center gap-sm z-50 ${type === 'success'
+            ? 'bg-emerald-500 text-white'
+            : 'bg-red-500 text-white'
+            }`}
+    >
+        <FaCheck className="text-icon-sm sm:text-icon-md" />
+        <span className="font-medium text-para-sm sm:text-para-md">{message}</span>
+    </motion.div>
+);
+
+// Custom hook for taste profile
+const useTasteProfile = () => {
+    const [profile, setProfile] = useState(() => {
+        const saved = localStorage.getItem('tasteProfile');
+        return saved ? JSON.parse(saved) : {};
+    });
+
+    const updateTaste = (action: 'like' | 'dislike', section: any) => {
+        const key = `${section.tone}_${section.layout_structure}`;
+        setProfile((prev: any) => {
+            const updated = {
+                ...prev,
+                [key]: (prev[key] || 0) + (action === 'like' ? 1 : -1)
+            };
+            localStorage.setItem('tasteProfile', JSON.stringify(updated));
+            return updated;
+        });
+    };
+
+    const scoreSections = (sections: any[]) => {
+        return sections.map(section => ({
+            ...section,
+            tasteScore: profile[`${section.tone}_${section.layout_structure}`] || 0
+        })).sort((a, b) => b.tasteScore - a.tasteScore);
+    };
+
+    const clearTaste = () => {
+        setProfile({});
+        localStorage.removeItem('tasteProfile');
+    };
+
+    return { profile, updateTaste, scoreSections, clearTaste };
+};
 
 const ScraperIntelligencePage = () => {
     const [currentStep, setCurrentStep] = useState('welcome');
@@ -32,16 +84,39 @@ const ScraperIntelligencePage = () => {
     const [scrapedData, setScrapedData] = useState<typeof dummyScrapedData | null>(null);
     const [processingStep, setProcessingStep] = useState(0);
     const [userFeedback, setUserFeedback] = useState<{ [key: string]: 'like' | 'dislike' }>({});
+    const [layoutPlan, setLayoutPlan] = useState<any[]>(() => {
+        const saved = localStorage.getItem('layoutPlan');
+        return saved ? JSON.parse(saved) : [];
+    });
+    const [toastMessage, setToastMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    const [chatContext, setChatContext] = useState<any>(null);
+
+    const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
+
+    // Save layout plan to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('layoutPlan', JSON.stringify(layoutPlan));
+    }, [layoutPlan]);
+
+    const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+        setToastMessage({ message, type });
+        setTimeout(() => setToastMessage(null), 3000);
+    };
 
     const handleStartScraping = async (url: string) => {
         setCurrentStep('processing');
         setProcessingStep(0);
+
         for (let i = 0; i < processingSteps.length; i++) {
             await new Promise(resolve => setTimeout(resolve, 800));
             setProcessingStep(i);
         }
+
         setTimeout(() => {
-            setScrapedData({ ...dummyScrapedData, url });
+            const data = { ...dummyScrapedData, url };
+            // Apply taste scoring to sections
+            const scoredSections = scoreSections(data.sections);
+            setScrapedData({ ...data, sections: scoredSections });
             setCurrentStep('results');
         }, 1000);
     };
@@ -50,12 +125,40 @@ const ScraperIntelligencePage = () => {
         setUserFeedback(prev => ({ ...prev, [sectionId]: feedback }));
     };
 
+    const handleAddToLayout = (section: any) => {
+        setLayoutPlan(prev => [...prev, section]);
+        showToast('Added to Layout Draft');
+    };
+
+    const handleUpdateLayoutPlan = (sections: any[]) => {
+        setLayoutPlan(sections);
+    };
+
+    const handleGenerateLayout = (sections: any[]) => {
+        setScrapedData({
+            url: 'Generated from idea',
+            analyzedAt: new Date(),
+            sections: scoreSections(sections)
+        });
+        setCurrentStep('results');
+        showToast('🎨 Layout generated successfully!');
+    };
+
+    const openChat = (context: any) => {
+        setChatContext(context);
+    };
+
     const isFeedbackComplete = scrapedData && Object.keys(userFeedback).length === scrapedData.sections.length;
 
     return (
-        <div className="h-screen lg:h-screen bg-background-primary text-text-primary overflow-hidden relative">
-            <AnimatePresence mode="wait">
+        <div className="min-h-screen bg-background-primary text-text-primary">
+            <AnimatePresence>
+                {toastMessage && (
+                    <Toast message={toastMessage.message} type={toastMessage.type} />
+                )}
+            </AnimatePresence>
 
+            <AnimatePresence mode="wait">
                 {/* Welcome Screen */}
                 {currentStep === 'welcome' && (
                     <motion.div
@@ -63,17 +166,17 @@ const ScraperIntelligencePage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="flex items-center justify-center h-screen lg:h-full p-md"
+                        className="min-h-screen flex items-center justify-center p-sm sm:p-md"
                     >
-                        <div className="text-center max-w-2xl space-y-lg w-full">
+                        <div className="text-center max-w-3xl space-y-lg sm:space-y-xl w-full">
                             <motion.div
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: 0.2 }}
                                 className="flex justify-center"
                             >
-                                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-accent-default rounded-full flex items-center justify-center shadow-lg">
-                                    <FaLightbulb className="text-accent-foreground text-2xl sm:text-3xl animate-pulse" />
+                                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-accent-default to-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-2xl">
+                                    <FaLightbulb className="text-accent-foreground text-3xl sm:text-4xl animate-pulse" />
                                 </div>
                             </motion.div>
 
@@ -81,50 +184,78 @@ const ScraperIntelligencePage = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3 }}
+                                className="space-y-sm"
                             >
-                                <h1 className="text-h2-md sm:text-h1-lg font-bold text-text-primary">Hello!</h1>
-                                <p className="text-h6-md sm:text-h4-md text-text-secondary mt-sm">How can I assist you today?</p>
+                                <Heading level="h2" align="center">
+                                    Tandem Reveal
+                                </Heading>
+                                <Para size="lg" align="center" color="secondary" className="px-sm">
+                                    Transform any website into intelligent layout patterns
+                                </Para>
                             </motion.div>
 
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
-                                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-md mt-xl"
+                                className="flex flex-col items-center gap-md"
                             >
-                                <button
-                                    onClick={() => setCurrentStep('input')}
-                                    className="group bg-background-secondary border border-border-default rounded-xl p-md sm:p-lg hover:border-accent-default transition-all duration-200 hover:shadow-md hover:-translate-y-1"
-                                >
-                                    <div className="text-center space-y-sm">
-                                        <FaImage className="text-xl sm:text-2xl text-accent-default mx-auto group-hover:scale-110 transition-transform" />
-                                        <h3 className="text-h6-md font-medium text-text-primary">Start from inspiration</h3>
-                                        <p className="text-para-sm text-text-secondary">Paste a URL to analyze</p>
-                                    </div>
-                                </button>
+                                <StartFromIdea onGenerateLayout={handleGenerateLayout} />
 
-                                <button
-                                    onClick={() => setCurrentStep('input')}
-                                    className="group bg-background-secondary border border-border-default rounded-xl p-md sm:p-lg hover:border-accent-default transition-all duration-200 hover:shadow-md hover:-translate-y-1"
-                                >
-                                    <div className="text-center space-y-sm">
-                                        <FaGlobe className="text-xl sm:text-2xl text-accent-default mx-auto group-hover:scale-110 transition-transform" />
-                                        <h3 className="text-h6-md font-medium text-text-primary">Generate from URL</h3>
-                                        <p className="text-para-sm text-text-secondary">Create layout blueprint</p>
-                                    </div>
-                                </button>
+                                <div className="flex items-center gap-md w-full max-w-md">
+                                    <div className="flex-1 h-px bg-border-default"></div>
+                                    <Para size="sm" color="tertiary">or</Para>
+                                    <div className="flex-1 h-px bg-border-default"></div>
+                                </div>
 
-                                <button
-                                    onClick={() => setCurrentStep('input')}
-                                    className="group bg-background-secondary border border-border-default rounded-xl p-md sm:p-lg hover:border-accent-default transition-all duration-200 hover:shadow-md hover:-translate-y-1 sm:col-span-2 lg:col-span-1"
-                                >
-                                    <div className="text-center space-y-sm">
-                                        <FaLightbulb className="text-xl sm:text-2xl text-accent-default mx-auto group-hover:scale-110 transition-transform" />
-                                        <h3 className="text-h6-md font-medium text-text-primary">Turn idea into layout</h3>
-                                        <p className="text-para-sm text-text-secondary">Describe your vision</p>
-                                    </div>
-                                </button>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm sm:gap-md w-full max-w-2xl px-sm sm:px-0">
+                                    <button
+                                        onClick={() => setCurrentStep('input')}
+                                        className="group bg-background-secondary border-2 border-border-default rounded-lg sm:rounded-xl p-md sm:p-lg hover:border-accent-default transition-all duration-200 hover:shadow-xl"
+                                    >
+                                        <FaImage className="text-2xl sm:text-3xl text-accent-default mx-auto mb-sm sm:mb-md transition-transform" />
+                                        <Heading level="h6" className="mb-xs sm:mb-sm font-medium">
+                                            Analyze a Website
+                                        </Heading>
+                                        <Para size="sm" color="secondary">
+                                            Paste URL to extract its design patterns
+                                        </Para>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setCurrentStep('input')}
+                                        className="group bg-background-secondary border-2 border-border-default rounded-lg sm:rounded-xl p-md sm:p-lg hover:border-accent-default transition-all duration-200 hover:shadow-xl"
+                                    >
+                                        <FaGlobe className="text-2xl sm:text-3xl text-accent-default mx-auto mb-sm sm:mb-md transition-transform" />
+                                        <Heading level="h6" className="mb-xs sm:mb-sm font-medium">
+                                            Browse Examples
+                                        </Heading>
+                                        <Para size="sm" color="secondary">
+                                            Explore pre-analyzed popular websites
+                                        </Para>
+                                    </button>
+                                </div>
                             </motion.div>
+
+                            {/* Taste Profile Indicator */}
+                            {Object.keys(profile).length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="flex items-center justify-center gap-sm"
+                                >
+                                    <Para size="sm" color="secondary">Taste profile active</Para>
+                                    <button
+                                        onClick={() => {
+                                            clearTaste();
+                                            showToast('Taste profile cleared');
+                                        }}
+                                        className="text-accent-default hover:text-accent-hover underline text-para-sm"
+                                    >
+                                        Clear preferences
+                                    </button>
+                                </motion.div>
+                            )}
                         </div>
                     </motion.div>
                 )}
@@ -136,21 +267,28 @@ const ScraperIntelligencePage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="h-screen lg:h-full"
+                        className="min-h-screen"
                     >
-                        <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
                             {/* Left: Input Area */}
-                            <div className="bg-background-primary lg:border-r border-border-default p-md sm:p-lg flex flex-col justify-center order-2 lg:order-1">
-                                <div className="max-w-lg mx-auto w-full space-y-lg">
+                            <div className="bg-background-primary lg:border-r border-border-default p-md sm:p-lg flex flex-col justify-center">
+                                <div className="max-w-xl mx-auto w-full space-y-lg sm:space-y-xl">
+                                    {/* Back Button */}
+                                    <button
+                                        onClick={() => setCurrentStep('welcome')}
+                                        className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-sm text-para-sm"
+                                    >
+                                        <FaArrowLeftLong /> Back to home
+                                    </button>
 
                                     {/* Mode Toggle */}
-                                    <div className="flex items-center justify-center mb-lg lg:mb-xl">
-                                        <div className="bg-background-secondary rounded-full p-1 flex w-full sm:w-auto">
+                                    <div className="flex items-center justify-center">
+                                        <div className="bg-background-secondary rounded-full p-1 flex">
                                             <button
                                                 onClick={() => setIsDesignerMode(false)}
-                                                className={`flex items-center justify-center gap-xs px-sm sm:px-md py-sm rounded-full text-para-sm font-medium transition-all flex-1 sm:flex-none ${!isDesignerMode
-                                                        ? 'bg-accent-default text-accent-foreground'
-                                                        : 'text-text-secondary hover:text-text-primary'
+                                                className={`flex items-center justify-center gap-xs sm:gap-sm px-md sm:px-lg py-xs sm:py-sm rounded-full text-para-sm sm:text-para-md font-medium transition-all ${!isDesignerMode
+                                                    ? 'bg-accent-default text-accent-foreground shadow-lg'
+                                                    : 'text-text-secondary hover:text-text-primary'
                                                     }`}
                                             >
                                                 <FaUser className="text-icon-sm" />
@@ -159,9 +297,9 @@ const ScraperIntelligencePage = () => {
                                             </button>
                                             <button
                                                 onClick={() => setIsDesignerMode(true)}
-                                                className={`flex items-center justify-center gap-xs px-sm sm:px-md py-sm rounded-full text-para-sm font-medium transition-all flex-1 sm:flex-none ${isDesignerMode
-                                                        ? 'bg-accent-default text-accent-foreground'
-                                                        : 'text-text-secondary hover:text-text-primary'
+                                                className={`flex items-center justify-center gap-xs sm:gap-sm px-md sm:px-lg py-xs sm:py-sm rounded-full text-para-sm sm:text-para-md font-medium transition-all ${isDesignerMode
+                                                    ? 'bg-accent-default text-accent-foreground shadow-lg'
+                                                    : 'text-text-secondary hover:text-text-primary'
                                                     }`}
                                             >
                                                 <FaPalette className="text-icon-sm" />
@@ -172,13 +310,13 @@ const ScraperIntelligencePage = () => {
                                     </div>
 
                                     {/* Main Input */}
-                                    <div className="text-center space-y-md">
-                                        <h2 className="text-h4-md sm:text-h3-md font-bold text-text-primary">
-                                            What kind of site inspires you?
-                                        </h2>
-                                        <p className="text-para-md sm:text-para-lg text-text-secondary">
-                                            Paste any URL. Tandem Reveal breaks it down into clean, structured layout intelligence.
-                                        </p>
+                                    <div className="text-center space-y-sm sm:space-y-md">
+                                        <Heading level="h3" align="center">
+                                            Enter a website to analyze
+                                        </Heading>
+                                        <Para size="lg" color="secondary" align="center">
+                                            We'll break it down into reusable design patterns
+                                        </Para>
                                     </div>
 
                                     {/* URL Input */}
@@ -188,8 +326,8 @@ const ScraperIntelligencePage = () => {
                                                 type="text"
                                                 value={inputValue}
                                                 onChange={(e) => setInputValue(e.target.value)}
-                                                placeholder="Enter website URL or describe your idea..."
-                                                className="w-full px-md sm:px-lg py-sm sm:py-md bg-background-secondary border border-border-default rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-default transition-colors pr-12"
+                                                placeholder="Enter website URL (e.g., stripe.com)"
+                                                className="w-full px-md sm:px-lg py-sm sm:py-md bg-background-secondary border-2 border-border-default rounded-lg sm:rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-default transition-all text-base sm:text-lg pr-12 sm:pr-14"
                                                 onKeyPress={(e) => {
                                                     if (e.key === 'Enter' && inputValue.trim()) {
                                                         handleStartScraping(inputValue);
@@ -197,30 +335,33 @@ const ScraperIntelligencePage = () => {
                                                 }}
                                             />
                                             {inputValue.trim() && (
-                                                <button
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
                                                     onClick={() => handleStartScraping(inputValue)}
-                                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-default text-accent-foreground p-2 rounded-lg hover:bg-accent-hover transition-colors"
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-default text-accent-foreground p-2 sm:p-3 rounded-lg hover:bg-accent-hover transition-colors"
                                                 >
                                                     <FaArrowRight className="text-icon-sm" />
-                                                </button>
+                                                </motion.button>
                                             )}
                                         </div>
                                     </div>
 
                                     {/* Quick Suggestions */}
                                     <div className="space-y-sm">
-                                        <p className="text-para-sm text-text-secondary text-center">
-                                            Not sure where to start?
-                                        </p>
-                                        <div className="flex flex-wrap gap-sm justify-center">
+                                        <Para size="sm" color="secondary" align="center">
+                                            Popular examples:
+                                        </Para>
+                                        <div className="flex flex-wrap gap-xs sm:gap-sm justify-center">
                                             {quickSuggestions.map((suggestion) => (
-                                                <button
+                                                <motion.button
                                                     key={suggestion.name}
+                                                    whileTap={{ scale: 0.95 }}
                                                     onClick={() => handleStartScraping(suggestion.url)}
-                                                    className="px-sm sm:px-md py-xs sm:py-sm bg-background-secondary border border-border-default rounded-lg text-para-sm text-text-primary hover:border-accent-default hover:bg-accent-subtle transition-colors"
+                                                    className="px-sm sm:px-md py-xs sm:py-sm bg-background-secondary border border-border-default rounded-lg text-para-xs sm:text-para-sm text-text-primary hover:border-accent-default hover:bg-accent-subtle transition-all"
                                                 >
                                                     {suggestion.name}
-                                                </button>
+                                                </motion.button>
                                             ))}
                                         </div>
                                     </div>
@@ -228,24 +369,54 @@ const ScraperIntelligencePage = () => {
                             </div>
 
                             {/* Right: Preview/Info */}
-                            <div className="bg-background-secondary p-md sm:p-lg flex items-center justify-center order-1 lg:order-2 min-h-48 lg:h-full">
-                                <div className="text-center space-y-md max-w-md">
-                                    <div className="w-16 h-16 sm:w-24 sm:h-24 bg-accent-subtle rounded-full flex items-center justify-center mx-auto">
+                            <div className="bg-background-secondary p-md sm:p-lg flex items-center justify-center min-h-[50vh] lg:min-h-full">
+                                <div className="text-center space-y-md sm:space-y-lg max-w-lg">
+                                    <motion.div
+                                        animate={{ rotate: isDesignerMode ? 180 : 0 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-accent-default to-purple-600 rounded-full flex items-center justify-center mx-auto shadow-2xl"
+                                    >
                                         {isDesignerMode ? (
-                                            <FaCode className="text-accent-default text-2xl sm:text-3xl" />
+                                            <FaCode className="text-white text-4xl sm:text-5xl" />
                                         ) : (
-                                            <FaHeart className="text-accent-default text-2xl sm:text-3xl" />
+                                            <FaUser className="text-white text-4xl sm:text-5xl" />
                                         )}
+                                    </motion.div>
+                                    <div className="space-y-sm">
+                                        <Heading level="h4" align="center">
+                                            {isDesignerMode ? 'Designer Mode Active' : 'Client Mode Active'}
+                                        </Heading>
+                                        <Para align="center" color="secondary">
+                                            {isDesignerMode
+                                                ? 'See technical implementation details, component structure, and design tokens for each section.'
+                                                : 'Focus on visual design and user experience. Provide feedback to build your taste profile.'
+                                            }
+                                        </Para>
                                     </div>
-                                    <h3 className="text-h5-md sm:text-h4-md font-medium text-text-primary">
-                                        {isDesignerMode ? 'Designer Mode' : 'Client Mode'}
-                                    </h3>
-                                    <p className="text-para-sm sm:text-para-md text-text-secondary">
-                                        {isDesignerMode
-                                            ? 'Analyze websites for layout patterns, component structure, and development insights.'
-                                            : 'Find inspiration from websites you love and provide feedback to help designers understand your taste.'
-                                        }
-                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm sm:gap-md text-left">
+                                        <div className="bg-background-primary rounded-lg sm:rounded-xl p-sm sm:p-md">
+                                            <Heading level="h6" className="mb-xs">
+                                                {isDesignerMode ? 'Technical View' : 'Visual Focus'}
+                                            </Heading>
+                                            <Para size="xs" color="secondary">
+                                                {isDesignerMode
+                                                    ? 'JSON metadata, and code structure'
+                                                    : 'Clean insights and visual patterns'
+                                                }
+                                            </Para>
+                                        </div>
+                                        <div className="bg-background-primary rounded-lg sm:rounded-xl p-sm sm:p-md">
+                                            <Heading level="h6" className="mb-xs">
+                                                {isDesignerMode ? 'Dev Tools' : 'Feedback'}
+                                            </Heading>
+                                            <Para size="xs" color="secondary">
+                                                {isDesignerMode
+                                                    ? 'Inspect and clone components'
+                                                    : 'Like/dislike to train AI'
+                                                }
+                                            </Para>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -259,88 +430,76 @@ const ScraperIntelligencePage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="h-screen lg:h-full"
+                        className="min-h-screen flex items-center justify-center p-sm sm:p-md"
                     >
-                        {/* Background Glow Effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-accent-default/5 via-transparent to-accent-default/5 animate-pulse"></div>
-
-                        <div className="flex items-center justify-center h-full p-md">
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="bg-background-primary/80 backdrop-blur-sm border border-border-default rounded-2xl p-lg sm:p-xl shadow-2xl max-w-lg w-full"
-                            >
-                                <div className="text-center space-y-lg">
-
-                                    {/* Main Status */}
-                                    <div className="space-y-md">
-                                        <div className="relative">
-                                            <div className="w-16 h-16 border-4 border-border-muted border-t-accent-default rounded-full animate-spin mx-auto"></div>
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <FaGlobe className="text-accent-default text-xl animate-pulse" />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-h4-md font-bold text-text-primary">Analyzing Website</h3>
-                                            <p className="text-para-md text-text-secondary">Breaking down the design into actionable sections</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Live Progress Timeline */}
-                                    <div className="space-y-md">
-                                        <div className="flex items-center gap-sm justify-center">
-                                            <div className="h-px bg-border-default flex-1"></div>
-                                            <span className="text-para-sm text-text-tertiary">Progress</span>
-                                            <div className="h-px bg-border-default flex-1"></div>
-                                        </div>
-
-                                        <div className="space-y-sm">
-                                            {processingSteps.map((step, index) => (
-                                                <motion.div
-                                                    key={index}
-                                                    initial={{ opacity: 0, x: -20 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: index * 0.1 }}
-                                                    className="flex items-center gap-sm"
-                                                >
-                                                    {/* Status Icon */}
-                                                    <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
-                                                        {index < processingStep ? (
-                                                            <motion.div
-                                                                initial={{ scale: 0 }}
-                                                                animate={{ scale: 1 }}
-                                                                className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center"
-                                                            >
-                                                                <FaCheck className="text-white text-xs" />
-                                                            </motion.div>
-                                                        ) : index === processingStep ? (
-                                                            <div className="w-4 h-4 bg-accent-default rounded-full animate-pulse"></div>
-                                                        ) : (
-                                                            <FaCircle className="text-border-muted text-xs" />
-                                                        )}
-                                                    </div>
-
-                                                    {/* Step Text */}
-                                                    <motion.p
-                                                        className={`text-para-sm text-left ${index === processingStep
-                                                                ? 'text-text-primary font-medium'
-                                                                : index < processingStep
-                                                                    ? 'text-text-secondary'
-                                                                    : 'text-text-tertiary'
-                                                            }`}
-                                                        animate={{
-                                                            scale: index === processingStep ? 1.02 : 1
-                                                        }}
-                                                    >
-                                                        {step}
-                                                    </motion.p>
-                                                </motion.div>
-                                            ))}
-                                        </div>
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="bg-background-primary/90 backdrop-blur-lg border-2 border-border-default rounded-2xl sm:rounded-3xl p-lg sm:p-xl shadow-2xl max-w-lg w-full"
+                        >
+                            <div className="text-center space-y-lg sm:space-y-xl">
+                                {/* Animated Logo */}
+                                <div className="relative">
+                                    <div className="w-20 h-20 sm:w-24 sm:h-24 border-4 border-border-muted border-t-accent-default rounded-full animate-spin mx-auto"></div>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <FaGlobe className="text-accent-default text-2xl sm:text-3xl animate-pulse" />
                                     </div>
                                 </div>
-                            </motion.div>
-                        </div>
+
+                                {/* Status Text */}
+                                <div>
+                                    <Heading level="h3" align="center">
+                                        Analyzing Website
+                                    </Heading>
+                                    <Para size="lg" color="secondary" align="center" className="mt-sm">
+                                        Extracting design patterns and layout intelligence
+                                    </Para>
+                                </div>
+
+                                {/* Progress Steps */}
+                                <div className="space-y-sm sm:space-y-md">
+                                    {processingSteps.map((step, index) => (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: index * 0.1 }}
+                                            className="flex items-center gap-sm sm:gap-md"
+                                        >
+                                            <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
+                                                {index < processingStep ? (
+                                                    <motion.div
+                                                        initial={{ scale: 0 }}
+                                                        animate={{ scale: 1 }}
+                                                        className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-500 rounded-full flex items-center justify-center"
+                                                    >
+                                                        <FaCheck className="text-white text-xs" />
+                                                    </motion.div>
+                                                ) : index === processingStep ? (
+                                                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-accent-default rounded-full animate-pulse"></div>
+                                                ) : (
+                                                    <FaCircle className="text-border-muted text-xs sm:text-sm" />
+                                                )}
+                                            </div>
+                                            <motion.div
+                                                animate={{
+                                                    scale: index === processingStep ? 1.02 : 1
+                                                }}
+                                            >
+                                                <Para
+                                                    size="sm"
+                                                    color={index === processingStep ? 'primary' : index < processingStep ? 'secondary' : 'tertiary'}
+                                                    weight={index === processingStep ? 'medium' : 'normal'}
+                                                    className="text-left"
+                                                >
+                                                    {step}
+                                                </Para>
+                                            </motion.div>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
                     </motion.div>
                 )}
 
@@ -350,247 +509,102 @@ const ScraperIntelligencePage = () => {
                         key="results"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="h-screen overflow-hidden"
+                        className="min-h-screen"
                     >
-                        <div className="h-full flex flex-col lg:grid lg:grid-cols-2">
-
-                            {/* Left: Section Cards */}
-                            <div className="bg-background-primary lg:border-r border-border-default order-1 flex-1 flex flex-col min-h-0">
-                                {/* Header - Fixed */}
-                                <div className="p-md sm:p-lg border-b border-border-default bg-background-primary flex-shrink-0">
-                                    <div className="text-center">
-                                        <h2 className="text-h5-md sm:text-h4-md font-bold text-text-primary">
-                                            Extracted Layout Sections
-                                        </h2>
-                                        <p className="text-para-sm sm:text-para-md text-text-secondary mt-xs">
-                                            From {scrapedData.url}
-                                        </p>
+                        {/* Header */}
+                        <div className="bg-background-primary border-b border-border-default sticky top-0 z-30">
+                            <div className="container mx-auto px-sm sm:px-md lg:px-lg py-sm sm:py-md">
+                                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-sm">
+                                    <div className="flex items-center gap-sm sm:gap-lg">
+                                        <button
+                                            onClick={() => setCurrentStep('input')}
+                                            className="text-text-secondary flex gap-2 items-center leading-none hover:text-text-primary transition-colors text-para-sm"
+                                        >
+                                            <FaArrowLeftLong /> Back
+                                        </button>
+                                        <div>
+                                            <Heading level="h5">
+                                                Layout Analysis Complete
+                                            </Heading>
+                                            <Para size="sm" color="secondary">
+                                                {scrapedData.sections.length} sections extracted from {scrapedData.url}
+                                            </Para>
+                                        </div>
                                     </div>
-                                </div>
-
-                                {/* Scrollable Sections */}
-                                <div className="p-md sm:p-lg space-y-md flex-1 overflow-y-auto">
-                                    {scrapedData.sections.map((section, index) => (
-                                        <motion.div
-                                            key={section.id}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.1 }}
-                                            className="bg-background-secondary border border-border-default rounded-xl overflow-hidden hover:border-border-muted hover:shadow-sm transition-all duration-200"
-                                        >
-                                            {/* Section Screenshot */}
-                                            <div className="relative">
-                                                <img
-                                                    src={section.screenshot_url}
-                                                    alt={`${section.section_type} section`}
-                                                    className="w-full h-24 sm:h-32 object-cover"
-                                                />
-                                                <div className="absolute top-2 left-2">
-                                                    <span className="bg-background-dark/90 text-text-light px-xs sm:px-sm py-xs rounded text-para-xs sm:text-para-sm font-medium">
-                                                        {section.section_type}
-                                                    </span>
-                                                </div>
-                                                <div className="absolute top-2 right-2 hidden sm:block">
-                                                    <span className="bg-background-dark/90 text-text-light px-sm py-xs rounded text-para-sm">
-                                                        {section.layout_structure}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Section Details */}
-                                            <div className="p-sm sm:p-md space-y-sm">
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex-1">
-                                                        <h4 className="text-h6-md font-medium text-text-primary">
-                                                            {section.section_type}
-                                                        </h4>
-                                                        <div className="flex flex-col sm:flex-row sm:items-center gap-xs sm:gap-sm mt-xs">
-                                                            <span className="flex items-center gap-xs text-para-xs sm:text-para-sm text-text-secondary">
-                                                                <FaBullseye className="text-icon-sm" />
-                                                                {section.intent}
-                                                            </span>
-                                                            <span className="text-text-tertiary hidden sm:inline">•</span>
-                                                            <span className="flex items-center gap-xs text-para-xs sm:text-para-sm text-text-secondary">
-                                                                <FaLayerGroup className="text-icon-sm" />
-                                                                <span className="truncate">{section.layout_structure}</span>
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Content Preview */}
-                                                {section.editableProps && (
-                                                    <div className="bg-background-muted rounded-lg p-xs sm:p-sm space-y-xs">
-                                                        <p className="text-para-xs sm:text-para-sm font-medium text-text-primary">Content:</p>
-                                                        <div className="text-para-xs sm:text-para-sm text-text-secondary space-y-xs">
-                                                            {section.editableProps.title && (
-                                                                <p className="truncate">Title: "{section.editableProps.title}"</p>
-                                                            )}
-                                                            {section.editableProps.subtitle && (
-                                                                <p className="truncate">Subtitle: "{section.editableProps.subtitle}"</p>
-                                                            )}
-                                                            {section.editableProps.cta && (
-                                                                <p>CTA: "{section.editableProps.cta}"</p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Client Mode: Feedback Buttons */}
-                                                {!isDesignerMode && !isFeedbackComplete && (
-                                                    <div className="flex gap-xs sm:gap-sm pt-sm">
-                                                        <button
-                                                            onClick={() => handleSectionFeedback(section.id, 'like')}
-                                                            className={`flex-1 flex items-center justify-center gap-xs px-sm py-xs sm:py-sm rounded-lg text-para-xs sm:text-para-sm font-medium transition-all ${userFeedback[section.id] === 'like'
-                                                                    ? 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30'
-                                                                    : 'bg-background-primary border border-border-default text-text-secondary hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
-                                                                }`}
-                                                        >
-                                                            <FaThumbsUp className="text-icon-sm" />
-                                                            <span className="hidden sm:inline">Like</span>
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleSectionFeedback(section.id, 'dislike')}
-                                                            className={`flex-1 flex items-center justify-center gap-xs px-sm py-xs sm:py-sm rounded-lg text-para-xs sm:text-para-sm font-medium transition-all ${userFeedback[section.id] === 'dislike'
-                                                                    ? 'bg-red-500/20 text-red-600 border border-red-500/30'
-                                                                    : 'bg-background-primary border border-border-default text-text-secondary hover:border-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
-                                                                }`}
-                                                        >
-                                                            <FaThumbsDown className="text-icon-sm" />
-                                                            <span className="hidden sm:inline">Dislike</span>
-                                                        </button>
-                                                    </div>
-                                                )}
-
-                                                {/* Designer Mode: Action Buttons */}
-                                                {isDesignerMode && (
-                                                    <div className="flex gap-xs sm:gap-sm pt-sm">
-                                                        <button className="flex items-center gap-xs px-xs sm:px-sm py-xs bg-background-primary border border-border-default rounded text-para-xs sm:text-para-sm text-text-secondary hover:text-accent-default transition-colors">
-                                                            <FaEye className="text-icon-sm" />
-                                                            <span className="hidden sm:inline">Inspect</span>
-                                                        </button>
-                                                        <button className="flex items-center gap-xs px-xs sm:px-sm py-xs bg-background-primary border border-border-default rounded text-para-xs sm:text-para-sm text-text-secondary hover:text-accent-default transition-colors">
-                                                            <FaCopy className="text-icon-sm" />
-                                                            <span className="hidden sm:inline">Clone</span>
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </motion.div>
-                                    ))}
-
-                                    {/* Final CTA */}
-                                    {isFeedbackComplete && !isDesignerMode && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="mt-lg"
-                                        >
+                                    <div className="flex items-center gap-xs sm:gap-sm">
+                                        <StartFromIdea onGenerateLayout={handleGenerateLayout} />
+                                        <div className="bg-background-secondary rounded-full p-0.5 sm:p-1 flex">
                                             <button
-                                                onClick={() => console.log('Navigate to swiper')}
-                                                className="w-full bg-accent-default text-accent-foreground py-sm sm:py-md rounded-xl font-medium hover:bg-accent-hover transition-colors text-btn-md sm:text-btn-lg flex items-center justify-center gap-sm"
+                                                onClick={() => setIsDesignerMode(false)}
+                                                className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${!isDesignerMode
+                                                    ? 'bg-accent-default text-accent-foreground'
+                                                    : 'text-text-secondary hover:text-text-primary'
+                                                    }`}
                                             >
-                                                <FaHeart className="text-icon-md" />
-                                                <span className="text-center">Want to swipe through components like these?</span>
+                                                <FaUser className="inline mr-xs text-icon-sm" />
+                                                <span className="hidden sm:inline">Client</span>
                                             </button>
-                                        </motion.div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Right: Details Panel */}
-                            <div className="bg-background-secondary flex flex-col order-2 flex-1 lg:max-w-none min-h-0">
-                                {/* Header - Fixed */}
-                                <div className="p-md sm:p-lg border-b border-border-default flex-shrink-0">
-                                    <h3 className="text-h6-md sm:text-h5-md font-medium text-text-primary">
-                                        {isDesignerMode ? 'Component Analysis' : 'Feedback Summary'}
-                                    </h3>
-                                </div>
-
-                                {/* Content - Scrollable */}
-                                <div className="p-md sm:p-lg space-y-md flex-1 overflow-y-auto">
-
-                                    {/* Feedback Summary */}
-                                    <div className="bg-background-primary rounded-xl p-md border border-border-default">
-                                        <h4 className="text-h6-md font-medium text-text-primary mb-md">
-                                            {isDesignerMode ? 'Sections Overview' : 'Your Preferences'}
-                                        </h4>
-                                        <div className="grid grid-cols-2 gap-md">
-                                            <div className="text-center">
-                                                <div className="text-h5-md sm:text-h4-md font-bold text-emerald-600">
-                                                    {isDesignerMode ? scrapedData.sections.length : Object.values(userFeedback).filter(f => f === 'like').length}
-                                                </div>
-                                                <p className="text-para-xs sm:text-para-sm text-text-secondary">
-                                                    {isDesignerMode ? 'Total' : 'Liked'}
-                                                </p>
-                                            </div>
-                                            <div className="text-center">
-                                                <div className="text-h5-md sm:text-h4-md font-bold text-blue-600">
-                                                    {isDesignerMode ? Object.keys(scrapedData.sections.reduce((acc, section) => ({ ...acc, [section.layout_structure]: true }), {})).length : Object.values(userFeedback).filter(f => f === 'dislike').length}
-                                                </div>
-                                                <p className="text-para-xs sm:text-para-sm text-text-secondary">
-                                                    {isDesignerMode ? 'Patterns' : 'Disliked'}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Liked Sections (Client Mode) */}
-                                        {!isDesignerMode && Object.values(userFeedback).filter(f => f === 'like').length > 0 && (
-                                            <div className="mt-md pt-md border-t border-border-default">
-                                                <p className="text-para-xs sm:text-para-sm font-medium text-text-primary mb-sm">You liked:</p>
-                                                <div className="flex flex-wrap gap-xs">
-                                                    {scrapedData.sections
-                                                        .filter(section => userFeedback[section.id] === 'like')
-                                                        .map(section => (
-                                                            <span key={section.id} className="px-xs sm:px-sm py-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 rounded text-para-xs">
-                                                                {section.section_type}
-                                                            </span>
-                                                        ))
-                                                    }
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* JSON Structure */}
-                                    <div className="bg-background-primary rounded-xl border border-border-default">
-                                        <div className="p-md border-b border-border-default">
-                                            <div className="flex items-center justify-between">
-                                                <h4 className="text-h6-md font-medium text-text-primary">
-                                                    API Response Structure
-                                                </h4>
-                                                <button className="flex items-center gap-xs text-para-xs sm:text-para-sm text-accent-default hover:text-accent-hover">
-                                                    <FaCopy className="text-icon-sm" />
-                                                    <span className="hidden sm:inline">Copy</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="p-md">
-                                            <pre className="text-para-xs text-text-secondary overflow-auto bg-background-muted rounded p-sm h-64 sm:h-80">
-                                                {JSON.stringify({
-                                                    url: scrapedData.url,
-                                                    analyzedAt: scrapedData.analyzedAt,
-                                                    sections: scrapedData.sections.map(section => ({
-                                                        id: section.id,
-                                                        section_type: section.section_type,
-                                                        layout_structure: section.layout_structure,
-                                                        intent: section.intent,
-                                                        screenshot_url: section.screenshot_url,
-                                                        editableProps: section.editableProps,
-                                                        feedback: userFeedback[section.id] || null
-                                                    })),
-                                                    userFeedback: {
-                                                        liked: Object.values(userFeedback).filter(f => f === 'like').length,
-                                                        disliked: Object.values(userFeedback).filter(f => f === 'dislike').length,
-                                                        total: Object.keys(userFeedback).length
-                                                    }
-                                                }, null, 2)}
-                                            </pre>
+                                            <button
+                                                onClick={() => setIsDesignerMode(true)}
+                                                className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${isDesignerMode
+                                                    ? 'bg-accent-default text-accent-foreground'
+                                                    : 'text-text-secondary hover:text-text-primary'
+                                                    }`}
+                                            >
+                                                <FaPalette className="inline mr-xs text-icon-sm" />
+                                                <span className="hidden sm:inline">Designer</span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        {/* Main Content */}
+                        <div className="container mx-auto px-sm sm:px-md lg:px-lg py-md sm:py-xl">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-md sm:gap-lg lg:gap-xl">
+                                {scrapedData.sections.map((section) => (
+                                    <SectionCard
+                                        key={section.id}
+                                        section={section}
+                                        isDesignerMode={isDesignerMode}
+                                        onFeedback={(feedback) => handleSectionFeedback(section.id, feedback)}
+                                        feedback={userFeedback[section.id] || null}
+                                        onAddToLayout={handleAddToLayout}
+                                        updateTaste={updateTaste}
+                                        openChat={openChat}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Completion CTA */}
+                            {isFeedbackComplete && !isDesignerMode && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="mt-lg sm:mt-xl text-center"
+                                >
+                                    <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl sm:rounded-2xl p-lg sm:p-xl text-white max-w-2xl mx-auto">
+                                        <Heading level="h3" color="light" align="center" className="mb-sm sm:mb-md">
+                                            Your taste profile is building!
+                                        </Heading>
+                                        <Para size="lg" color="light" align="center" className="mb-md sm:mb-lg opacity-90">
+                                            We've learned what you like. Ready to see more personalized suggestions?
+                                        </Para>
+                                        <button className="bg-white text-indigo-600 px-lg sm:px-xl py-sm sm:py-md rounded-lg sm:rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                                            Explore Component Library
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </div>
+
+                        {/* Fixed Components */}
+                        <LayoutPlan
+                            sections={layoutPlan}
+                            onUpdateSections={handleUpdateLayoutPlan}
+                        />
+                        <ChatPanel context={chatContext} />
                     </motion.div>
                 )}
             </AnimatePresence>
