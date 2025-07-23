@@ -380,7 +380,6 @@ const SectionCard = ({
                                     <SuggestionsCarousel
                                         sectionId={section.id}
                                         onUseSection={handleUseSection}
-                                        onLikeSection={(alt) => console.log('Liked alternative:', alt)}
                                     />
                                 </motion.div>
                             )}
