@@ -12,9 +12,11 @@ import ProtectedRoute from "@/routes/ProtectedRoutes"
 const Layout = () => {
     return (
         <main>
-            <ScrollToTop />
+            {/* <div className="fixed top-5 right-5 z-50">
+                <ThemeToggle />
+            </div> */}
             <Routes>
-                <Route path={ROUTES.HOME} element={<TestPreview />} />
+                <Route path={ROUTES.HOME} element={<DemoPage />} />
                 <Route path={`${ROUTES.AUTH}/*`} element={<AuthLayout variant="split" />} />
                 <Route element={<ProtectedRoute />}>
                     <Route path={ROUTES.INTAKE_FORM} element={<IntakeForm />} />

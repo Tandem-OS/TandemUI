@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+// src/components/auth/form/components/Input.tsx
+
+import React, { useState, type CSSProperties } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import clsx from 'clsx';
 import { cva } from 'class-variance-authority';
@@ -16,8 +18,10 @@ interface InputProps {
   onFocus?: () => void;
   onBlur?: () => void;
   onKeyPress?: () => void;
-  variant?: 'default' | 'outlined' | 'filled';
+  variant?: 'default' | 'outlined' | 'filled' | 'basic';
   className?: string;
+  style?: CSSProperties;
+  required?: boolean;
   disabled?: boolean;
 }
 
@@ -37,6 +41,8 @@ const Input: React.FC<InputProps> = ({
   variant = 'default',
   disabled,
   className = '',
+  style,
+  required,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -59,6 +65,8 @@ const Input: React.FC<InputProps> = ({
             'bg-transparent text-text-primary border-border-default focus:border-border-focus placeholder:text-text-secondary',
           filled:
             'bg-background-muted text-text-primary border-border-muted focus:border-border-focus placeholder:text-text-secondary',
+          basic:
+            'border transition-all outline-none', // No theme colors, just structure
         },
         error: {
           true: 'border-border-error focus:border-border-error',
@@ -75,17 +83,25 @@ const Input: React.FC<InputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block mb-xs text-para-sm text-text-secondary">
+        <label
+          className={clsx(
+            'block mb-xs text-para-sm',
+            variant === 'basic' ? '' : 'text-text-secondary'
+          )}
+          style={variant === 'basic' ? style : undefined}
+        >
           {label}
         </label>
       )}
 
       <div className="relative flex items-center">
-        {icon && (
+        {icon && variant !== 'basic' && (
           <div
             className={clsx(
               'absolute left-md top-1/2 transform -translate-y-1/2 transition-colors',
-              isFocused ? 'text-accent-default' : 'text-text-tertiary'
+              isFocused
+                ? 'text-accent-default'
+                : 'text-text-tertiary'
             )}
           >
             {icon}
@@ -99,6 +115,7 @@ const Input: React.FC<InputProps> = ({
           type={inputType}
           name={name}
           value={value}
+          required={required}
           disabled={disabled}
           onChange={onChange}
           onKeyPress={onKeyPress}
@@ -112,19 +129,25 @@ const Input: React.FC<InputProps> = ({
           }}
           placeholder={placeholder}
           className={clsx(
-            inputVariants({ variant, error: !!error }),
+            inputVariants({ variant, error: !!error && variant !== 'basic' }),
             {
-              'pl-10': icon,
+              'pl-10': icon && variant !== 'basic',
               'pr-10': type === 'password' && showPasswordToggle,
               'py-sm': true,
             },
             className
           )}
+          style={variant === 'basic' ? style : undefined}
         />
 
         {type === 'password' && showPasswordToggle && (
           <div
-            className="absolute right-md top-1/2 transform -translate-y-1/2 cursor-pointer text-text-tertiary hover:text-text-secondary transition-colors"
+            className={clsx(
+              'absolute right-md top-1/2 transform -translate-y-1/2 cursor-pointer transition-colors',
+              variant === 'basic'
+                ? 'text-current opacity-60 hover:opacity-80'
+                : 'text-text-tertiary hover:text-text-secondary'
+            )}
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -132,7 +155,7 @@ const Input: React.FC<InputProps> = ({
         )}
       </div>
 
-      {error && (
+      {error && variant !== 'basic' && (
         <p className="text-para-sm text-text-error mt-xs">{error}</p>
       )}
     </div>

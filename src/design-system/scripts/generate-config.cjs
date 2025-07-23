@@ -33,6 +33,7 @@ const fontSizes = require('../tokens/semantic/fontSizes.json');
 const fontFamily = require('../tokens/primitives/font.json');
 const shadows = require('../tokens/primitives/shadows.json');
 const borderRadius = require('../tokens/primitives/borderRadius.json');
+const lineHeights = require('../tokens/semantic/lineHeights.json');
 
 // Load theme files
 const lightTheme = require('../tokens/themes/light.json');
@@ -205,6 +206,9 @@ const config = {
             },
             borderRadius: {
                 ...borderRadius
+            },
+            lineHeight: {
+                ...lineHeights
             }
         }
     },

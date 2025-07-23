@@ -130,7 +130,6 @@ const NewPasswordForm = () => {
                         variant="filled"
                         error={errors.password}
                         className="bg-gray-900"
-                        disabled={loading}
                     />
                 </div>
             </div>

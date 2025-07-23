@@ -5,4 +5,5 @@ export const ROUTES = {
     ONBOARD_COMPLETE: "/onboardcomplete",
     ONBOARDING: "/onboard",
     DASHBOARD: "/dashboard",
+    SCRAPER: "/scraper",
 };

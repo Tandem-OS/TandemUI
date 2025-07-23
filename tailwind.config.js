@@ -227,6 +227,7 @@ module.exports = {
           "default": "rgb(var(--border-default) / <alpha-value>)",
           "focus": "rgb(var(--border-focus) / <alpha-value>)",
           "muted": "rgb(var(--border-muted) / <alpha-value>)",
+          "dark": "rgb(var(--border-dark) / <alpha-value>)",
           "success": "rgb(var(--border-success) / <alpha-value>)",
           "error": "rgb(var(--border-error) / <alpha-value>)",
           "warning": "rgb(var(--border-warning) / <alpha-value>)",
@@ -348,6 +349,14 @@ module.exports = {
         "2xl": "1rem",
         "3xl": "1.5rem",
         "full": "9999px"
+      },
+      "lineHeight": {
+        "none": "1",
+        "tight": "1.25",
+        "snug": "1.375",
+        "normal": "1.5",
+        "relaxed": "1.625",
+        "loose": "2"
       }
     }
   },
