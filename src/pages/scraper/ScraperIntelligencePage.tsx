@@ -311,10 +311,8 @@ const ScraperIntelligencePage = () => {
                                             />
                                             {inputValue.trim() && (
                                                 <motion.button
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
                                                     onClick={() => handleStartScraping(inputValue)}
-                                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-default text-accent-foreground p-2 sm:p-3 rounded-lg hover:bg-accent-hover transition-colors"
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-default text-accent-foreground p-2 sm:p-3 rounded-lg hover:bg-accent-hover hover:shadow-lg transition-all"
                                                 >
                                                     <FaArrowRight className="text-icon-sm" />
                                                 </motion.button>
