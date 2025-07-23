@@ -1,10 +1,9 @@
-// src/scraper/components/SuggestionsCarousel.tsx
+// src/scraper/components/SuggestionsCarousel.tsx - FIXED for images
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaThumbsUp, FaCheck, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { FaCheck, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { mockSuggestions } from '../constants';
-import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../comman-components/Para';
 
 interface Suggestion {
@@ -13,7 +12,7 @@ interface Suggestion {
     layout_structure: string;
     intent: string;
     tone: string;
-    preview: string;
+    screenshot_url: string; // ✅ Fixed: was 'preview'
     metadata: {
         insight: string;
     };
@@ -22,63 +21,50 @@ interface Suggestion {
 interface SuggestionsCarouselProps {
     sectionId: string;
     onUseSection: (section: Suggestion) => void;
-    onLikeSection: (section: Suggestion) => void;
 }
 
-const SuggestionsCarousel = ({ sectionId, onUseSection, onLikeSection }: SuggestionsCarouselProps) => {
+const SuggestionsCarousel = ({ sectionId, onUseSection }: SuggestionsCarouselProps) => {
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate API call with delay
         setIsLoading(true);
         setTimeout(() => {
             const sectionSuggestions = mockSuggestions[sectionId as keyof typeof mockSuggestions] || 
                                      mockSuggestions['hero-1'];
             setSuggestions(sectionSuggestions);
             setIsLoading(false);
-        }, 800);
+        }, 600);
     }, [sectionId]);
 
     const handlePrevious = () => {
-        setCurrentIndex((prev) => (prev === 0 ? suggestions.length - 1 : prev - 1));
+        setCurrentIndex(prev => Math.max(0, prev - 1));
     };
 
     const handleNext = () => {
-        setCurrentIndex((prev) => (prev === suggestions.length - 1 ? 0 : prev + 1));
+        setCurrentIndex(prev => Math.min(suggestions.length - 2, prev + 1));
     };
 
-    // Calculate how many cards to show based on screen size
-    const getCardsToShow = () => {
-        if (typeof window !== 'undefined') {
-            if (window.innerWidth < 640) return 1;
-            if (window.innerWidth < 1024) return 2;
-        }
-        return 3;
-    };
-
-    const [cardsToShow, setCardsToShow] = useState(1);
-
-    useEffect(() => {
-        const updateCardsToShow = () => {
-            setCardsToShow(getCardsToShow());
-        };
-
-        updateCardsToShow();
-        window.addEventListener('resize', updateCardsToShow);
-        return () => window.removeEventListener('resize', updateCardsToShow);
-    }, []);
+    const canGoNext = currentIndex < suggestions.length - 2;
+    const canGoPrev = currentIndex > 0;
 
     if (isLoading) {
         return (
             <div className="mt-md">
                 <Para size="sm" color="secondary" className="mb-sm">Finding alternatives...</Para>
-                <div className="flex gap-sm sm:gap-md overflow-hidden">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className={`${i === 1 ? 'w-full' : 'hidden sm:block'} sm:w-64 h-32 sm:h-40 bg-background-muted rounded-xl animate-pulse`} />
-                    ))}
+                <div className="grid grid-cols-2 gap-sm">
+                    <div className="h-32 sm:h-40 bg-background-secondary rounded-xl animate-pulse" />
+                    <div className="h-32 sm:h-40 bg-background-secondary rounded-xl animate-pulse" />
                 </div>
+            </div>
+        );
+    }
+
+    if (suggestions.length === 0) {
+        return (
+            <div className="mt-md p-md bg-background-secondary rounded-xl text-center">
+                <Para size="sm" color="secondary">No alternatives available.</Para>
             </div>
         );
     }
@@ -89,110 +75,113 @@ const SuggestionsCarousel = ({ sectionId, onUseSection, onLikeSection }: Suggest
             animate={{ opacity: 1, y: 0 }}
             className="mt-md"
         >
+            {/* Header with Navigation */}
             <div className="flex items-center justify-between mb-sm">
-                <Para size="sm" color="secondary">Try these alternatives:</Para>
-                <div className="flex gap-xs">
-                    <button
-                        onClick={handlePrevious}
-                        className="p-1 hover:bg-background-muted rounded transition-colors"
-                        disabled={suggestions.length <= cardsToShow}
-                    >
-                        <FaChevronLeft className="text-text-tertiary" />
-                    </button>
-                    <button
-                        onClick={handleNext}
-                        className="p-1 hover:bg-background-muted rounded transition-colors"
-                        disabled={suggestions.length <= cardsToShow}
-                    >
-                        <FaChevronRight className="text-text-tertiary" />
-                    </button>
-                </div>
+                <Para size="sm" color="secondary">
+                    Try these alternatives:
+                </Para>
+                {suggestions.length > 2 && (
+                    <div className="flex gap-xs">
+                        <button
+                            onClick={handlePrevious}
+                            disabled={!canGoPrev}
+                            className={`p-2 rounded-lg transition-colors ${
+                                !canGoPrev 
+                                    ? 'text-text-tertiary cursor-not-allowed' 
+                                    : 'text-text-secondary hover:bg-background-secondary hover:text-text-primary'
+                            }`}
+                        >
+                            <FaChevronLeft className="text-icon-sm" />
+                        </button>
+                        <button
+                            onClick={handleNext}
+                            disabled={!canGoNext}
+                            className={`p-2 rounded-lg transition-colors ${
+                                !canGoNext 
+                                    ? 'text-text-tertiary cursor-not-allowed' 
+                                    : 'text-text-secondary hover:bg-background-secondary hover:text-text-primary'
+                            }`}
+                        >
+                            <FaChevronRight className="text-icon-sm" />
+                        </button>
+                    </div>
+                )}
             </div>
 
+            {/* Cards Container */}
             <div className="relative overflow-hidden">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentIndex}
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -50 }}
-                        transition={{ type: 'spring', damping: 25 }}
-                        className="flex gap-sm sm:gap-md"
-                    >
-                        {suggestions.slice(currentIndex, currentIndex + cardsToShow).map((suggestion, index) => (
-                            <motion.div
-                                key={suggestion.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                className="min-w-0 w-full sm:min-w-[280px] bg-background-primary border border-border-default rounded-lg sm:rounded-xl overflow-hidden hover:shadow-md transition-all"
-                            >
-                                {/* Preview Image */}
-                                <div className="h-24 sm:h-32 bg-background-muted relative overflow-hidden">
-                                    <img
-                                        src={suggestion.preview}
-                                        alt={`${suggestion.section_type} alternative`}
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute top-2 left-2">
-                                        <span className="bg-background-dark/90 text-text-light px-xs sm:px-sm py-xs rounded text-para-xs">
-                                            {suggestion.layout_structure}
-                                        </span>
-                                    </div>
+                <motion.div
+                    className="grid grid-cols-2 gap-sm"
+                    key={currentIndex}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                >
+                    {suggestions.slice(currentIndex, currentIndex + 2).map((suggestion, index) => (
+                        <motion.div
+                            key={suggestion.id}
+                            transition={{ delay: index * 0.1 }}
+                            className="bg-background-primary border border-border-default rounded-xl overflow-hidden hover:shadow-lg transition-all"
+                        >
+                            {/* Preview Image - FIXED */}
+                            <div className="h-24 sm:h-32 bg-background-muted relative overflow-hidden">
+                                <img
+                                    src={suggestion.screenshot_url} // ✅ Fixed: was suggestion.preview
+                                    alt={`${suggestion.section_type} preview`}
+                                    className="w-full h-full object-cover"
+                                />
+                                <div className="absolute top-2 left-2">
+                                    <span className="bg-background-dark/90 text-text-light px-xs py-1 rounded text-para-xs">
+                                        {suggestion.layout_structure}
+                                    </span>
                                 </div>
-
-                                {/* Content */}
-                                <div className="p-sm sm:p-md">
-                                    <Heading level="h6" className="text-base">
+                                <div className="absolute top-2 right-2">
+                                    <span className="bg-accent-default text-white px-xs py-1 rounded text-para-xs font-medium">
                                         {suggestion.section_type}
-                                    </Heading>
-                                    <div className="flex items-center gap-xs mt-xs mb-sm flex-wrap">
-                                        <Para size="xs" color="secondary">
-                                            {suggestion.intent}
-                                        </Para>
-                                        <span className="text-text-tertiary">•</span>
-                                        <Para size="xs" color="secondary">
-                                            {suggestion.tone}
-                                        </Para>
-                                    </div>
-                                    <Para size="xs" color="secondary" className="line-clamp-2 mb-md">
-                                        {suggestion.metadata.insight}
-                                    </Para>
-
-                                    {/* Actions */}
-                                    <div className="flex gap-xs sm:gap-sm">
-                                        <button
-                                            onClick={() => onUseSection(suggestion)}
-                                            className="flex-1 bg-accent-default text-accent-foreground py-xs sm:py-sm rounded-lg text-para-xs sm:text-para-sm font-medium hover:bg-accent-hover transition-colors flex items-center justify-center gap-xs"
-                                        >
-                                            <FaCheck className="text-icon-sm" />
-                                            Use This
-                                        </button>
-                                        <button
-                                            onClick={() => onLikeSection(suggestion)}
-                                            className="p-xs sm:p-sm border border-border-default rounded-lg hover:bg-background-secondary transition-colors"
-                                        >
-                                            <FaThumbsUp className="text-icon-sm text-text-secondary" />
-                                        </button>
-                                    </div>
+                                    </span>
                                 </div>
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                </AnimatePresence>
+                            </div>
+
+                            {/* Content */}
+                            <div className="p-sm">
+                                <div className="flex flex-wrap gap-xs mb-sm">
+                                    <span className="px-xs py-1 bg-background-secondary rounded text-para-xs text-text-secondary">
+                                        {suggestion.intent}
+                                    </span>
+                                    <span className="px-xs py-1 bg-background-secondary rounded text-para-xs text-text-secondary">
+                                        {suggestion.tone}
+                                    </span>
+                                </div>
+                                
+                                <Para size="xs" color="secondary" className="line-clamp-2 mb-sm leading-relaxed">
+                                    {suggestion.metadata.insight}
+                                </Para>
+
+                                {/* Use Button */}
+                                <button
+                                    onClick={() => onUseSection(suggestion)}
+                                    className="w-full bg-accent-default text-accent-foreground py-xs sm:py-sm rounded-lg text-para-xs sm:text-para-sm font-medium hover:bg-accent-hover transition-all flex items-center justify-center gap-xs"
+                                >
+                                    <FaCheck className="text-xs" />
+                                    Use This
+                                </button>
+                            </div>
+                        </motion.div>
+                    ))}
+                </motion.div>
             </div>
 
-            {/* Pagination Dots - Only on mobile */}
-            {cardsToShow === 1 && suggestions.length > 1 && (
-                <div className="flex justify-center gap-xs mt-md sm:hidden">
-                    {suggestions.map((_, index) => (
+            {/* Progress Indicators - Only show if more than 2 items */}
+            {suggestions.length > 2 && (
+                <div className="flex justify-center gap-xs mt-md">
+                    {Array.from({ length: Math.ceil(suggestions.length / 2) }).map((_, index) => (
                         <button
                             key={index}
                             onClick={() => setCurrentIndex(index)}
-                            className={`w-2 h-2 rounded-full transition-all ${
-                                currentIndex === index
+                            className={`h-2 rounded-full transition-all ${
+                                Math.floor(currentIndex / 2) === index
                                     ? 'bg-accent-default w-6'
-                                    : 'bg-border-muted'
+                                    : 'bg-border-muted w-2 hover:bg-border-default'
                             }`}
                         />
                     ))}

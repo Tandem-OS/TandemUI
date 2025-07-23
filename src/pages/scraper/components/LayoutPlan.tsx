@@ -1,6 +1,6 @@
 // src/scraper/components/LayoutPlan.tsx
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaLayerGroup, FaTimes, FaGripVertical, FaDownload, FaTrash } from 'react-icons/fa';
 import {
@@ -45,7 +45,11 @@ interface LayoutPlanProps {
 }
 
 // Sortable Item Component
-const SortableItem = ({ section, onRemove, isOverlay = false }: { section: LayoutSection; onRemove: (id: string) => void; isOverlay?: boolean }) => {
+const SortableItem = ({ section, onRemove, isOverlay = false }: { 
+    section: LayoutSection; 
+    onRemove: (id: string) => void; 
+    isOverlay?: boolean 
+}) => {
     const {
         attributes,
         listeners,
@@ -61,6 +65,13 @@ const SortableItem = ({ section, onRemove, isOverlay = false }: { section: Layou
         opacity: isDragging ? 0.5 : 1,
     };
 
+    // Fix: Prevent event bubbling on delete
+    const handleDelete = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onRemove(section.id);
+    }, [section.id, onRemove]);
+
     return (
         <motion.div
             ref={!isOverlay ? setNodeRef : undefined}
@@ -68,16 +79,15 @@ const SortableItem = ({ section, onRemove, isOverlay = false }: { section: Layou
             initial={!isOverlay ? { opacity: 0, y: 20 } : undefined}
             animate={!isOverlay ? { opacity: 1, y: 0 } : undefined}
             exit={!isOverlay ? { opacity: 0, x: -20 } : undefined}
-            className={`bg-background-secondary border border-border-default rounded-xl p-sm sm:p-md transition-shadow select-none ${isDragging ? 'shadow-lg z-50' : 'hover:shadow-md'
-                } ${isOverlay ? 'shadow-2xl border-accent-default' : ''}`}
-            draggable={false} // Disable HTML5 drag
+            className={`bg-background-secondary border border-border-default rounded-xl p-sm sm:p-md transition-shadow ${
+                isDragging ? 'shadow-lg z-50' : 'hover:shadow-md'
+            } ${isOverlay ? 'shadow-2xl border-accent-default' : ''}`}
         >
             <div className="flex items-start gap-xs sm:gap-sm">
                 <div
                     {...(!isOverlay ? attributes : {})}
                     {...(!isOverlay ? listeners : {})}
-                    className="pt-1 cursor-grab active:cursor-grabbing touch-none"
-                    draggable={false} // Disable HTML5 drag on grip
+                    className="pt-1 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
                 >
                     <FaGripVertical className="text-text-tertiary text-sm sm:text-base" />
                 </div>
@@ -100,13 +110,9 @@ const SortableItem = ({ section, onRemove, isOverlay = false }: { section: Layou
                         </div>
                         {!isOverlay && (
                             <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    onRemove(section.id);
-                                }}
+                                onClick={handleDelete}
                                 className="p-1 hover:bg-background-primary rounded transition-colors flex-shrink-0"
-                                draggable={false} // Disable HTML5 drag
+                                type="button"
                             >
                                 <FaTrash className="text-text-tertiary hover:text-red-500 text-xs sm:text-sm" />
                             </button>
@@ -137,53 +143,62 @@ const LayoutPlan = ({ sections, onUpdateSections }: LayoutPlanProps) => {
         })
     );
 
-    // Update layoutSections when sections prop changes, avoiding duplicates
+    // Fix: Better state synchronization
     useEffect(() => {
         setLayoutSections(prevSections => {
             const existingIds = new Set(prevSections.map(s => s.id));
             const newSections = sections.filter(section => !existingIds.has(section.id));
 
             if (newSections.length > 0) {
-                return [...prevSections, ...newSections];
+                const updated = [...prevSections, ...newSections];
+                return updated;
             }
 
             return prevSections;
         });
     }, [sections]);
 
-    const handleDragStart = (event: DragStartEvent) => {
-        setActiveId(event.active.id as string);
-    };
+    // Fix: Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            // Clean up any lingering event listeners
+            setActiveId(null);
+        };
+    }, []);
 
-    const handleDragEnd = (event: DragEndEvent) => {
+    const handleDragStart = useCallback((event: DragStartEvent) => {
+        setActiveId(event.active.id as string);
+    }, []);
+
+    const handleDragEnd = useCallback((event: DragEndEvent) => {
         const { active, over } = event;
 
         if (over && active.id !== over.id) {
-            const oldIndex = layoutSections.findIndex((item) => item.id === active.id);
-            const newIndex = layoutSections.findIndex((item) => item.id === over.id);
+            setLayoutSections(prevSections => {
+                const oldIndex = prevSections.findIndex((item) => item.id === active.id);
+                const newIndex = prevSections.findIndex((item) => item.id === over.id);
 
-            const newSections = arrayMove(layoutSections, oldIndex, newIndex);
-            setLayoutSections(newSections);
-            onUpdateSections(newSections);
+                if (oldIndex === -1 || newIndex === -1) return prevSections;
+
+                const newSections = arrayMove(prevSections, oldIndex, newIndex);
+                onUpdateSections(newSections);
+                return newSections;
+            });
         }
 
         setActiveId(null);
+    }, [onUpdateSections]);
 
-        // Ensure pointer capture is released
-        setTimeout(() => {
-            document.querySelectorAll('*').forEach(el => {
-                el.releasePointerCapture(1);
-            });
-        }, 100);
-    };
+    // Fix: Better remove function with proper state update
+    const removeSection = useCallback((id: string) => {
+        setLayoutSections(prevSections => {
+            const newSections = prevSections.filter(section => section.id !== id);
+            onUpdateSections(newSections);
+            return newSections;
+        });
+    }, [onUpdateSections]);
 
-    const removeSection = (id: string) => {
-        const newSections = layoutSections.filter(section => section.id !== id);
-        setLayoutSections(newSections);
-        onUpdateSections(newSections);
-    };
-
-    const exportLayout = () => {
+    const exportLayout = useCallback(() => {
         const layoutData = {
             createdAt: new Date().toISOString(),
             sections: layoutSections,
@@ -198,21 +213,34 @@ const LayoutPlan = ({ sections, onUpdateSections }: LayoutPlanProps) => {
         const a = document.createElement('a');
         a.href = url;
         a.download = `layout-plan-${Date.now()}.json`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    };
+    }, [layoutSections]);
+
+    const clearAll = useCallback(() => {
+        setLayoutSections([]);
+        onUpdateSections([]);
+    }, [onUpdateSections]);
+
+    // Fix: Better close handler
+    const handleClose = useCallback(() => {
+        setActiveId(null); // Clear any active drag state
+        setIsOpen(false);
+    }, []);
 
     const activeSection = activeId ? layoutSections.find(s => s.id === activeId) : null;
 
     return (
         <>
-            {/* Fixed Button - Mobile Responsive */}
+            {/* Fixed Button */}
             <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(true)}
                 className="fixed top-16 sm:top-20 right-2 sm:right-6 bg-background-primary border border-border-default rounded-lg sm:rounded-xl px-sm sm:px-md py-xs sm:py-sm shadow-lg hover:shadow-xl transition-all z-40 flex items-center gap-xs sm:gap-sm"
-                draggable={false} // Disable HTML5 drag
+                type="button"
             >
                 <FaLayerGroup className="text-accent-default text-icon-sm sm:text-icon-md" />
                 <span className="text-text-primary font-medium text-para-sm sm:text-para-md hidden sm:inline">
@@ -229,22 +257,24 @@ const LayoutPlan = ({ sections, onUpdateSections }: LayoutPlanProps) => {
             <AnimatePresence>
                 {isOpen && (
                     <>
-                        {/* Backdrop */}
+                        {/* Backdrop - Fix: Better event handling */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => setIsOpen(false)}
+                            onClick={handleClose}
                             className="fixed inset-0 bg-black/50 z-40"
+                            style={{ pointerEvents: 'auto' }}
                         />
 
-                        {/* Panel - Mobile Responsive */}
+                        {/* Panel */}
                         <motion.div
                             initial={{ x: '100%' }}
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
                             transition={{ type: 'spring', damping: 20 }}
                             className="fixed right-0 top-0 h-full w-full sm:w-[400px] bg-background-primary shadow-2xl z-50 flex flex-col"
+                            style={{ pointerEvents: 'auto' }}
                         >
                             {/* Header */}
                             <div className="p-md sm:p-lg border-b border-border-default flex items-center justify-between">
@@ -255,9 +285,9 @@ const LayoutPlan = ({ sections, onUpdateSections }: LayoutPlanProps) => {
                                     </Para>
                                 </div>
                                 <button
-                                    onClick={() => setIsOpen(false)}
+                                    onClick={handleClose}
                                     className="p-2 hover:bg-background-secondary rounded-lg transition-colors"
-                                    draggable={false} // Disable HTML5 drag
+                                    type="button"
                                 >
                                     <FaTimes className="text-text-secondary text-icon-sm sm:text-icon-md" />
                                 </button>
@@ -285,13 +315,15 @@ const LayoutPlan = ({ sections, onUpdateSections }: LayoutPlanProps) => {
                                             strategy={verticalListSortingStrategy}
                                         >
                                             <div className="space-y-sm">
-                                                {layoutSections.map((section) => (
-                                                    <SortableItem
-                                                        key={section.id}
-                                                        section={section}
-                                                        onRemove={removeSection}
-                                                    />
-                                                ))}
+                                                <AnimatePresence>
+                                                    {layoutSections.map((section) => (
+                                                        <SortableItem
+                                                            key={section.id}
+                                                            section={section}
+                                                            onRemove={removeSection}
+                                                        />
+                                                    ))}
+                                                </AnimatePresence>
                                             </div>
                                         </SortableContext>
 
@@ -299,7 +331,7 @@ const LayoutPlan = ({ sections, onUpdateSections }: LayoutPlanProps) => {
                                             {activeSection && (
                                                 <SortableItem
                                                     section={activeSection}
-                                                    onRemove={() => { }} // No-op for overlay
+                                                    onRemove={() => {}} // No-op for overlay
                                                     isOverlay={true}
                                                 />
                                             )}
@@ -314,18 +346,15 @@ const LayoutPlan = ({ sections, onUpdateSections }: LayoutPlanProps) => {
                                     <button
                                         onClick={exportLayout}
                                         className="w-full bg-accent-default text-accent-foreground py-sm sm:py-md rounded-xl font-medium hover:bg-accent-hover transition-colors flex items-center justify-center gap-sm"
-                                        draggable={false} // Disable HTML5 drag
+                                        type="button"
                                     >
                                         <FaDownload className="text-icon-sm" />
                                         Export Layout Plan
                                     </button>
                                     <button
-                                        onClick={() => {
-                                            setLayoutSections([]);
-                                            onUpdateSections([]);
-                                        }}
+                                        onClick={clearAll}
                                         className="w-full bg-background-secondary text-text-secondary py-sm sm:py-md rounded-xl font-medium hover:bg-background-muted transition-colors"
-                                        draggable={false} // Disable HTML5 drag
+                                        type="button"
                                     >
                                         Clear All
                                     </button>

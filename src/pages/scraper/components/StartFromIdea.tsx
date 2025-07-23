@@ -1,5 +1,3 @@
-// src/scraper/components/StartFromIdea.tsx
-
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaLightbulb, FaTimes, FaMagic } from 'react-icons/fa';
@@ -59,14 +57,14 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
 
     return (
         <>
-            {/* Trigger Button - Mobile Responsive */}
+            {/* UPDATED: Trigger Button is now a simple outline button with an icon */}
             <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(true)}
-                className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-md sm:px-lg py-sm sm:py-md rounded-lg sm:rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-xs sm:gap-sm text-para-sm sm:text-para-md"
+                className="bg-background-secondary border border-border-default text-text-primary px-md sm:px-lg py-sm sm:py-md rounded-lg sm:rounded-xl font-medium hover:border-accent-default hover:bg-accent-subtle transition-all flex items-center gap-xs sm:gap-sm text-para-sm sm:text-para-md"
             >
                 <FaMagic className="text-icon-sm sm:text-icon-md" />
-                <span>Start with an idea</span>
+                <span>Generate with idea</span>
             </motion.button>
 
             {/* Modal */}
@@ -79,9 +77,9 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => !isGenerating && setIsOpen(false)}
-                            className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-md"
+                            className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center sm:p-md h-screen"
                         >
-                            {/* Modal Content - Mobile Responsive */}
+                            {/* Modal Content */}
                             <motion.div
                                 initial={{ scale: 0.9, opacity: 0, y: 50 }}
                                 animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -117,7 +115,6 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                                 <div className="p-md sm:p-lg overflow-y-auto max-h-[60vh]">
                                     {!isGenerating ? (
                                         <>
-                                            {/* Textarea */}
                                             <div className="mb-md">
                                                 <label className="block mb-sm text-left">
                                                     <Para size="sm" weight="medium">
@@ -132,8 +129,6 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                                                     autoFocus
                                                 />
                                             </div>
-
-                                            {/* Examples */}
                                             <div className="mb-md sm:mb-lg text-left">
                                                 <Para size="sm" color="secondary" className="mb-sm">
                                                     Need inspiration? Try one of these:
@@ -150,8 +145,6 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                                                     ))}
                                                 </div>
                                             </div>
-
-                                            {/* Actions */}
                                             <div className="flex flex-col sm:flex-row gap-sm">
                                                 <button
                                                     onClick={generateLayout}
@@ -170,7 +163,6 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                                             </div>
                                         </>
                                     ) : (
-                                        /* Generating State */
                                         <div className="text-center py-lg sm:py-xl">
                                             <div className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-border-muted border-t-accent-default rounded-full animate-spin mx-auto mb-md"></div>
                                             <Heading level="h5" className="mb-sm">
@@ -180,30 +172,15 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                                                 Analyzing your idea and creating the perfect structure...
                                             </Para>
                                             <div className="mt-lg space-y-sm max-w-md mx-auto">
-                                                <motion.div
-                                                    initial={{ opacity: 0, x: -20 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: 0.5 }}
-                                                    className="flex items-center gap-sm text-left"
-                                                >
+                                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="flex items-center gap-sm text-left">
                                                     <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                                                     <Para size="sm" color="secondary">Understanding your requirements</Para>
                                                 </motion.div>
-                                                <motion.div
-                                                    initial={{ opacity: 0, x: -20 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: 1 }}
-                                                    className="flex items-center gap-sm text-left"
-                                                >
+                                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1 }} className="flex items-center gap-sm text-left">
                                                     <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                                                     <Para size="sm" color="secondary">Selecting optimal layout patterns</Para>
                                                 </motion.div>
-                                                <motion.div
-                                                    initial={{ opacity: 0, x: -20 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: 1.5 }}
-                                                    className="flex items-center gap-sm text-left"
-                                                >
+                                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.5 }} className="flex items-center gap-sm text-left">
                                                     <div className="w-2 h-2 bg-accent-default rounded-full animate-pulse"></div>
                                                     <Para size="sm" color="secondary">Building your custom layout</Para>
                                                 </motion.div>

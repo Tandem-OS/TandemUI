@@ -1,11 +1,8 @@
-// src/scraper/ScraperIntelligencePage.tsx
-
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaGlobe,
     FaLightbulb,
-    FaImage,
     FaArrowRight,
     FaCode,
     FaUser,
@@ -141,7 +138,7 @@ const ScraperIntelligencePage = () => {
             sections: scoreSections(sections)
         });
         setCurrentStep('results');
-        showToast('🎨 Layout generated successfully!');
+        showToast('Layout generated successfully!');
     };
 
     const openChat = (context: any) => {
@@ -168,7 +165,7 @@ const ScraperIntelligencePage = () => {
                         exit={{ opacity: 0 }}
                         className="min-h-screen flex items-center justify-center p-sm sm:p-md"
                     >
-                        <div className="text-center max-w-3xl space-y-lg sm:space-y-xl w-full">
+                        <div className="text-center max-w-2xl space-y-lg sm:space-y-xl w-full">
                             <motion.div
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
@@ -198,43 +195,21 @@ const ScraperIntelligencePage = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
-                                className="flex flex-col items-center gap-md"
+                                className="flex items-center gap-md justify-center"
                             >
+
+                                {/* UPDATED: Primary CTA */}
+                                <motion.button
+                                    onClick={() => setCurrentStep('input')}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-lg py-md rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl flex items-center gap-sm text-para-md"
+                                >
+                                    <FaGlobe className="text-icon-md" />
+                                    <span>Analyze a Website</span>
+                                </motion.button>
+
+                                {/* UPDATED: Secondary CTA */}
                                 <StartFromIdea onGenerateLayout={handleGenerateLayout} />
-
-                                <div className="flex items-center gap-md w-full max-w-md">
-                                    <div className="flex-1 h-px bg-border-default"></div>
-                                    <Para size="sm" color="tertiary">or</Para>
-                                    <div className="flex-1 h-px bg-border-default"></div>
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm sm:gap-md w-full max-w-2xl px-sm sm:px-0">
-                                    <button
-                                        onClick={() => setCurrentStep('input')}
-                                        className="group bg-background-secondary border-2 border-border-default rounded-lg sm:rounded-xl p-md sm:p-lg hover:border-accent-default transition-all duration-200 hover:shadow-xl"
-                                    >
-                                        <FaImage className="text-2xl sm:text-3xl text-accent-default mx-auto mb-sm sm:mb-md transition-transform" />
-                                        <Heading level="h6" className="mb-xs sm:mb-sm font-medium">
-                                            Analyze a Website
-                                        </Heading>
-                                        <Para size="sm" color="secondary">
-                                            Paste URL to extract its design patterns
-                                        </Para>
-                                    </button>
-
-                                    <button
-                                        onClick={() => setCurrentStep('input')}
-                                        className="group bg-background-secondary border-2 border-border-default rounded-lg sm:rounded-xl p-md sm:p-lg hover:border-accent-default transition-all duration-200 hover:shadow-xl"
-                                    >
-                                        <FaGlobe className="text-2xl sm:text-3xl text-accent-default mx-auto mb-sm sm:mb-md transition-transform" />
-                                        <Heading level="h6" className="mb-xs sm:mb-sm font-medium">
-                                            Browse Examples
-                                        </Heading>
-                                        <Para size="sm" color="secondary">
-                                            Explore pre-analyzed popular websites
-                                        </Para>
-                                    </button>
-                                </div>
                             </motion.div>
 
                             {/* Taste Profile Indicator */}
@@ -435,7 +410,7 @@ const ScraperIntelligencePage = () => {
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="bg-background-primary/90 backdrop-blur-lg border-2 border-border-default rounded-2xl sm:rounded-3xl p-lg sm:p-xl shadow-2xl max-w-lg w-full"
+                            className="bg-background-primary/90 backdrop-blur-lg border-2 border-border-default rounded-2xl sm:rounded-3xl p-lg sm:p-xl shadow-md max-w-lg w-full"
                         >
                             <div className="text-center space-y-lg sm:space-y-xl">
                                 {/* Animated Logo */}
@@ -457,15 +432,31 @@ const ScraperIntelligencePage = () => {
                                 </div>
 
                                 {/* Progress Steps */}
-                                <div className="space-y-sm sm:space-y-md">
+                                <div className="space-y-sm ">
                                     {processingSteps.map((step, index) => (
                                         <motion.div
                                             key={index}
                                             initial={{ opacity: 0, x: -20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: index * 0.1 }}
-                                            className="flex items-center gap-sm sm:gap-md"
+                                            className="flex items-center gap-sm sm:gap-md justify-between border-b border-border-default"
                                         >
+
+                                            <motion.div
+                                                animate={{
+                                                    scale: index === processingStep ? 1.02 : 1
+                                                }}
+                                            >
+                                                <Para
+                                                    size="sm"
+                                                    color={index === processingStep ? 'primary' : index < processingStep ? 'secondary' : 'tertiary'}
+                                                    weight={index === processingStep ? 'medium' : 'normal'}
+                                                    className="text-left"
+                                                >
+                                                    {step}
+                                                </Para>
+
+                                            </motion.div>
                                             <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
                                                 {index < processingStep ? (
                                                     <motion.div
@@ -481,20 +472,6 @@ const ScraperIntelligencePage = () => {
                                                     <FaCircle className="text-border-muted text-xs sm:text-sm" />
                                                 )}
                                             </div>
-                                            <motion.div
-                                                animate={{
-                                                    scale: index === processingStep ? 1.02 : 1
-                                                }}
-                                            >
-                                                <Para
-                                                    size="sm"
-                                                    color={index === processingStep ? 'primary' : index < processingStep ? 'secondary' : 'tertiary'}
-                                                    weight={index === processingStep ? 'medium' : 'normal'}
-                                                    className="text-left"
-                                                >
-                                                    {step}
-                                                </Para>
-                                            </motion.div>
                                         </motion.div>
                                     ))}
                                 </div>
@@ -509,48 +486,29 @@ const ScraperIntelligencePage = () => {
                         key="results"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="min-h-screen"
+                        className="h-screen flex flex-col" // Use flex-col to manage height
                     >
                         {/* Header */}
-                        <div className="bg-background-primary border-b border-border-default sticky top-0 z-30">
-                            <div className="container mx-auto px-sm sm:px-md lg:px-lg py-sm sm:py-md">
+                        <header className="bg-background-primary/80 backdrop-blur-md border-b border-border-default sticky top-0 z-30 flex-shrink-0">
+                            <div className="max-w-screen-xl mx-auto px-sm sm:px-md lg:px-lg py-sm sm:py-md">
                                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-sm">
                                     <div className="flex items-center gap-sm sm:gap-lg">
-                                        <button
-                                            onClick={() => setCurrentStep('input')}
-                                            className="text-text-secondary flex gap-2 items-center leading-none hover:text-text-primary transition-colors text-para-sm"
-                                        >
+                                        <button onClick={() => setCurrentStep('input')} className="text-text-secondary flex gap-2 items-center leading-none hover:text-text-primary transition-colors text-para-sm">
                                             <FaArrowLeftLong /> Back
                                         </button>
                                         <div>
-                                            <Heading level="h5">
-                                                Layout Analysis Complete
-                                            </Heading>
-                                            <Para size="sm" color="secondary">
-                                                {scrapedData.sections.length} sections extracted from {scrapedData.url}
-                                            </Para>
+                                            <Heading level="h5">Layout Analysis</Heading>
+                                            <Para size="sm" color="secondary">{scrapedData.sections.length} sections found on {scrapedData.url}</Para>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-xs sm:gap-sm">
                                         <StartFromIdea onGenerateLayout={handleGenerateLayout} />
                                         <div className="bg-background-secondary rounded-full p-0.5 sm:p-1 flex">
-                                            <button
-                                                onClick={() => setIsDesignerMode(false)}
-                                                className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${!isDesignerMode
-                                                    ? 'bg-accent-default text-accent-foreground'
-                                                    : 'text-text-secondary hover:text-text-primary'
-                                                    }`}
-                                            >
+                                            <button onClick={() => setIsDesignerMode(false)} className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${!isDesignerMode ? 'bg-accent-default text-accent-foreground' : 'text-text-secondary hover:text-text-primary'}`}>
                                                 <FaUser className="inline mr-xs text-icon-sm" />
                                                 <span className="hidden sm:inline">Client</span>
                                             </button>
-                                            <button
-                                                onClick={() => setIsDesignerMode(true)}
-                                                className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${isDesignerMode
-                                                    ? 'bg-accent-default text-accent-foreground'
-                                                    : 'text-text-secondary hover:text-text-primary'
-                                                    }`}
-                                            >
+                                            <button onClick={() => setIsDesignerMode(true)} className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${isDesignerMode ? 'bg-accent-default text-accent-foreground' : 'text-text-secondary hover:text-text-primary'}`}>
                                                 <FaPalette className="inline mr-xs text-icon-sm" />
                                                 <span className="hidden sm:inline">Designer</span>
                                             </button>
@@ -558,53 +516,105 @@ const ScraperIntelligencePage = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </header>
 
-                        {/* Main Content */}
-                        <div className="container mx-auto px-sm sm:px-md lg:px-lg py-md sm:py-xl">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-md sm:gap-lg lg:gap-xl">
-                                {scrapedData.sections.map((section) => (
-                                    <SectionCard
-                                        key={section.id}
-                                        section={section}
-                                        isDesignerMode={isDesignerMode}
-                                        onFeedback={(feedback) => handleSectionFeedback(section.id, feedback)}
-                                        feedback={userFeedback[section.id] || null}
-                                        onAddToLayout={handleAddToLayout}
-                                        updateTaste={updateTaste}
-                                        openChat={openChat}
-                                    />
-                                ))}
-                            </div>
+                        {/* Main Content Area */}
+                        <main className="max-w-screen-xl mx-auto px-sm sm:px-md lg:px-lg w-full flex-grow overflow-hidden">
+                            <div className="grid grid-cols-1 lg:grid-cols-5 lg:gap-lg h-full">
 
-                            {/* Completion CTA */}
-                            {isFeedbackComplete && !isDesignerMode && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="mt-lg sm:mt-xl text-center"
-                                >
-                                    <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl sm:rounded-2xl p-lg sm:p-xl text-white max-w-2xl mx-auto">
-                                        <Heading level="h3" color="light" align="center" className="mb-sm sm:mb-md">
-                                            Your taste profile is building!
-                                        </Heading>
-                                        <Para size="lg" color="light" align="center" className="mb-md sm:mb-lg opacity-90">
-                                            We've learned what you like. Ready to see more personalized suggestions?
-                                        </Para>
-                                        <button className="bg-white text-indigo-600 px-lg sm:px-xl py-sm sm:py-md rounded-lg sm:rounded-xl font-semibold hover:bg-gray-100 transition-colors">
-                                            Explore Component Library
-                                        </button>
+                                {/* Left Sticky Column for Chat */}
+                                <aside className="hidden lg:block lg:col-span-2 h-full py-lg">
+                                    <div className="sticky top-24 h-[calc(100vh-8rem)] flex flex-col gap-md">
+
+                                        {/* Taste Profile Card - Above Chat */}
+                                        {Object.keys(profile).length > 0 && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="bg-background-secondary border border-border-default rounded-xl p-md"
+                                            >
+                                                <div className="flex items-center justify-between mb-sm">
+                                                    <div className="flex items-center gap-sm">
+                                                        <div className="w-6 h-6 bg-accent-default rounded-full flex items-center justify-center">
+                                                            <FaLightbulb className="text-white text-xs" />
+                                                        </div>
+                                                        <Heading level="h6" className="text-accent-default">Learning Your Taste</Heading>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            clearTaste();
+                                                            showToast('Taste profile cleared');
+                                                        }}
+                                                        className="text-para-xs text-text-tertiary hover:text-accent-default transition-colors"
+                                                    >
+                                                        Reset
+                                                    </button>
+                                                </div>
+
+                                                <div className="space-y-xs">
+                                                    <Para size="xs" color="secondary">
+                                                        {Object.values(profile).filter((v: any) => v > 0).length} likes • {Object.values(profile).filter((v: any) => v < 0).length} dislikes
+                                                    </Para>
+
+                                                    {/* Top 2 preferences */}
+                                                    <div className="flex flex-wrap gap-xs">
+                                                        {Object.entries(profile)
+                                                            .filter(([_, value]: [string, any]) => value > 0)
+                                                            .sort(([, a]: [string, any], [, b]: [string, any]) => b - a)
+                                                            .slice(0, 2)
+                                                            .map(([key, value]: [string, any]) => (
+                                                                <div key={key} className="px-xs py-1 bg-accent-subtle text-accent-default rounded text-para-xs">
+                                                                    {key.replace('_', ' ')} +{value}
+                                                                </div>
+                                                            ))
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+
+                                        {/* Chat Panel - Takes remaining space */}
+                                        <div className="flex-1 min-h-0">
+                                            <ChatPanel context={chatContext} />
+                                        </div>
                                     </div>
-                                </motion.div>
-                            )}
-                        </div>
+                                </aside>
 
-                        {/* Fixed Components */}
-                        <LayoutPlan
-                            sections={layoutPlan}
-                            onUpdateSections={handleUpdateLayoutPlan}
-                        />
-                        <ChatPanel context={chatContext} />
+
+                                {/* Right Scrollable Column for Sections */}
+                                <div className="lg:col-span-3 h-full overflow-y-auto custom-scrollbar py-lg">
+                                    <div className="flex flex-col gap-lg">
+                                        {scrapedData.sections.map((section) => (
+                                            <SectionCard
+                                                key={section.id}
+                                                section={section}
+                                                isDesignerMode={isDesignerMode}
+                                                onFeedback={(feedback) => handleSectionFeedback(section.id, feedback)}
+                                                feedback={userFeedback[section.id] || null}
+                                                onAddToLayout={handleAddToLayout}
+                                                updateTaste={updateTaste}
+                                                openChat={openChat}
+                                            />
+                                        ))}
+                                        {isFeedbackComplete && !isDesignerMode && (
+                                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-lg text-center">
+                                                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl sm:rounded-2xl p-lg sm:p-xl text-white max-w-2xl mx-auto">
+                                                    <Heading level="h3" color="light" align="center" className="mb-sm sm:mb-md">Your taste profile is building!</Heading>
+                                                    <Para size="lg" color="light" align="center" className="mb-md sm:mb-lg opacity-90">We've learned what you like. Ready to see more personalized suggestions?</Para>
+                                                    <button className="bg-white text-indigo-600 px-lg sm:px-xl py-sm sm:py-md rounded-lg sm:rounded-xl font-semibold hover:bg-gray-100 transition-colors">Explore Component Library</button>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                        {/* ChatPanel for Mobile View - Appears as a regular component in the flow */}
+                                        <div className="lg:hidden">
+                                            <ChatPanel context={chatContext} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </main>
+
+                        <LayoutPlan sections={layoutPlan} onUpdateSections={handleUpdateLayoutPlan} />
                     </motion.div>
                 )}
             </AnimatePresence>

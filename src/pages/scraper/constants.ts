@@ -294,7 +294,7 @@ export const mockSuggestions = {
             layout_structure: 'centered-content',
             intent: 'convert',
             tone: 'minimal',
-            preview: vibesImages[2].src,
+            screenshot_url: vibesImages[2].src,
             metadata: {
                 insight: "Centered hero focuses attention on a single message"
             }
@@ -305,7 +305,7 @@ export const mockSuggestions = {
             layout_structure: 'full-width-image',
             intent: 'inspire',
             tone: 'bold',
-            preview: vibesImages[0].src,
+            screenshot_url: vibesImages[0].src,
             metadata: {
                 insight: "Full-width imagery creates immediate visual impact"
             }
@@ -316,7 +316,7 @@ export const mockSuggestions = {
             layout_structure: 'asymmetric',
             intent: 'engage',
             tone: 'playful',
-            preview: vibesImages[3].src,
+            screenshot_url: vibesImages[3].src,
             metadata: {
                 insight: "Asymmetric layouts add visual interest and modernity"
             }
@@ -329,7 +329,7 @@ export const mockSuggestions = {
             layout_structure: 'two-column-alternating',
             intent: 'educate',
             tone: 'clean',
-            preview: vibesImages[4].src,
+            screenshot_url: vibesImages[4].src,
             metadata: {
                 insight: "Alternating layout creates visual rhythm"
             }
@@ -340,7 +340,7 @@ export const mockSuggestions = {
             layout_structure: 'single-column-cards',
             intent: 'inform',
             tone: 'minimal',
-            preview: vibesImages[2].src,
+            screenshot_url: vibesImages[2].src,
             metadata: {
                 insight: "Single column improves mobile experience"
             }
@@ -358,7 +358,7 @@ export const layoutGenerationTemplates = {
                 layout_structure: 'split-content',
                 intent: 'build-trust',
                 tone: 'professional',
-                preview: vibesImages[7].src,
+                screenshot_url: vibesImages[7].src,
                 metadata: {
                     insight: "Financial services need trust-building hero sections"
                 }
@@ -369,7 +369,7 @@ export const layoutGenerationTemplates = {
                 layout_structure: 'icon-grid',
                 intent: 'educate',
                 tone: 'trustworthy',
-                preview: vibesImages[5].src,
+                screenshot_url: vibesImages[5].src,
                 metadata: {
                     insight: "Icon grids help explain complex financial features"
                 }
@@ -380,7 +380,7 @@ export const layoutGenerationTemplates = {
                 layout_structure: 'carousel',
                 intent: 'build-trust',
                 tone: 'authentic',
-                preview: vibesImages[6].src,
+                screenshot_url: vibesImages[6].src,
                 metadata: {
                     insight: "Social proof is crucial for financial services"
                 }
@@ -395,7 +395,7 @@ export const layoutGenerationTemplates = {
                 layout_structure: 'centered-with-demo',
                 intent: 'convert',
                 tone: 'modern',
-                preview: vibesImages[1].src,
+                screenshot_url: vibesImages[1].src,
                 metadata: {
                     insight: "SaaS products benefit from showing the product early"
                 }
@@ -406,7 +406,7 @@ export const layoutGenerationTemplates = {
                 layout_structure: 'three-column-benefits',
                 intent: 'educate',
                 tone: 'innovative',
-                preview: vibesImages[0].src,
+                screenshot_url: vibesImages[0].src,
                 metadata: {
                     insight: "Highlight key benefits in digestible chunks"
                 }
@@ -421,7 +421,7 @@ export const layoutGenerationTemplates = {
                 layout_structure: 'classic',
                 intent: 'engage',
                 tone: 'welcoming',
-                preview: vibesImages[4].src,
+                screenshot_url: vibesImages[4].src,
                 metadata: {
                     insight: "Classic hero layout works for most businesses"
                 }
@@ -432,7 +432,7 @@ export const layoutGenerationTemplates = {
                 layout_structure: 'side-by-side',
                 intent: 'inform',
                 tone: 'friendly',
-                preview: vibesImages[3].src,
+                screenshot_url: vibesImages[3].src,
                 metadata: {
                     insight: "Tell your story with visuals and text"
                 }
