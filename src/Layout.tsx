@@ -1,20 +1,17 @@
 import { Route, Routes } from "react-router-dom"
-import TestPreview from "@/pages/TestPreview"
 import AuthLayout from "@/components/auth/layouts/AuthLayout"
 import OnboardingForm from "@/components/intake-form/OnboardingForm"
 import OnboardComplete from "@/components/onboard-completed/OnboardComplete"
 import IntakeForm from "@/components/intake-form/IntakeForm"
 import { ROUTES } from "@/routes/routes.ts"
 import DashboardRoutes from "@/dashboards/DasHboardRoutes"
-import ScrollToTop from "@/comman-components/ScrollToTop"
 import ProtectedRoute from "@/routes/ProtectedRoutes"
+import DemoPage from "./pages/DemoPage"
+import ScraperIntelligencePage from "./pages/scraper/ScraperIntelligencePage"
 
 const Layout = () => {
     return (
         <main>
-            {/* <div className="fixed top-5 right-5 z-50">
-                <ThemeToggle />
-            </div> */}
             <Routes>
                 <Route path={ROUTES.HOME} element={<DemoPage />} />
                 <Route path={`${ROUTES.AUTH}/*`} element={<AuthLayout variant="split" />} />
@@ -24,6 +21,7 @@ const Layout = () => {
                     <Route path={ROUTES.ONBOARDING} element={<OnboardingForm />} />
                     <Route path={`${ROUTES.DASHBOARD}/*`} element={<DashboardRoutes />} />
                 </Route>
+                <Route path={ROUTES.SCRAPER} element={<ScraperIntelligencePage />} />
             </Routes>
         </main>
     )
