@@ -1,10 +1,11 @@
-// src/scraper/components/SuggestionsCarousel.tsx - FIXED for images
+// src/scraper/components/SuggestionsCarousel.tsx - Enhanced with better header and tooltips
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaCheck, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaCheck, FaChevronLeft, FaChevronRight, FaInfoCircle } from 'react-icons/fa';
 import { mockSuggestions } from '../constants';
 import Para from '../../../comman-components/Para';
+import Heading from '../../../components/demos/typography/Heading';
 
 interface Suggestion {
     id: string;
@@ -12,7 +13,7 @@ interface Suggestion {
     layout_structure: string;
     intent: string;
     tone: string;
-    screenshot_url: string; // ✅ Fixed: was 'preview'
+    screenshot_url: string;
     metadata: {
         insight: string;
     };
@@ -27,6 +28,7 @@ const SuggestionsCarousel = ({ sectionId, onUseSection }: SuggestionsCarouselPro
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
     useEffect(() => {
         setIsLoading(true);
@@ -75,37 +77,46 @@ const SuggestionsCarousel = ({ sectionId, onUseSection }: SuggestionsCarouselPro
             animate={{ opacity: 1, y: 0 }}
             className="mt-md"
         >
-            {/* Header with Navigation */}
-            <div className="flex items-center justify-between mb-sm">
-                <Para size="sm" color="secondary">
-                    Try these alternatives:
-                </Para>
-                {suggestions.length > 2 && (
-                    <div className="flex gap-xs">
-                        <button
-                            onClick={handlePrevious}
-                            disabled={!canGoPrev}
-                            className={`p-2 rounded-lg transition-colors ${
-                                !canGoPrev 
-                                    ? 'text-text-tertiary cursor-not-allowed' 
-                                    : 'text-text-secondary hover:bg-background-secondary hover:text-text-primary'
-                            }`}
-                        >
-                            <FaChevronLeft className="text-icon-sm" />
-                        </button>
-                        <button
-                            onClick={handleNext}
-                            disabled={!canGoNext}
-                            className={`p-2 rounded-lg transition-colors ${
-                                !canGoNext 
-                                    ? 'text-text-tertiary cursor-not-allowed' 
-                                    : 'text-text-secondary hover:bg-background-secondary hover:text-text-primary'
-                            }`}
-                        >
-                            <FaChevronRight className="text-icon-sm" />
-                        </button>
-                    </div>
-                )}
+            {/* ✅ UPDATED: Enhanced header with better copy */}
+            <div className="mb-md">
+                <Heading level="h6" className="mb-sm">
+                    Didn't love that one? Try these instead.
+                </Heading>
+                <div className="flex items-center justify-between">
+                    <Para size="sm" color="secondary">
+                        Matched by layout and style preferences
+                    </Para>
+                    {suggestions.length > 2 && (
+                        <div className="flex gap-xs">
+                            <motion.button
+                                onClick={handlePrevious}
+                                disabled={!canGoPrev}
+                                whileHover={canGoPrev ? { scale: 1.1 } : {}}
+                                whileTap={canGoPrev ? { scale: 0.9 } : {}}
+                                className={`p-2 rounded-lg transition-colors ${
+                                    !canGoPrev 
+                                        ? 'text-text-tertiary cursor-not-allowed' 
+                                        : 'text-text-secondary hover:bg-background-secondary hover:text-text-primary'
+                                }`}
+                            >
+                                <FaChevronLeft className="text-icon-sm" />
+                            </motion.button>
+                            <motion.button
+                                onClick={handleNext}
+                                disabled={!canGoNext}
+                                whileHover={canGoNext ? { scale: 1.1 } : {}}
+                                whileTap={canGoNext ? { scale: 0.9 } : {}}
+                                className={`p-2 rounded-lg transition-colors ${
+                                    !canGoNext 
+                                        ? 'text-text-tertiary cursor-not-allowed' 
+                                        : 'text-text-secondary hover:bg-background-secondary hover:text-text-primary'
+                                }`}
+                            >
+                                <FaChevronRight className="text-icon-sm" />
+                            </motion.button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Cards Container */}
@@ -121,14 +132,16 @@ const SuggestionsCarousel = ({ sectionId, onUseSection }: SuggestionsCarouselPro
                         <motion.div
                             key={suggestion.id}
                             transition={{ delay: index * 0.1 }}
-                            className="bg-background-primary border border-border-default rounded-xl overflow-hidden hover:shadow-lg transition-all"
+                            onMouseEnter={() => setHoveredCard(suggestion.id)}
+                            onMouseLeave={() => setHoveredCard(null)}
+                            className="bg-background-primary border border-border-default rounded-xl overflow-hidden hover:shadow-lg transition-all relative group"
                         >
-                            {/* Preview Image - FIXED */}
+                            {/* Preview Image */}
                             <div className="h-24 sm:h-32 bg-background-muted relative overflow-hidden">
                                 <img
-                                    src={suggestion.screenshot_url} // ✅ Fixed: was suggestion.preview
+                                    src={suggestion.screenshot_url}
                                     alt={`${suggestion.section_type} preview`}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
                                 />
                                 <div className="absolute top-2 left-2">
                                     <span className="bg-background-dark/90 text-text-light px-xs py-1 rounded text-para-xs">
@@ -140,17 +153,37 @@ const SuggestionsCarousel = ({ sectionId, onUseSection }: SuggestionsCarouselPro
                                         {suggestion.section_type}
                                     </span>
                                 </div>
+
+                                {/* ✅ UPDATED: Tooltip on hover */}
+                                {hoveredCard === suggestion.id && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="absolute bottom-2 left-2 right-2 bg-black/80 text-white p-xs rounded text-para-xs backdrop-blur-sm"
+                                    >
+                                        <div className="flex items-center gap-xs">
+                                            <FaInfoCircle className="text-xs" />
+                                            <span>Matched by layout: {suggestion.layout_structure} · tone: {suggestion.tone}</span>
+                                        </div>
+                                    </motion.div>
+                                )}
                             </div>
 
                             {/* Content */}
                             <div className="p-sm">
                                 <div className="flex flex-wrap gap-xs mb-sm">
-                                    <span className="px-xs py-1 bg-background-secondary rounded text-para-xs text-text-secondary">
+                                    <motion.span 
+                                        whileHover={{ scale: 1.05 }}
+                                        className="px-xs py-1 bg-background-secondary rounded text-para-xs text-text-secondary hover:bg-accent-subtle hover:text-accent-default transition-colors cursor-pointer"
+                                    >
                                         {suggestion.intent}
-                                    </span>
-                                    <span className="px-xs py-1 bg-background-secondary rounded text-para-xs text-text-secondary">
+                                    </motion.span>
+                                    <motion.span 
+                                        whileHover={{ scale: 1.05 }}
+                                        className="px-xs py-1 bg-background-secondary rounded text-para-xs text-text-secondary hover:bg-accent-subtle hover:text-accent-default transition-colors cursor-pointer"
+                                    >
                                         {suggestion.tone}
-                                    </span>
+                                    </motion.span>
                                 </div>
                                 
                                 <Para size="xs" color="secondary" className="line-clamp-2 mb-sm leading-relaxed">
@@ -158,13 +191,15 @@ const SuggestionsCarousel = ({ sectionId, onUseSection }: SuggestionsCarouselPro
                                 </Para>
 
                                 {/* Use Button */}
-                                <button
+                                <motion.button
                                     onClick={() => onUseSection(suggestion)}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
                                     className="w-full bg-accent-default text-accent-foreground py-xs sm:py-sm rounded-lg text-para-xs sm:text-para-sm font-medium hover:bg-accent-hover transition-all flex items-center justify-center gap-xs"
                                 >
                                     <FaCheck className="text-xs" />
                                     Use This
-                                </button>
+                                </motion.button>
                             </div>
                         </motion.div>
                     ))}
@@ -175,9 +210,11 @@ const SuggestionsCarousel = ({ sectionId, onUseSection }: SuggestionsCarouselPro
             {suggestions.length > 2 && (
                 <div className="flex justify-center gap-xs mt-md">
                     {Array.from({ length: Math.ceil(suggestions.length / 2) }).map((_, index) => (
-                        <button
+                        <motion.button
                             key={index}
-                            onClick={() => setCurrentIndex(index)}
+                            onClick={() => setCurrentIndex(index * 2)}
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.9 }}
                             className={`h-2 rounded-full transition-all ${
                                 Math.floor(currentIndex / 2) === index
                                     ? 'bg-accent-default w-6'
@@ -187,6 +224,16 @@ const SuggestionsCarousel = ({ sectionId, onUseSection }: SuggestionsCarouselPro
                     ))}
                 </div>
             )}
+
+            {/* ✅ UPDATED: Additional info section */}
+            <div className="mt-md p-sm bg-background-secondary rounded-lg border border-border-default">
+                <div className="flex items-center gap-sm">
+                    <FaInfoCircle className="text-accent-default text-icon-sm" />
+                    <Para size="xs" color="secondary">
+                        These alternatives match your layout preferences and maintain similar functionality
+                    </Para>
+                </div>
+            </div>
         </motion.div>
     );
 };
