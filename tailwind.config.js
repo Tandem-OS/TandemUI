@@ -25,7 +25,9 @@ module.exports = {
           "700": "#1d4ed8",
           "800": "#1e40af",
           "900": "#1e3a8a",
-          "950": "#172554"
+          "950": "#172554",
+          "navy": "#15234E",
+          "violet": "#4D43E4"
         },
         "gray": {
           "50": "#f9fafb",
@@ -202,6 +204,7 @@ module.exports = {
           "primary-2": "rgb(var(--background-primary-2) / <alpha-value>)",
           "secondary": "rgb(var(--background-secondary) / <alpha-value>)",
           "secondary-2": "rgb(var(--background-secondary-2) / <alpha-value>)",
+          "primary-3": "rgb(var(--background-primary-3) / <alpha-value>)",
           "muted": "rgb(var(--background-muted) / <alpha-value>)",
           "accent": "rgb(var(--background-accent) / <alpha-value>)",
           "success": "rgb(var(--background-success) / <alpha-value>)",

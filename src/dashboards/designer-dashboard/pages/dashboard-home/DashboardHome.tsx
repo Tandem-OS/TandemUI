@@ -2,10 +2,11 @@ import React, { type ReactNode, useState } from 'react';
 import { RiArrowRightLine, RiLockLine, RiCheckLine } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
 import { mockDashboardData } from '../../../../mock-data/designer-dash-home.mock.';
-import ProgressRing from '../../../../comman-components/ProgressRing';
-import ColorPicker from '../../../../comman-components/ColorPicker';
+// import ProgressRing from '../../../../comman-components/ProgressRing';
+// import ColorPicker from '../../../../comman-components/ColorPicker';
 import { type AccentColor } from '../../../../types/component.types';
-import Heading from '../../../../components/demos/typography/Heading';
+import { FaArrowTrendUp } from "react-icons/fa6";
+import { BsTags } from "react-icons/bs";
 
 type PaddingSize = "sm" | "md" | "lg";
 
@@ -247,20 +248,6 @@ const DashboardHome: React.FC = () => {
   return (
     <div className="min-h-screen">
       <div className="space-y-xl">
-        {/* Welcome Header - Left Aligned, Minimal Spacing */}
-        <motion.div
-          className="text-left pb-sm"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <Heading level="h3">
-            Welcome back, John ✨
-          </Heading>
-          <p className="text-text-secondary">
-            Your creative projects are progressing beautifully
-          </p>
-        </motion.div>
 
         {/* Top 3 Cards - Accent colors with opacity, fixed alignment */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-lg">
@@ -275,29 +262,32 @@ const DashboardHome: React.FC = () => {
             transition={{ duration: 0.4, delay: 0.1 }}
             className="h-full"
           >
-            <Card
-              bgColor={colors.light}
-              className={`${colors.border} h-full flex flex-col items-center justify-between`}
-              padding="md"
-            >
-              {/* Metric in Center */}
-              <div className="flex-1 flex items-end justify-center">
-                <ProgressRing
-                  percentage={data.metrics.progressPercentage}
-                  color={colors.hex}
-                />
+            <div className="relative bg-background-primary dark:bg-background-dark rounded-2xl p-6 shadow-md flex flex-col justify-between h-full">
+              {/* Floating Tag */}
+              <div className="absolute top-4 left-4 flex gap-2">
+                {/* Tag Icon */}
+                <div className="bg-background-secondary-2 p-2 rounded-full flex items-center justify-center text-text-secondary dark:text-lightSecondary">
+                  <BsTags />
+                </div>
+
+                {/* Growth Indicator */}
+                <div className="bg-background-secondary-2 text-success dark:text-success text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2">
+                  <span className="text-success dark:text-success"><FaArrowTrendUp /></span>
+                  4.43%
+                </div>
               </div>
 
-              {/* Bottom Text */}
-              <div className="w-full text-center py-md">
-                <h3 className="text-h3-sm font-bold text-text-primary">
-                  Overall Progress
-                </h3>
-                <p className="text-para-sm text-text-secondary">
-                  Across all projects
-                </p>
+              {/* Content */}
+              <div className="mt-12">
+                <h3 className="text-4xl font-bold text-text-primary">73%</h3>
+                <p className="text-para-sm text-text-secondary mt-1">Across all projects</p>
               </div>
-            </Card>
+
+              {/* Arrow Button */}
+              <div className="absolute right-4 bottom-4 w-10 h-10 bg-background-secondary-2 p-2 rounded-full flex items-center justify-center">
+                <span className="text-text-secondary inline-block rotate-[-45deg]">→</span>
+              </div>
+            </div>
           </motion.div>
 
           {/* Average Time Card */}
@@ -311,36 +301,29 @@ const DashboardHome: React.FC = () => {
             }}
             className="h-full"
           >
-            <Card
-              bgColor={colors.light}
-              className={`${colors.border} h-full flex flex-col items-center justify-between`}
-              padding="md"
-            >
-              {/* Metric in Center */}
-              <div className="flex-1 flex items-end justify-center leading-none">
-                <motion.div
-                  className={`text-icon-2xl font-bold ${colors.text}`}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.3, duration: 0.3 }}
-                >
-                  {data.metrics.avgCompletionTime}
-                  <span className="text-h5-sm font-medium text-text-secondary ml-xs">
-                    days
-                  </span>
-                </motion.div>
+            <div className="relative bg-white rounded-2xl p-6 shadow-md flex flex-col justify-between h-full">
+              {/* Floating Tag */}
+              <div className="absolute top-4 left-4 flex  gap-2">
+                <div className="bg-background-secondary-2 text-gray-600 p-2 rounded-full flex items-center justify-center">
+                  <BsTags />
+                </div>
+                <div className="bg-background-secondary-2 text-green-600 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2">
+                  <span className="text-green-500"><FaArrowTrendUp /></span>
+                  23% faster this month
+                </div>
               </div>
 
-              {/* Bottom Text */}
-              <div className="w-full text-center py-md">
-                <h3 className="text-h3-sm font-bold text-text-primary">
-                  Average Time
-                </h3>
-                <p className="text-para-sm text-text-secondary">
-                  23% faster this month
-                </p>
+              {/* Content */}
+              <div className="mt-12">
+                <h3 className="text-4xl font-bold text-gray-800">4.2 days</h3>
+                <p className="text-gray-500 text-sm mt-1">Average Time</p>
               </div>
-            </Card>
+
+              {/* Arrow Button */}
+              <div className="absolute right-4 bottom-4 w-10 h-10 bg-background-secondary-2 p-2 rounded-full flex items-center justify-center">
+                <span className="text-gray-500 inline-block rotate-[-45deg]">→</span>
+              </div>
+            </div>
           </motion.div>
 
           {/* Conversion Rate Card */}
@@ -354,34 +337,33 @@ const DashboardHome: React.FC = () => {
             }}
             className="h-full"
           >
-            <Card
-              bgColor={colors.light}
-              className={`${colors.border} h-full flex flex-col items-center justify-between`}
-              padding="md"
+            <div
+              className="relative bg-card-gradient text-white rounded-2xl p-6 shadow-md flex flex-col justify-between h-full bg-[linear-gradient(180deg,_#4D43E4_26.44%,_rgba(132,_125,_236,_0.689189)_99.99%,_rgba(255,_255,_255,_0)_100%)]"
+
             >
-              {/* Metric in Center */}
-              <div className="flex-1 flex items-end justify-center leading-none">
-                <motion.div
-                  className={`text-icon-2xl font-bold ${colors.text}`}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4, duration: 0.3 }}
-                >
-                  {data.metrics.conversionRate.percentage}%
-                </motion.div>
+              {/* Floating Tag */}
+              <div className="absolute top-4 left-4 flex  gap-2">
+                <div className="bg-background-secondary-2 text-blue-violet p-2 rounded-full flex items-center justify-center">
+                  <BsTags />
+                </div>
+                <div className="bg-background-secondary-2 text-blue-violet text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2">
+                  <FaArrowTrendUp />
+                  23% faster this month
+                </div>
               </div>
 
-              {/* Bottom Text */}
-              <div className="w-full text-center py-md">
-                <h3 className="text-h3-sm font-bold text-text-primary">
-                  Conversion Rate
-                </h3>
-                <p className="text-para-sm text-text-secondary">
-                  {data.metrics.conversionRate.clientsOnboarded} clients converted
-                </p>
+              {/* Content */}
+              <div className="mt-12">
+                <h3 className="text-4xl font-bold">71%</h3>
+                <p className="text-white/80 text-sm mt-1">Conversion Rate</p>
               </div>
-            </Card>
+
+              <div className="absolute right-4 bottom-4 w-10 h-10 bg-transparent border p-2 rounded-full flex items-center justify-center">
+                <span className="text-white gray-500 inline-block rotate-[-45deg]">→</span>
+              </div>
+            </div>
           </motion.div>
+
         </div>
 
         {/* Current Projects Section */}
@@ -634,11 +616,11 @@ const DashboardHome: React.FC = () => {
             <RiArrowRightLine className="w-4 h-4" />
           </motion.a>
         </motion.div>
-      </div>
+      </div >
 
       {/* Fixed Color Picker - Top Right Position */}
-      <ColorPicker accentColor={accentColor} setAccentColor={setAccentColor} />
-    </div>
+      {/* < ColorPicker accentColor={accentColor} setAccentColor={setAccentColor} /> */}
+    </div >
   );
 };
 

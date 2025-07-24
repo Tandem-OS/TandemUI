@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-    RiArrowDownSLine,
     RiUserLine,
     RiMenuLine,
     RiSettings3Line,
@@ -12,9 +11,10 @@ import {
 import Dropdown from '../../../comman-components/Dropdown';
 import ThemeToggle from '../../../components/theme-toggle/ThemeToggle';
 import { handleLogout } from '../../../lib/requests/AuthRequest';
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
-import { useNavigate } from 'react-router-dom';
+import { CiSearch } from "react-icons/ci";
 
 interface DesignerDashTopbarProps {
     onMenuClick: () => void;
@@ -63,11 +63,11 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
     ];
 
     return (
-        <header className="bg-background-primary-2 border-b border-border-default px-md lg:pr-xl lg:pl-md py-sm">
+        <header className="bg-background-secondary-2 border-border-default px-md lg:pr-xl lg:pl-md py-sm">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-md">
                     {/* Desktop Sidebar Toggle - only show when collapsed */}
-                    <button
+                    {/* <button
                         onClick={onToggleSidebar}
                         className="hidden lg:block p-sm rounded-lg hover:bg-background-muted transition-colors"
                     >
@@ -77,7 +77,11 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
                                 :
                                 <RiMenuFoldLine className="text-h4-sm text-text-secondary" />
                         }
-                    </button>
+                    </button> */}
+                    <div className="text-xl lg:text-2xl font-semibold text-gray-800 dark:text-gray-100">
+                        Good Morning, {designerName}
+                    </div>
+
 
                     {/* Mobile Menu Button */}
                     <button
@@ -89,9 +93,14 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
                 </div>
 
                 <div className="flex items-center gap-sm lg:gap-md">
-                    {/* Theme Toggle */}
 
-                    <ThemeToggle />
+                    <div className="w-8 h-8 lg:w-10 lg:h-10 bg-white rounded-full overflow-hidden shadow-sm flex items-center justify-center">
+                        <CiSearch />
+                    </div>
+                    {/* Theme Toggle */}
+                    <div className="w-8 h-8 lg:w-10 lg:h-10 bg-white rounded-full overflow-hidden shadow-sm flex items-center justify-center">
+                        <ThemeToggle />
+                    </div>
 
                     {/* User Dropdown */}
                     <Dropdown
@@ -118,10 +127,6 @@ const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
                                         <RiUserLine className="text-h6-sm lg:text-h5-sm text-text-secondary" />
                                     </div>
                                 </div>
-                                <span className="hidden lg:block text-para-sm font-medium text-text-primary">
-                                    {designerName}
-                                </span>
-                                <RiArrowDownSLine className="text-h5-sm text-text-tertiary" />
                             </div>
                         }
                         items={userMenuItems}

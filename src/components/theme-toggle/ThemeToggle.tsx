@@ -1,4 +1,5 @@
 import { FaSun, FaMoon } from 'react-icons/fa';
+import { IoMoonOutline } from "react-icons/io5";
 import { useTheme } from '@/contexts/ThemeContext';
 
 const ThemeToggle = () => {
@@ -11,7 +12,7 @@ const ThemeToggle = () => {
             aria-label="Toggle theme"
         >
             {theme === 'light' ? (
-                <FaMoon className="text-para-lg leading-none" />
+                <IoMoonOutline className="text-para-lg leading-none" />
             ) : (
                 <FaSun className="text-para-lg leading-none" />
             )}

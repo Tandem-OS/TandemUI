@@ -7,6 +7,7 @@ import Dropdown from '../../../../comman-components/Dropdown';
 import SearchBox from '../../../../comman-components/SearchBox';
 import { getAllProjectsByDesignerEmail } from '@/lib/requests/ProjectRequest';
 import type { Project } from '@/types/project.type';
+import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 
 type FilterType = 'all' | 'in-progress' | 'completed';
 type SortType = 'recent' | 'progress' | 'name' | 'designer';
@@ -191,7 +192,7 @@ const MyProject: React.FC = () => {
     return (
         <>
             {state.isLoading ?
-                <div>Loading</div> :
+                <GlobalSpinner />:
                 <div className="min-h-screen">
                     <div className="container mx-auto px-md sm:px-lg lg:px-xl py-lg sm:py-xl lg:py-2xl">
                         {/* Header */}
