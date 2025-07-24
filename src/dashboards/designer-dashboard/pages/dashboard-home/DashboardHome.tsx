@@ -2,10 +2,9 @@ import React, { type ReactNode, useState } from 'react';
 import { RiArrowRightLine, RiLockLine, RiCheckLine } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
 import { mockDashboardData } from '../../../../mock-data/designer-dash-home.mock.';
-import ProgressRing from '../../../../comman-components/ProgressRing';
-import ColorPicker from '../../../../comman-components/ColorPicker';
+// import ProgressRing from '../../../../comman-components/ProgressRing';
+// import ColorPicker from '../../../../comman-components/ColorPicker';
 import { type AccentColor } from '../../../../types/component.types';
-import Heading from '../../../../components/demos/typography/Heading';
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { BsTags } from "react-icons/bs";
 
