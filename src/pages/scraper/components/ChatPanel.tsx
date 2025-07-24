@@ -24,7 +24,6 @@ const useMediaQuery = (query: string) => {
     return matches;
 };
 
-
 interface ChatMessage {
     id: string;
     type: 'user' | 'assistant';
@@ -42,7 +41,7 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
         {
             id: '1',
             type: 'assistant',
-            message: 'Hi! I can help you understand design decisions and suggest improvements. What would you like to know?',
+            message: "Ask me anything about this layout. I'll explain or improve it.",
             timestamp: new Date()
         }
     ]);
@@ -90,12 +89,23 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
         setMessages(prev => [...prev, userMessage]);
         setInputValue('');
 
-        let response = 'I understand your question. ';
-        Object.keys(mockChatResponses).forEach(key => {
-            if (message.toLowerCase().includes(key.toLowerCase())) {
-                response = mockChatResponses[key as keyof typeof mockChatResponses];
-            }
-        });
+        let response = "Got it — here's a breakdown...";
+        
+        const lowerMessage = message.toLowerCase();
+        
+        if (lowerMessage.includes('why') && lowerMessage.includes('work')) {
+            response = mockChatResponses["Why does this layout work?"];
+        } else if (lowerMessage.includes('clean') || lowerMessage.includes('refine')) {
+            response = "Try this instead: reduce the number of elements, increase whitespace, use a more limited color palette, and ensure consistent alignment throughout.";
+        } else if (lowerMessage.includes('dark mode')) {
+            response = "For dark mode: use darker backgrounds (#0f172a), lighter text (#f1f5f9), reduce contrast slightly for comfort, and ensure sufficient color contrast ratios for accessibility.";
+        } else {
+            Object.keys(mockChatResponses).forEach(key => {
+                if (lowerMessage.includes(key.toLowerCase().split(' ')[0])) {
+                    response = mockChatResponses[key as keyof typeof mockChatResponses];
+                }
+            });
+        }
 
         if (context?.context?.metadata) {
             const metadata = context.context.metadata;
@@ -113,25 +123,32 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
     };
 
     const ChatInterface = (
-        <div className="h-full w-full bg-background-primary rounded-2xl shadow-md border border-border-default flex flex-col">
+        <div className="h-full w-full bg-background-primary-2 rounded-2xl shadow-md border border-border-default flex flex-col">
             {/* Header */}
             <div className="p-md border-b border-border-default flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-sm">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-subtle rounded-full flex items-center justify-center">
+                    <motion.div 
+                        className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-subtle rounded-full flex items-center justify-center will-change-transform"
+                        whileHover={{ scale: 1.1 }}
+                        transition={{ type: "spring", stiffness: 400 }}
+                    >
                         <FaComments className="text-accent-default text-icon-sm sm:text-icon-md" />
-                    </div>
+                    </motion.div>
                     <div>
                         <Heading level="h6" className="text-base sm:text-lg">Design Assistant</Heading>
                         <Para size="xs" color="secondary">Ask me anything</Para>
                     </div>
                 </div>
                 {!isDesktop && (
-                     <button
+                     <motion.button
                         onClick={() => setIsOpen(false)}
-                        className="p-2 hover:bg-background-secondary rounded-lg transition-colors"
+                        whileHover={{ scale: 1.1, backgroundColor: 'var(--background-secondary)' }}
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ duration: 0.2 }}
+                        className="p-2 rounded-lg will-change-transform"
                     >
                         <FaTimes className="text-text-secondary" />
-                    </button>
+                    </motion.button>
                 )}
             </div>
 
@@ -144,17 +161,18 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                         animate={{ opacity: 1, y: 0 }}
                         className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                        <div
-                            className={`max-w-[85%] sm:max-w-[80%] p-sm rounded-xl ${message.type === 'user'
+                        <motion.div
+                            transition={{ duration: 0.2 }}
+                            className={`max-w-[85%] sm:max-w-[80%] p-sm rounded-xl will-change-transform ${message.type === 'user'
                                     ? 'bg-accent-default text-white'
-                                    : 'bg-background-secondary text-text-primary'
+                                    : 'bg-background-secondary-2 text-text-primary'
                                 }`}
                         >
                             <Para size="sm" className={message.type === 'user' ? '!text-white' : ''}>{message.message}</Para>
                             <Para size="xs" className={`mt-xs opacity-70 ${message.type === 'user' ? '!text-white' : ''}`}>
                                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Para>
-                        </div>
+                        </motion.div>
                     </motion.div>
                 ))}
 
@@ -176,13 +194,17 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
             <div className="p-sm border-t border-border-default">
                 <div className="flex gap-xs overflow-x-auto scrollbar-hide">
                     {chatPrompts.slice(0, 3).map((prompt, index) => (
-                        <button
+                        <motion.button
                             key={index}
                             onClick={() => handleSendMessage(prompt)}
+                            // ✅ FIX: Removed scale from whileHover as requested. 
+                            // Letting CSS handle the background/border color change on hover.
+                            whileHover={{}}
+                            whileTap={{ scale: 0.95 }}
                             className="flex-shrink-0 text-para-xs px-sm py-xs bg-background-secondary border border-border-default rounded-lg hover:border-accent-default hover:bg-accent-subtle transition-colors whitespace-nowrap"
                         >
                             {prompt}
-                        </button>
+                        </motion.button>
                     ))}
                 </div>
             </div>
@@ -199,14 +221,18 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="Type your message..."
                         className="flex-1 px-sm sm:px-md py-sm bg-background-secondary border border-border-default rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-default transition-colors text-para-sm"
+                        autoFocus
                     />
-                    <button
+                    <motion.button
                         type="submit"
                         disabled={!inputValue.trim()}
-                        className="p-sm bg-accent-default text-accent-foreground rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        whileHover={inputValue.trim() ? { scale: 1.05, backgroundColor: 'var(--accent-hover)' } : {}}
+                        whileTap={inputValue.trim() ? { scale: 0.95 } : {}}
+                        transition={{ duration: 0.2 }}
+                        className="p-sm bg-accent-default text-accent-foreground rounded-lg disabled:opacity-50 disabled:cursor-not-allowed will-change-transform"
                     >
                         <FaPaperPlane className="text-icon-sm" />
-                    </button>
+                    </motion.button>
                 </form>
             </div>
         </div>
@@ -225,10 +251,11 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
-                        whileHover={{ scale: 1.1 }}
+                        whileHover={{ scale: 1.1, backgroundColor: 'var(--accent-hover)' }}
                         whileTap={{ scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
                         onClick={() => setIsOpen(true)}
-                        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 bg-accent-default text-accent-foreground rounded-full shadow-xl flex items-center justify-center hover:bg-accent-hover transition-colors z-[100]"
+                        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 bg-accent-default text-accent-foreground rounded-full shadow-xl flex items-center justify-center z-[100] will-change-transform"
                     >
                         <FaComments className="text-icon-md sm:text-icon-lg" />
                     </motion.button>

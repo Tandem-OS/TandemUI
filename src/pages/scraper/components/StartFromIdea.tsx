@@ -57,14 +57,25 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
 
     return (
         <>
-            {/* UPDATED: Trigger Button is now a simple outline button with an icon */}
+            {/* ✅ UPDATED: Enhanced trigger button with hover/press feedback */}
             <motion.button
+                whileHover={{
+                    scale: 1.05,
+                    boxShadow: "0 4px 15px -3px rgba(99, 102, 241, 0.3)"
+                }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(true)}
-                className="bg-background-secondary border border-border-default text-text-primary px-md sm:px-lg py-sm sm:py-md rounded-lg sm:rounded-xl font-medium hover:border-accent-default hover:bg-accent-subtle transition-all flex items-center gap-xs sm:gap-sm text-para-sm sm:text-para-md"
+                // REMOVED 'transition-all', ADDED 'will-change-transform'
+                className="bg-background-secondary border border-border-default text-text-primary px-md sm:px-lg py-sm sm:py-md rounded-lg sm:rounded-xl font-medium hover:border-accent-default hover:bg-accent-subtle flex items-center gap-xs sm:gap-sm text-para-lg sm:text-para-md shadow-sm hover:shadow-md will-change-transform"
             >
-                <FaMagic className="text-icon-sm sm:text-icon-md" />
-                <span>Generate with idea</span>
+                <motion.div
+                    // This inner animation is fine as it is
+                    whileHover={{ rotate: 15 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                >
+                    <FaMagic className="text-icon-sm sm:text-icon-md text-accent-default" />
+                </motion.div>
+                <span>Generate with Idea</span>
             </motion.button>
 
             {/* Modal */}
@@ -90,9 +101,13 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                                 {/* Header */}
                                 <div className="p-md sm:p-lg border-b border-border-default flex items-center justify-between">
                                     <div className="flex items-center gap-sm">
-                                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center">
+                                        <motion.div
+                                            className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center"
+                                            whileHover={{ rotate: 15, scale: 1.05 }}
+                                            transition={{ type: "spring", stiffness: 400 }}
+                                        >
                                             <FaLightbulb className="text-white text-icon-md sm:text-icon-lg" />
-                                        </div>
+                                        </motion.div>
                                         <div className='text-left'>
                                             <Heading level="h5" className="text-lg sm:text-xl">
                                                 Turn Your Idea Into a Layout
@@ -102,13 +117,15 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                                             </Para>
                                         </div>
                                     </div>
-                                    <button
+                                    <motion.button
                                         onClick={() => !isGenerating && setIsOpen(false)}
                                         disabled={isGenerating}
-                                        className="p-2 hover:bg-background-secondary rounded-lg transition-colors disabled:opacity-50"
+                                        whileHover={!isGenerating ? { scale: 1.1, backgroundColor: 'var(--background-secondary)' } : {}}
+                                        whileTap={!isGenerating ? { scale: 0.9 } : {}}
+                                        className="p-2 rounded-lg disabled:opacity-50 will-change-transform"
                                     >
                                         <FaTimes className="text-text-secondary text-icon-sm sm:text-icon-md" />
-                                    </button>
+                                    </motion.button>
                                 </div>
 
                                 {/* Content */}
@@ -121,6 +138,7 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                                                         What do you want to build?
                                                     </Para>
                                                 </label>
+                                                {/* ✅ UPDATED: Enhanced textarea with autoFocus */}
                                                 <textarea
                                                     value={idea}
                                                     onChange={(e) => setIdea(e.target.value)}
@@ -135,36 +153,53 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                                                 </Para>
                                                 <div className="flex flex-wrap gap-xs sm:gap-sm">
                                                     {ideaExamples.map((example, index) => (
-                                                        <button
+                                                        <motion.button
                                                             key={index}
                                                             onClick={() => setIdea(example)}
-                                                            className="text-para-xs px-sm py-xs bg-background-secondary border border-border-default rounded-lg hover:border-accent-default hover:bg-accent-subtle transition-colors"
+                                                            whileHover={{
+                                                                scale: 1.02,
+                                                                borderColor: 'var(--accent-default)',
+                                                                backgroundColor: 'var(--accent-subtle)'
+                                                            }}
+                                                            whileTap={{ scale: 0.98 }}
+                                                            className="text-para-xs px-sm py-xs bg-background-secondary border border-border-default rounded-lg will-change-transform"
                                                         >
                                                             {example}
-                                                        </button>
+                                                        </motion.button>
                                                     ))}
                                                 </div>
                                             </div>
                                             <div className="flex flex-col sm:flex-row gap-sm">
-                                                <button
+                                                <motion.button
                                                     onClick={generateLayout}
                                                     disabled={!idea.trim()}
-                                                    className="flex-1 bg-accent-default text-accent-foreground py-sm sm:py-md rounded-xl font-medium hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-sm"
+                                                    whileHover={idea.trim() ? { scale: 1.02 } : {}}
+                                                    whileTap={idea.trim() ? { scale: 0.98 } : {}}
+                                                    // ADDED 'will-change-transform' FOR SMOOTHER SCALING
+                                                    className="flex-1 bg-accent-default text-accent-foreground py-sm sm:py-md rounded-xl font-medium hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-sm will-change-transform"
                                                 >
                                                     <FaMagic className="text-icon-sm" />
                                                     Generate Layout
-                                                </button>
-                                                <button
+                                                </motion.button>
+                                                <motion.button
                                                     onClick={() => setIsOpen(false)}
-                                                    className="px-lg py-sm sm:py-md bg-background-secondary text-text-secondary rounded-xl font-medium hover:bg-background-muted transition-colors"
+                                                    whileHover={{ scale: 1.02 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                    // Add this class for a smoother animation
+                                                    className="px-lg py-sm sm:py-md bg-background-secondary text-text-secondary rounded-xl font-medium hover:bg-background-muted transition-colors will-change-transform"
                                                 >
                                                     Cancel
-                                                </button>
+                                                </motion.button>
                                             </div>
                                         </>
                                     ) : (
+                                        /* ✅ UPDATED: Enhanced loading animation with better copy */
                                         <div className="text-center py-lg sm:py-xl">
-                                            <div className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-border-muted border-t-accent-default rounded-full animate-spin mx-auto mb-md"></div>
+                                            <motion.div
+                                                className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-border-muted border-t-accent-default rounded-full animate-spin mx-auto mb-md"
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                            ></motion.div>
                                             <Heading level="h5" className="mb-sm">
                                                 Generating Your Layout
                                             </Heading>
@@ -172,16 +207,43 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                                                 Analyzing your idea and creating the perfect structure...
                                             </Para>
                                             <div className="mt-lg space-y-sm max-w-md mx-auto">
-                                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="flex items-center gap-sm text-left">
-                                                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                                                <motion.div
+                                                    initial={{ opacity: 0, x: -20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: 0.5 }}
+                                                    className="flex items-center gap-sm text-left"
+                                                >
+                                                    <motion.div
+                                                        className="w-2 h-2 bg-emerald-500 rounded-full"
+                                                        animate={{ scale: [1, 1.2, 1] }}
+                                                        transition={{ duration: 1, repeat: Infinity }}
+                                                    ></motion.div>
                                                     <Para size="sm" color="secondary">Understanding your requirements</Para>
                                                 </motion.div>
-                                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1 }} className="flex items-center gap-sm text-left">
-                                                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                                                <motion.div
+                                                    initial={{ opacity: 0, x: -20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: 1 }}
+                                                    className="flex items-center gap-sm text-left"
+                                                >
+                                                    <motion.div
+                                                        className="w-2 h-2 bg-emerald-500 rounded-full"
+                                                        animate={{ scale: [1, 1.2, 1] }}
+                                                        transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                                                    ></motion.div>
                                                     <Para size="sm" color="secondary">Selecting optimal layout patterns</Para>
                                                 </motion.div>
-                                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.5 }} className="flex items-center gap-sm text-left">
-                                                    <div className="w-2 h-2 bg-accent-default rounded-full animate-pulse"></div>
+                                                <motion.div
+                                                    initial={{ opacity: 0, x: -20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: 1.5 }}
+                                                    className="flex items-center gap-sm text-left"
+                                                >
+                                                    <motion.div
+                                                        className="w-2 h-2 bg-accent-default rounded-full animate-pulse"
+                                                        animate={{ scale: [1, 1.3, 1] }}
+                                                        transition={{ duration: 0.8, repeat: Infinity }}
+                                                    ></motion.div>
                                                     <Para size="sm" color="secondary">Building your custom layout</Para>
                                                 </motion.div>
                                             </div>

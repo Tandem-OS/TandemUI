@@ -30,7 +30,7 @@ export const dummyScrapedData = {
                 cta: "Start now"
             },
             metadata: {
-                insight: "This hero section uses a split-screen layout to balance visual impact with clear messaging",
+                insight: "This section uses a split-screen layout to balance visual impact and clear messaging",
                 section_type: "Hero",
                 layout_structure: "split-content",
                 intent: "convert",
@@ -74,7 +74,7 @@ export const dummyScrapedData = {
                 menuItems: ["Products", "Solutions", "Developers", "Resources", "Pricing"]
             },
             metadata: {
-                insight: "Clean navigation with clear hierarchy helps users find information quickly",
+                insight: "This section uses clean navigation with clear hierarchy to help users find information quickly",
                 section_type: "Navigation",
                 layout_structure: "horizontal-centered",
                 intent: "navigate",
@@ -116,7 +116,7 @@ export const dummyScrapedData = {
                 subtitle: "From checkout to global sales tax compliance"
             },
             metadata: {
-                insight: "Three-column grid creates visual balance and makes features easy to scan",
+                insight: "This section uses a three-column grid layout to create visual balance and make features easy to scan",
                 section_type: "Features",
                 layout_structure: "three-column-grid",
                 intent: "educate",
@@ -160,7 +160,7 @@ export const dummyScrapedData = {
                 plans: ["Starter", "Professional", "Enterprise"]
             },
             metadata: {
-                insight: "Card-based pricing layout makes it easy to compare options at a glance",
+                insight: "This section uses a card-based pricing layout to make it easy to compare options at a glance",
                 section_type: "Pricing",
                 layout_structure: "card-layout",
                 intent: "convert",
@@ -201,7 +201,7 @@ export const dummyScrapedData = {
                 columns: ["Products", "Use Cases", "Resources", "Company"]
             },
             metadata: {
-                insight: "Multi-column footer provides comprehensive navigation without overwhelming users",
+                insight: "This section uses a multi-column footer layout to provide comprehensive navigation without overwhelming users",
                 section_type: "Footer",
                 layout_structure: "multi-column",
                 intent: "inform",
@@ -243,13 +243,13 @@ export const quickSuggestions = [
     { name: "Figma", url: "figma.com" }
 ];
 
-// Processing steps for loading animation
+// ✅ UPDATED: Enhanced processing steps with better copy and completion message
 export const processingSteps = [
-    "Analyzing URL structure...",
-    "Capturing full-page screenshot...",
-    "Detecting layout sections...",
-    "Generating section previews...",
-    "Complete! Found 5 sections"
+    "Learning page structure...",
+    "Capturing full-page snapshot",
+    "Mapping layout sections...", 
+    "Generating intelligent previews...",
+    "Complete! Found X sections",
 ];
 
 // Like reason options
@@ -276,10 +276,11 @@ export const dislikeReasons = [
     "Bad spacing"
 ];
 
-// Mock chat responses
+// ✅ UPDATED: Enhanced mock chat responses with better copy
 export const mockChatResponses = {
-    "Why does this layout work?": "This layout works because it follows proven UX patterns. The visual hierarchy guides the eye naturally from the headline to the CTA, while the balanced spacing creates breathing room for better readability.",
-    "Make cleaner": "Here's how to make it cleaner: reduce the number of elements, increase whitespace, use a more limited color palette, and ensure consistent alignment throughout.",
+    "Why does this layout work?": "Got it — here's a breakdown... This layout works because it follows proven UX patterns. The visual hierarchy guides the eye naturally from the headline to the CTA, while the balanced spacing creates breathing room for better readability.",
+    "Make cleaner": "Try this instead: reduce the number of elements, increase whitespace, use a more limited color palette, and ensure consistent alignment throughout.",
+    "Refine layout": "Try this instead: reduce the number of elements, increase whitespace, use a more limited color palette, and ensure consistent alignment throughout.",
     "Dark mode?": "For dark mode: use darker backgrounds (#0f172a), lighter text (#f1f5f9), reduce contrast slightly for comfort, and ensure sufficient color contrast ratios for accessibility.",
     "Swap this for something cleaner": "I'd recommend a minimalist approach: single-column layout, more whitespace, simplified navigation, and focus on one primary action per section.",
     "What would this look like in dark mode?": "In dark mode, this would feature deep backgrounds, inverted text colors, subtle shadows using lighter colors, and adjusted accent colors for better visibility."
@@ -441,14 +442,12 @@ export const layoutGenerationTemplates = {
     }
 };
 
-// Pre-filled chat prompts
+// ✅ UPDATED: Enhanced pre-filled chat prompts
 export const chatPrompts = [
     "Why does this layout work?",
-    "Make cleaner",
+    "Refine layout", // ✅ Changed from "Make cleaner"
     "Dark mode?",
-    "Swap this for something cleaner",
-    "What would this look like in dark mode?",
-    "How can I improve the CTA?",
     "Make it more modern",
-    "Add more whitespace"
+    "Add more whitespace",
+    "How can I improve the CTA?"
 ];
