@@ -55,7 +55,11 @@ const GoogleLogin = () => {
 
     }, [location, navigate]);
 
-    return <p>Signing in with Google...</p>;
+    return (
+        <p className="text-text-primary dark:text-text-light para-md animate-pulse mt-4">
+            Signing in with Google...
+        </p>
+    )
 };
 
 export default GoogleLogin;

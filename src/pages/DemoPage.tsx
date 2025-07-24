@@ -15,7 +15,7 @@ const DemoPage: React.FC = () => {
                 description="An impactful message that describes your value prop clearly and concisely."
                 primaryCTA={{
                     text: "Get Started",
-                    href: "/signup",
+                    href: "/auth",
                     variant: "solid",
                     size: "lg",
                 }}

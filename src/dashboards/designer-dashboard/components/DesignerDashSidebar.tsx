@@ -5,6 +5,7 @@ import { RiArrowDownSLine } from 'react-icons/ri';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { menuItems, type MenuItem } from '../config/menuItems';
+import tandem from '@/assets/images/tandem.svg'
 
 // ===== CONSTANTS =====
 const ANIMATION_CONFIG = { duration: 0.3, ease: "easeInOut" as const };
@@ -46,12 +47,12 @@ interface DesignerDashSidebarProps {
 // ===== STYLE CONFIGURATION =====
 const styles = {
     menuItem: {
-        base: 'flex items-center rounded-lg transition-all duration-300 cursor-pointer border-l-4 relative group',
+        base: 'flex items-center rounded-[38px] transition-all duration-300 cursor-pointer  relative group',
         active: {
-            expanded: 'bg-accent-subtle border-l-accent-default',
-            collapsed: 'bg-accent-subtle border-l-accent-default'
+            expanded: 'bg-blue-violet border-l-accent-default',
+            collapsed: 'bg-blue-violet border-l-accent-default'
         },
-        inactive: 'border-l-transparent hover:bg-accent-subtle hover:border-l-accent-default',
+        inactive: 'border-l-transparent hover:bg-blue-violet hover:border-l-accent-default',
         padding: {
             level0: 'px-sm py-sm mb-sm',
             nested: 'px-md py-sm mb-xs ml-sm',
@@ -59,18 +60,19 @@ const styles = {
         }
     },
     iconBox: {
-        base: 'w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 shadow-sm',
+        base: 'w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200 shadow-sm bg-transparent',
         active: 'bg-accent-default shadow-md',
         inactive: 'bg-background-muted dark:bg-background-primary group-hover:bg-accent-default group-hover:shadow-md'
     },
     icon: {
         base: 'transition-colors duration-200',
         active: 'text-accent-foreground',
-        inactive: 'text-text-secondary group-hover:text-accent-foreground'
-    },
+        inactive: 'text-text-tertiary group-hover:text-accent-foreground'
+    }
+    ,
     text: {
-        active: 'text-text-primary',
-        inactive: 'text-text-secondary group-hover:text-text-primary'
+        active: 'text-text-light',
+        inactive: 'text-text-tertiary group-hover:text-text-light'
     }
 };
 
@@ -86,11 +88,11 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
             setIsPositioned(false);
             return;
         }
-        
+
         const rect = triggerRef.current.getBoundingClientRect();
-        setPosition({ 
-            top: rect.top + rect.height / 2, 
-            left: rect.right + 8 
+        setPosition({
+            top: rect.top + rect.height / 2,
+            left: rect.right + 8
         });
         setIsPositioned(true);
     }, [isHovered]);
@@ -115,10 +117,10 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
             {isHovered && isPositioned && ReactDOM.createPortal(
                 <div
                     className="fixed px-sm py-xs bg-background-dark text-text-light text-para-sm rounded-md shadow-lg pointer-events-none whitespace-nowrap z-[99999] transition-opacity duration-150 opacity-100"
-                    style={{ 
-                        top: `${position.top}px`, 
-                        left: `${position.left}px`, 
-                        transform: 'translateY(-50%)' 
+                    style={{
+                        top: `${position.top}px`,
+                        left: `${position.left}px`,
+                        transform: 'translateY(-50%)'
                     }}
                 >
                     {content}
@@ -158,7 +160,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
         styles.icon.base,
         isActive ? styles.icon.active : styles.icon.inactive
     );
-    
+
     const textClasses = clsx('text-para-md font-medium leading-[1] transition-colors duration-200', isActive ? styles.text.active : styles.text.inactive);
 
     const content = (
@@ -204,13 +206,10 @@ const Logo: React.FC<LogoProps> = ({ isCollapsed }) => (
             transition={{ duration: 0.2 }}
             className={isCollapsed ? 'flex justify-center' : 'flex items-center gap-sm'}
         >
-            <div className="w-11 h-11 bg-accent-default rounded-lg flex items-center justify-center shadow-md">
-                <span className="text-accent-foreground font-bold text-h5-lg">T</span>
-            </div>
+            <img src={tandem} alt="Logo" className="w-11 h-11 " />
             {!isCollapsed && (
                 <div className="flex flex-col">
-                    <span className="text-para-lg font-bold text-text-primary">Tandem</span>
-                    <span className="text-para-xs text-text-secondary">Design Studio</span>
+                    <span className="text-xl font-semibold font-inter text-white">Tandem</span>
                 </div>
             )}
         </motion.div>
@@ -240,12 +239,12 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
     }, [externalCollapsed]);
 
     const isItemActive = useCallback((item: MenuItem): boolean => {
-    const matchBasePath = location.pathname.startsWith(item.path ?? '');
-    const matchChild = item.children?.some(child =>
-        location.pathname.startsWith(child.path ?? '')
-    );
-    return matchBasePath || !!matchChild;
-}, [location.pathname]);
+        const matchBasePath = location.pathname.startsWith(item.path ?? '');
+        const matchChild = item.children?.some(child =>
+            location.pathname.startsWith(child.path ?? '')
+        );
+        return matchBasePath || !!matchChild;
+    }, [location.pathname]);
 
     const toggleExpanded = useCallback((itemId: string): void => {
         if (isCollapsed) return;
@@ -307,10 +306,11 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
             initial={false}
             animate={{ width: isCollapsed ? 80 : 256 }}
             transition={ANIMATION_CONFIG}
-            className="h-screen bg-background-primary-2 border-r border-border-default flex flex-col"
+            className="h-screen bg-background-primary-3 border-r border-border-default flex flex-col"
         >
+
             {/* Header */}
-            <div className="border-b border-border-default flex flex-col">
+            <div className="border-border-default flex flex-col">
                 <div className="px-md py-2.5">
                     <Logo isCollapsed={isCollapsed} />
                 </div>
@@ -330,6 +330,21 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
                     </motion.div>
                 </AnimatePresence>
             </nav>
+
+            <div className="p-md mt-auto">
+                <button className="flex items-center gap-sm text-text-light hover:text-white w-full px-sm py-xs transition">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V5" />
+                    </svg>
+                    <span className="text-sm font-medium">Sign Out</span>
+                </button>
+            </div>
         </motion.aside>
     );
 };
