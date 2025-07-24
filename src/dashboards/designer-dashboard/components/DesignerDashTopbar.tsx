@@ -5,8 +5,6 @@ import {
     RiSettings3Line,
     RiLogoutBoxLine,
     RiUser3Line,
-    RiMenuUnfoldLine,
-    RiMenuFoldLine
 } from 'react-icons/ri';
 import Dropdown from '../../../comman-components/Dropdown';
 import ThemeToggle from '../../../components/theme-toggle/ThemeToggle';
@@ -28,8 +26,6 @@ const logout = async () => {
 
 const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
     onMenuClick,
-    isSidebarCollapsed,
-    onToggleSidebar
 }) => {
 
     const navigate = useNavigate();

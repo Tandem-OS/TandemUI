@@ -243,7 +243,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
 
 const DashboardHome: React.FC = () => {
   const data = mockDashboardData;
-  const { accentColor, setAccentColor, colors } = useAccentColor();
+  const { colors } = useAccentColor();
 
   return (
     <div className="min-h-screen">

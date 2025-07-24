@@ -1,4 +1,4 @@
-import { FaSun, FaMoon } from 'react-icons/fa';
+import { FaSun } from 'react-icons/fa';
 import { IoMoonOutline } from "react-icons/io5";
 import { useTheme } from '@/contexts/ThemeContext';
 
