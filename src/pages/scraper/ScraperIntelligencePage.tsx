@@ -418,7 +418,7 @@ const ScraperIntelligencePage = () => {
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="bg-background-primary/90 backdrop-blur-lg border-2 border-border-default rounded-2xl sm:rounded-3xl p-lg sm:p-xl shadow-md max-w-lg w-full"
+                            className="bg-background-primary-2 backdrop-blur-lg border-2 border-border-default rounded-2xl sm:rounded-3xl p-lg sm:p-xl shadow-md max-w-lg w-full"
                         >
                             <div className="text-center space-y-lg sm:space-y-xl">
                                 {/* Animated Logo */}
@@ -594,7 +594,7 @@ const ScraperIntelligencePage = () => {
                                                             .sort(([, a]: [string, any], [, b]: [string, any]) => b - a)
                                                             .slice(0, 2)
                                                             .map(([key, value]: [string, any]) => (
-                                                                <div key={key} className="px-xs py-1 bg-accent-subtle text-accent-default rounded text-para-xs">
+                                                                <div key={key} className="px-xs py-1 bg-accent-subtle dark:bg-transparent text-accent-default rounded text-para-xs">
                                                                     {key.replace('_', ' ')} +{value}
                                                                 </div>
                                                             ))

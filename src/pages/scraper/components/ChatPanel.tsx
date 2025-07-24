@@ -123,7 +123,7 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
     };
 
     const ChatInterface = (
-        <div className="h-full w-full bg-background-primary rounded-2xl shadow-md border border-border-default flex flex-col">
+        <div className="h-full w-full bg-background-primary-2 rounded-2xl shadow-md border border-border-default flex flex-col">
             {/* Header */}
             <div className="p-md border-b border-border-default flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-sm">
@@ -165,7 +165,7 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                             transition={{ duration: 0.2 }}
                             className={`max-w-[85%] sm:max-w-[80%] p-sm rounded-xl will-change-transform ${message.type === 'user'
                                     ? 'bg-accent-default text-white'
-                                    : 'bg-background-secondary text-text-primary'
+                                    : 'bg-background-secondary-2 text-text-primary'
                                 }`}
                         >
                             <Para size="sm" className={message.type === 'user' ? '!text-white' : ''}>{message.message}</Para>
