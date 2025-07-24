@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Input from './components/Input';
-import Heading from '../../demos/typography/Heading';
+import Input from '@/components/auth/form/components/Input';
+import Heading from '@/components/demos/typography/Heading';
 import { FaLock, FaArrowLeft } from 'react-icons/fa';
-import FormButton from './components/FormButton';
-import { resetPassword } from '../../../lib/requests/AuthRequest';
+import FormButton from '@/components/auth/form/components/FormButton';
+import { resetPassword } from '@/lib/requests/AuthRequest';
 
 const NewPasswordForm = () => {
     const navigate = useNavigate();

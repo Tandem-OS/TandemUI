@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Input from './components/Input';
-import Heading from '../../demos/typography/Heading';
+import Input from '@/components/auth/form/components/Input';
+import Heading from '@/components/demos/typography/Heading'; 
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
-import FormButton from './components/FormButton';
-import SimpleButton from '../../demos/buttons/SimpleButton';
-import { Login, getGoogleOAuthURL } from '../../../lib/requests/AuthRequest';
+import FormButton from '@/components/auth/form/components/FormButton';
+import SimpleButton from '@/components/demos/buttons/SimpleButton';
+import { Login, getGoogleOAuthURL } from '@/lib/requests/AuthRequest';
+import { useDispatch } from 'react-redux';
+import { setAuth } from '@/features/authentication/authSlice';
 
 const LoginForm = () => {
   const navigate = useNavigate();
-  // const { signIn, signInWithGoogle } = useAuth();
+  const dispatch = useDispatch();
 
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
@@ -58,11 +60,17 @@ const LoginForm = () => {
     try {
       const response = await Login(values);
       if (response.data.success) {
-        const { access_token, refresh_token, login_time } = response.data;
-        localStorage.setItem('access_token', access_token);
-        localStorage.setItem('refresh_token', refresh_token);
-        localStorage.setItem('login_time', login_time);
-        navigate('/dashboard');
+        dispatch(setAuth({
+          access_token: response.data.access_token,
+          refresh_token: response.data.refresh_token,
+          login_time: response.data.login_time,
+          user: {
+            id: response.data.user.id,
+            email: response.data.user.email,
+            name: response.data.user.name
+          }
+        }));
+        navigate("/dashboard/designer");
       }
     } catch (err) {
       console.error('Login error:', err);
@@ -75,7 +83,7 @@ const LoginForm = () => {
   const handleGoogleLogin = async () => {
     try {
       const res = await getGoogleOAuthURL();
-     const data = res.data; 
+      const data = res.data;
       if (data.success && data.url) {
         window.location.href = data.url;
       } else {
@@ -85,7 +93,6 @@ const LoginForm = () => {
       console.error("Google OAuth initiation failed:", error);
     }
   };
-
 
   return (
     <form

@@ -22,6 +22,7 @@ interface InputProps {
   className?: string;
   style?: CSSProperties;
   required?: boolean;
+  disabled?: boolean;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -38,6 +39,7 @@ const Input: React.FC<InputProps> = ({
   onFocus,
   onBlur,
   variant = 'default',
+  disabled,
   className = '',
   style,
   required,
@@ -114,6 +116,7 @@ const Input: React.FC<InputProps> = ({
           name={name}
           value={value}
           required={required}
+          disabled={disabled}
           onChange={onChange}
           onKeyPress={onKeyPress}
           onFocus={() => {

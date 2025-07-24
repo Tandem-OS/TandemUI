@@ -11,6 +11,9 @@ import SwiperPage from '../pages/SwiperPage';
 import WebsiteScraperPage from '../pages/WebsiteScraperPage';
 import TestimonialsPage from '../pages/TestimonialsPage';
 import DaconsahPage from '../pages/DaconsahPage';
+import MyProject from '@/dashboards/client-dashboard/pages/my-project/MyProject';
+import ProjectOverview from '@/dashboards/client-dashboard/pages/project-overview/ProjectOverview';
+import ProfileView from '@/components/profile/ProfileView';
 
 const DesignerDashMain: React.FC = () => {
     return (
@@ -19,6 +22,8 @@ const DesignerDashMain: React.FC = () => {
                 <Routes>
                     <Route path="/" element={<DashboardHome />} />
                     <Route path="/projects" element={<ProjectsPage />} />
+                    <Route path="/my-project" element={<MyProject />} />
+                    <Route path="/my-project/project-overview/:id" element={<ProjectOverview />} />
                     <Route path="/briefs" element={<BriefsPage />} />
                     <Route path="/analytics/overview" element={<AnalyticsOverview />} />
                     <Route path="/analytics/performance" element={<AnalyticsPerformance />} />
@@ -27,6 +32,7 @@ const DesignerDashMain: React.FC = () => {
                     <Route path="/website-scraper" element={<WebsiteScraperPage />} />
                     <Route path="/testimonials" element={<TestimonialsPage />} />
                     <Route path="/daconsah" element={<DaconsahPage />} />
+                    <Route path="/profile-view" element={<ProfileView />} />
                 </Routes>
             </div>
         </main>
