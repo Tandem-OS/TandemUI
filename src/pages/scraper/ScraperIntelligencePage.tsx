@@ -188,7 +188,7 @@ const ScraperIntelligencePage = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
-                                className="flex items-center gap-md justify-center"
+                                className="flex items-center gap-lg lg:gap-md justify-center flex-col lg:flex-row "
                             >
                                 {/* ✅ UPDATED: Enhanced buttons with hover/press feedback */}
                                 <motion.button

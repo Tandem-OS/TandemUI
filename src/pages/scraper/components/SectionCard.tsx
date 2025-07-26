@@ -132,14 +132,14 @@ const SectionCard = ({
                     <div className="flex flex-wrap items-center gap-xs sm:gap-sm text-para-xs sm:text-para-sm">
                         <span className="flex items-center gap-xs group cursor-pointer">
                             <FaBullseye className="text-icon-sm text-accent-default" />
-                            <Para size="sm" color="secondary" className="group-hover:text-text-primary group-hover:font-medium transition-colors">
+                            <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
                                 {section.intent}
                             </Para>
                         </span>
                         <span className="text-text-tertiary hidden sm:inline">•</span>
                         <span className="flex items-center gap-xs group cursor-pointer">
                             <FaLayerGroup className="text-icon-sm text-accent-default" />
-                            <Para size="sm" color="secondary" className="group-hover:text-text-primary group-hover:font-medium transition-colors">
+                            <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
                                 {section.layout_structure}
                             </Para>
                         </span>
@@ -148,7 +148,7 @@ const SectionCard = ({
                                 <span className="text-text-tertiary hidden sm:inline">•</span>
                                 <span className="flex items-center gap-xs group cursor-pointer">
                                     <FaPalette className="text-icon-sm text-accent-default" />
-                                    <Para size="sm" color="secondary" className="group-hover:text-text-primary group-hover:font-medium transition-colors">
+                                    <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
                                         {section.tone}
                                     </Para>
                                 </span>
@@ -309,8 +309,8 @@ const SectionCard = ({
                                                     whileTap={{ scale: 0.95 }}
                                                     transition={{ duration: 0.2 }}
                                                     className={`px-sm py-xs rounded-full text-para-xs font-medium will-change-transform ${selectedReasons.includes(reason)
-                                                            ? 'bg-emerald-500 text-white'
-                                                            : 'bg-white dark:bg-emerald-800 border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300'
+                                                        ? 'bg-emerald-500 text-white'
+                                                        : 'bg-white dark:bg-emerald-800 border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300'
                                                         }`}
                                                 >
                                                     {reason}
@@ -390,8 +390,8 @@ const SectionCard = ({
                                                     whileTap={{ scale: 0.95 }}
                                                     transition={{ duration: 0.2 }}
                                                     className={`px-sm py-xs rounded-full text-para-xs font-medium will-change-transform ${selectedReasons.includes(reason)
-                                                            ? 'bg-red-500 text-white'
-                                                            : 'bg-white dark:bg-red-800 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
+                                                        ? 'bg-red-500 text-white'
+                                                        : 'bg-white dark:bg-red-800 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
                                                         }`}
                                                 >
                                                     {reason}

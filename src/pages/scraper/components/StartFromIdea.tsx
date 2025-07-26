@@ -66,7 +66,7 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(true)}
                 // REMOVED 'transition-all', ADDED 'will-change-transform'
-                className="bg-background-secondary border border-border-default text-text-primary px-md sm:px-lg py-sm sm:py-md rounded-lg sm:rounded-xl font-medium hover:border-accent-default hover:bg-accent-subtle flex items-center gap-xs sm:gap-sm text-para-lg sm:text-para-md shadow-sm hover:shadow-md will-change-transform"
+                className="bg-background-secondary border border-border-default text-text-primary px-md sm:px-lg py-sm sm:py-md rounded-lg sm:rounded-xl font-medium hover:border-accent-default hover:bg-accent-subtle flex items-center gap-xs sm:gap-sm text-para-sm sm:text-para-md shadow-sm hover:shadow-md will-change-transform"
             >
                 <motion.div
                     // This inner animation is fine as it is
