@@ -1,5 +1,5 @@
 import React, { type ReactNode, useState } from 'react';
-import { RiArrowRightLine, RiLockLine, RiCheckLine } from 'react-icons/ri';
+import { RiArrowRightLine } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
 import { mockDashboardData } from '../../../../mock-data/designer-dash-home.mock.';
 // import ProgressRing from '../../../../comman-components/ProgressRing';
@@ -7,6 +7,10 @@ import ColorPicker from '../../../../comman-components/ColorPicker';
 import { type AccentColor } from '../../../../types/component.types';
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { BsTags } from "react-icons/bs";
+import activeProjectChart from "@/assets/images/active-project-chart.svg"
+import linkChartIcon from "@/assets/images/link-chart.svg"
+import orangeLinkChart from "@/assets/images/orangeLinkChart.svg"
+import blueLineChart from "@/assets/images/blueLinkChart.svg"
 
 type PaddingSize = "sm" | "md" | "lg";
 
@@ -30,6 +34,14 @@ const Card = ({ children, className = "", padding = "md", bgColor = "bg-backgrou
     </div>
   );
 };
+
+const ActiveProjectIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <img
+    src={activeProjectChart}
+    alt="Active Projects Icon"
+    className={className || "w-[40px] h-[40px]"}
+  />
+);
 
 // Light Color System
 const useAccentColor = () => {
@@ -133,7 +145,7 @@ const ContinueButton: React.FC<ContinueButtonProps> = ({ stage, colors, onClick 
   return (
     <button
       onClick={onClick}
-      className={`w-full px-md py-sm bg-blue-violet text-white rounded-full font-medium text-para-sm transition-all duration-200 flex items-center justify-center gap-sm shadow-sm hover:shadow-lg hover:bg-opacity-80`}
+      className={`w-full px-md py-sm ${colors.primary} text-white rounded-full font-medium text-para-sm transition-all duration-200 flex items-center justify-center gap-sm shadow-sm hover:shadow-lg ${colors.hover}`}
     >
       {stageLabels[stage]}
       <RiArrowRightLine className="w-4 h-4" />
@@ -177,7 +189,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
       {/* Progress Line - Fixed thickness issue */}
       <div className="absolute max-lg:top-[35%] top-[38%] transform -translate-y-1/2 left-6 right-6 h-[12px] bg-border-muted rounded-full">
         <motion.div
-          className={`h-full bg-blue-violet rounded-full`}
+          className={`h-full ${colors.primary} rounded-full`}
           initial={{ width: 0 }}
           whileInView={{ width: `${progressWidth}%` }}
           transition={{ duration: 2, ease: "easeOut" }}
@@ -232,7 +244,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ stages, colors }) => 
 
 const DashboardHome: React.FC = () => {
   const data = mockDashboardData;
-  const { colors } = useAccentColor();
+  const { accentColor, setAccentColor, colors } = useAccentColor();
 
   return (
     <div className="min-h-screen">
@@ -248,19 +260,19 @@ const DashboardHome: React.FC = () => {
             transition={{ duration: 0.4, delay: 0.1 }}
             className="h-full"
           >
-            <div className="relative bg-background-primary dark:bg-background-dark rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px]">
+            <div className={`relative ${colors.light} rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px]`}>
               <div className="absolute top-4 left-4 flex gap-2">
                 <div className="bg-background-secondary-2 p-2 rounded-full flex items-center justify-center text-text-secondary dark:text-lightSecondary">
                   <BsTags />
                 </div>
-                <div className="bg-background-secondary-2 text-success dark:text-success text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2">
-                  <span className="text-success dark:text-success"><FaArrowTrendUp /></span>
+                <div className={`bg-background-secondary-2 ${colors.text} text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2`}>
+                  <span className={colors.text}><FaArrowTrendUp /></span>
                   4.43%
                 </div>
               </div>
 
               <div className="mt-12">
-                <h3 className="text-4xl font-bold text-text-primary">73%</h3>
+                <h3 className={`text-4xl font-bold ${colors.text}`}>73%</h3>
                 <p className="text-para-sm text-text-secondary mt-1">Across all projects</p>
               </div>
 
@@ -268,6 +280,7 @@ const DashboardHome: React.FC = () => {
                 <span className="text-text-secondary inline-block rotate-[-45deg]">→</span>
               </div>
             </div>
+
           </motion.div>
 
           {/* Average Time Card */}
@@ -278,19 +291,19 @@ const DashboardHome: React.FC = () => {
             whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
             className="h-full"
           >
-            <div className="relative bg-white rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px]">
+            <div className={`relative ${colors.light} rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px]`}>
               <div className="absolute top-4 left-4 flex gap-2">
                 <div className="bg-background-secondary-2 text-gray-600 p-2 rounded-full flex items-center justify-center">
                   <BsTags />
                 </div>
-                <div className="bg-background-secondary-2 text-green-600 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2">
-                  <span className="text-green-500"><FaArrowTrendUp /></span>
+                <div className={`bg-background-secondary-2 ${colors.text} text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2`}>
+                  <span className={colors.text}><FaArrowTrendUp /></span>
                   23% faster this month
                 </div>
               </div>
 
               <div className="mt-12">
-                <h3 className="text-4xl font-bold text-gray-800">4.2 days</h3>
+                <h3 className={`text-4xl font-bold ${colors.text}`}>4.2 days</h3>
                 <p className="text-gray-500 text-sm mt-1">Average Time</p>
               </div>
 
@@ -338,12 +351,18 @@ const DashboardHome: React.FC = () => {
           transition={{ duration: 0.4, delay: 0.4 }}
         >
           <Card padding="md">
-            <h2 className="text-h4-sm font-bold text-text-primary mb-md">Active Projects</h2>
-            <div className="space-y-md">
+            <div className="flex gap-4 items-center">
+              <ActiveProjectIcon />
+              <h2 className="text-h4-sm font-bold text-text-primary">
+                Active Projects
+              </h2>
+            </div>
+
+            <div className="space-y-md mt-4">
               {data.projects.map((project, index) => (
                 <motion.div
                   key={project.id}
-                  className="bg-background-primary-2 rounded-xl p-md border-b border-border-default transition-all duration-200 hover:shadow-lg"
+                  className={`bg-background-primary-2 rounded-xl p-md border transition-all duration-200 hover:shadow-lg ${colors.border} ${colors.hover}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
@@ -351,16 +370,16 @@ const DashboardHome: React.FC = () => {
                   <div className="flex flex-col lg:grid lg:grid-cols-12 gap-md items-start lg:items-center space-y-md lg:space-y-0">
                     {/* Progress + Name + Status */}
                     <div className="lg:col-span-3 flex gap-lg items-start">
-                      <span className="font-bold text-para-sm lg:text-para-lg mt-1">{project.progress}%</span>
+                      <span className={`font-bold text-para-sm lg:text-para-lg mt-1 ${colors.text}`}>
+                        {project.progress}%
+                      </span>
                       <div>
                         <h4 className="font-semibold text-text-primary mb-[2px]">{project.name}</h4>
-                        <div>
-                          <StatusTag
-                            status={project.status as ProjectStatus}
-                            label={project.statusLabel}
-                            colors={colors}
-                          />
-                        </div>
+                        <StatusTag
+                          status={project.status as ProjectStatus}
+                          label={project.statusLabel}
+                          colors={colors}
+                        />
                       </div>
                     </div>
 
@@ -387,10 +406,11 @@ const DashboardHome: React.FC = () => {
               ))}
             </div>
 
+            {/* View All Projects Button */}
             <div className="flex justify-center mt-md">
               <motion.a
                 href="#"
-                className={`inline-flex items-center gap-sm border rounded-full px-sm py-xs font-medium hover:gap-md transition-all duration-200`}
+                className={`inline-flex items-center gap-sm rounded-full px-sm py-xs font-medium border transition-all duration-200 ${colors.border} ${colors.text} ${colors.hover}`}
                 whileHover={{ x: 5 }}
                 transition={{ duration: 0.2 }}
               >
@@ -401,133 +421,202 @@ const DashboardHome: React.FC = () => {
           </Card>
         </motion.div>
 
-        {/* Customer Satisfaction - Full Width */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-        >
-          <Card className={`${colors.light} ${colors.border}`}>
-            <div className="flex items-center justify-between mb-lg">
-              <div>
-                <h3 className="text-para-lg font-semibold text-text-primary">Customer Satisfaction</h3>
-                <p className="text-para-sm text-text-secondary">Overall happiness rating</p>
-              </div>
-              <div className="flex items-center gap-sm">
-                <span className="text-h3-sm">😊</span>
-                <span className="text-h3-sm font-bold text-text-primary">{data.customerSatisfaction.overall}%</span>
-              </div>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2">
+            {/* Customer Satisfaction  */}
+            <div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.5 }}
+              >
+                <Card className={`${colors.light} ${colors.border}`}>
+                  <div className="flex items-center justify-between mb-lg">
+                    <div>
+                      <div className="flex gap-4 items-center">
+                        <ActiveProjectIcon />
+                        <h3 className="text-h4-sm font-bold text-text-primary">
+                          Customer Satisfaction
+                        </h3>
+                      </div>
+                    </div>
+                  </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-md">
-              {Object.entries(data.customerSatisfaction.byStage).map(([stage, stats], index) => (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-md">
+                    {Object.entries(data.customerSatisfaction.byStage).map(([stage, stats], index) => (
+                      <motion.div
+                        key={stage}
+                        className="bg-background-primary-2 rounded-lg p-lg text-center border border-border-default hover:shadow-lg duration-300"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        whileHover={{
+                          y: -8,
+                          transition: { duration: 0.2, ease: "easeOut" }
+                        }}
+                        transition={{ delay: index * 0.1, duration: 0.3 }}
+                      >
+                        <p className="text-para-sm font-medium text-text-secondary capitalize mb-sm">After {stage}</p>
+                        <div className="text-h3-sm font-bold text-text-primary mb-xs">{stats.rating}/10</div>
+                        <p className="text-para-sm text-text-tertiary">
+                          {stats.happy}/{stats.total} happy
+                        </p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </Card>
+              </motion.div>
+
+              {/* Project Overview */}
+              <div className='mt-4'>
                 <motion.div
-                  key={stage}
-                  className="bg-background-primary-2 rounded-lg p-lg text-center border border-border-default hover:shadow-lg duration-300"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  whileHover={{
-                    y: -8,
-                    transition: { duration: 0.2, ease: "easeOut" }
-                  }}
-                  transition={{ delay: index * 0.1, duration: 0.3 }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: 0.6 }}
+
                 >
-                  <p className="text-para-sm font-medium text-text-secondary capitalize mb-sm">After {stage}</p>
-                  <div className="text-h3-sm font-bold text-text-primary mb-xs">{stats.rating}/10</div>
-                  <p className="text-para-sm text-text-tertiary">
-                    {stats.happy}/{stats.total} happy
-                  </p>
+                  <Card className={`${colors.light} ${colors.border} h-full`}>
+                    <div className="flex gap-4 items-center">
+                        <ActiveProjectIcon />
+                        <h3 className="text-h4-sm font-bold text-text-primary">
+                          Project Overview
+                        </h3>
+                      </div>
+                    <div className="grid grid-cols-3 gap-md">
+                      <div>
+
+                        <div className='flex gap-4 items-center'>
+                          <div>
+                            <img
+                              src={linkChartIcon}
+                              alt="Active Projects Icon"
+                              className={"w-[40px] h-[40px]"}
+                            />
+                          </div>
+                          <div>
+                            <motion.div
+                              className={`text-h1-sm font-bold ${colors.text} mb-xs`}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.7, duration: 0.3 }}
+                            >
+                              {data.projectStats.totalActive}
+                            </motion.div>
+                            <p className="text-para-sm font-medium text-text-primary">Active Projects</p>
+                          </div>
+                        </div>
+                      </div>
+
+
+                      <div className="border-x border-border-default flex gap-4 items-center">
+                        <div>
+                          <img
+                            src={orangeLinkChart}
+                            alt="Active Projects Icon"
+                            className={"w-[40px] h-[40px]"}
+                          />
+                        </div>
+                        <div>
+                          <motion.div
+                            className={`text-h1-sm font-bold ${colors.text} mb-xs`}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.8, duration: 0.3 }}
+                          >
+                            {data.projectStats.approvalRate}%
+                          </motion.div>
+                          <p className="text-para-sm font-medium text-text-primary">Approval Rate</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 items-center">
+                        <div>
+                          <img
+                            src={blueLineChart}
+                            alt="Active Projects Icon"
+                            className={"w-[40px] h-[40px]"}
+                          />
+                        </div>
+                        <div>
+                          <motion.div
+                            className={`text-h1-sm font-bold ${colors.text} mb-xs`}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.9, duration: 0.3 }}
+                          >
+                            {data.projectStats.avgProjectTime}Days
+                          </motion.div>
+                          <p className="text-para-sm font-medium text-text-primary">Avg Time To Complete</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
                 </motion.div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Project Overview & Taste Trends - Same Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg">
-          {/* Project Overview */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.6 }}
-
-          >
-            <Card className={`${colors.light} ${colors.border} h-full`}>
-              <h3 className="text-para-lg font-semibold text-text-primary mb-lg">Project Overview</h3>
-              <div className="grid grid-cols-3 gap-md">
-                <div className="text-center">
-                  <motion.div
-                    className={`text-h1-sm font-bold ${colors.text} mb-xs`}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.7, duration: 0.3 }}
-                  >
-                    {data.projectStats.totalActive}
-                  </motion.div>
-                  <p className="text-para-sm font-medium text-text-primary">Active</p>
-                  <p className="text-para-xs text-text-tertiary">Projects</p>
-                </div>
-                <div className="text-center border-x border-border-default">
-                  <motion.div
-                    className={`text-h1-sm font-bold ${colors.text} mb-xs`}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.8, duration: 0.3 }}
-                  >
-                    {data.projectStats.approvalRate}%
-                  </motion.div>
-                  <p className="text-para-sm font-medium text-text-primary">Approval</p>
-                  <p className="text-para-xs text-text-tertiary">Rate</p>
-                </div>
-                <div className="text-center">
-                  <motion.div
-                    className={`text-h1-sm font-bold ${colors.text} mb-xs`}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.9, duration: 0.3 }}
-                  >
-                    {data.projectStats.avgProjectTime}d
-                  </motion.div>
-                  <p className="text-para-sm font-medium text-text-primary">Avg Time</p>
-                  <p className="text-para-xs text-text-tertiary">To Complete</p>
-                </div>
               </div>
-            </Card>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Taste Trends */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.7 }}
-          >
-            <Card className={`${colors.light} ${colors.border} h-full`}>
-              <h3 className="text-para-lg font-semibold text-text-primary mb-md">Taste Trends</h3>
-              <div className="space-y-sm">
-                <p className="text-para-md text-text-secondary">
-                  This week, <span className={`font-semibold ${colors.text} text-para-lg`}>{data.tasteTrend.percentage}%</span> of clients chose
-                </p>
-                <p className={`text-h3-sm font-bold ${colors.text}`}>
-                  {data.tasteTrend.trend}
-                </p>
-                <div className="pt-sm">
-                  <motion.div
-                    className={`w-full h-2 ${colors.light} rounded-full overflow-hidden`}
-                    initial={{ width: 0 }}
-                    animate={{ width: '100%' }}
-                    transition={{ duration: 1, delay: 0.8 }}
-                  >
-                    <motion.div
-                      className={`h-full ${colors.primary} rounded-full`}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${data.tasteTrend.percentage}%` }}
-                      transition={{ duration: 1.5, delay: 1 }}
-                    />
-                  </motion.div>
+          <div className="lg:col-span-1 flex flex-col h-full">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: 0.7 }}
+              className="h-full"
+            >
+              <Card className={`${colors.light} ${colors.border} h-full flex flex-col`}>
+                <div className="flex gap-4 items-center">
+                  <ActiveProjectIcon />
+                  <h3 className="text-h4-sm font-bold text-text-primary">
+                    Taste Trends
+                  </h3>
                 </div>
-              </div>
-            </Card>
-          </motion.div>
+                <div className="flex flex-col justify-center items-center text-center flex-grow">
+                  <p className="text-para-md text-text-secondary mb-md">
+                    This week, <span className={`font-semibold ${colors.text} text-para-lg`}>
+                      {data.tasteTrend.percentage}%
+                    </span> of clients chose
+                  </p>
+
+                  {/* Pie chart */}
+                  <div className="relative w-36 h-36 flex items-center justify-center">
+                    <svg viewBox="0 0 36 36" className="w-full h-full">
+                      {/* Background track */}
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="15.915"
+                        fill="none"
+                        stroke="#E5E7EB"
+                        strokeWidth="3.5"
+                        className={colors.light}
+                      />
+                      {/* Animated progress ring */}
+                      <motion.circle
+                        cx="18"
+                        cy="18"
+                        r="15.915"
+                        fill="none"
+                        stroke={colors.hex}
+                        strokeWidth="3.5"
+                        className={colors.primary}
+                        strokeDasharray="100, 100"
+                        strokeDashoffset="100"
+                        initial={{ strokeDashoffset: 100 }}
+                        animate={{ strokeDashoffset: 100 - data.tasteTrend.percentage }}
+                        transition={{ duration: 1.5, ease: "easeOut", delay: 0.6 }}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </div>
+
+                  {/* Label below */}
+                  <p className={`mt-md text-h3-sm font-bold ${colors.text}`}>
+                    {data.tasteTrend.trend}
+                  </p>
+                </div>
+              </Card>
+            </motion.div>
+          </div>
         </div>
 
         {/* View Recent Projects Link at the end */}
@@ -550,7 +639,7 @@ const DashboardHome: React.FC = () => {
       </div >
 
       {/* Fixed Color Picker - Top Right Position */}
-      {/* < ColorPicker accentColor={accentColor} setAccentColor={setAccentColor} /> */}
+      < ColorPicker accentColor={accentColor} setAccentColor={setAccentColor} />
     </div >
   );
 };
