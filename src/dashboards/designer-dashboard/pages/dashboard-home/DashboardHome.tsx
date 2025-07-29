@@ -476,11 +476,11 @@ const DashboardHome: React.FC = () => {
                 >
                   <Card className={`${colors.light} ${colors.border} h-full`}>
                     <div className="flex gap-4 items-center">
-                        <ActiveProjectIcon />
-                        <h3 className="text-h4-sm font-bold text-text-primary">
-                          Project Overview
-                        </h3>
-                      </div>
+                      <ActiveProjectIcon />
+                      <h3 className="text-h4-sm font-bold text-text-primary">
+                        Project Overview
+                      </h3>
+                    </div>
                     <div className="grid grid-cols-3 gap-md">
                       <div>
 
@@ -580,7 +580,14 @@ const DashboardHome: React.FC = () => {
                   {/* Pie chart */}
                   <div className="relative w-36 h-36 flex items-center justify-center">
                     <svg viewBox="0 0 36 36" className="w-full h-full">
-                      {/* Background track */}
+                      <defs>
+                        <linearGradient id="gradientStroke" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#7F5AF0" />
+                          <stop offset="100%" stopColor="#2CBDF9" />
+                        </linearGradient>
+                      </defs>
+
+                      {/* Background ring */}
                       <circle
                         cx="18"
                         cy="18"
@@ -588,21 +595,23 @@ const DashboardHome: React.FC = () => {
                         fill="none"
                         stroke="#E5E7EB"
                         strokeWidth="3.5"
-                        className={colors.light}
                       />
+
                       {/* Animated progress ring */}
                       <motion.circle
                         cx="18"
                         cy="18"
                         r="15.915"
                         fill="none"
-                        stroke={colors.hex}
+                        stroke="url(#gradientStroke)"
                         strokeWidth="3.5"
-                        className={colors.primary}
-                        strokeDasharray="100, 100"
-                        strokeDashoffset="100"
-                        initial={{ strokeDashoffset: 100 }}
-                        animate={{ strokeDashoffset: 100 - data.tasteTrend.percentage }}
+                        strokeDasharray={`${2 * Math.PI * 15.915}`}
+                        strokeDashoffset={2 * Math.PI * 15.915}
+                        initial={{ strokeDashoffset: 2 * Math.PI * 15.915 }}
+                        animate={{
+                          strokeDashoffset:
+                            (1 - data.tasteTrend.percentage / 100) * 2 * Math.PI * 15.915,
+                        }}
                         transition={{ duration: 1.5, ease: "easeOut", delay: 0.6 }}
                         strokeLinecap="round"
                       />
