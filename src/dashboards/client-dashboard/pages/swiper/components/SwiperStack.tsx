@@ -21,6 +21,7 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
     onAnimationComplete
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [lastAction, setLastAction] = useState<SwipeAction | null>(null);
 
     const cardStack = useMemo(() => {
         const stack = [];
@@ -49,6 +50,9 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
             return;
         }
 
+        // Store the action for exit animation
+        setLastAction(action);
+
         // Inform parent about the swipe action for data collection
         onSwipe(action, topCard.component);
 
@@ -68,6 +72,7 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
         // Wait for animations to settle before unlocking
         setTimeout(() => {
             onAnimationComplete();
+            setLastAction(null);
         }, 300); // A safe duration for animations to finish
 
     }, [
@@ -106,6 +111,21 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
         }
     };
 
+    const getExitAnimation = (action: SwipeAction | null) => {
+        switch (action) {
+            case 'like':
+                return { x: 500, y: 0, opacity: 0, scale: 0.9 };
+            case 'dislike':
+                return { x: -500, y: 0, opacity: 0, scale: 0.9 };
+            case 'save':
+                return { x: 0, y: -500, opacity: 0, scale: 0.9 };
+            case 'super-like':
+                return { x: 0, y: 500, opacity: 0, scale: 1.1, rotate: 0 };
+            default:
+                return { x: 0, y: 0, opacity: 0, scale: 0.8 };
+        }
+    };
+
     if (cardStack.length === 0) {
         return null;
     }
@@ -133,12 +153,7 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
                                         damping: 30
                                     }
                                 }}
-                                exit={{
-                                    x: stackCard.component.vibe === 'like' ? 500 : -500, // Example exit based on action
-                                    opacity: 0,
-                                    scale: 0.9,
-                                    transition: { duration: 0.3 }
-                                }}
+                                exit={getExitAnimation(isTopCard ? lastAction : null)}
                                 style={{
                                     zIndex: config.zIndex,
                                     pointerEvents: isTopCard ? 'auto' : 'none'

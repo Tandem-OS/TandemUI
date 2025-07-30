@@ -13,7 +13,7 @@ export interface ComponentPreview {
     category: string;
 }
 
-export type SwipeAction = 'like' | 'dislike' | 'save' | 'ask-ai';
+export type SwipeAction = 'like' | 'dislike' | 'save' | 'super-like' | 'ask-ai';
 
 export interface UserChoice {
     component_id: string;

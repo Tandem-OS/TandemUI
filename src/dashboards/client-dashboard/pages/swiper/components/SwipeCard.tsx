@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, type PanInfo, useMotionValue, useTransform, animate } from 'framer-motion';
 import { FiThumbsUp, FiThumbsDown, FiHelpCircle, FiBookmark, FiHeart } from 'react-icons/fi';
 import { type SwipeCardProps } from '../swiper.types';
 import { AskAiModal } from './AskAiModal';
+import swipeAudio from "@/assets/audio/swipeAudio.mp3";
+import clickAudio from "@/assets/audio/clickAudio.mp3";
 
 const SwipeCard: React.FC<SwipeCardProps> = ({
     component,
@@ -13,13 +15,53 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const x = useMotionValue(0);
+    const y = useMotionValue(0);
     const rotate = useTransform(x, [-300, 300], [-25, 25]);
     const opacity = useTransform(x, [-500, -150, 0, 150, 500], [0, 1, 1, 1, 0]);
 
     const nopeOpacity = useTransform(x, [-300, -80, 0], [1, 0.7, 0]);
     const likeOpacity = useTransform(x, [0, 80, 300], [0, 0.7, 1]);
+    const saveOpacity = useTransform(y, [-300, -80, 0], [1, 0.7, 0]);
+    const superLikeOpacity = useMotionValue(0);
 
-    const handleSwipeAction = (action: 'like' | 'dislike' | 'save' | 'ask-ai') => {
+    // Audio refs
+    const swipeAudioRef = useRef<HTMLAudioElement | null>(null);
+    const clickAudioRef = useRef<HTMLAudioElement | null>(null);
+
+    // Double tap detection
+    const lastTap = useRef<number>(0);
+    const tapTimeout = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        // Initialize audio
+        swipeAudioRef.current = new Audio(swipeAudio);
+        swipeAudioRef.current.volume = 0.5;
+
+        clickAudioRef.current = new Audio(clickAudio);
+        clickAudioRef.current.volume = 0.3; // Light volume for clicks
+
+        return () => {
+            if (tapTimeout.current) {
+                clearTimeout(tapTimeout.current);
+            }
+        };
+    }, []);
+
+    const playSwipeSound = () => {
+        if (swipeAudioRef.current) {
+            swipeAudioRef.current.currentTime = 0;
+            swipeAudioRef.current.play().catch(err => console.log('Audio play failed:', err));
+        }
+    };
+
+    const playClickSound = () => {
+        if (clickAudioRef.current) {
+            clickAudioRef.current.currentTime = 0;
+            clickAudioRef.current.play().catch(err => console.log('Click audio play failed:', err));
+        }
+    };
+
+    const handleSwipeAction = (action: 'like' | 'dislike' | 'save' | 'super-like' | 'ask-ai') => {
         if (!isActive || isAnimating) return;
 
         if (isAiModalOpen) {
@@ -27,19 +69,69 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         }
 
         const swipePower = 500;
-        const targetX = action === 'like' ? swipePower : -swipePower;
+        let targetX = 0;
+        let targetY = 0;
 
-        animate(x, targetX, {
-            type: "spring",
-            stiffness: 500,
-            damping: 50
-        }).then(() => {
+        switch (action) {
+            case 'like':
+                targetX = swipePower;
+                break;
+            case 'dislike':
+                targetX = -swipePower;
+                break;
+            case 'save':
+                targetY = -swipePower;
+                break;
+            case 'super-like':
+                animate(superLikeOpacity, 1, { duration: 0.3 });
+
+                setTimeout(() => {
+                    targetX = 0;
+                    targetY = swipePower; // Swipe down for super like
+
+                    Promise.all([
+                        animate(x, targetX, {
+                            type: "spring",
+                            stiffness: 500,
+                            damping: 50
+                        }),
+                        animate(y, targetY, {
+                            type: "spring",
+                            stiffness: 500,
+                            damping: 50
+                        })
+                    ]).then(() => {
+                        onSwipe(action);
+                    });
+                }, 300);
+
+                playSwipeSound();
+                return;
+        }
+
+        if (action !== 'ask-ai') {
+            playSwipeSound();
+        }
+
+        Promise.all([
+            animate(x, targetX, {
+                type: "spring",
+                stiffness: 500,
+                damping: 50
+            }),
+            animate(y, targetY, {
+                type: "spring",
+                stiffness: 500,
+                damping: 50
+            })
+        ]).then(() => {
             onSwipe(action);
         });
     };
 
     const handleAskAiClick = () => {
         if (!isActive || isAnimating) return;
+        // No click sound for Ask AI button
         setIsAiModalOpen(prev => !prev);
     };
 
@@ -47,14 +139,24 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         if (!isActive || isAnimating) return;
 
         setIsDragging(false);
-        const threshold = 120;
+        const xThreshold = 120;
+        const yThreshold = 100;
 
-        if (info.offset.x > threshold) {
+        // Check for upward swipe first (save)
+        if (info.offset.y < -yThreshold) {
+            handleSwipeAction('save');
+        } else if (info.offset.x > xThreshold) {
             handleSwipeAction('like');
-        } else if (info.offset.x < -threshold) {
+        } else if (info.offset.x < -xThreshold) {
             handleSwipeAction('dislike');
         } else {
+            // Snap back to center
             animate(x, 0, {
+                type: "spring",
+                stiffness: 500,
+                damping: 30
+            });
+            animate(y, 0, {
                 type: "spring",
                 stiffness: 500,
                 damping: 30
@@ -65,13 +167,36 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const handleDragStart = () => {
         if (!isActive || isAnimating) return;
         setIsDragging(true);
-        // Close AI modal when dragging starts
         if (isAiModalOpen) {
             setIsAiModalOpen(false);
         }
     };
 
-    // Disable drag when AI modal is open or when card is not active
+    // Handle double tap for super like
+    const handleCardClick = useCallback(() => {
+        if (!isActive || isAnimating) return;
+
+        const now = Date.now();
+        const DOUBLE_TAP_DELAY = 300;
+
+        if (tapTimeout.current) {
+            clearTimeout(tapTimeout.current);
+            tapTimeout.current = null;
+        }
+
+        if (now - lastTap.current < DOUBLE_TAP_DELAY) {
+            // Double tap detected
+            handleSwipeAction('super-like');
+            lastTap.current = 0;
+        } else {
+            // Single tap - set timeout to reset
+            lastTap.current = now;
+            tapTimeout.current = setTimeout(() => {
+                lastTap.current = 0;
+            }, DOUBLE_TAP_DELAY);
+        }
+    }, [isActive, isAnimating]);
+
     const canDrag = isActive && !isAnimating && !isAiModalOpen;
     const isDisabled = isDragging || !isActive || isAnimating;
 
@@ -81,35 +206,70 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
             style={{
                 transformOrigin: 'center bottom',
                 x,
+                y,
                 rotate,
                 opacity,
                 willChange: 'transform',
             }}
-            drag={canDrag ? "x" : false}
+            drag={canDrag}
             dragElastic={0.2}
-            dragConstraints={{ left: -300, right: 300 }}
+            dragConstraints={{ left: -300, right: 300, top: -200, bottom: 50 }}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             whileDrag={canDrag ? {
                 scale: 1.02,
                 transition: { duration: 0.2 }
             } : {}}
+            onClick={handleCardClick}
         >
             {/* Swipe feedback overlays */}
             {isActive && (
                 <>
+                    {/* Nope overlay - Mobile: center on image, Desktop: top-right */}
                     <motion.div
-                        className="absolute top-sm right-sm z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md rounded-md sm:rounded-lg bg-background-error text-text-error border-border-error"
+                        className="absolute z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md 
+                                   rounded-md sm:rounded-lg bg-background-error text-text-error 
+                                   border-border-error pointer-events-none
+                                   top-[96px] sm:top-[112px] left-1/2 -translate-x-1/2 -translate-y-1/2
+                                   lg:top-sm lg:left-auto lg:right-sm lg:translate-x-0 lg:translate-y-0"
                         style={{ opacity: nopeOpacity, willChange: 'opacity' }}
                     >
                         NOPE
                     </motion.div>
 
+                    {/* Like overlay - Mobile: center on image, Desktop: top-right */}
                     <motion.div
-                        className="absolute top-sm right-sm z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md rounded-md sm:rounded-lg bg-background-success text-text-success border-border-success"
+                        className="absolute z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md 
+                                   rounded-md sm:rounded-lg bg-background-success text-text-success 
+                                   border-border-success pointer-events-none
+                                   top-[96px] sm:top-[112px] left-1/2 -translate-x-1/2 -translate-y-1/2
+                                   lg:top-sm lg:left-auto lg:right-sm lg:translate-x-0 lg:translate-y-0"
                         style={{ opacity: likeOpacity, willChange: 'opacity' }}
                     >
                         LIKE
+                    </motion.div>
+
+                    {/* Save overlay - Mobile: center on image, Desktop: top-right */}
+                    <motion.div
+                        className="absolute z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md 
+                                   rounded-md sm:rounded-lg bg-background-warning text-text-warning 
+                                   border-border-warning pointer-events-none
+                                   top-[96px] sm:top-[112px] left-1/2 -translate-x-1/2 -translate-y-1/2
+                                   lg:top-sm lg:left-auto lg:right-sm lg:translate-x-0 lg:translate-y-0"
+                        style={{ opacity: saveOpacity, willChange: 'opacity' }}
+                    >
+                        SAVE
+                    </motion.div>
+
+                    {/* Super Like overlay - always center */}
+                    <motion.div
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                                   z-10 border-2 px-lg py-md font-bold text-para-lg sm:text-h6-sm 
+                                   rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500 to-pink-600 
+                                   text-white border-pink-400 pointer-events-none shadow-2xl"
+                        style={{ opacity: superLikeOpacity, willChange: 'opacity' }}
+                    >
+                        SUPER LIKE!
                     </motion.div>
                 </>
             )}
@@ -124,7 +284,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         style={{ backgroundImage: `url(${component.thumbnail_url})` }}
                     />
 
-                    {/* Content Section - Clean without buttons */}
+                    {/* Content Section */}
                     <div className="bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
                         <div className="space-y-sm md:space-y-md lg:space-y-lg">
                             <div className="flex items-center justify-between gap-xs">
@@ -165,13 +325,19 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         style={{ backgroundImage: `url(${component.thumbnail_url})` }}
                     />
                 </div>
+
+                {/* Action Buttons */}
                 <div className="px-md py-md">
                     <div className="flex justify-center">
                         <div className={`flex items-center justify-center gap-sm ${!isActive ? 'pointer-events-none opacity-60' : ''}`}>
 
                             {/* Like Button */}
                             <motion.button
-                                onClick={() => handleSwipeAction('like')}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    playClickSound();
+                                    handleSwipeAction('like');
+                                }}
                                 className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-success hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
                                 whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
                                 whileTap={!isDisabled ? { scale: 0.95 } : {}}
@@ -184,7 +350,11 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
                             {/* Dislike Button */}
                             <motion.button
-                                onClick={() => handleSwipeAction('dislike')}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    playClickSound();
+                                    handleSwipeAction('dislike');
+                                }}
                                 className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-error hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
                                 whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
                                 whileTap={!isDisabled ? { scale: 0.95 } : {}}
@@ -197,7 +367,11 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
                             {/* Super Like Button (Heart) - Center */}
                             <motion.button
-                                onClick={() => {/* Super like functionality - to be added later */ }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    playClickSound();
+                                    handleSwipeAction('super-like');
+                                }}
                                 className="flex flex-col items-center justify-center gap-1 p-sm rounded-full bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group w-16 h-16 shadow-lg"
                                 whileHover={!isDisabled ? { scale: 1.15, y: -2 } : {}}
                                 whileTap={!isDisabled ? { scale: 0.9 } : {}}
@@ -211,7 +385,10 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                             {/* Ask AI Button */}
                             <div className="relative">
                                 <motion.button
-                                    onClick={handleAskAiClick}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAskAiClick();
+                                    }}
                                     className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-info hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
                                     whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
                                     whileTap={!isDisabled ? { scale: 0.95 } : {}}
@@ -233,7 +410,11 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
                             {/* Save Button */}
                             <motion.button
-                                onClick={() => {/* Save functionality - to be added later */ }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    playClickSound();
+                                    handleSwipeAction('save');
+                                }}
                                 className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-warning hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
                                 whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
                                 whileTap={!isDisabled ? { scale: 0.95 } : {}}
