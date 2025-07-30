@@ -9,8 +9,8 @@ const SwipeProgress: React.FC<SwiperProgressProps> = ({
     const percentage = Math.round((current / total) * 100);
 
     return (
-        <div className={`flex flex-col items-end space-y-sm ${className}`}>
-            
+        <div className={`flex flex-col items-end space-y-xs ${className}`}>
+
             {/* Progress text - showing rounds */}
             <div className="text-text-secondary text-para-sm font-medium">
                 Round {current} of {total}

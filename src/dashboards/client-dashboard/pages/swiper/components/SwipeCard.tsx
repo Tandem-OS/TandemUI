@@ -8,7 +8,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     component,
     onSwipe,
     isActive = true,
-    isAnimating = false, // Receive global animation lock state
+    isAnimating = false,
 }) => {
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -26,7 +26,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
             setIsAiModalOpen(false);
         }
 
-        // Animate out and then call onSwipe
         const swipePower = 500;
         const targetX = action === 'like' ? swipePower : -swipePower;
 
@@ -79,6 +78,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 x,
                 rotate,
                 opacity,
+                // --- YEH LINE ADD KI HAI ---
+                willChange: 'transform',
             }}
             drag={isActive && !isAnimating ? "x" : false}
             onDragStart={handleDragStart}
@@ -92,92 +93,101 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
             {isActive && (
                 <>
                     <motion.div
-                        className="absolute top-md right-md z-10 px-lg py-md bg-background-error text-text-error font-bold text-h5-md rounded-xl border-2 border-border-error"
-                        style={{ opacity: nopeOpacity }}
+                        className="absolute top-sm right-sm z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md rounded-md sm:rounded-lg bg-background-error text-text-error border-border-error"
+                        style={{ opacity: nopeOpacity, willChange: 'opacity' }}
                     >
                         NOPE
                     </motion.div>
+
                     <motion.div
-                        className="absolute top-md right-md z-10 px-lg py-md bg-background-success text-text-success font-bold text-h5-md rounded-xl border-2 border-border-success"
-                        style={{ opacity: likeOpacity }}
+                        className="absolute top-sm right-sm z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md rounded-md sm:rounded-lg bg-background-success text-text-success border-border-success"
+                        style={{ opacity: likeOpacity, willChange: 'opacity' }}
                     >
                         LIKE
                     </motion.div>
                 </>
             )}
 
-            <div className="bg-background-secondary rounded-2xl shadow-lg border border-border-default overflow-hidden">
+            <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden">
+                {/* Mobile: Image on top, Desktop: Side by side */}
                 <div className="grid grid-cols-1 lg:grid-cols-2">
-                    <div className="bg-background-primary-2 p-xl flex flex-col justify-between min-h-96 2xl:min-h-[32rem]">
-                        <div className="space-y-lg">
-                            <div className="flex items-center justify-between">
-                                <span className="px-md py-sm bg-accent-default text-accent-foreground text-para-sm 2xl:text-para-md font-medium rounded-lg">
+                    {/* Mobile: Show image first */}
+                    <div
+                        className="lg:hidden bg-cover bg-center bg-no-repeat h-48 sm:h-56 select-none"
+                        style={{ backgroundImage: `url(${component.thumbnail_url})` }}
+                    />
+
+                    {/* Content Section */}
+                    <div className="bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-between">
+                        <div className="space-y-sm md:space-y-md lg:space-y-lg">
+                            <div className="flex items-center justify-between gap-xs">
+                                <span className="px-xs py-px sm:px-sm sm:py-xs md:px-md md:py-sm bg-accent-default text-accent-foreground text-para-xs sm:text-para-sm 2xl:text-para-md font-medium rounded-sm sm:rounded-md md:rounded-lg">
                                     {component.category}
                                 </span>
-                                <span className="px-md py-sm bg-background-secondary-2 text-text-secondary text-para-xs 2xl:text-para-sm font-medium rounded-lg">
+                                <span className="px-xs py-px sm:px-sm sm:py-xs md:px-md md:py-sm bg-background-secondary-2 text-text-secondary text-para-xs sm:text-para-sm font-medium rounded-sm sm:rounded-md md:rounded-lg">
                                     {component.vibe}
                                 </span>
                             </div>
 
-                            <div className="space-y-md">
-                                <h2 className="text-h4-md 2xl:text-h4-lg font-semibold text-text-primary leading-tight">
+                            <div className="space-y-xs sm:space-y-sm md:space-y-md">
+                                <h2 className="text-h5-sm sm:text-h4-sm md:text-h4-md 2xl:text-h4-lg font-semibold text-text-primary leading-tight">
                                     {component.title}
                                 </h2>
-                                <p className="text-text-secondary text-para-sm 2xl:text-para-md leading-relaxed">
+                                <p className="text-text-secondary text-para-xs sm:text-para-sm leading-relaxed line-clamp-3 sm:line-clamp-none">
                                     {component.description}
                                 </p>
 
-                                <div className="flex flex-wrap gap-xs">
+                                <div className="flex flex-wrap gap-xs sm:gap-xs md:gap-sm">
                                     {component.tags.slice(0, 3).map((tag, tagIndex) => (
-                                        <span key={tagIndex} className="px-sm py-xs bg-background-secondary-2 text-text-tertiary text-para-xs 2xl:text-para-sm rounded-md">
+                                        <span key={tagIndex} className="px-xs py-px sm:px-sm sm:py-xs md:px-sm md:py-xs bg-background-secondary-2 text-text-tertiary text-para-xs rounded-sm sm:rounded md:rounded-md">
                                             {tag}
                                         </span>
                                     ))}
                                 </div>
 
-                                <div className="text-text-secondary text-para-sm 2xl:text-para-md">
+                                <div className="text-text-secondary text-para-xs sm:text-para-sm">
                                     <span className="font-medium">Layout:</span> {component.layout_structure}
                                 </div>
                             </div>
                         </div>
 
-                        <div className={`flex justify-start items-center gap-md ${!isActive ? 'pointer-events-none opacity-60' : ''
+                        <div className={`flex flex-wrap justify-start pt-md items-center gap-sm md:gap-md mt-md ${!isActive ? 'pointer-events-none opacity-60' : ''
                             }`}>
                             <motion.button
                                 onClick={() => handleSwipeAction('dislike')}
-                                className="flex items-center gap-sm px-md py-sm bg-background-primary rounded-lg shadow-md text-text-error hover:bg-background-secondary-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-xs sm:gap-xs md:gap-sm px-md py-sm bg-background-primary rounded-lg shadow-md text-text-error hover:bg-background-secondary-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                 whileHover={!isDisabled ? { scale: 1.05 } : {}}
                                 whileTap={!isDisabled ? { scale: 0.95 } : {}}
                                 aria-label="Nope"
                                 disabled={isDisabled}
                             >
-                                <FiThumbsDown size={18} />
-                                <span className="text-para-sm 2xl:text-para-md font-medium leading-none">Nope</span>
+                                <FiThumbsDown className="text-icon-sm" />
+                                <span className="text-para-xs sm:text-para-sm font-medium leading-none">Nope</span>
                             </motion.button>
 
                             <motion.button
                                 onClick={() => handleSwipeAction('like')}
-                                className="flex items-center gap-sm px-md py-sm bg-background-primary rounded-lg shadow-md text-text-success hover:bg-background-secondary-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-xs sm:gap-xs md:gap-sm px-md py-sm bg-background-primary rounded-lg shadow-md text-text-success hover:bg-background-secondary-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                 whileHover={!isDisabled ? { scale: 1.05 } : {}}
                                 whileTap={!isDisabled ? { scale: 0.95 } : {}}
                                 aria-label="Like"
                                 disabled={isDisabled}
                             >
-                                <FiThumbsUp size={18} />
-                                <span className="text-para-sm 2xl:text-para-md font-medium leading-none">Like</span>
+                                <FiThumbsUp className="text-icon-sm" />
+                                <span className="text-para-xs sm:text-para-sm font-medium leading-none">Like</span>
                             </motion.button>
 
                             <div className="relative">
                                 <motion.button
                                     onClick={handleAskAiClick}
-                                    className="flex items-center gap-sm px-md py-sm bg-background-primary rounded-lg shadow-md text-text-info hover:bg-background-secondary-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex items-center gap-xs sm:gap-xs md:gap-sm px-md py-sm bg-background-primary rounded-lg shadow-md text-text-info hover:bg-background-secondary-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     whileHover={!isDisabled ? { scale: 1.05 } : {}}
                                     whileTap={!isDisabled ? { scale: 0.95 } : {}}
                                     aria-label="Ask AI"
                                     disabled={isDisabled}
                                 >
-                                    <FiHelpCircle size={18} />
-                                    <span className="text-para-sm 2xl:text-para-md font-medium leading-none">Ask AI</span>
+                                    <FiHelpCircle className="text-icon-sm" />
+                                    <span className="text-para-xs sm:text-para-sm font-medium leading-none">Ask AI</span>
                                 </motion.button>
 
                                 {isActive && (
@@ -191,8 +201,9 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         </div>
                     </div>
 
+                    {/* Desktop: Show image on right */}
                     <div
-                        className="bg-cover bg-center bg-no-repeat min-h-96 2xl:min-h-[32rem] select-none"
+                        className="hidden lg:block bg-cover bg-center bg-no-repeat select-none"
                         style={{ backgroundImage: `url(${component.thumbnail_url})` }}
                     />
                 </div>

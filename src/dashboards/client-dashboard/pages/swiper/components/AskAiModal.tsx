@@ -59,7 +59,7 @@ export const AskAiModal: React.FC<AskAiModalProps> = ({ isOpen, description, onC
             {isOpen && (
                 <motion.div
                     ref={modalRef}
-                    className="absolute bottom-full left-0 mb-md w-80 bg-background-primary text-text-primary p-lg rounded-xl shadow-2xl border border-border-default z-50"
+                    className="absolute bottom-full left-0 mb-xs sm:mb-sm md:mb-md w-56 sm:w-64 md:w-80 bg-background-primary text-text-primary p-sm sm:p-sm md:p-lg rounded-md sm:rounded-lg md:rounded-xl shadow-2xl border border-border-default z-50"
                     layout
                     transition={{
                         layout: { duration: 0.3, ease: [0.25, 1, 0.5, 1] },
@@ -68,29 +68,33 @@ export const AskAiModal: React.FC<AskAiModalProps> = ({ isOpen, description, onC
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    // SMOOTHNESS FIX: Added will-change to handle layout and transform animations smoothly
+                    style={{ willChange: 'transform, opacity' }}
                 >
                     {/* Close button */}
                     <button
                         onClick={onClose}
-                        className="absolute top-sm right-sm p-xs text-text-tertiary hover:text-text-primary hover:bg-background-muted rounded-full transition-colors duration-200"
+                        className="absolute top-xs right-xs sm:top-sm sm:right-sm md:top-sm md:right-sm p-xs text-text-tertiary hover:text-text-primary hover:bg-background-muted rounded-full transition-colors duration-200"
                         aria-label="Close AI suggestion"
                     >
-                        <FiX size={16} />
+                        <FiX className="text-icon-sm" />
                     </button>
 
-                    <div className="flex items-start gap-sm pr-lg">
-                        <div className="flex-shrink-0 mt-1 w-6 h-6 bg-accent-subtle text-accent-default rounded-full flex items-center justify-center">
-                            <FiCpu size={14} />
+                    <div className="flex items-start gap-xs sm:gap-sm md:gap-sm">
+                        <div className="flex-shrink-0 mt-px sm:mt-xs md:mt-1 w-5 h-5 sm:w-6 sm:h-6 md:w-6 md:h-6 bg-accent-subtle text-accent-default rounded-full flex items-center justify-center">
+                            <FiCpu className="text-para-xs sm:text-para-sm" />
                         </div>
                         <div className="flex-1">
-                            <h4 className="text-para-sm font-medium text-text-primary mb-xs">AI Analysis</h4>
-                            <p className="text-para-sm leading-relaxed text-text-secondary min-h-[3rem]">
+                            <h4 className="text-para-xs sm:text-para-sm md:text-para-md font-medium text-text-primary mb-xs">AI Analysis</h4>
+                            <p className="text-para-xs sm:text-para-sm leading-relaxed text-text-secondary min-h-[2.5rem] sm:min-h-[3rem]">
                                 {displayedText}
                                 {displayedText.length < description.length && (
                                     <motion.span
-                                        className="inline-block w-2 h-4 bg-accent-default ml-1"
+                                        className="inline-block w-0.5 h-3 sm:w-0.5 sm:h-3.5 md:w-0.5 md:h-4 bg-accent-default ml-xs"
                                         animate={{ opacity: [1, 0, 1] }}
                                         transition={{ duration: 0.8, repeat: Infinity }}
+                                        // SMOOTHNESS FIX: Minor optimization for the blinking cursor
+                                        style={{ willChange: 'opacity' }}
                                     />
                                 )}
                             </p>
@@ -98,7 +102,7 @@ export const AskAiModal: React.FC<AskAiModalProps> = ({ isOpen, description, onC
                     </div>
 
                     {/* Arrow pointing to button */}
-                    <div className="absolute bottom-[-6px] left-6 w-3 h-3 bg-background-primary border-r border-b border-border-default transform rotate-45"></div>
+                    <div className="absolute bottom-[-5px] sm:bottom-[-5px] md:bottom-[-6px] left-md sm:left-md md:left-lg w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3 md:h-3 bg-background-primary border-r border-b border-border-default transform rotate-45"></div>
                 </motion.div>
             )}
         </AnimatePresence>
