@@ -13,7 +13,8 @@
             "warning": "{colors.amber.900}",
             "info": "{colors.sky.900}",
             "dark": "{colors.gray.950}",
-            "pastel-green": "{colors.emerald.800}"
+            "pastel-green": "{colors.emerald.800}",
+            "red": "{colors.red.500}"
         },
         "text": {
             "primary": "{colors.gray.50}",

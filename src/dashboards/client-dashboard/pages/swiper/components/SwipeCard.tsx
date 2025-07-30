@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, type PanInfo, useMotionValue, useTransform, animate } from 'framer-motion';
-import { FiThumbsUp, FiThumbsDown, FiHelpCircle } from 'react-icons/fi';
+import { FiThumbsUp, FiThumbsDown, FiHelpCircle, FiBookmark, FiHeart } from 'react-icons/fi';
 import { type SwipeCardProps } from '../swiper.types';
 import { AskAiModal } from './AskAiModal';
 
@@ -65,26 +65,32 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const handleDragStart = () => {
         if (!isActive || isAnimating) return;
         setIsDragging(true);
+        // Close AI modal when dragging starts
+        if (isAiModalOpen) {
+            setIsAiModalOpen(false);
+        }
     };
 
+    // Disable drag when AI modal is open or when card is not active
+    const canDrag = isActive && !isAnimating && !isAiModalOpen;
     const isDisabled = isDragging || !isActive || isAnimating;
 
     return (
         <motion.div
-            className={`relative w-full mx-auto ${isActive && !isAnimating ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
-                }`}
+            className={`relative w-full mx-auto ${canDrag ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`}
             style={{
                 transformOrigin: 'center bottom',
                 x,
                 rotate,
                 opacity,
-                // --- YEH LINE ADD KI HAI ---
                 willChange: 'transform',
             }}
-            drag={isActive && !isAnimating ? "x" : false}
+            drag={canDrag ? "x" : false}
+            dragElastic={0.2}
+            dragConstraints={{ left: -300, right: 300 }}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            whileDrag={isActive ? {
+            whileDrag={canDrag ? {
                 scale: 1.02,
                 transition: { duration: 0.2 }
             } : {}}
@@ -108,6 +114,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 </>
             )}
 
+            {/* Main Card */}
             <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden">
                 {/* Mobile: Image on top, Desktop: Side by side */}
                 <div className="grid grid-cols-1 lg:grid-cols-2">
@@ -117,8 +124,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         style={{ backgroundImage: `url(${component.thumbnail_url})` }}
                     />
 
-                    {/* Content Section */}
-                    <div className="bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-between">
+                    {/* Content Section - Clean without buttons */}
+                    <div className="bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
                         <div className="space-y-sm md:space-y-md lg:space-y-lg">
                             <div className="flex items-center justify-between gap-xs">
                                 <span className="px-xs py-px sm:px-sm sm:py-xs md:px-md md:py-sm bg-accent-default text-accent-foreground text-para-xs sm:text-para-sm 2xl:text-para-md font-medium rounded-sm sm:rounded-md md:rounded-lg">
@@ -150,44 +157,69 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div className={`flex flex-wrap justify-start pt-md items-center gap-sm md:gap-md mt-md ${!isActive ? 'pointer-events-none opacity-60' : ''
-                            }`}>
-                            <motion.button
-                                onClick={() => handleSwipeAction('dislike')}
-                                className="flex items-center gap-xs sm:gap-xs md:gap-sm px-md py-sm bg-background-primary rounded-lg shadow-md text-text-error hover:bg-background-secondary-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                whileHover={!isDisabled ? { scale: 1.05 } : {}}
-                                whileTap={!isDisabled ? { scale: 0.95 } : {}}
-                                aria-label="Nope"
-                                disabled={isDisabled}
-                            >
-                                <FiThumbsDown className="text-icon-sm" />
-                                <span className="text-para-xs sm:text-para-sm font-medium leading-none">Nope</span>
-                            </motion.button>
+                    {/* Desktop: Show image on right */}
+                    <div
+                        className="hidden lg:block bg-cover bg-center bg-no-repeat select-none"
+                        style={{ backgroundImage: `url(${component.thumbnail_url})` }}
+                    />
+                </div>
+                <div className="px-md py-md">
+                    <div className="flex justify-center">
+                        <div className={`flex items-center justify-center gap-sm ${!isActive ? 'pointer-events-none opacity-60' : ''}`}>
 
+                            {/* Like Button */}
                             <motion.button
                                 onClick={() => handleSwipeAction('like')}
-                                className="flex items-center gap-xs sm:gap-xs md:gap-sm px-md py-sm bg-background-primary rounded-lg shadow-md text-text-success hover:bg-background-secondary-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                whileHover={!isDisabled ? { scale: 1.05 } : {}}
+                                className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-success hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
+                                whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
                                 whileTap={!isDisabled ? { scale: 0.95 } : {}}
                                 aria-label="Like"
                                 disabled={isDisabled}
                             >
-                                <FiThumbsUp className="text-icon-sm" />
-                                <span className="text-para-xs sm:text-para-sm font-medium leading-none">Like</span>
+                                <FiThumbsUp className="text-icon-sm text-text-success transition-colors" />
+                                <span className="text-para-xs font-medium text-text-success transition-colors">Like</span>
                             </motion.button>
 
+                            {/* Dislike Button */}
+                            <motion.button
+                                onClick={() => handleSwipeAction('dislike')}
+                                className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-error hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
+                                whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
+                                whileTap={!isDisabled ? { scale: 0.95 } : {}}
+                                aria-label="Dislike"
+                                disabled={isDisabled}
+                            >
+                                <FiThumbsDown className="text-icon-sm text-text-error transition-colors" />
+                                <span className="text-para-xs font-medium text-text-error transition-colors">Nope</span>
+                            </motion.button>
+
+                            {/* Super Like Button (Heart) - Center */}
+                            <motion.button
+                                onClick={() => {/* Super like functionality - to be added later */ }}
+                                className="flex flex-col items-center justify-center gap-1 p-sm rounded-full bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group w-16 h-16 shadow-lg"
+                                whileHover={!isDisabled ? { scale: 1.15, y: -2 } : {}}
+                                whileTap={!isDisabled ? { scale: 0.9 } : {}}
+                                aria-label="Super Like"
+                                disabled={isDisabled}
+                            >
+                                <FiHeart className="text-icon-sm text-white group-hover:scale-110 transition-transform" />
+                                <span className="text-para-xs font-bold text-white">Super</span>
+                            </motion.button>
+
+                            {/* Ask AI Button */}
                             <div className="relative">
                                 <motion.button
                                     onClick={handleAskAiClick}
-                                    className="flex items-center gap-xs sm:gap-xs md:gap-sm px-md py-sm bg-background-primary rounded-lg shadow-md text-text-info hover:bg-background-secondary-2 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    whileHover={!isDisabled ? { scale: 1.05 } : {}}
+                                    className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-info hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
+                                    whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
                                     whileTap={!isDisabled ? { scale: 0.95 } : {}}
                                     aria-label="Ask AI"
                                     disabled={isDisabled}
                                 >
-                                    <FiHelpCircle className="text-icon-sm" />
-                                    <span className="text-para-xs sm:text-para-sm font-medium leading-none">Ask AI</span>
+                                    <FiHelpCircle className="text-icon-sm text-text-info transition-colors" />
+                                    <span className="text-para-xs font-medium text-text-info transition-colors">Ask AI</span>
                                 </motion.button>
 
                                 {isActive && (
@@ -198,14 +230,21 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                     />
                                 )}
                             </div>
+
+                            {/* Save Button */}
+                            <motion.button
+                                onClick={() => {/* Save functionality - to be added later */ }}
+                                className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-warning hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
+                                whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
+                                whileTap={!isDisabled ? { scale: 0.95 } : {}}
+                                aria-label="Save"
+                                disabled={isDisabled}
+                            >
+                                <FiBookmark className="text-icon-sm text-text-warning transition-colors" />
+                                <span className="text-para-xs font-medium text-text-warning transition-colors">Save</span>
+                            </motion.button>
                         </div>
                     </div>
-
-                    {/* Desktop: Show image on right */}
-                    <div
-                        className="hidden lg:block bg-cover bg-center bg-no-repeat select-none"
-                        style={{ backgroundImage: `url(${component.thumbnail_url})` }}
-                    />
                 </div>
             </div>
         </motion.div>
