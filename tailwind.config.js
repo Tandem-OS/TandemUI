@@ -212,7 +212,8 @@ module.exports = {
           "warning": "rgb(var(--background-warning) / <alpha-value>)",
           "info": "rgb(var(--background-info) / <alpha-value>)",
           "dark": "rgb(var(--background-dark) / <alpha-value>)",
-          "pastel-green": "rgb(var(--background-pastel-green) / <alpha-value>)"
+          "pastel-green": "rgb(var(--background-pastel-green) / <alpha-value>)",
+          "red": "rgb(var(--background-red) / <alpha-value>)"
         },
         "text": {
           "primary": "rgb(var(--text-primary) / <alpha-value>)",
