@@ -14,5 +14,10 @@ export const menuItems: MenuItem[] = [
         id: 'support',
         name: 'Support',
         path: '/dashboard/client/support'
+    },
+    {
+        id: 'swiper',
+        name: 'Swiper',
+        path: '/dashboard/client/swiper'
     }
 ];

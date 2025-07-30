@@ -19,8 +19,8 @@ const Layout = () => {
                     <Route path={ROUTES.INTAKE_FORM} element={<IntakeForm />} />
                     <Route path={ROUTES.ONBOARD_COMPLETE} element={<OnboardComplete />} />
                     <Route path={ROUTES.ONBOARDING} element={<OnboardingForm />} />
-                    <Route path={`${ROUTES.DASHBOARD}/*`} element={<DashboardRoutes />} />
                 </Route>
+                <Route path={`${ROUTES.DASHBOARD}/*`} element={<DashboardRoutes />} />
                 <Route path={ROUTES.SCRAPER} element={<ScraperIntelligencePage />} />
             </Routes>
         </main>
