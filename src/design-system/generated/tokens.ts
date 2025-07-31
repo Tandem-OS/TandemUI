@@ -10,6 +10,7 @@ export interface DesignTokens {
       'secondary-2': string;
       'primary-3': string;
       muted: string;
+      'muted-low': string;
       accent: string;
       success: string;
       error: string;
@@ -59,6 +60,7 @@ export const tokens = {
     "secondary-2": "rgb(var(--background-secondary-2) / <alpha-value>)",
     "primary-3": "rgb(var(--background-primary-3) / <alpha-value>)",
     "muted": "rgb(var(--background-muted) / <alpha-value>)",
+    "muted-low": "rgb(var(--background-muted-low) / <alpha-value>)",
     "accent": "rgb(var(--background-accent) / <alpha-value>)",
     "success": "rgb(var(--background-success) / <alpha-value>)",
     "error": "rgb(var(--background-error) / <alpha-value>)",

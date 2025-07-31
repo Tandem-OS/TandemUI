@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FiInbox, FiRefreshCw } from 'react-icons/fi';
 import SwipeCard from './SwipeCard';
 import { type ComponentPreview, type SwipeAction } from '../swiper.types';
 
@@ -11,6 +12,39 @@ interface SwiperStackProps {
     onAnimationStart: () => void;
     onAnimationComplete: () => void;
 }
+
+// Empty State Component
+const EmptyState: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => (
+    <motion.div
+        className="flex flex-col items-center justify-center text-center space-y-md px-lg py-xl"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+    >
+        <div className="w-20 h-20 bg-background-muted rounded-full flex items-center justify-center">
+            <FiInbox className="text-icon-2xl text-text-tertiary" />
+        </div>
+        
+        <div className="space-y-sm">
+            <h3 className="text-h4-sm font-semibold text-text-primary">No components available</h3>
+            <p className="text-text-secondary text-para-md max-w-md">
+                It looks like there are no design components to show right now.
+            </p>
+        </div>
+
+        {onRetry && (
+            <motion.button
+                onClick={onRetry}
+                className="flex items-center gap-sm px-lg py-md bg-accent-subtle text-accent-default hover:bg-accent-default hover:text-accent-foreground rounded-lg border border-border-default hover:border-accent-default transition-all"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+            >
+                <FiRefreshCw className="text-icon-sm" />
+                <span className="text-para-md font-medium">Try Again</span>
+            </motion.button>
+        )}
+    </motion.div>
+);
 
 const SwiperStack: React.FC<SwiperStackProps> = ({
     components,
@@ -24,6 +58,11 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
     const [lastAction, setLastAction] = useState<SwipeAction | null>(null);
 
     const cardStack = useMemo(() => {
+        // Return empty if no components
+        if (!components || components.length === 0) {
+            return [];
+        }
+
         const stack = [];
         const stackSize = 5;
         for (let i = 0; i < stackSize; i++) {
@@ -126,8 +165,22 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
         }
     };
 
-    if (cardStack.length === 0) {
-        return null;
+    // Handle empty components array
+    if (!components || components.length === 0) {
+        return (
+            <div className="relative w-full max-w-4xl 2xl:max-w-6xl mx-auto px-xs sm:px-sm md:px-0">
+                <div className="relative" style={{
+                    height: 'clamp(380px, calc(100vh - 180px), 600px)'
+                }}>
+                    <EmptyState />
+                </div>
+            </div>
+        );
+    }
+
+    // Handle case where all cards have been swiped
+    if (cardStack.length === 0 && currentIndex >= components.length) {
+        return null; // This will trigger the round completion
     }
 
     return (
@@ -169,6 +222,20 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
                         );
                     })}
                 </AnimatePresence>
+
+                {/* Progress indicator for remaining cards */}
+                {cardStack.length > 0 && (
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-1 z-50 bg-background-primary/80 backdrop-blur-sm rounded-full px-sm py-xs">
+                        {Array.from({ length: Math.min(5, components.length - currentIndex) }, (_, i) => (
+                            <div
+                                key={currentIndex + i}
+                                className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
+                                    i === 0 ? 'bg-accent-default' : 'bg-background-muted'
+                                }`}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { FiX, FiRefreshCw, FiDownload, FiAlertTriangle, FiCheckCircle, FiAward } from 'react-icons/fi';
+import { FiX, FiRefreshCw, FiDownload, FiAlertTriangle, FiCheckCircle, FiAward, FiWifi } from 'react-icons/fi';
 import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import Modal from '@/comman-components/Modal';
@@ -8,7 +8,7 @@ import { categories, getCurrentRoundComponents, getTotalRounds, roundMessages } 
 import { type SwipeAction, type UserChoice, type RoundData, type ComponentPreview } from './swiper.types';
 
 // Constants for cleaner code
-const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500 };
+const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
 
 // Animation variants - properly typed for framer-motion
@@ -33,6 +33,81 @@ const animations: { [key: string]: Variants | any } = {
     button: { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 } }
 };
 
+// Skeleton Card Component
+const SkeletonCard: React.FC = () => (
+    <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden animate-pulse">
+        <div className="grid grid-cols-1 lg:grid-cols-2">
+            {/* Mobile Image Skeleton */}
+            <div className="lg:hidden bg-background-muted-low h-48 sm:h-56" />
+
+            {/* Content Skeleton */}
+            <div className="bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
+                <div className="space-y-sm md:space-y-md lg:space-y-lg">
+                    <div className="flex items-center justify-between gap-xs">
+                        <div className="h-6 bg-background-muted-low rounded-md w-20" />
+                        <div className="h-6 bg-background-muted-low rounded-md w-16" />
+                    </div>
+
+                    <div className="space-y-xs sm:space-y-sm md:space-y-md">
+                        <div className="h-8 bg-background-muted-low rounded-md w-3/4" />
+                        <div className="space-y-2">
+                            <div className="h-4 bg-background-muted-low rounded w-full" />
+                            <div className="h-4 bg-background-muted-low rounded w-5/6" />
+                            <div className="h-4 bg-background-muted-low rounded w-4/6" />
+                        </div>
+
+                        <div className="flex flex-wrap gap-xs sm:gap-xs md:gap-sm">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="h-6 bg-background-muted-low rounded w-12" />
+                            ))}
+                        </div>
+
+                        <div className="h-4 bg-background-muted-low rounded w-1/2" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Desktop Image Skeleton */}
+            <div className="hidden lg:block bg-background-muted-low" />
+        </div>
+
+        {/* Action Buttons Skeleton */}
+        <div className="px-sm py-sm md:px-md md:py-md">
+            <div className="flex justify-center">
+                <div className="flex items-center justify-center gap-sm">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className={`bg-background-muted-low rounded-lg ${i === 3 ? 'w-16 h-16 rounded-full' : 'w-12 h-16'}`} />
+                    ))}
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+// Error State Component
+const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetry, message }) => (
+    <motion.div 
+        {...animations.page} 
+        className="flex flex-col items-center justify-center text-center space-y-md px-lg"
+    >
+        <div className="w-20 h-20 bg-background-error rounded-full flex items-center justify-center">
+            <FiWifi className="text-icon-2xl text-text-error" />
+        </div>
+        <div className="space-y-sm">
+            <h3 className="text-h4-sm font-semibold text-text-primary">Oops! Something went wrong</h3>
+            <p className="text-text-secondary text-para-md max-w-md">{message}</p>
+        </div>
+        <motion.button
+            onClick={onRetry}
+            className="flex items-center gap-sm px-lg py-md bg-accent-subtle text-accent-default hover:bg-accent-default hover:text-accent-foreground rounded-lg border border-border-default hover:border-accent-default transition-all"
+            {...animations.button}
+        >
+            <FiRefreshCw className="text-icon-sm" />
+            <span className="text-para-md font-medium">Try Again</span>
+        </motion.button>
+    </motion.div>
+);
+
 const Swiper: React.FC = () => {
     const [currentRound, setCurrentRound] = useState(0);
     const [userChoices, setUserChoices] = useState<UserChoice[]>([]);
@@ -40,6 +115,11 @@ const Swiper: React.FC = () => {
     const [isAnimating, setIsAnimating] = useState(false);
     const [showRoundCompletion, setShowRoundCompletion] = useState(false);
     const [showExitModal, setShowExitModal] = useState(false);
+    
+    // Loading States
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [loadingError, setLoadingError] = useState<string | null>(null);
+    const [isRetrying, setIsRetrying] = useState(false);
 
     const totalRounds = getTotalRounds();
     const currentRoundData = roundsData[currentRound];
@@ -48,16 +128,48 @@ const Swiper: React.FC = () => {
     const isLastRound = currentRound === totalRounds - 1;
     const percentage = Math.round(((currentRound + 1) / totalRounds) * 100);
 
-    // Initialize rounds data
-    useEffect(() => {
-        setRoundsData(categories.map((category, index) => ({
-            roundNumber: index + 1,
-            category,
-            components: getCurrentRoundComponents(index),
-            currentStep: 0,
-            completed: false
-        })));
+    // Simulate data loading with potential errors
+    const loadData = useCallback(async () => {
+        try {
+            setLoadingError(null);
+            
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, TIMINGS.LOADING_SIMULATION));
+            
+            // Load data
+            const data = categories.map((category, index) => ({
+                roundNumber: index + 1,
+                category,
+                components: getCurrentRoundComponents(index),
+                currentStep: 0,
+                completed: false
+            }));
+
+            // Check if data is empty
+            if (data.length === 0) {
+                throw new Error('No design components available at the moment.');
+            }
+
+            setRoundsData(data);
+            setIsInitialLoading(false);
+        } catch (error) {
+            setLoadingError(error instanceof Error ? error.message : 'Failed to load content');
+            setIsInitialLoading(false);
+        }
     }, []);
+
+    // Initialize data on mount
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    // Retry handler
+    const handleRetry = useCallback(async () => {
+        setIsRetrying(true);
+        setIsInitialLoading(true);
+        await loadData();
+        setIsRetrying(false);
+    }, [loadData]);
 
     // Handlers - simplified and DRY
     const handleSwipe = useCallback((action: SwipeAction, component: ComponentPreview) => {
@@ -118,10 +230,12 @@ const Swiper: React.FC = () => {
         children: React.ReactNode;
         variant?: 'primary' | 'secondary';
         icon: React.ComponentType<{ className?: string }>;
-    }> = ({ onClick, children, variant = 'primary', icon: Icon }) => (
+        disabled?: boolean;
+    }> = ({ onClick, children, variant = 'primary', icon: Icon, disabled = false }) => (
         <motion.button
             onClick={onClick}
-            className={`flex items-center gap-xs sm:gap-sm md:gap-sm px-md py-sm sm:px-lg sm:py-sm md:px-xl md:py-md rounded-lg sm:rounded-xl transition-all duration-300 w-full sm:w-auto ${variant === 'primary'
+            disabled={disabled}
+            className={`flex items-center gap-xs sm:gap-sm md:gap-sm px-md py-sm sm:px-lg sm:py-sm md:px-xl md:py-md rounded-lg sm:rounded-xl transition-all duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed ${variant === 'primary'
                 ? 'bg-accent-default text-accent-foreground hover:bg-accent-hover shadow-lg'
                 : 'bg-background-muted text-text-primary hover:bg-background-accent border border-border-default hover:border-border-focus'
                 }`}
@@ -150,6 +264,93 @@ const Swiper: React.FC = () => {
             </motion.h2>
         </motion.div>
     );
+
+    // Show loading skeleton during initial load
+    if (isInitialLoading) {
+        return (
+            <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
+                {/* Header Skeleton */}
+                <div className="w-full flex-shrink-0 relative z-10">
+                    <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
+                        <div className="flex items-center justify-between gap-sm">
+                            <div className="flex items-center space-x-sm sm:space-x-sm md:space-x-lg flex-1 min-w-0">
+                                <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-background-muted rounded-md sm:rounded-lg animate-pulse" />
+                                <div className="space-y-xs min-w-0 flex-1">
+                                    <div className="h-6 bg-background-muted rounded w-32 animate-pulse" />
+                                    <div className="h-4 bg-background-muted rounded w-48 hidden sm:block animate-pulse" />
+                                </div>
+                            </div>
+                            <div className="hidden lg:flex items-center gap-sm">
+                                <div className="h-2 bg-background-muted rounded-full w-32 animate-pulse" />
+                                <div className="h-4 bg-background-muted rounded w-12 animate-pulse" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Mobile Progress Skeleton */}
+                    <div className="lg:hidden px-sm pb-xs mb-sm">
+                        <div className="flex items-center justify-between gap-sm">
+                            <div className="flex-1 h-2 bg-background-muted rounded-full animate-pulse" />
+                            <div className="h-4 bg-background-muted rounded w-8 animate-pulse" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Content Skeleton */}
+                <div className="flex items-center justify-center px-xs py-xs sm:p-md md:p-xl relative z-20">
+                    <div className="relative w-full max-w-4xl 2xl:max-w-6xl mx-auto px-xs sm:px-sm md:px-0">
+                        <div className="relative" style={{ height: 'clamp(380px, calc(100vh - 180px), 600px)' }}>
+                            {/* Stack of skeleton cards */}
+                            {[0, 1, 2].map((i) => (
+                                <motion.div
+                                    key={i}
+                                    className="absolute inset-0"
+                                    style={{
+                                        zIndex: 30 - i * 10,
+                                        scale: 1 - i * 0.08,
+                                        y: i * 25,
+                                        opacity: 1 - i * 0.3
+                                    }}
+                                >
+                                    <SkeletonCard />
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Loading indicator */}
+                <motion.div
+                    className="absolute bottom-xs sm:bottom-sm md:bottom-0 left-0 right-0 flex justify-center text-text-secondary text-para-sm text-center pb-xs sm:pb-sm md:pb-md pt-xs sm:pt-sm md:pt-lg z-30"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    style={{ willChange: 'opacity' }}
+                >
+                    <div className="flex items-center gap-sm px-md">
+                        <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        >
+                            <FiRefreshCw className="text-icon-sm" />
+                        </motion.div>
+                        <p>Loading amazing designs...</p>
+                    </div>
+                </motion.div>
+            </div>
+        );
+    }
+
+    // Show error state if loading failed
+    if (loadingError) {
+        return (
+            <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
+                <ErrorState 
+                    onRetry={handleRetry} 
+                    message={loadingError}
+                />
+            </div>
+        );
+    }
 
     // Final completion screen
     if (allRoundsComplete && isLastRound && !showRoundCompletion) {
@@ -200,7 +401,7 @@ const Swiper: React.FC = () => {
                             style={{ willChange: 'transform, opacity' }}
                             className="flex flex-col sm:flex-row gap-sm sm:gap-sm md:gap-md justify-center items-center pt-md sm:pt-lg md:pt-xl"
                         >
-                            <ActionButton onClick={handleStartOver} variant="secondary" icon={FiRefreshCw}>
+                            <ActionButton onClick={handleStartOver} variant="secondary" icon={FiRefreshCw} disabled={isRetrying}>
                                 Start Over
                             </ActionButton>
                             <ActionButton onClick={handleExportChoices} variant="primary" icon={FiDownload}>

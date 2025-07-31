@@ -1,10 +1,140 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, type PanInfo, useMotionValue, useTransform, animate } from 'framer-motion';
-import { FiThumbsUp, FiThumbsDown, FiHelpCircle, FiBookmark, FiHeart } from 'react-icons/fi';
+import { FiThumbsUp, FiThumbsDown, FiHelpCircle, FiBookmark, FiHeart, FiImage } from 'react-icons/fi';
 import { type SwipeCardProps } from '../swiper.types';
 import { AskAiModal } from './AskAiModal';
 import swipeAudio from "@/assets/audio/swipeAudio.mp3";
 import clickAudio from "@/assets/audio/clickAudio.mp3";
+
+// Constants
+const SWIPE_POWER = 500;
+const X_THRESHOLD = 120;
+const Y_THRESHOLD = 100;
+const DOUBLE_TAP_DELAY = 300;
+const IMAGE_TIMEOUT = 10000; // 10 seconds timeout for image loading
+
+// Action configurations
+const ACTIONS = {
+    like: { x: SWIPE_POWER, y: 0, key: 'ArrowRight' },
+    dislike: { x: -SWIPE_POWER, y: 0, key: 'ArrowLeft' },
+    save: { x: 0, y: -SWIPE_POWER, key: 'ArrowUp' },
+    'super-like': { x: 0, y: SWIPE_POWER, key: ' ' }
+} as const;
+
+// Button configurations
+const BUTTON_CONFIG = {
+    like: { icon: FiThumbsUp, color: 'success', label: 'Like' },
+    dislike: { icon: FiThumbsDown, color: 'error', label: 'Nope' },
+    save: { icon: FiBookmark, color: 'warning', label: 'Save' },
+    'ask-ai': { icon: FiHelpCircle, color: 'info', label: 'Ask AI' }
+};
+
+// Custom hook for audio
+const useAudio = () => {
+    const swipeRef = useRef<HTMLAudioElement | null>(null);
+    const clickRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        swipeRef.current = new Audio(swipeAudio);
+        swipeRef.current.volume = 0.5;
+        clickRef.current = new Audio(clickAudio);
+        clickRef.current.volume = 0.3;
+    }, []);
+
+    const playSwipe = () => swipeRef.current?.play().catch(() => { });
+    const playClick = () => clickRef.current?.play().catch(() => { });
+
+    return { playSwipe, playClick };
+};
+
+// Custom hook for image loading
+const useImageLoading = (src: string) => {
+    const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        if (!src) {
+            setImageState('error');
+            return;
+        }
+
+        setImageState('loading');
+        
+        const img = new Image();
+        
+        // Set up timeout
+        timeoutRef.current = setTimeout(() => {
+            setImageState('error');
+        }, IMAGE_TIMEOUT);
+
+        img.onload = () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            setImageState('loaded');
+        };
+
+        img.onerror = () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            setImageState('error');
+        };
+
+        img.src = src;
+
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, [src]);
+
+    return imageState;
+};
+
+// Image component with loading states
+const CardImage: React.FC<{ 
+    src: string; 
+    className: string;
+}> = ({ src, className }) => {
+    const imageState = useImageLoading(src);
+
+    return (
+        <div className={`relative overflow-hidden ${className}`}>
+            {/* Loading skeleton */}
+            {imageState === 'loading' && (
+                <div className="absolute inset-0 bg-background-muted animate-pulse flex items-center justify-center">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-8 h-8 border-2 border-border-default border-t-accent-default rounded-full"
+                    />
+                </div>
+            )}
+
+            {/* Error fallback */}
+            {imageState === 'error' && (
+                <div className="absolute inset-0 bg-background-muted flex flex-col items-center justify-center text-text-tertiary">
+                    <FiImage className="text-icon-2xl mb-sm opacity-50" />
+                    <span className="text-para-xs opacity-75">Image unavailable</span>
+                </div>
+            )}
+
+            {/* Actual image with blur-to-clear transition */}
+            <motion.div
+                className="w-full h-full bg-cover bg-center bg-no-repeat select-none"
+                style={{ backgroundImage: `url(${src})` }}
+                initial={{ opacity: 0, filter: 'blur(10px)' }}
+                animate={{ 
+                    opacity: imageState === 'loaded' ? 1 : 0,
+                    filter: imageState === 'loaded' ? 'blur(0px)' : 'blur(10px)'
+                }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+            />
+        </div>
+    );
+};
 
 const SwipeCard: React.FC<SwipeCardProps> = ({
     component,
@@ -14,259 +144,170 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 }) => {
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const { playSwipe, playClick } = useAudio();
+
+    // Motion values
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     const rotate = useTransform(x, [-300, 300], [-25, 25]);
     const opacity = useTransform(x, [-500, -150, 0, 150, 500], [0, 1, 1, 1, 0]);
-
-    const nopeOpacity = useTransform(x, [-300, -80, 0], [1, 0.7, 0]);
-    const likeOpacity = useTransform(x, [0, 80, 300], [0, 0.7, 1]);
-    const saveOpacity = useTransform(y, [-300, -80, 0], [1, 0.7, 0]);
     const superLikeOpacity = useMotionValue(0);
 
-    // Audio refs
-    const swipeAudioRef = useRef<HTMLAudioElement | null>(null);
-    const clickAudioRef = useRef<HTMLAudioElement | null>(null);
+    // Overlay opacities
+    const overlayOpacities = {
+        nope: useTransform(x, [-300, -80, 0], [1, 0.7, 0]),
+        like: useTransform(x, [0, 80, 300], [0, 0.7, 1]),
+        save: useTransform(y, [-300, -80, 0], [1, 0.7, 0])
+    };
 
     // Double tap detection
     const lastTap = useRef<number>(0);
     const tapTimeout = useRef<NodeJS.Timeout | null>(null);
 
+    const handleSwipeAction = useCallback((action: keyof typeof ACTIONS | 'ask-ai') => {
+        if (!isActive || isAnimating) return;
+
+        if (isAiModalOpen) setIsAiModalOpen(false);
+
+        if (action === 'ask-ai') return;
+
+        const config = ACTIONS[action];
+
+        if (action === 'super-like') {
+            animate(superLikeOpacity, 1, { duration: 0.3 });
+            setTimeout(() => {
+                Promise.all([
+                    animate(x, config.x, { type: "spring", stiffness: 500, damping: 50 }),
+                    animate(y, config.y, { type: "spring", stiffness: 500, damping: 50 })
+                ]).then(() => onSwipe(action));
+            }, 300);
+        } else {
+            Promise.all([
+                animate(x, config.x, { type: "spring", stiffness: 500, damping: 50 }),
+                animate(y, config.y, { type: "spring", stiffness: 500, damping: 50 })
+            ]).then(() => onSwipe(action));
+        }
+
+        playSwipe();
+    }, [isActive, isAnimating, isAiModalOpen, onSwipe, playSwipe, superLikeOpacity, x, y]);
+
+    // Keyboard support
     useEffect(() => {
-        // Initialize audio
-        swipeAudioRef.current = new Audio(swipeAudio);
-        swipeAudioRef.current.volume = 0.5;
+        const handleKeyPress = (e: KeyboardEvent) => {
+            if (!isActive || isAnimating || isAiModalOpen) return;
 
-        clickAudioRef.current = new Audio(clickAudio);
-        clickAudioRef.current.volume = 0.3; // Light volume for clicks
-
-        return () => {
-            if (tapTimeout.current) {
-                clearTimeout(tapTimeout.current);
+            const action = Object.entries(ACTIONS).find(([_, config]) => config.key === e.key)?.[0];
+            if (action) {
+                e.preventDefault();
+                handleSwipeAction(action as keyof typeof ACTIONS);
             }
         };
-    }, []);
 
-    const playSwipeSound = () => {
-        if (swipeAudioRef.current) {
-            swipeAudioRef.current.currentTime = 0;
-            swipeAudioRef.current.play().catch(err => console.log('Audio play failed:', err));
-        }
-    };
-
-    const playClickSound = () => {
-        if (clickAudioRef.current) {
-            clickAudioRef.current.currentTime = 0;
-            clickAudioRef.current.play().catch(err => console.log('Click audio play failed:', err));
-        }
-    };
-
-    const handleSwipeAction = (action: 'like' | 'dislike' | 'save' | 'super-like' | 'ask-ai') => {
-        if (!isActive || isAnimating) return;
-
-        if (isAiModalOpen) {
-            setIsAiModalOpen(false);
-        }
-
-        const swipePower = 500;
-        let targetX = 0;
-        let targetY = 0;
-
-        switch (action) {
-            case 'like':
-                targetX = swipePower;
-                break;
-            case 'dislike':
-                targetX = -swipePower;
-                break;
-            case 'save':
-                targetY = -swipePower;
-                break;
-            case 'super-like':
-                animate(superLikeOpacity, 1, { duration: 0.3 });
-
-                setTimeout(() => {
-                    targetX = 0;
-                    targetY = swipePower; // Swipe down for super like
-
-                    Promise.all([
-                        animate(x, targetX, {
-                            type: "spring",
-                            stiffness: 500,
-                            damping: 50
-                        }),
-                        animate(y, targetY, {
-                            type: "spring",
-                            stiffness: 500,
-                            damping: 50
-                        })
-                    ]).then(() => {
-                        onSwipe(action);
-                    });
-                }, 300);
-
-                playSwipeSound();
-                return;
-        }
-
-        if (action !== 'ask-ai') {
-            playSwipeSound();
-        }
-
-        Promise.all([
-            animate(x, targetX, {
-                type: "spring",
-                stiffness: 500,
-                damping: 50
-            }),
-            animate(y, targetY, {
-                type: "spring",
-                stiffness: 500,
-                damping: 50
-            })
-        ]).then(() => {
-            onSwipe(action);
-        });
-    };
-
-    const handleAskAiClick = () => {
-        if (!isActive || isAnimating) return;
-        // No click sound for Ask AI button
-        setIsAiModalOpen(prev => !prev);
-    };
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [isActive, isAnimating, isAiModalOpen, handleSwipeAction]);
 
     const handleDragEnd = (_: any, info: PanInfo) => {
         if (!isActive || isAnimating) return;
-
         setIsDragging(false);
-        const xThreshold = 120;
-        const yThreshold = 100;
 
-        // Check for upward swipe first (save)
-        if (info.offset.y < -yThreshold) {
-            handleSwipeAction('save');
-        } else if (info.offset.x > xThreshold) {
-            handleSwipeAction('like');
-        } else if (info.offset.x < -xThreshold) {
-            handleSwipeAction('dislike');
-        } else {
-            // Snap back to center
-            animate(x, 0, {
-                type: "spring",
-                stiffness: 500,
-                damping: 30
-            });
-            animate(y, 0, {
-                type: "spring",
-                stiffness: 500,
-                damping: 30
-            });
+        if (info.offset.y < -Y_THRESHOLD) handleSwipeAction('save');
+        else if (info.offset.x > X_THRESHOLD) handleSwipeAction('like');
+        else if (info.offset.x < -X_THRESHOLD) handleSwipeAction('dislike');
+        else {
+            animate(x, 0, { type: "spring", stiffness: 500, damping: 30 });
+            animate(y, 0, { type: "spring", stiffness: 500, damping: 30 });
         }
     };
 
-    const handleDragStart = () => {
-        if (!isActive || isAnimating) return;
-        setIsDragging(true);
-        if (isAiModalOpen) {
-            setIsAiModalOpen(false);
-        }
-    };
-
-    // Handle double tap for super like
     const handleCardClick = useCallback(() => {
         if (!isActive || isAnimating) return;
 
         const now = Date.now();
-        const DOUBLE_TAP_DELAY = 300;
-
         if (tapTimeout.current) {
             clearTimeout(tapTimeout.current);
             tapTimeout.current = null;
         }
 
         if (now - lastTap.current < DOUBLE_TAP_DELAY) {
-            // Double tap detected
             handleSwipeAction('super-like');
             lastTap.current = 0;
         } else {
-            // Single tap - set timeout to reset
             lastTap.current = now;
-            tapTimeout.current = setTimeout(() => {
-                lastTap.current = 0;
-            }, DOUBLE_TAP_DELAY);
+            tapTimeout.current = setTimeout(() => { lastTap.current = 0; }, DOUBLE_TAP_DELAY);
         }
-    }, [isActive, isAnimating]);
+    }, [isActive, isAnimating, handleSwipeAction]);
 
     const canDrag = isActive && !isAnimating && !isAiModalOpen;
     const isDisabled = isDragging || !isActive || isAnimating;
 
+    // Overlay component
+    const Overlay = ({ type, label }: { type: 'nope' | 'like' | 'save', label: string }) => (
+        <motion.div
+            className={`absolute z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md 
+                 rounded-md sm:rounded-lg pointer-events-none
+                 top-[96px] sm:top-[112px] left-1/2 -translate-x-1/2 -translate-y-1/2
+                 lg:top-sm lg:left-auto lg:right-sm lg:translate-x-0 lg:translate-y-0
+                 ${type === 'nope' ? 'bg-background-error text-text-error border-border-error' :
+                    type === 'like' ? 'bg-background-success text-text-success border-border-success' :
+                        'bg-background-warning text-text-warning border-border-warning'}`}
+            style={{ opacity: overlayOpacities[type], willChange: 'opacity' }}
+        >
+            {label}
+        </motion.div>
+    );
+
+    // Action button component
+    const ActionButton = ({ action, onClick, special = false }: {
+        action: keyof typeof BUTTON_CONFIG,
+        onClick: () => void,
+        special?: boolean
+    }) => {
+        const config = BUTTON_CONFIG[action];
+        const Icon = config.icon;
+
+        return (
+            <motion.button
+                onClick={(e) => { e.stopPropagation(); onClick(); }}
+                className={`flex flex-col items-center gap-1 p-sm transition-all duration-300 
+                   disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]
+                   ${special ? 'rounded-full bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 w-16 h-16 shadow-lg justify-center' :
+                        `rounded-lg bg-background-secondary hover:bg-background-${config.color} hover:bg-opacity-20`}`}
+                whileHover={!isDisabled ? { scale: special ? 1.15 : 1.1, y: special ? -2 : -1 } : {}}
+                whileTap={!isDisabled ? { scale: special ? 0.9 : 0.95 } : {}}
+                aria-label={config.label}
+                disabled={isDisabled}
+            >
+                <Icon className={`text-icon-sm ${special ? 'text-white' : `text-text-${config.color}`} transition-colors`} />
+                <span className={`text-para-xs ${special ? 'font-bold text-white' : `font-medium text-text-${config.color}`} transition-colors`}>
+                    {special ? 'Super' : config.label}
+                </span>
+            </motion.button>
+        );
+    };
+
     return (
         <motion.div
             className={`relative w-full mx-auto ${canDrag ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`}
-            style={{
-                transformOrigin: 'center bottom',
-                x,
-                y,
-                rotate,
-                opacity,
-                willChange: 'transform',
-            }}
+            style={{ transformOrigin: 'center bottom', x, y, rotate, opacity, willChange: 'transform' }}
             drag={canDrag}
             dragElastic={0.2}
             dragConstraints={{ left: -300, right: 300, top: -200, bottom: 50 }}
-            onDragStart={handleDragStart}
+            onDragStart={() => { setIsDragging(true); if (isAiModalOpen) setIsAiModalOpen(false); }}
             onDragEnd={handleDragEnd}
-            whileDrag={canDrag ? {
-                scale: 1.02,
-                transition: { duration: 0.2 }
-            } : {}}
+            whileDrag={canDrag ? { scale: 1.02, transition: { duration: 0.2 } } : {}}
             onClick={handleCardClick}
         >
             {/* Swipe feedback overlays */}
             {isActive && (
                 <>
-                    {/* Nope overlay - Mobile: center on image, Desktop: top-right */}
-                    <motion.div
-                        className="absolute z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md 
-                                   rounded-md sm:rounded-lg bg-background-error text-text-error 
-                                   border-border-error pointer-events-none
-                                   top-[96px] sm:top-[112px] left-1/2 -translate-x-1/2 -translate-y-1/2
-                                   lg:top-sm lg:left-auto lg:right-sm lg:translate-x-0 lg:translate-y-0"
-                        style={{ opacity: nopeOpacity, willChange: 'opacity' }}
-                    >
-                        NOPE
-                    </motion.div>
+                    <Overlay type="nope" label="NOPE" />
+                    <Overlay type="like" label="LIKE" />
+                    <Overlay type="save" label="SAVE" />
 
-                    {/* Like overlay - Mobile: center on image, Desktop: top-right */}
+                    {/* Super Like overlay */}
                     <motion.div
-                        className="absolute z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md 
-                                   rounded-md sm:rounded-lg bg-background-success text-text-success 
-                                   border-border-success pointer-events-none
-                                   top-[96px] sm:top-[112px] left-1/2 -translate-x-1/2 -translate-y-1/2
-                                   lg:top-sm lg:left-auto lg:right-sm lg:translate-x-0 lg:translate-y-0"
-                        style={{ opacity: likeOpacity, willChange: 'opacity' }}
-                    >
-                        LIKE
-                    </motion.div>
-
-                    {/* Save overlay - Mobile: center on image, Desktop: top-right */}
-                    <motion.div
-                        className="absolute z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md 
-                                   rounded-md sm:rounded-lg bg-background-warning text-text-warning 
-                                   border-border-warning pointer-events-none
-                                   top-[96px] sm:top-[112px] left-1/2 -translate-x-1/2 -translate-y-1/2
-                                   lg:top-sm lg:left-auto lg:right-sm lg:translate-x-0 lg:translate-y-0"
-                        style={{ opacity: saveOpacity, willChange: 'opacity' }}
-                    >
-                        SAVE
-                    </motion.div>
-
-                    {/* Super Like overlay - always center */}
-                    <motion.div
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                                   z-10 border-2 px-lg py-md font-bold text-para-lg sm:text-h6-sm 
-                                   rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500 to-pink-600 
-                                   text-white border-pink-400 pointer-events-none shadow-2xl"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 border-2 px-lg py-md font-bold text-para-lg sm:text-h6-sm rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500 to-pink-600 text-white border-pink-400 pointer-events-none shadow-2xl"
                         style={{ opacity: superLikeOpacity, willChange: 'opacity' }}
                     >
                         SUPER LIKE!
@@ -276,15 +317,14 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
             {/* Main Card */}
             <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden">
-                {/* Mobile: Image on top, Desktop: Side by side */}
                 <div className="grid grid-cols-1 lg:grid-cols-2">
-                    {/* Mobile: Show image first */}
-                    <div
-                        className="lg:hidden bg-cover bg-center bg-no-repeat h-48 sm:h-56 select-none"
-                        style={{ backgroundImage: `url(${component.thumbnail_url})` }}
+                    {/* Mobile Image with loading states */}
+                    <CardImage
+                        src={component.thumbnail_url}
+                        className="lg:hidden h-48 sm:h-56"
                     />
 
-                    {/* Content Section */}
+                    {/* Content */}
                     <div className="bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
                         <div className="space-y-sm md:space-y-md lg:space-y-lg">
                             <div className="flex items-center justify-between gap-xs">
@@ -305,8 +345,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                 </p>
 
                                 <div className="flex flex-wrap gap-xs sm:gap-xs md:gap-sm">
-                                    {component.tags.slice(0, 3).map((tag, tagIndex) => (
-                                        <span key={tagIndex} className="px-xs py-px sm:px-sm sm:py-xs md:px-sm md:py-xs bg-background-secondary-2 text-text-tertiary text-para-xs rounded-sm sm:rounded md:rounded-md">
+                                    {component.tags.slice(0, 3).map((tag, i) => (
+                                        <span key={i} className="px-xs py-px sm:px-sm sm:py-xs md:px-sm md:py-xs bg-background-secondary-2 text-text-tertiary text-para-xs rounded-sm sm:rounded md:rounded-md">
                                             {tag}
                                         </span>
                                     ))}
@@ -319,59 +359,23 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         </div>
                     </div>
 
-                    {/* Desktop: Show image on right */}
-                    <div
-                        className="hidden lg:block bg-cover bg-center bg-no-repeat select-none"
-                        style={{ backgroundImage: `url(${component.thumbnail_url})` }}
+                    {/* Desktop Image with loading states */}
+                    <CardImage
+                        src={component.thumbnail_url}
+                        className="hidden lg:block"
                     />
                 </div>
 
                 {/* Action Buttons */}
-                <div className="px-md py-md">
+                <div className="px-sm py-sm md:px-md md:py-md">
                     <div className="flex justify-center">
                         <div className={`flex items-center justify-center gap-sm ${!isActive ? 'pointer-events-none opacity-60' : ''}`}>
+                            <ActionButton action="like" onClick={() => { playClick(); handleSwipeAction('like'); }} />
+                            <ActionButton action="dislike" onClick={() => { playClick(); handleSwipeAction('dislike'); }} />
 
-                            {/* Like Button */}
+                            {/* Super Like Button with Heart Icon */}
                             <motion.button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    playClickSound();
-                                    handleSwipeAction('like');
-                                }}
-                                className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-success hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
-                                whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
-                                whileTap={!isDisabled ? { scale: 0.95 } : {}}
-                                aria-label="Like"
-                                disabled={isDisabled}
-                            >
-                                <FiThumbsUp className="text-icon-sm text-text-success transition-colors" />
-                                <span className="text-para-xs font-medium text-text-success transition-colors">Like</span>
-                            </motion.button>
-
-                            {/* Dislike Button */}
-                            <motion.button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    playClickSound();
-                                    handleSwipeAction('dislike');
-                                }}
-                                className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-error hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
-                                whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
-                                whileTap={!isDisabled ? { scale: 0.95 } : {}}
-                                aria-label="Dislike"
-                                disabled={isDisabled}
-                            >
-                                <FiThumbsDown className="text-icon-sm text-text-error transition-colors" />
-                                <span className="text-para-xs font-medium text-text-error transition-colors">Nope</span>
-                            </motion.button>
-
-                            {/* Super Like Button (Heart) - Center */}
-                            <motion.button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    playClickSound();
-                                    handleSwipeAction('super-like');
-                                }}
+                                onClick={(e) => { e.stopPropagation(); playClick(); handleSwipeAction('super-like'); }}
                                 className="flex flex-col items-center justify-center gap-1 p-sm rounded-full bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group w-16 h-16 shadow-lg"
                                 whileHover={!isDisabled ? { scale: 1.15, y: -2 } : {}}
                                 whileTap={!isDisabled ? { scale: 0.9 } : {}}
@@ -384,21 +388,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
                             {/* Ask AI Button */}
                             <div className="relative">
-                                <motion.button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleAskAiClick();
-                                    }}
-                                    className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-info hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
-                                    whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
-                                    whileTap={!isDisabled ? { scale: 0.95 } : {}}
-                                    aria-label="Ask AI"
-                                    disabled={isDisabled}
-                                >
-                                    <FiHelpCircle className="text-icon-sm text-text-info transition-colors" />
-                                    <span className="text-para-xs font-medium text-text-info transition-colors">Ask AI</span>
-                                </motion.button>
-
+                                <ActionButton action="ask-ai" onClick={() => setIsAiModalOpen(prev => !prev)} />
                                 {isActive && (
                                     <AskAiModal
                                         isOpen={isAiModalOpen}
@@ -408,22 +398,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                 )}
                             </div>
 
-                            {/* Save Button */}
-                            <motion.button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    playClickSound();
-                                    handleSwipeAction('save');
-                                }}
-                                className="flex flex-col items-center gap-1 p-sm rounded-lg bg-background-secondary hover:bg-background-warning hover:bg-opacity-20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]"
-                                whileHover={!isDisabled ? { scale: 1.1, y: -1 } : {}}
-                                whileTap={!isDisabled ? { scale: 0.95 } : {}}
-                                aria-label="Save"
-                                disabled={isDisabled}
-                            >
-                                <FiBookmark className="text-icon-sm text-text-warning transition-colors" />
-                                <span className="text-para-xs font-medium text-text-warning transition-colors">Save</span>
-                            </motion.button>
+                            <ActionButton action="save" onClick={() => { playClick(); handleSwipeAction('save'); }} />
                         </div>
                     </div>
                 </div>

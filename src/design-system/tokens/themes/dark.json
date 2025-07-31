@@ -7,6 +7,7 @@
             "secondary-2": "{colors.slate.900}",
             "primary-3": "21 35 78",
             "muted": "{colors.slate.950}",
+            "muted-low": "{colors.slate.900}",
             "accent": "{colors.gray.800}",
             "success": "{colors.emerald.900}",
             "error": "{colors.red.900}",
