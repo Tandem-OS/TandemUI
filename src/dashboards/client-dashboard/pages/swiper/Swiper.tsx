@@ -1,15 +1,19 @@
+// Updated Swiper.tsx with Preview Modal Integration
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { FiX, FiRefreshCw, FiDownload, FiAlertTriangle, FiCheckCircle, FiAward, FiWifi } from 'react-icons/fi';
+import { FiX, FiRefreshCw, FiDownload, FiAlertTriangle, FiCheckCircle, FiAward, FiWifi, FiEye } from 'react-icons/fi';
 import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import Modal from '@/comman-components/Modal';
+import PreviewModal from './components/PreviewModal';
 import { categories, getCurrentRoundComponents, getTotalRounds, roundMessages } from './mockData';
 import { type SwipeAction, type UserChoice, type RoundData, type ComponentPreview } from './swiper.types';
 
 // Constants for cleaner code
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
+const PREVIEW_ROUNDS = [2, 4, 6]; // Show preview after these rounds
 
 // Animation variants - properly typed for framer-motion
 const animations: { [key: string]: Variants | any } = {
@@ -33,6 +37,7 @@ const animations: { [key: string]: Variants | any } = {
     button: { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 } }
 };
 
+// [Keep all the existing components: SkeletonCard, ErrorState, etc. - same as before]
 // Skeleton Card Component
 const SkeletonCard: React.FC = () => (
     <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden animate-pulse">
@@ -116,6 +121,10 @@ const Swiper: React.FC = () => {
     const [showRoundCompletion, setShowRoundCompletion] = useState(false);
     const [showExitModal, setShowExitModal] = useState(false);
     
+    // Preview Modal States
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
+    const [shouldAskForPreview, setShouldAskForPreview] = useState(false);
+    
     // Loading States
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [loadingError, setLoadingError] = useState<string | null>(null);
@@ -189,19 +198,45 @@ const Swiper: React.FC = () => {
         ));
         setShowRoundCompletion(true);
 
+        // Check if we should show preview after this round
+        const completedRound = currentRound + 1;
+        const shouldShowPreview = PREVIEW_ROUNDS.includes(completedRound);
+
         setTimeout(() => {
             setShowRoundCompletion(false);
-            if (hasNextRound) {
+            
+            if (shouldShowPreview) {
+                // Show preview ask modal
+                setShouldAskForPreview(true);
+            } else if (hasNextRound) {
+                // Continue to next round
                 setTimeout(() => setCurrentRound(prev => prev + 1), TIMINGS.TRANSITION);
             }
         }, TIMINGS.CELEBRATION);
     }, [currentRound, hasNextRound]);
+
+    const handlePreviewContinue = useCallback(() => {
+        setShowPreviewModal(false);
+        setShouldAskForPreview(false);
+        if (hasNextRound) {
+            setCurrentRound(prev => prev + 1);
+        }
+    }, [hasNextRound]);
+
+    const handleSkipPreview = useCallback(() => {
+        setShouldAskForPreview(false);
+        if (hasNextRound) {
+            setCurrentRound(prev => prev + 1);
+        }
+    }, [hasNextRound]);
 
     const handleStartOver = useCallback(() => {
         setIsAnimating(false);
         setCurrentRound(0);
         setUserChoices([]);
         setShowRoundCompletion(false);
+        setShouldAskForPreview(false);
+        setShowPreviewModal(false);
         setRoundsData(prev => prev.map(round => ({ ...round, completed: false, currentStep: 0 })));
     }, []);
 
@@ -269,6 +304,7 @@ const Swiper: React.FC = () => {
     if (isInitialLoading) {
         return (
             <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
+                {/* [Keep existing loading skeleton code] */}
                 {/* Header Skeleton */}
                 <div className="w-full flex-shrink-0 relative z-10">
                     <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
@@ -492,7 +528,7 @@ const Swiper: React.FC = () => {
                 {/* Swipe Instructions */}
                 {!showRoundCompletion && (
                     <motion.div
-                        className="absolute bottom-xs sm:bottom-sm md:bottom-0 left-0 right-0 flex justify-center text-text-secondary text-para-xs sm:text-para-sm md:text-para-md text-center pb-xs sm:pb-sm md:pb-md pt-xs sm:pt-sm md:pt-lg z-30 pointer-events-none"
+                        className="absolute bottom-xs sm:bottom-sm md:bottom-0 left-0 right-0 flex justify-center text-text-secondary text-para-xs sm:text-para-sm md:text-para-md text-center pb-xs sm:pb-sm md:pb-md pt-xs sm:pt-sm md:pt-lg z-10 pointer-events-none"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: TIMINGS.INSTRUCTION_DELAY / 1000, duration: 0.8 }}
@@ -502,6 +538,63 @@ const Swiper: React.FC = () => {
                     </motion.div>
                 )}
             </div>
+
+            {/* Preview Ask Modal */}
+            <Modal
+                isOpen={shouldAskForPreview}
+                onClose={handleSkipPreview}
+                title="Preview Your Design?"
+                size="sm"
+                footer={
+                    <div className="flex gap-sm justify-end">
+                        <motion.button
+                            onClick={handleSkipPreview}
+                            className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            Continue Swiping
+                        </motion.button>
+                        <motion.button
+                            onClick={() => {
+                                setShouldAskForPreview(false);
+                                setShowPreviewModal(true);
+                            }}
+                            className="px-lg py-sm text-accent-foreground bg-accent-default hover:bg-accent-hover rounded-lg transition-colors flex items-center gap-sm"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <FiEye className="text-icon-sm" />
+                            Show Preview
+                        </motion.button>
+                    </div>
+                }
+            >
+                <div className="space-y-lg">
+                    <div className="flex items-center justify-center">
+                        <div className="w-20 h-20 bg-accent-subtle rounded-full flex items-center justify-center">
+                            <FiEye className="text-icon-2xl text-accent-default" />
+                        </div>
+                    </div>
+                    <div className="text-center space-y-sm">
+                        <p className="text-text-primary text-para-lg font-medium">
+                            Great progress! You've completed {currentRound + 1} rounds.
+                        </p>
+                        <p className="text-text-secondary text-para-md">
+                            Would you like to see how your design is shaping up based on your choices?
+                        </p>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Preview Modal */}
+            <PreviewModal
+                isOpen={showPreviewModal}
+                onClose={() => setShowPreviewModal(false)}
+                onContinue={handlePreviewContinue}
+                roundsCompleted={currentRound + 1}
+                userChoices={userChoices}
+            />
 
             {/* Exit Modal */}
             <Modal
