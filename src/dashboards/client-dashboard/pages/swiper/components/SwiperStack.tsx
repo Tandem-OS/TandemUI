@@ -2,15 +2,16 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiInbox, FiRefreshCw } from 'react-icons/fi';
 import SwipeCard from './SwipeCard';
-import { type ComponentPreview, type SwipeAction } from '../swiper.types';
+import { type ComponentPreview, type SwipeAction, type BehavioralSignal } from '../swiper.types';
 
 interface SwiperStackProps {
     components: ComponentPreview[];
-    onSwipe: (action: SwipeAction, component: ComponentPreview) => void;
+    onSwipe: (action: SwipeAction, component: ComponentPreview, signals: BehavioralSignal) => void;
     onComplete: () => void;
     isAnimating: boolean;
     onAnimationStart: () => void;
     onAnimationComplete: () => void;
+    isModalOpen?: boolean;
 }
 
 // Empty State Component
@@ -52,7 +53,8 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
     onComplete,
     isAnimating,
     onAnimationStart,
-    onAnimationComplete
+    onAnimationComplete,
+    isModalOpen = false
 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [lastAction, setLastAction] = useState<SwipeAction | null>(null);
@@ -71,14 +73,15 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
                 stack.push({
                     component: components[componentIndex],
                     id: `${components[componentIndex].component_id}-${componentIndex}`,
-                    stackIndex: i
+                    stackIndex: i,
+                    absoluteIndex: componentIndex
                 });
             }
         }
         return stack.reverse(); // Reverse to render from back to front
     }, [components, currentIndex]);
 
-    const handleSwipe = useCallback(async (action: SwipeAction) => {
+    const handleSwipe = useCallback(async (action: SwipeAction, signals: BehavioralSignal) => {
         if (isAnimating || cardStack.length === 0) return;
 
         onAnimationStart(); // Lock the UI
@@ -92,8 +95,8 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
         // Store the action for exit animation
         setLastAction(action);
 
-        // Inform parent about the swipe action for data collection
-        onSwipe(action, topCard.component);
+        // Inform parent about the swipe action with behavioral signals
+        onSwipe(action, topCard.component, signals);
 
         // Wait a bit for the swipe animation to feel natural before updating index
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -216,26 +219,15 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
                                     component={stackCard.component}
                                     onSwipe={handleSwipe}
                                     isActive={isTopCard}
-                                    isAnimating={isAnimating} // Pass lock state to card
+                                    isAnimating={isAnimating}
+                                    queuePosition={stackCard.absoluteIndex + 1} // 1-based position
+                                    totalCards={components.length}
+                                    isModalOpen={isModalOpen}
                                 />
                             </motion.div>
                         );
                     })}
                 </AnimatePresence>
-
-                {/* Progress indicator for remaining cards */}
-                {cardStack.length > 0 && (
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center gap-1 z-50 bg-background-primary/80 backdrop-blur-sm rounded-full px-sm py-xs">
-                        {Array.from({ length: Math.min(5, components.length - currentIndex) }, (_, i) => (
-                            <div
-                                key={currentIndex + i}
-                                className={`w-1.5 h-1.5 rounded-full transition-colors duration-300 ${
-                                    i === 0 ? 'bg-accent-default' : 'bg-background-muted'
-                                }`}
-                            />
-                        ))}
-                    </div>
-                )}
             </div>
         </div>
     );

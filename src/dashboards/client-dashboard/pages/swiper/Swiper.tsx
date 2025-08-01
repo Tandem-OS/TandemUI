@@ -1,5 +1,3 @@
-// Updated Swiper.tsx with Fixed Preview Modal Integration
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { FiX, FiRefreshCw, FiDownload, FiAlertTriangle, FiCheckCircle, FiAward, FiWifi, FiEye } from 'react-icons/fi';
@@ -8,7 +6,7 @@ import SwipeProgress from './components/SwipeProgress';
 import Modal from '@/comman-components/Modal';
 import PreviewModal from './components/PreviewModal';
 import { categories, getCurrentRoundComponents, getTotalRounds, roundMessages } from './mockData';
-import { type SwipeAction, type UserChoice, type RoundData, type ComponentPreview } from './swiper.types';
+import { type SwipeAction, type UserChoice, type RoundData, type ComponentPreview, type BehavioralSignal, type RoundSummary } from './swiper.types';
 
 // Constants for cleaner code
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
@@ -39,12 +37,12 @@ const animations: { [key: string]: Variants | any } = {
 // Skeleton Card Component
 const SkeletonCard: React.FC = () => (
     <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden animate-pulse">
-        <div className="grid grid-cols-1 lg:grid-cols-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12">
             {/* Mobile Image Skeleton */}
             <div className="lg:hidden bg-background-muted-low h-48 sm:h-56" />
 
             {/* Content Skeleton */}
-            <div className="bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
+            <div className="lg:col-span-4 bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
                 <div className="space-y-sm md:space-y-md lg:space-y-lg">
                     <div className="flex items-center justify-between gap-xs">
                         <div className="h-6 bg-background-muted-low rounded-md w-20" />
@@ -71,7 +69,7 @@ const SkeletonCard: React.FC = () => (
             </div>
 
             {/* Desktop Image Skeleton */}
-            <div className="hidden lg:block bg-background-muted-low" />
+            <div className="hidden lg:block bg-background-muted-low lg:col-span-8" />
         </div>
 
         {/* Action Buttons Skeleton */}
@@ -89,8 +87,8 @@ const SkeletonCard: React.FC = () => (
 
 // Error State Component
 const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetry, message }) => (
-    <motion.div 
-        {...animations.page} 
+    <motion.div
+        {...animations.page}
         className="flex flex-col items-center justify-center text-center space-y-md px-lg"
     >
         <div className="w-20 h-20 bg-background-error rounded-full flex items-center justify-center">
@@ -118,11 +116,14 @@ const Swiper: React.FC = () => {
     const [isAnimating, setIsAnimating] = useState(false);
     const [showRoundCompletion, setShowRoundCompletion] = useState(false);
     const [showExitModal, setShowExitModal] = useState(false);
-    
+
+    // Track round start time for analytics
+    const [roundStartTime, setRoundStartTime] = useState<number>(Date.now());
+
     // Preview Modal States
     const [showPreviewModal, setShowPreviewModal] = useState(false);
     const [shouldAskForPreview, setShouldAskForPreview] = useState(false);
-    
+
     // Loading States
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [loadingError, setLoadingError] = useState<string | null>(null);
@@ -135,6 +136,9 @@ const Swiper: React.FC = () => {
     const isLastRound = currentRound === totalRounds - 1;
     const percentage = Math.round(((currentRound + 1) / totalRounds) * 100);
 
+    // Check if any modal is open (for behavioral signals)
+    const isAnyModalOpen = showExitModal || showPreviewModal || shouldAskForPreview;
+
     // Function to check if preview should be shown after current round
     const shouldShowPreviewAfterRound = (roundNumber: number): boolean => {
         // Show preview after every even round (2, 4, 6, 8, 10, etc.)
@@ -145,10 +149,10 @@ const Swiper: React.FC = () => {
     const loadData = useCallback(async () => {
         try {
             setLoadingError(null);
-            
+
             // Simulate network delay
             await new Promise(resolve => setTimeout(resolve, TIMINGS.LOADING_SIMULATION));
-            
+
             // Load data
             const data = categories.map((category, index) => ({
                 roundNumber: index + 1,
@@ -176,6 +180,11 @@ const Swiper: React.FC = () => {
         loadData();
     }, [loadData]);
 
+    // Reset round start time when round changes
+    useEffect(() => {
+        setRoundStartTime(Date.now());
+    }, [currentRound]);
+
     // Retry handler
     const handleRetry = useCallback(async () => {
         setIsRetrying(true);
@@ -184,19 +193,109 @@ const Swiper: React.FC = () => {
         setIsRetrying(false);
     }, [loadData]);
 
-    // Handlers - simplified and DRY
-    const handleSwipe = useCallback((action: SwipeAction, component: ComponentPreview) => {
-        setUserChoices(prev => [...prev, {
+    // Enhanced swipe handler with behavioral signals
+    const handleSwipe = useCallback((action: SwipeAction, component: ComponentPreview, signals: BehavioralSignal) => {
+        const enhancedChoice: UserChoice = {
             component_id: component.component_id,
             category: component.category,
             vibe: component.vibe,
             action,
             timestamp: Date.now(),
-            round: currentRound + 1
-        }]);
-    }, [currentRound]);
+            round: currentRound + 1,
+            behavioral_signals: {
+                ...signals,
+                is_modal_open: signals.is_modal_open || isAnyModalOpen
+            }
+        };
+
+        setUserChoices(prev => [...prev, enhancedChoice]);
+
+        // Log individual swipe data
+        console.log('[Individual Swipe Data]', {
+            round: currentRound + 1,
+            component_id: component.component_id,
+            action,
+            signals: enhancedChoice.behavioral_signals
+        });
+    }, [currentRound, isAnyModalOpen]);
+
+    // Function to generate round summary
+    const generateRoundSummary = useCallback((roundChoices: UserChoice[]): RoundSummary => {
+        const roundCompletionTime = Date.now();
+        const totalHesitation = roundChoices.reduce((sum, choice) => sum + choice.behavioral_signals.hesitation_ms, 0);
+        const avgViewDuration = roundChoices.reduce((sum, choice) => sum + choice.behavioral_signals.view_duration_ms, 0) / roundChoices.length;
+
+        const gestureCount = roundChoices.filter(choice => choice.behavioral_signals.action_source === 'gesture').length;
+        const buttonCount = roundChoices.filter(choice => choice.behavioral_signals.action_source === 'button').length;
+        const totalInteractions = gestureCount + buttonCount;
+        const gestureRatio = totalInteractions > 0 ? gestureCount / totalInteractions : 0;
+
+        const superlikeCount = roundChoices.filter(choice => choice.behavioral_signals.superlike_used).length;
+
+        return {
+            round_number: currentRound + 1,
+            category: currentRoundData?.category || '',
+            choices: roundChoices,
+            completion_time: roundCompletionTime - roundStartTime,
+            total_hesitation_ms: totalHesitation,
+            average_view_duration_ms: avgViewDuration,
+            gesture_vs_button_ratio: gestureRatio,
+            superlike_count: superlikeCount,
+        };
+    }, [currentRound, currentRoundData, roundStartTime]);
 
     const handleRoundComplete = useCallback(() => {
+        // Get choices for this round
+        const roundChoices = userChoices.filter(choice => choice.round === currentRound + 1);
+
+        // Generate and log round summary
+        const roundSummary = generateRoundSummary(roundChoices);
+
+        console.log('='.repeat(60));
+        console.log(`[ROUND ${currentRound + 1} COMPLETE - ${currentRoundData?.category}]`);
+        console.log('='.repeat(60));
+        console.log('Round Summary:', {
+            category: roundSummary.category,
+            total_choices: roundSummary.choices.length,
+            completion_time_ms: roundSummary.completion_time,
+            avg_hesitation_ms: Math.round(roundSummary.total_hesitation_ms / roundSummary.choices.length),
+            avg_view_duration_ms: Math.round(roundSummary.average_view_duration_ms),
+            gesture_percentage: Math.round(roundSummary.gesture_vs_button_ratio * 100) + '%',
+            superlike_count: roundSummary.superlike_count,
+            gesture_ratio: `${Math.round(roundSummary.gesture_vs_button_ratio * 100)}% gestures, ${Math.round((1 - roundSummary.gesture_vs_button_ratio) * 100)}% buttons`,
+
+        });
+
+        console.log('\nDetailed Choices:');
+        roundChoices.forEach((choice, index) => {
+            console.log(`  ${index + 1}. ${choice.component_id}:`, {
+                action: choice.action,
+                vibe: choice.vibe,
+                hesitation_ms: choice.behavioral_signals.hesitation_ms,
+                gesture_velocity: Math.round(choice.behavioral_signals.gesture_velocity),
+                view_duration_ms: choice.behavioral_signals.view_duration_ms,
+                action_source: choice.behavioral_signals.action_source,
+                swipe_direction: choice.behavioral_signals.swipe_direction,
+                modal_open: choice.behavioral_signals.is_modal_open
+            });
+        });
+
+        console.log('\nAction Distribution:');
+        const actionCounts = roundChoices.reduce((acc, choice) => {
+            acc[choice.action] = (acc[choice.action] || 0) + 1;
+            return acc;
+        }, {} as Record<string, number>);
+        Object.entries(actionCounts).forEach(([action, count]) => {
+            console.log(`  ${action}: ${count} (${Math.round(count / roundChoices.length * 100)}%)`);
+        });
+
+        console.log('='.repeat(60));
+        console.log('[Ready to send to backend]', JSON.stringify(roundSummary));
+        console.log('='.repeat(60) + '\n');
+
+        // TODO: Send roundSummary to backend here
+        // await sendRoundDataToBackend(roundSummary);
+
         setRoundsData(prev => prev.map((round, index) =>
             index === currentRound ? { ...round, completed: true } : round
         ));
@@ -208,7 +307,7 @@ const Swiper: React.FC = () => {
 
         setTimeout(() => {
             setShowRoundCompletion(false);
-            
+
             if (shouldShowPreview && !isLastRound) {
                 // Show preview ask modal
                 setShouldAskForPreview(true);
@@ -217,7 +316,7 @@ const Swiper: React.FC = () => {
                 setTimeout(() => setCurrentRound(prev => prev + 1), TIMINGS.TRANSITION);
             }
         }, TIMINGS.CELEBRATION);
-    }, [currentRound, hasNextRound, isLastRound]);
+    }, [currentRound, hasNextRound, isLastRound, userChoices, currentRoundData, generateRoundSummary]);
 
     const handlePreviewContinue = useCallback(() => {
         setShowPreviewModal(false);
@@ -242,16 +341,36 @@ const Swiper: React.FC = () => {
         setShouldAskForPreview(false);
         setShowPreviewModal(false);
         setRoundsData(prev => prev.map(round => ({ ...round, completed: false, currentStep: 0 })));
+        setRoundStartTime(Date.now());
     }, []);
 
     const handleExportChoices = useCallback(() => {
-        const dataStr = JSON.stringify(userChoices, null, 2);
+        // Generate complete session data
+        const sessionData = {
+            session_id: `session_${Date.now()}`,
+            total_rounds: totalRounds,
+            completed_at: new Date().toISOString(),
+            total_choices: userChoices.length,
+            choices_by_round: categories.map((category, index) => {
+                const roundChoices = userChoices.filter(choice => choice.round === index + 1);
+                return {
+                    round: index + 1,
+                    category,
+                    choices: roundChoices,
+                    summary: generateRoundSummary(roundChoices)
+                };
+            })
+        };
+
+        console.log('[COMPLETE SESSION DATA]', sessionData);
+
+        const dataStr = JSON.stringify(sessionData, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
         const link = document.createElement('a');
         link.setAttribute('href', dataUri);
-        link.setAttribute('download', 'design-choices.json');
+        link.setAttribute('download', 'design-choices-with-signals.json');
         link.click();
-    }, [userChoices]);
+    }, [userChoices, totalRounds, generateRoundSummary]);
 
     const handleAnimationStart = useCallback(() => setIsAnimating(true), []);
     const handleAnimationComplete = useCallback(() => setIsAnimating(false), []);
@@ -325,7 +444,7 @@ const Swiper: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     {/* Mobile Progress Skeleton */}
                     <div className="lg:hidden px-sm pb-xs mb-sm">
                         <div className="flex items-center justify-between gap-sm">
@@ -383,8 +502,8 @@ const Swiper: React.FC = () => {
     if (loadingError) {
         return (
             <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
-                <ErrorState 
-                    onRetry={handleRetry} 
+                <ErrorState
+                    onRetry={handleRetry}
                     message={loadingError}
                 />
             </div>
@@ -393,6 +512,10 @@ const Swiper: React.FC = () => {
 
     // Final completion screen
     if (allRoundsComplete && isLastRound && !showRoundCompletion) {
+        const positiveChoicesCount = userChoices.filter(
+            choice => choice.action === 'like' || choice.action === 'super-like'
+        ).length;
+
         return (
             <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
                 <div className="w-full max-w-5xl mx-auto">
@@ -429,7 +552,7 @@ const Swiper: React.FC = () => {
                                 Design Discovery Complete!
                             </h1>
                             <p className="text-para-sm sm:text-para-md md:text-para-lg text-text-secondary font-medium max-w-3xl mx-auto leading-relaxed px-md">
-                                Great job! We've captured your design preferences from <span className="text-accent-default font-semibold">{userChoices.length} components</span> across <span className="text-accent-default font-semibold">{totalRounds} categories</span>.
+                                Great job! We've captured your design preferences from <span className="text-accent-default font-semibold">{positiveChoicesCount} components</span> across <span className="text-accent-default font-semibold">{totalRounds} categories</span>.
                             </p>
                         </motion.div>
 
@@ -508,7 +631,7 @@ const Swiper: React.FC = () => {
                 </div>
 
                 {/* Main Content Area */}
-                <div className="flex items-center justify-center px-xs py-xs sm:p-md md:p-xl relative z-20">
+                <div className="flex items-center justify-center 2xl:p-xl relative z-20">
                     <AnimatePresence mode="wait">
                         {showRoundCompletion ? (
                             <RoundCompletionCelebration />
@@ -522,6 +645,7 @@ const Swiper: React.FC = () => {
                                     isAnimating={isAnimating}
                                     onAnimationStart={handleAnimationStart}
                                     onAnimationComplete={handleAnimationComplete}
+                                    isModalOpen={isAnyModalOpen}
                                 />
                             </motion.div>
                         ) : null}

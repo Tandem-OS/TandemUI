@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, type PanInfo, useMotionValue, useTransform, animate } from 'framer-motion';
 import { FiThumbsUp, FiThumbsDown, FiHelpCircle, FiBookmark, FiHeart, FiImage } from 'react-icons/fi';
-import { type SwipeCardProps } from '../swiper.types';
+import { type SwipeCardProps, type BehavioralSignal, type ActionSource } from '../swiper.types';
 import { AskAiModal } from './AskAiModal';
 import swipeAudio from "@/assets/audio/swipeAudio.mp3";
 import clickAudio from "@/assets/audio/clickAudio.mp3";
@@ -59,9 +59,9 @@ const useImageLoading = (src: string) => {
         }
 
         setImageState('loading');
-        
+
         const img = new Image();
-        
+
         // Set up timeout
         timeoutRef.current = setTimeout(() => {
             setImageState('error');
@@ -94,8 +94,8 @@ const useImageLoading = (src: string) => {
 };
 
 // Image component with loading states
-const CardImage: React.FC<{ 
-    src: string; 
+const CardImage: React.FC<{
+    src: string;
     className: string;
 }> = ({ src, className }) => {
     const imageState = useImageLoading(src);
@@ -126,7 +126,7 @@ const CardImage: React.FC<{
                 className="w-full h-full bg-cover bg-center bg-no-repeat select-none"
                 style={{ backgroundImage: `url(${src})` }}
                 initial={{ opacity: 0, filter: 'blur(10px)' }}
-                animate={{ 
+                animate={{
                     opacity: imageState === 'loaded' ? 1 : 0,
                     filter: imageState === 'loaded' ? 'blur(0px)' : 'blur(10px)'
                 }}
@@ -141,10 +141,21 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     onSwipe,
     isActive = true,
     isAnimating = false,
+    queuePosition,
+    totalCards,
+    isModalOpen = false
 }) => {
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const { playSwipe, playClick } = useAudio();
+
+    // Behavioral tracking refs
+    const cardRenderTime = useRef<number>(Date.now());
+    const pointerDownTime = useRef<number | null>(null);
+    const dragStartTime = useRef<number | null>(null);
+    const gestureVelocity = useRef<number>(0);
+    const lastPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+    const lastVelocityUpdate = useRef<number>(Date.now());
 
     // Motion values
     const x = useMotionValue(0);
@@ -164,7 +175,74 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const lastTap = useRef<number>(0);
     const tapTimeout = useRef<NodeJS.Timeout | null>(null);
 
-    const handleSwipeAction = useCallback((action: keyof typeof ACTIONS | 'ask-ai') => {
+    // Update card render time when component changes
+    useEffect(() => {
+        cardRenderTime.current = Date.now();
+    }, [component.component_id]);
+
+    // Track velocity during drag
+    useEffect(() => {
+        const unsubscribeX = x.on('change', (latest) => {
+            const now = Date.now();
+            const timeDelta = now - lastVelocityUpdate.current;
+            if (timeDelta > 0) {
+                const xDelta = Math.abs(latest - lastPosition.current.x);
+                const velocity = xDelta / timeDelta * 1000; // pixels per second
+                gestureVelocity.current = velocity;
+                lastPosition.current.x = latest;
+                lastVelocityUpdate.current = now;
+            }
+        });
+
+        const unsubscribeY = y.on('change', (latest) => {
+            const now = Date.now();
+            const timeDelta = now - lastVelocityUpdate.current;
+            if (timeDelta > 0) {
+                const yDelta = Math.abs(latest - lastPosition.current.y);
+                const velocity = yDelta / timeDelta * 1000; // pixels per second
+                gestureVelocity.current = Math.max(gestureVelocity.current, velocity);
+                lastPosition.current.y = latest;
+                lastVelocityUpdate.current = now;
+            }
+        });
+
+        return () => {
+            unsubscribeX();
+            unsubscribeY();
+        };
+    }, [x, y]);
+
+    const calculateSwipeDirection = (action: keyof typeof ACTIONS | 'ask-ai'): 'left' | 'right' | 'up' | 'down' | 'none' => {
+        switch (action) {
+            case 'like': return 'right';
+            case 'dislike': return 'left';
+            case 'save': return 'up';
+            case 'super-like': return 'down';
+            default: return 'none';
+        }
+    };
+
+    const createBehavioralSignal = (
+        action: keyof typeof ACTIONS | 'ask-ai',
+        source: ActionSource
+    ): BehavioralSignal => {
+        const now = Date.now();
+        const viewDuration = now - cardRenderTime.current;
+        const hesitation = pointerDownTime.current ? now - pointerDownTime.current : 0;
+
+        return {
+            hesitation_ms: hesitation,
+            gesture_velocity: source === 'gesture' ? gestureVelocity.current : 0,
+            swipe_direction: calculateSwipeDirection(action),
+            view_duration_ms: viewDuration,
+            queue_position: queuePosition,
+            action_source: source,
+            is_modal_open: isModalOpen || isAiModalOpen,
+            superlike_used: action === 'super-like'
+        };
+    };
+
+    const handleSwipeAction = useCallback((action: keyof typeof ACTIONS | 'ask-ai', source: ActionSource) => {
         if (!isActive || isAnimating) return;
 
         if (isAiModalOpen) setIsAiModalOpen(false);
@@ -172,6 +250,13 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         if (action === 'ask-ai') return;
 
         const config = ACTIONS[action];
+        const behavioralSignal = createBehavioralSignal(action, source);
+
+        // Log the signal data for debugging
+        console.log(`[Swipe Signal] Card ${queuePosition}/${totalCards}:`, {
+            action,
+            ...behavioralSignal
+        });
 
         if (action === 'super-like') {
             animate(superLikeOpacity, 1, { duration: 0.3 });
@@ -179,17 +264,22 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 Promise.all([
                     animate(x, config.x, { type: "spring", stiffness: 500, damping: 50 }),
                     animate(y, config.y, { type: "spring", stiffness: 500, damping: 50 })
-                ]).then(() => onSwipe(action));
+                ]).then(() => onSwipe(action, behavioralSignal));
             }, 300);
         } else {
             Promise.all([
                 animate(x, config.x, { type: "spring", stiffness: 500, damping: 50 }),
                 animate(y, config.y, { type: "spring", stiffness: 500, damping: 50 })
-            ]).then(() => onSwipe(action));
+            ]).then(() => onSwipe(action, behavioralSignal));
         }
 
         playSwipe();
-    }, [isActive, isAnimating, isAiModalOpen, onSwipe, playSwipe, superLikeOpacity, x, y]);
+
+        // Reset tracking
+        pointerDownTime.current = null;
+        dragStartTime.current = null;
+        gestureVelocity.current = 0;
+    }, [isActive, isAnimating, isAiModalOpen, onSwipe, playSwipe, superLikeOpacity, x, y, queuePosition, totalCards, isModalOpen]);
 
     // Keyboard support
     useEffect(() => {
@@ -199,7 +289,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
             const action = Object.entries(ACTIONS).find(([_, config]) => config.key === e.key)?.[0];
             if (action) {
                 e.preventDefault();
-                handleSwipeAction(action as keyof typeof ACTIONS);
+                handleSwipeAction(action as keyof typeof ACTIONS, 'keyboard');
             }
         };
 
@@ -211,12 +301,20 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         if (!isActive || isAnimating) return;
         setIsDragging(false);
 
-        if (info.offset.y < -Y_THRESHOLD) handleSwipeAction('save');
-        else if (info.offset.x > X_THRESHOLD) handleSwipeAction('like');
-        else if (info.offset.x < -X_THRESHOLD) handleSwipeAction('dislike');
-        else {
+        let action: keyof typeof ACTIONS | null = null;
+        if (info.offset.y < -Y_THRESHOLD) action = 'save';
+        else if (info.offset.x > X_THRESHOLD) action = 'like';
+        else if (info.offset.x < -X_THRESHOLD) action = 'dislike';
+
+        if (action) {
+            handleSwipeAction(action, 'gesture');
+        } else {
+            // Reset position
             animate(x, 0, { type: "spring", stiffness: 500, damping: 30 });
             animate(y, 0, { type: "spring", stiffness: 500, damping: 30 });
+            pointerDownTime.current = null;
+            dragStartTime.current = null;
+            gestureVelocity.current = 0;
         }
     };
 
@@ -230,13 +328,26 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         }
 
         if (now - lastTap.current < DOUBLE_TAP_DELAY) {
-            handleSwipeAction('super-like');
+            // Double tap for super-like
+            pointerDownTime.current = lastTap.current; // Use first tap time
+            handleSwipeAction('super-like', 'gesture');
             lastTap.current = 0;
         } else {
             lastTap.current = now;
             tapTimeout.current = setTimeout(() => { lastTap.current = 0; }, DOUBLE_TAP_DELAY);
         }
     }, [isActive, isAnimating, handleSwipeAction]);
+
+    const handlePointerDown = () => {
+        if (!isActive || isAnimating) return;
+        pointerDownTime.current = Date.now();
+    };
+
+    const handleDragStart = () => {
+        setIsDragging(true);
+        dragStartTime.current = Date.now();
+        if (isAiModalOpen) setIsAiModalOpen(false);
+    };
 
     const canDrag = isActive && !isAnimating && !isAiModalOpen;
     const isDisabled = isDragging || !isActive || isAnimating;
@@ -268,7 +379,16 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
         return (
             <motion.button
-                onClick={(e) => { e.stopPropagation(); onClick(); }}
+                onClick={(e) => { 
+                    e.stopPropagation(); 
+                    pointerDownTime.current = Date.now(); // Track button press time
+                    onClick(); 
+                }}
+                onPointerDown={() => {
+                    if (!pointerDownTime.current) {
+                        pointerDownTime.current = Date.now();
+                    }
+                }}
                 className={`flex flex-col items-center gap-1 p-sm transition-all duration-300 
                    disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]
                    ${special ? 'rounded-full bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 w-16 h-16 shadow-lg justify-center' :
@@ -278,8 +398,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 aria-label={config.label}
                 disabled={isDisabled}
             >
-                <Icon className={`text-icon-sm ${special ? 'text-white' : `text-text-${config.color}`} transition-colors`} />
-                <span className={`text-para-xs ${special ? 'font-bold text-white' : `font-medium text-text-${config.color}`} transition-colors`}>
+                <Icon className={`text-icon-md ${special ? 'text-white' : `text-text-${config.color}`} transition-colors`} />
+                <span className={`text-para-sm ${special ? 'font-bold text-white' : `font-medium text-text-${config.color}`} transition-colors`}>
                     {special ? 'Super' : config.label}
                 </span>
             </motion.button>
@@ -293,7 +413,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
             drag={canDrag}
             dragElastic={0.2}
             dragConstraints={{ left: -300, right: 300, top: -200, bottom: 50 }}
-            onDragStart={() => { setIsDragging(true); if (isAiModalOpen) setIsAiModalOpen(false); }}
+            onPointerDown={handlePointerDown}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             whileDrag={canDrag ? { scale: 1.02, transition: { duration: 0.2 } } : {}}
             onClick={handleCardClick}
@@ -317,7 +438,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
             {/* Main Card */}
             <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden">
-                <div className="grid grid-cols-1 lg:grid-cols-2">
+                <div className="grid grid-cols-1 lg:grid-cols-12">
                     {/* Mobile Image with loading states */}
                     <CardImage
                         src={component.thumbnail_url}
@@ -325,7 +446,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                     />
 
                     {/* Content */}
-                    <div className="bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
+                    <div className="lg:col-span-4 bg-background-primary-2 p-md sm:p-lg flex flex-col justify-center">
                         <div className="space-y-sm md:space-y-md lg:space-y-lg">
                             <div className="flex items-center justify-between gap-xs">
                                 <span className="px-xs py-px sm:px-sm sm:py-xs md:px-md md:py-sm bg-accent-default text-accent-foreground text-para-xs sm:text-para-sm 2xl:text-para-md font-medium rounded-sm sm:rounded-md md:rounded-lg">
@@ -336,8 +457,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                 </span>
                             </div>
 
-                            <div className="space-y-xs sm:space-y-sm md:space-y-md">
-                                <h2 className="text-h5-sm sm:text-h4-sm md:text-h4-md 2xl:text-h4-lg font-semibold text-text-primary leading-tight">
+                            <div className="space-y-xs sm:space-y-sm md:space-y-md pr-md h-[230px] overflow-y-auto">
+                                <h2 className="text-h5-sm sm:text-h4-sm md:text-h4-md  font-semibold text-text-primary leading-tight">
                                     {component.title}
                                 </h2>
                                 <p className="text-text-secondary text-para-xs sm:text-para-sm leading-relaxed line-clamp-3 sm:line-clamp-none">
@@ -362,20 +483,30 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                     {/* Desktop Image with loading states */}
                     <CardImage
                         src={component.thumbnail_url}
-                        className="hidden lg:block"
+                        className="hidden lg:block lg:col-span-8"
                     />
                 </div>
 
                 {/* Action Buttons */}
                 <div className="px-sm py-sm md:px-md md:py-md">
                     <div className="flex justify-center">
-                        <div className={`flex items-center justify-center gap-sm ${!isActive ? 'pointer-events-none opacity-60' : ''}`}>
-                            <ActionButton action="like" onClick={() => { playClick(); handleSwipeAction('like'); }} />
-                            <ActionButton action="dislike" onClick={() => { playClick(); handleSwipeAction('dislike'); }} />
+                        <div className={`flex items-center justify-center gap-md ${!isActive ? 'pointer-events-none opacity-60' : ''}`}>
+                            <ActionButton action="like" onClick={() => { playClick(); handleSwipeAction('like', 'button'); }} />
+                            <ActionButton action="dislike" onClick={() => { playClick(); handleSwipeAction('dislike', 'button'); }} />
 
                             {/* Super Like Button with Heart Icon */}
                             <motion.button
-                                onClick={(e) => { e.stopPropagation(); playClick(); handleSwipeAction('super-like'); }}
+                                onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    pointerDownTime.current = Date.now();
+                                    playClick(); 
+                                    handleSwipeAction('super-like', 'button'); 
+                                }}
+                                onPointerDown={() => {
+                                    if (!pointerDownTime.current) {
+                                        pointerDownTime.current = Date.now();
+                                    }
+                                }}
                                 className="flex flex-col items-center justify-center gap-1 p-sm rounded-full bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group w-16 h-16 shadow-lg"
                                 whileHover={!isDisabled ? { scale: 1.15, y: -2 } : {}}
                                 whileTap={!isDisabled ? { scale: 0.9 } : {}}
@@ -398,7 +529,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                 )}
                             </div>
 
-                            <ActionButton action="save" onClick={() => { playClick(); handleSwipeAction('save'); }} />
+                            <ActionButton action="save" onClick={() => { playClick(); handleSwipeAction('save', 'button'); }} />
                         </div>
                     </div>
                 </div>

@@ -69,7 +69,7 @@ export const Navbar: React.FC = () => {
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className="p-sm rounded-lg hover:bg-background-muted transition-colors">
-                        {isMenuOpen ? <FiX className="text-icon-md" /> : <FiMenu className="text-icon-md" />}
+                        {isMenuOpen ? <FiX className="text-icon-md" /> : <FiMenu className="text-icon-md text-text-primary" />}
                     </button>
                 </div>
             </div>
