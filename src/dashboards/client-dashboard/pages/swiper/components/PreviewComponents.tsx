@@ -26,33 +26,24 @@ import {
     FiFeather,
 } from 'react-icons/fi';
 
-// Common interface for all preview components
-interface PreviewComponentProps {
-    viewport: 'mobile' | 'tablet' | 'desktop';
-}
-
-export const Navbar: React.FC<PreviewComponentProps> = ({ viewport }) => {
-    const isMobile = viewport === 'mobile';
-    const isTablet = viewport === 'tablet';
+export const Navbar: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
     return (
-        <nav className={`bg-background-primary/95 backdrop-blur-lg border-b border-border-default sticky top-0 z-50
-            ${isMobile ? 'px-md py-sm' : isTablet ? 'px-lg py-sm' : 'px-xl py-md'}`}>
+        <nav className="bg-background-primary/95 backdrop-blur-lg border-b border-border-default sticky top-0 z-50 px-md py-sm sm:px-lg sm:py-sm lg:px-xl lg:py-md">
             <div className="max-w-7xl mx-auto flex items-center justify-between">
                 {/* Logo */}
                 <div className="flex items-center space-x-sm">
                     <div className="bg-gradient-to-br from-accent-default to-accent-hover p-xs rounded-xl">
                         <FiZap className="text-accent-foreground text-icon-md" />
                     </div>
-                    <h3 className={`font-bold text-text-primary 
-                        ${isMobile ? 'text-h6-sm' : 'text-h5-md'}`}>
+                    <h3 className="font-bold text-text-primary text-h6-sm sm:text-h5-md">
                         DesignFlow
                     </h3>
                 </div>
 
                 {/* Desktop Navigation */}
-                <div className={`${isMobile ? 'hidden' : 'flex'} items-center space-x-lg`}>
+                <div className="hidden sm:flex items-center space-x-lg">
                     <div className="flex items-center space-x-md">
                         {['Home', 'Features', 'About', 'Contact'].map((item) => (
                             <a key={item} href="#"
@@ -74,7 +65,7 @@ export const Navbar: React.FC<PreviewComponentProps> = ({ viewport }) => {
                 </div>
 
                 {/* Mobile Menu Button */}
-                <div className={`${isMobile ? 'flex' : 'hidden'} items-center space-x-sm`}>
+                <div className="flex sm:hidden items-center space-x-sm">
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className="p-sm rounded-lg hover:bg-background-muted transition-colors">
@@ -84,8 +75,8 @@ export const Navbar: React.FC<PreviewComponentProps> = ({ viewport }) => {
             </div>
 
             {/* Mobile Menu */}
-            {isMobile && isMenuOpen && (
-                <div className="absolute top-full left-0 right-0 bg-background-primary border-b border-border-default shadow-xl">
+            {isMenuOpen && (
+                <div className="absolute sm:hidden top-full left-0 right-0 bg-background-primary border-b border-border-default shadow-xl">
                     <div className="px-md py-lg space-y-md">
                         {['Home', 'Features', 'About', 'Contact'].map((item) => (
                             <a key={item} href="#"
@@ -105,14 +96,10 @@ export const Navbar: React.FC<PreviewComponentProps> = ({ viewport }) => {
     );
 };
 
-export const Hero: React.FC<PreviewComponentProps> = ({ viewport }) => {
-    const isMobile = viewport === 'mobile';
-    const isTablet = viewport === 'tablet';
-
+export const Hero: React.FC = () => {
     return (
-        <section className={`bg-gradient-to-br from-background-secondary via-background-primary to-accent-subtle/20 
-            relative overflow-hidden
-            ${isMobile ? 'px-md py-2xl' : isTablet ? 'px-lg py-3xl' : 'px-xl py-4xl'}`}>
+        <section className="bg-gradient-to-br from-background-secondary via-background-primary to-accent-subtle/20 
+            relative overflow-hidden px-md py-2xl sm:px-lg sm:py-3xl lg:px-xl lg:py-4xl">
 
             {/* Background Elements */}
             <div className="absolute inset-0 overflow-hidden">
@@ -120,8 +107,7 @@ export const Hero: React.FC<PreviewComponentProps> = ({ viewport }) => {
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-default/5 rounded-full blur-3xl"></div>
             </div>
 
-            <div className={`max-w-7xl mx-auto text-center relative z-10
-                ${isMobile ? 'space-y-lg' : 'space-y-xl'}`}>
+            <div className="max-w-7xl mx-auto text-center relative z-10 space-y-lg sm:space-y-xl">
 
                 {/* Badge */}
                 <div className="inline-flex items-center space-x-xs bg-accent-subtle border border-accent-default/20 
@@ -131,43 +117,39 @@ export const Hero: React.FC<PreviewComponentProps> = ({ viewport }) => {
                 </div>
 
                 {/* Main Heading */}
-                <div className={`${isMobile ? 'space-y-sm' : 'space-y-md'}`}>
-                    <h1 className={`font-bold text-text-primary leading-tight
-                        ${isMobile ? 'text-h1-sm' : isTablet ? 'text-h1-md' : 'text-h1-lg'}`}>
+                <div className="space-y-sm sm:space-y-md">
+                    <h1 className="font-bold text-text-primary leading-tight text-h1-sm sm:text-h1-md lg:text-h1-lg">
                         Build Beautiful Apps with
                         <span className="bg-gradient-to-r from-accent-default to-accent-hover bg-clip-text text-transparent">
                             {' '}Design Tokens
                         </span>
                     </h1>
-                    <p className={`text-text-secondary max-w-4xl mx-auto leading-relaxed
-                        ${isMobile ? 'text-para-md' : 'text-para-lg'}`}>
+                    <p className="text-text-secondary max-w-4xl mx-auto leading-relaxed text-para-md sm:text-para-lg">
                         Experience the perfect blend of aesthetics and functionality with our carefully crafted
                         design system. Build consistent, scalable, and beautiful user interfaces.
                     </p>
                 </div>
 
                 {/* CTA Buttons */}
-                <div className={`flex justify-center items-center
-                    ${isMobile ? 'flex-col gap-sm' : 'flex-row gap-md'}`}>
-                    <button className={`bg-accent-default text-accent-foreground rounded-xl 
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-sm sm:gap-md">
+                    <button className="bg-accent-default text-accent-foreground rounded-xl 
                         hover:bg-accent-hover transition-all duration-200 hover:scale-105 
                         shadow-lg hover:shadow-xl font-semibold flex items-center space-x-sm
-                        ${isMobile ? 'px-lg py-md w-full justify-center' : 'px-xl py-md'}`}>
+                        px-lg py-md w-full sm:w-auto justify-center sm:px-xl">
                         <FiPlay className="text-icon-sm" />
                         <span>Start Free Trial</span>
                     </button>
-                    <button className={`bg-background-primary text-text-primary border 
+                    <button className="bg-background-primary text-text-primary border 
                         border-border-default rounded-xl hover:bg-background-muted hover:border-border-focus
                         transition-all duration-200 hover:scale-105 font-semibold flex items-center space-x-sm
-                        ${isMobile ? 'px-lg py-md w-full justify-center' : 'px-xl py-md'}`}>
+                        px-lg py-md w-full sm:w-auto justify-center sm:px-xl">
                         <FiCode className="text-icon-sm" />
                         <span>View Documentation</span>
                     </button>
                 </div>
 
                 {/* Stats */}
-                <div className={`grid gap-lg pt-xl border-t border-border-default/50
-                    ${isMobile ? 'grid-cols-2' : isTablet ? 'grid-cols-3' : 'grid-cols-4'}`}>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-lg pt-xl border-t border-border-default/50">
                     {[
                         { icon: FiUsers, label: 'Active Users', value: '50K+' },
                         { icon: FiZap, label: 'Components', value: '200+' },
@@ -178,8 +160,7 @@ export const Hero: React.FC<PreviewComponentProps> = ({ viewport }) => {
                             <div className="flex justify-center mb-xs">
                                 <stat.icon className="text-accent-default text-icon-lg" />
                             </div>
-                            <div className={`font-bold text-text-primary 
-                                ${isMobile ? 'text-h5-sm' : 'text-h4-md'}`}>
+                            <div className="font-bold text-text-primary text-h5-sm sm:text-h4-md">
                                 {stat.value}
                             </div>
                             <div className="text-text-secondary text-para-sm">{stat.label}</div>
@@ -191,10 +172,7 @@ export const Hero: React.FC<PreviewComponentProps> = ({ viewport }) => {
     );
 };
 
-export const Features: React.FC<PreviewComponentProps> = ({ viewport }) => {
-    const isMobile = viewport === 'mobile';
-    const isTablet = viewport === 'tablet';
-
+export const Features: React.FC = () => {
     const features = [
         {
             icon: FiLayers,
@@ -235,8 +213,7 @@ export const Features: React.FC<PreviewComponentProps> = ({ viewport }) => {
     ];
 
     return (
-        <section className={`bg-background-primary relative overflow-hidden
-            ${isMobile ? 'px-md py-2xl' : isTablet ? 'px-lg py-3xl' : 'px-xl py-4xl'}`}>
+        <section className="bg-background-primary relative overflow-hidden px-md py-2xl sm:px-lg sm:py-3xl lg:px-xl lg:py-4xl">
 
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-30">
@@ -248,52 +225,46 @@ export const Features: React.FC<PreviewComponentProps> = ({ viewport }) => {
 
             <div className="max-w-7xl mx-auto relative z-10">
                 {/* Section Header */}
-                <div className={`text-center ${isMobile ? 'mb-2xl' : 'mb-3xl'}`}>
+                <div className="text-center mb-2xl sm:mb-3xl">
                     <div className="inline-flex items-center space-x-xs bg-accent-subtle border border-accent-default/20 
                                    rounded-full px-md py-xs text-accent-default font-medium text-para-sm mb-lg">
                         <FiZap className="text-icon-sm" />
                         <span>Powerful Features</span>
                     </div>
-                    <h2 className={`font-bold text-text-primary mb-md leading-tight
-                        ${isMobile ? 'text-h2-sm' : isTablet ? 'text-h2-md' : 'text-h1-sm'}`}>
+                    <h2 className="font-bold text-text-primary mb-md leading-tight text-h2-sm sm:text-h2-md lg:text-h1-sm">
                         Everything You Need to
                         <span className="bg-gradient-to-r from-accent-default to-accent-hover bg-clip-text text-transparent">
                             {' '}Build Amazing
                         </span>
                     </h2>
-                    <p className={`text-text-secondary max-w-3xl mx-auto leading-relaxed
-                        ${isMobile ? 'text-para-md' : 'text-para-lg'}`}>
+                    <p className="text-text-secondary max-w-3xl mx-auto leading-relaxed text-para-md sm:text-para-lg">
                         From design tokens to production-ready components, we've got everything
                         covered to accelerate your development workflow.
                     </p>
                 </div>
 
                 {/* Features Grid */}
-                <div className={`grid gap-xl 
-                    ${isMobile ? 'grid-cols-1' : isTablet ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
                     {features.map((feature, i) => (
-                        <div key={i} className={`group bg-background-secondary rounded-2xl border border-border-default 
+                        <div key={i} className="group bg-background-secondary rounded-2xl border border-border-default 
                             hover:border-border-focus hover:shadow-xl transition-all duration-300 hover:-translate-y-1
-                            ${isMobile ? 'p-lg' : 'p-xl'}`}>
+                            p-lg sm:p-xl">
 
                             {/* Icon */}
-                            <div className={`relative mb-lg`}>
+                            <div className="relative mb-lg">
                                 <div className={`bg-gradient-to-br ${feature.color} rounded-xl flex items-center 
                                     justify-center mb-sm group-hover:scale-110 transition-transform duration-300
-                                    ${isMobile ? 'w-12 h-12' : 'w-16 h-16'}`}>
-                                    <feature.icon className={`text-white 
-                                        ${isMobile ? 'text-icon-md' : 'text-icon-lg'}`} />
+                                    w-12 h-12 sm:w-16 sm:h-16`}>
+                                    <feature.icon className="text-white text-icon-md sm:text-icon-lg" />
                                 </div>
                             </div>
 
                             {/* Content */}
-                            <h3 className={`font-bold text-text-primary mb-sm group-hover:text-accent-default 
-                                transition-colors duration-200
-                                ${isMobile ? 'text-h6-sm' : 'text-h5-md'}`}>
+                            <h3 className="font-bold text-text-primary mb-sm group-hover:text-accent-default 
+                                transition-colors duration-200 text-h6-sm sm:text-h5-md">
                                 {feature.title}
                             </h3>
-                            <p className={`text-text-secondary leading-relaxed
-                                ${isMobile ? 'text-para-sm' : 'text-para-md'}`}>
+                            <p className="text-text-secondary leading-relaxed text-para-sm sm:text-para-md">
                                 {feature.description}
                             </p>
 
@@ -309,13 +280,9 @@ export const Features: React.FC<PreviewComponentProps> = ({ viewport }) => {
     );
 };
 
-export const About: React.FC<PreviewComponentProps> = ({ viewport }) => {
-    const isMobile = viewport === 'mobile';
-    const isTablet = viewport === 'tablet';
-
+export const About: React.FC = () => {
     return (
-        <section className={`bg-background-secondary relative overflow-hidden
-            ${isMobile ? 'px-md py-2xl' : isTablet ? 'px-lg py-3xl' : 'px-xl py-4xl'}`}>
+        <section className="bg-background-secondary relative overflow-hidden px-md py-2xl sm:px-lg sm:py-3xl lg:px-xl lg:py-4xl">
 
             {/* Background Elements */}
             <div className="absolute inset-0">
@@ -323,12 +290,10 @@ export const About: React.FC<PreviewComponentProps> = ({ viewport }) => {
                 <div className="absolute bottom-20 left-20 w-96 h-96 bg-accent-subtle/30 rounded-full blur-3xl"></div>
             </div>
 
-            <div className={`max-w-7xl mx-auto grid gap-3xl items-center relative z-10
-                ${isMobile || isTablet ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-3xl items-center relative z-10">
 
                 {/* Content */}
-                <div className={`${isMobile ? 'space-y-lg' : 'space-y-xl'} 
-                    ${!isMobile && !isTablet ? 'pr-xl' : ''}`}>
+                <div className="space-y-lg sm:space-y-xl lg:pr-xl">
 
                     <div className="inline-flex items-center space-x-xs bg-accent-subtle border border-accent-default/20 
                                    rounded-full px-md py-xs text-accent-default font-medium text-para-sm">
@@ -336,23 +301,21 @@ export const About: React.FC<PreviewComponentProps> = ({ viewport }) => {
                         <span>About Our Mission</span>
                     </div>
 
-                    <h2 className={`font-bold text-text-primary leading-tight
-                        ${isMobile ? 'text-h2-sm' : isTablet ? 'text-h2-md' : 'text-h1-sm'}`}>
+                    <h2 className="font-bold text-text-primary leading-tight text-h2-sm sm:text-h2-md lg:text-h1-sm">
                         Empowering Designers &
                         <span className="bg-gradient-to-r from-accent-default to-accent-hover bg-clip-text text-transparent">
                             {' '}Developers
                         </span>
                     </h2>
 
-                    <p className={`text-text-secondary leading-relaxed
-                        ${isMobile ? 'text-para-md' : 'text-para-lg'}`}>
+                    <p className="text-text-secondary leading-relaxed text-para-md sm:text-para-lg">
                         We believe in creating digital experiences that not only look beautiful but also
                         deliver exceptional value to users. Our design system bridges the gap between
                         design and development, ensuring consistency and efficiency.
                     </p>
 
                     {/* Values */}
-                    <div className={`${isMobile ? 'space-y-md' : 'space-y-lg'}`}>
+                    <div className="space-y-md sm:space-y-lg">
                         {[
                             { icon: FiTarget, title: 'Innovation First', desc: 'Pushing boundaries with cutting-edge technology' },
                             { icon: FiUsers, title: 'User Centered', desc: 'Every decision made with users in mind' },
@@ -364,12 +327,10 @@ export const About: React.FC<PreviewComponentProps> = ({ viewport }) => {
                                     <item.icon className="text-accent-foreground text-icon-md" />
                                 </div>
                                 <div>
-                                    <h4 className={`font-bold text-text-primary mb-xs
-                                        ${isMobile ? 'text-h6-sm' : 'text-h5-md'}`}>
+                                    <h4 className="font-bold text-text-primary mb-xs text-h6-sm sm:text-h5-md">
                                         {item.title}
                                     </h4>
-                                    <p className={`text-text-secondary 
-                                        ${isMobile ? 'text-para-sm' : 'text-para-md'}`}>
+                                    <p className="text-text-secondary text-para-sm sm:text-para-md">
                                         {item.desc}
                                     </p>
                                 </div>
@@ -378,15 +339,14 @@ export const About: React.FC<PreviewComponentProps> = ({ viewport }) => {
                     </div>
 
                     {/* Stats */}
-                    <div className={`grid grid-cols-3 gap-lg pt-lg border-t border-border-default/30`}>
+                    <div className="grid grid-cols-3 gap-lg pt-lg border-t border-border-default/30">
                         {[
                             { value: '99%', label: 'Uptime' },
                             { value: '2M+', label: 'Downloads' },
                             { value: '150+', label: 'Companies' }
                         ].map((stat, i) => (
                             <div key={i} className="text-center">
-                                <div className={`font-bold text-accent-default mb-xs
-                                    ${isMobile ? 'text-h4-sm' : 'text-h3-md'}`}>
+                                <div className="font-bold text-accent-default mb-xs text-h4-sm sm:text-h3-md">
                                     {stat.value}
                                 </div>
                                 <div className="text-text-secondary text-para-sm">{stat.label}</div>
@@ -396,10 +356,10 @@ export const About: React.FC<PreviewComponentProps> = ({ viewport }) => {
                 </div>
 
                 {/* Visual Element */}
-                <div className={`relative ${isMobile && 'mt-xl'}`}>
-                    <div className={`bg-gradient-to-br from-accent-subtle to-background-muted rounded-3xl 
+                <div className="relative mt-xl lg:mt-0">
+                    <div className="bg-gradient-to-br from-accent-subtle to-background-muted rounded-3xl 
                         flex flex-col items-center justify-center relative overflow-hidden border border-border-default
-                        ${isMobile ? 'h-80' : isTablet ? 'h-96' : 'h-[500px]'}`}>
+                        h-80 sm:h-96 lg:h-[500px]">
 
                         {/* Floating Icons */}
                         <div className="absolute inset-0">
@@ -414,8 +374,7 @@ export const About: React.FC<PreviewComponentProps> = ({ viewport }) => {
                             <div className="bg-accent-default rounded-2xl p-lg mb-lg">
                                 <FiZap className="text-accent-foreground text-icon-2xl" />
                             </div>
-                            <h3 className={`font-bold text-text-primary mb-sm
-                                ${isMobile ? 'text-h5-sm' : 'text-h4-md'}`}>
+                            <h3 className="font-bold text-text-primary mb-sm text-h5-sm sm:text-h4-md">
                                 Design System Hub
                             </h3>
                             <p className="text-text-secondary text-para-md max-w-xs mx-auto">
@@ -429,10 +388,7 @@ export const About: React.FC<PreviewComponentProps> = ({ viewport }) => {
     );
 };
 
-export const Blog: React.FC<PreviewComponentProps> = ({ viewport }) => {
-    const isMobile = viewport === 'mobile';
-    const isTablet = viewport === 'tablet';
-
+export const Blog: React.FC = () => {
     const blogPosts = [
         {
             icon: FiCode,
@@ -464,42 +420,37 @@ export const Blog: React.FC<PreviewComponentProps> = ({ viewport }) => {
     ];
 
     return (
-        <section className={`bg-background-primary 
-            ${isMobile ? 'px-md py-2xl' : isTablet ? 'px-lg py-3xl' : 'px-xl py-4xl'}`}>
+        <section className="bg-background-primary px-md py-2xl sm:px-lg sm:py-3xl lg:px-xl lg:py-4xl">
             <div className="max-w-7xl mx-auto">
 
                 {/* Section Header */}
-                <div className={`text-center ${isMobile ? 'mb-2xl' : 'mb-3xl'}`}>
+                <div className="text-center mb-2xl sm:mb-3xl">
                     <div className="inline-flex items-center space-x-xs bg-accent-subtle border border-accent-default/20 
                                    rounded-full px-md py-xs text-accent-default font-medium text-para-sm mb-lg">
                         <FiFeather className="text-icon-sm" />
                         <span>Latest Insights</span>
                     </div>
-                    <h2 className={`font-bold text-text-primary mb-md leading-tight
-                        ${isMobile ? 'text-h2-sm' : isTablet ? 'text-h2-md' : 'text-h1-sm'}`}>
+                    <h2 className="font-bold text-text-primary mb-md leading-tight text-h2-sm sm:text-h2-md lg:text-h1-sm">
                         From Our
                         <span className="bg-gradient-to-r from-accent-default to-accent-hover bg-clip-text text-transparent">
                             {' '}Blog
                         </span>
                     </h2>
-                    <p className={`text-text-secondary max-w-3xl mx-auto leading-relaxed
-                        ${isMobile ? 'text-para-md' : 'text-para-lg'}`}>
+                    <p className="text-text-secondary max-w-3xl mx-auto leading-relaxed text-para-md sm:text-para-lg">
                         Stay updated with the latest trends, best practices, and insights
                         from the world of design systems and development.
                     </p>
                 </div>
 
                 {/* Blog Grid */}
-                <div className={`grid gap-xl 
-                    ${isMobile ? 'grid-cols-1' : isTablet ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
                     {blogPosts.map((post, i) => (
                         <article key={i} className="group bg-background-secondary rounded-2xl overflow-hidden 
                                                    border border-border-default hover:border-border-focus 
                                                    hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
 
                             {/* Image Area */}
-                            <div className={`bg-gradient-to-br ${post.color} relative overflow-hidden
-                                ${isMobile ? 'h-48' : 'h-56'}`}>
+                            <div className={`bg-gradient-to-br ${post.color} relative overflow-hidden h-48 sm:h-56`}>
                                 <div className="absolute inset-0 bg-black/20"></div>
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     <post.icon className="text-white text-icon-2xl opacity-80" />
@@ -513,7 +464,7 @@ export const Blog: React.FC<PreviewComponentProps> = ({ viewport }) => {
                             </div>
 
                             {/* Content */}
-                            <div className={`space-y-sm ${isMobile ? 'p-lg' : 'p-xl'}`}>
+                            <div className="space-y-sm p-lg sm:p-xl">
                                 <div className="flex items-center justify-between text-para-sm text-text-tertiary">
                                     <div className="flex items-center space-x-xs">
                                         <FiCalendar className="text-icon-sm" />
@@ -525,14 +476,12 @@ export const Blog: React.FC<PreviewComponentProps> = ({ viewport }) => {
                                     </div>
                                 </div>
 
-                                <h3 className={`font-bold text-text-primary group-hover:text-accent-default 
-                                    transition-colors duration-200 leading-tight
-                                    ${isMobile ? 'text-h6-sm' : 'text-h5-md'}`}>
+                                <h3 className="font-bold text-text-primary group-hover:text-accent-default 
+                                    transition-colors duration-200 leading-tight text-h6-sm sm:text-h5-md">
                                     {post.title}
                                 </h3>
 
-                                <p className={`text-text-secondary leading-relaxed
-                                    ${isMobile ? 'text-para-sm' : 'text-para-md'}`}>
+                                <p className="text-text-secondary leading-relaxed text-para-sm sm:text-para-md">
                                     {post.excerpt}
                                 </p>
 
@@ -564,10 +513,7 @@ export const Blog: React.FC<PreviewComponentProps> = ({ viewport }) => {
     );
 };
 
-export const Pricing: React.FC<PreviewComponentProps> = ({ viewport }) => {
-    const isMobile = viewport === 'mobile';
-    const isTablet = viewport === 'tablet';
-
+export const Pricing: React.FC = () => {
     const plans = [
         {
             name: 'Starter',
@@ -596,8 +542,7 @@ export const Pricing: React.FC<PreviewComponentProps> = ({ viewport }) => {
     ];
 
     return (
-        <section className={`bg-background-secondary relative overflow-hidden
-            ${isMobile ? 'px-md py-2xl' : isTablet ? 'px-lg py-3xl' : 'px-xl py-4xl'}`}>
+        <section className="bg-background-secondary relative overflow-hidden px-md py-2xl sm:px-lg sm:py-3xl lg:px-xl lg:py-4xl">
 
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-20">
@@ -612,36 +557,33 @@ export const Pricing: React.FC<PreviewComponentProps> = ({ viewport }) => {
             <div className="max-w-7xl mx-auto relative z-10">
 
                 {/* Section Header */}
-                <div className={`text-center ${isMobile ? 'mb-2xl' : 'mb-3xl'}`}>
+                <div className="text-center mb-2xl sm:mb-3xl">
                     <div className="inline-flex items-center space-x-xs bg-accent-subtle border border-accent-default/20 
                                    rounded-full px-md py-xs text-accent-default font-medium text-para-sm mb-lg">
                         <FiZap className="text-icon-sm" />
                         <span>Simple Pricing</span>
                     </div>
-                    <h2 className={`font-bold text-text-primary mb-md leading-tight
-                        ${isMobile ? 'text-h2-sm' : isTablet ? 'text-h2-md' : 'text-h1-sm'}`}>
+                    <h2 className="font-bold text-text-primary mb-md leading-tight text-h2-sm sm:text-h2-md lg:text-h1-sm">
                         Choose Your
                         <span className="bg-gradient-to-r from-accent-default to-accent-hover bg-clip-text text-transparent">
                             {' '}Perfect Plan
                         </span>
                     </h2>
-                    <p className={`text-text-secondary max-w-3xl mx-auto leading-relaxed
-                        ${isMobile ? 'text-para-md' : 'text-para-lg'}`}>
+                    <p className="text-text-secondary max-w-3xl mx-auto leading-relaxed text-para-md sm:text-para-lg">
                         Start building amazing products today. Upgrade or downgrade at any time.
                         No hidden fees, no surprises.
                     </p>
                 </div>
 
                 {/* Pricing Grid */}
-                <div className={`grid gap-xl 
-                    ${isMobile ? 'grid-cols-1' : isTablet ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-xl">
                     {plans.map((plan) => (
                         <div key={plan.name} className={`relative rounded-3xl border-2 transition-all duration-300
                             ${plan.popular
                                 ? 'bg-accent-subtle border-accent-default shadow-2xl scale-105'
                                 : 'bg-background-primary border-border-default hover:border-border-focus hover:shadow-xl'
                             }
-                            ${isMobile ? 'p-lg' : 'p-xl'}`}>
+                            p-lg sm:p-xl`}>
 
                             {/* Popular Badge */}
                             {plan.popular && (
@@ -659,20 +601,17 @@ export const Pricing: React.FC<PreviewComponentProps> = ({ viewport }) => {
                                 <plan.icon className={`mx-auto mb-md text-icon-xl
                                     ${plan.popular ? 'text-accent-default' : 'text-text-secondary'}`} />
 
-                                <h3 className={`font-bold mb-xs
-                                    ${isMobile ? 'text-h4-sm' : 'text-h3-md'}
+                                <h3 className={`font-bold mb-xs text-h4-sm sm:text-h3-md
                                     ${plan.popular ? 'text-accent-default' : 'text-text-primary'}`}>
                                     {plan.name}
                                 </h3>
 
-                                <p className={`text-text-secondary mb-lg
-                                    ${isMobile ? 'text-para-sm' : 'text-para-md'}`}>
+                                <p className={`text-text-secondary mb-lg text-para-sm sm:text-para-md`}>
                                     {plan.description}
                                 </p>
 
                                 <div className="flex items-baseline justify-center">
-                                    <span className={`font-bold 
-                                        ${isMobile ? 'text-h1-sm' : 'text-h1-md'}
+                                    <span className={`font-bold text-h1-sm sm:text-h1-md
                                         ${plan.popular ? 'text-accent-default' : 'text-text-primary'}`}>
                                         ${plan.price}
                                     </span>
@@ -681,13 +620,12 @@ export const Pricing: React.FC<PreviewComponentProps> = ({ viewport }) => {
                             </div>
 
                             {/* Features */}
-                            <ul className={`mb-xl ${isMobile ? 'space-y-sm' : 'space-y-md'}`}>
+                            <ul className="mb-xl space-y-sm sm:space-y-md">
                                 {plan.features.map((feature, j) => (
                                     <li key={j} className="flex items-start space-x-sm">
                                         <FiCheck className={`text-icon-md mt-xs flex-shrink-0
                                             ${plan.popular ? 'text-accent-default' : 'text-text-success'}`} />
-                                        <span className={`text-text-secondary leading-relaxed
-                                            ${isMobile ? 'text-para-sm' : 'text-para-md'}`}>
+                                        <span className="text-text-secondary leading-relaxed text-para-sm sm:text-para-md">
                                             {feature}
                                         </span>
                                     </li>
@@ -696,8 +634,7 @@ export const Pricing: React.FC<PreviewComponentProps> = ({ viewport }) => {
 
                             {/* CTA Button */}
                             <button className={`w-full rounded-xl transition-all duration-200 hover:scale-105 
-                                font-semibold flex items-center justify-center space-x-sm
-                                ${isMobile ? 'py-md' : 'py-lg'}
+                                font-semibold flex items-center justify-center space-x-sm py-md sm:py-lg
                                 ${plan.popular
                                     ? 'bg-accent-default text-accent-foreground hover:bg-accent-hover shadow-lg'
                                     : 'bg-background-secondary text-text-primary border border-border-default hover:bg-background-muted hover:border-border-focus'}`}>
@@ -709,13 +646,11 @@ export const Pricing: React.FC<PreviewComponentProps> = ({ viewport }) => {
                 </div>
 
                 {/* Bottom CTA */}
-                <div className={`text-center mt-2xl p-xl bg-background-primary rounded-2xl border border-border-default`}>
-                    <h3 className={`font-bold text-text-primary mb-sm
-                        ${isMobile ? 'text-h5-sm' : 'text-h4-md'}`}>
+                <div className="text-center mt-2xl p-xl bg-background-primary rounded-2xl border border-border-default">
+                    <h3 className="font-bold text-text-primary mb-sm text-h5-sm sm:text-h4-md">
                         Need a custom plan?
                     </h3>
-                    <p className={`text-text-secondary mb-lg
-                        ${isMobile ? 'text-para-sm' : 'text-para-md'}`}>
+                    <p className="text-text-secondary mb-lg text-para-sm sm:text-para-md">
                         Contact our sales team to discuss enterprise solutions and custom pricing.
                     </p>
                     <button className="bg-accent-subtle text-accent-default border border-accent-default/20 
@@ -730,14 +665,10 @@ export const Pricing: React.FC<PreviewComponentProps> = ({ viewport }) => {
     );
 };
 
-export const CTA: React.FC<PreviewComponentProps> = ({ viewport }) => {
-    const isMobile = viewport === 'mobile';
-    const isTablet = viewport === 'tablet';
-
+export const CTA: React.FC = () => {
     return (
-        <section className={`bg-gradient-to-br from-accent-default via-accent-hover to-accent-default 
-            relative overflow-hidden
-            ${isMobile ? 'px-md py-2xl' : isTablet ? 'px-lg py-3xl' : 'px-xl py-4xl'}`}>
+        <section className="bg-gradient-to-br from-accent-default via-accent-hover to-accent-default 
+            relative overflow-hidden px-md py-2xl sm:px-lg sm:py-3xl lg:px-xl lg:py-4xl">
 
             {/* Background Elements */}
             <div className="absolute inset-0">
@@ -754,8 +685,7 @@ export const CTA: React.FC<PreviewComponentProps> = ({ viewport }) => {
                 <FiFeather className="absolute bottom-32 right-20 text-white/20 text-icon-xl animate-pulse delay-1000" />
             </div>
 
-            <div className={`max-w-5xl mx-auto text-center relative z-10
-                ${isMobile ? 'space-y-lg' : 'space-y-xl'}`}>
+            <div className="max-w-5xl mx-auto text-center relative z-10 space-y-lg sm:space-y-xl">
 
                 {/* Icon */}
                 <div className="flex justify-center">
@@ -765,22 +695,19 @@ export const CTA: React.FC<PreviewComponentProps> = ({ viewport }) => {
                 </div>
 
                 {/* Heading */}
-                <h2 className={`font-bold text-white leading-tight
-                    ${isMobile ? 'text-h2-sm' : isTablet ? 'text-h2-md' : 'text-h1-sm'}`}>
+                <h2 className="font-bold text-white leading-tight text-h2-sm sm:text-h2-md lg:text-h1-sm">
                     Ready to Transform Your
                     <br />Development Workflow?
                 </h2>
 
                 {/* Description */}
-                <p className={`text-white/90 max-w-3xl mx-auto leading-relaxed
-                    ${isMobile ? 'text-para-md' : 'text-para-lg'}`}>
+                <p className="text-white/90 max-w-3xl mx-auto leading-relaxed text-para-md sm:text-para-lg">
                     Join thousands of developers and designers who are already building
                     amazing products with our design system. Start your free trial today.
                 </p>
 
                 {/* Stats */}
-                <div className={`grid gap-lg py-xl
-                    ${isMobile ? 'grid-cols-2' : 'grid-cols-4'}`}>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-lg py-xl">
                     {[
                         { icon: FiUsers, value: '50K+', label: 'Happy Users' },
                         { icon: FiStar, value: '4.9/5', label: 'Rating' },
@@ -789,8 +716,7 @@ export const CTA: React.FC<PreviewComponentProps> = ({ viewport }) => {
                     ].map((stat, i) => (
                         <div key={i} className="text-center">
                             <stat.icon className="text-white/80 text-icon-lg mx-auto mb-xs" />
-                            <div className={`font-bold text-white mb-xs
-                                ${isMobile ? 'text-h5-sm' : 'text-h4-md'}`}>
+                            <div className="font-bold text-white mb-xs text-h5-sm sm:text-h4-md">
                                 {stat.value}
                             </div>
                             <div className="text-white/80 text-para-sm">{stat.label}</div>
@@ -799,19 +725,18 @@ export const CTA: React.FC<PreviewComponentProps> = ({ viewport }) => {
                 </div>
 
                 {/* CTA Buttons */}
-                <div className={`flex justify-center items-center
-                    ${isMobile ? 'flex-col gap-sm' : 'flex-row gap-md'}`}>
-                    <button className={`bg-white text-accent-default rounded-xl 
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-sm sm:gap-md">
+                    <button className="bg-white text-accent-default rounded-xl 
                         hover:bg-gray-50 transition-all duration-200 hover:scale-105 
                         shadow-xl hover:shadow-2xl font-bold flex items-center space-x-sm
-                        ${isMobile ? 'px-xl py-lg w-full justify-center' : 'px-2xl py-lg'}`}>
+                        px-xl py-lg w-full sm:w-auto justify-center sm:px-2xl">
                         <FiPlay className="text-icon-md" />
                         <span className="text-para-lg">Start Free Trial</span>
                     </button>
-                    <button className={`bg-white/20 backdrop-blur-sm text-white border-2 border-white/30 
+                    <button className="bg-white/20 backdrop-blur-sm text-white border-2 border-white/30 
                         rounded-xl hover:bg-white/30 hover:border-white/50 transition-all duration-200 
                         hover:scale-105 font-semibold flex items-center space-x-sm
-                        ${isMobile ? 'px-xl py-lg w-full justify-center' : 'px-2xl py-lg'}`}>
+                        px-xl py-lg w-full sm:w-auto justify-center sm:px-2xl">
                         <FiCode className="text-icon-md" />
                         <span className="text-para-lg">View Demo</span>
                     </button>
@@ -831,10 +756,7 @@ export const CTA: React.FC<PreviewComponentProps> = ({ viewport }) => {
     );
 };
 
-export const Footer: React.FC<PreviewComponentProps> = ({ viewport }) => {
-    const isMobile = viewport === 'mobile';
-    const isTablet = viewport === 'tablet';
-
+export const Footer: React.FC = () => {
     const footerSections = [
         {
             title: 'Product',
@@ -855,8 +777,7 @@ export const Footer: React.FC<PreviewComponentProps> = ({ viewport }) => {
     ];
 
     return (
-        <footer className={`bg-background-dark relative overflow-hidden
-            ${isMobile ? 'px-md py-xl' : isTablet ? 'px-lg py-2xl' : 'px-xl py-3xl'}`}>
+        <footer className="bg-background-dark relative overflow-hidden px-md py-xl sm:px-lg sm:py-2xl lg:px-xl lg:py-3xl">
 
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -869,22 +790,19 @@ export const Footer: React.FC<PreviewComponentProps> = ({ viewport }) => {
             <div className="max-w-7xl mx-auto relative z-10">
 
                 {/* Main Footer Content */}
-                <div className={`grid gap-xl mb-2xl
-                    ${isMobile ? 'grid-cols-1' : isTablet ? 'grid-cols-2' : 'grid-cols-6'}`}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-xl mb-2xl">
 
                     {/* Brand Section */}
-                    <div className={`${!isMobile && !isTablet ? 'col-span-2' : ''}`}>
+                    <div className="lg:col-span-2">
                         <div className="flex items-center space-x-sm mb-lg">
                             <div className="bg-gradient-to-br from-accent-default to-accent-hover p-xs rounded-xl">
                                 <FiZap className="text-accent-foreground text-icon-lg" />
                             </div>
-                            <h3 className={`font-bold text-text-light 
-                                ${isMobile ? 'text-h5-sm' : 'text-h4-md'}`}>
+                            <h3 className="font-bold text-text-light text-h5-sm sm:text-h4-md">
                                 DesignFlow
                             </h3>
                         </div>
-                        <p className={`text-text-lightSecondary mb-lg leading-relaxed
-                            ${isMobile ? 'text-para-sm' : 'text-para-md'}`}>
+                        <p className="text-text-lightSecondary mb-lg leading-relaxed text-para-sm sm:text-para-md">
                             Building amazing digital experiences with the most advanced design system
                             toolkit for modern development teams.
                         </p>
@@ -892,18 +810,16 @@ export const Footer: React.FC<PreviewComponentProps> = ({ viewport }) => {
 
                     {/* Footer Sections */}
                     {footerSections.map((section) => (
-                        <div key={section.title} className={`${!isMobile && !isTablet ? 'col-span-1' : ''}`}>
-                            <h4 className={`font-bold text-text-light mb-lg
-                                ${isMobile ? 'text-h6-sm' : 'text-h5-md'}`}>
+                        <div key={section.title} className="lg:col-span-1">
+                            <h4 className="font-bold text-text-light mb-lg text-h6-sm sm:text-h5-md">
                                 {section.title}
                             </h4>
-                            <ul className={`${isMobile ? 'space-y-sm' : 'space-y-md'}`}>
+                            <ul className="space-y-sm sm:space-y-md">
                                 {section.links.map((link) => (
                                     <li key={link}>
-                                        <a href="#" className={`text-text-lightSecondary hover:text-text-light 
+                                        <a href="#" className="text-text-lightSecondary hover:text-text-light 
                                                                transition-colors duration-200 hover:translate-x-1 
-                                                               inline-block
-                                                               ${isMobile ? 'text-para-sm' : 'text-para-md'}`}>
+                                                               inline-block text-para-sm sm:text-para-md">
                                             {link}
                                         </a>
                                     </li>
@@ -914,10 +830,8 @@ export const Footer: React.FC<PreviewComponentProps> = ({ viewport }) => {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className={`border-t border-border-default/30 pt-xl
-                    ${isMobile ? 'text-center space-y-md' : 'flex items-center justify-between'}`}>
-                    <div className={`text-text-lightSecondary
-                        ${isMobile ? 'text-para-sm' : 'text-para-md'}`}>
+                <div className="border-t border-border-default/30 pt-xl text-center sm:flex sm:items-center sm:justify-between space-y-md sm:space-y-0">
+                    <div className="text-text-lightSecondary text-para-sm sm:text-para-md">
                         © 2024 DesignFlow. All rights reserved. Built with ❤️ for developers and designers.
                     </div>
                 </div>

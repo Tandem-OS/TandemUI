@@ -1,4 +1,4 @@
-// Updated Swiper.tsx with Preview Modal Integration
+// Updated Swiper.tsx with Fixed Preview Modal Integration
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
@@ -13,7 +13,6 @@ import { type SwipeAction, type UserChoice, type RoundData, type ComponentPrevie
 // Constants for cleaner code
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
-const PREVIEW_ROUNDS = [2, 4, 6]; // Show preview after these rounds
 
 // Animation variants - properly typed for framer-motion
 const animations: { [key: string]: Variants | any } = {
@@ -37,7 +36,6 @@ const animations: { [key: string]: Variants | any } = {
     button: { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 } }
 };
 
-// [Keep all the existing components: SkeletonCard, ErrorState, etc. - same as before]
 // Skeleton Card Component
 const SkeletonCard: React.FC = () => (
     <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden animate-pulse">
@@ -137,6 +135,12 @@ const Swiper: React.FC = () => {
     const isLastRound = currentRound === totalRounds - 1;
     const percentage = Math.round(((currentRound + 1) / totalRounds) * 100);
 
+    // Function to check if preview should be shown after current round
+    const shouldShowPreviewAfterRound = (roundNumber: number): boolean => {
+        // Show preview after every even round (2, 4, 6, 8, 10, etc.)
+        return roundNumber % 2 === 0 && roundNumber > 0;
+    };
+
     // Simulate data loading with potential errors
     const loadData = useCallback(async () => {
         try {
@@ -199,13 +203,13 @@ const Swiper: React.FC = () => {
         setShowRoundCompletion(true);
 
         // Check if we should show preview after this round
-        const completedRound = currentRound + 1;
-        const shouldShowPreview = PREVIEW_ROUNDS.includes(completedRound);
+        const completedRoundNumber = currentRound + 1;
+        const shouldShowPreview = shouldShowPreviewAfterRound(completedRoundNumber);
 
         setTimeout(() => {
             setShowRoundCompletion(false);
             
-            if (shouldShowPreview) {
+            if (shouldShowPreview && !isLastRound) {
                 // Show preview ask modal
                 setShouldAskForPreview(true);
             } else if (hasNextRound) {
@@ -213,7 +217,7 @@ const Swiper: React.FC = () => {
                 setTimeout(() => setCurrentRound(prev => prev + 1), TIMINGS.TRANSITION);
             }
         }, TIMINGS.CELEBRATION);
-    }, [currentRound, hasNextRound]);
+    }, [currentRound, hasNextRound, isLastRound]);
 
     const handlePreviewContinue = useCallback(() => {
         setShowPreviewModal(false);
@@ -304,7 +308,6 @@ const Swiper: React.FC = () => {
     if (isInitialLoading) {
         return (
             <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
-                {/* [Keep existing loading skeleton code] */}
                 {/* Header Skeleton */}
                 <div className="w-full flex-shrink-0 relative z-10">
                     <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
