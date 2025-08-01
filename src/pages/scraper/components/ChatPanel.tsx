@@ -48,19 +48,43 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    
+    // ✅ FIX: Track processed contexts to prevent duplicate messages
+    const processedContextRef = useRef<Set<string>>(new Set());
 
     const isDesktop = useMediaQuery('(min-width: 1024px)');
 
+    // ✅ FIX: Separate useEffect without isDesktop dependency
     useEffect(() => {
         if (context && context.prompt) {
+            // Create unique key for this context
+            const contextKey = `${context.prompt}_${JSON.stringify(context.context || {})}`;
+            
+            // Check if we've already processed this context
+            if (processedContextRef.current.has(contextKey)) {
+                return; // Don't process again
+            }
+            
+            // Mark this context as processed
+            processedContextRef.current.add(contextKey);
+            
+            // Only open chat on mobile
             if (!isDesktop) {
                 setIsOpen(true);
             }
+            
             setTimeout(() => {
                 handleSendMessage(context.prompt);
             }, 300);
         }
-    }, [context, isDesktop]);
+    }, [context]); // ❌ Removed isDesktop from dependencies
+
+    // ✅ FIX: Clear processed contexts when component unmounts or context changes significantly
+    useEffect(() => {
+        return () => {
+            processedContextRef.current.clear();
+        };
+    }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -123,7 +147,7 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
     };
 
     const ChatInterface = (
-        <div className="h-full w-full bg-background-primary-2 rounded-2xl shadow-md border border-border-default flex flex-col">
+        <div className="h-full w-full bg-background-primary-2 rounded-2xl max-md:rounded-b-none shadow-md border border-border-default flex flex-col">
             {/* Header */}
             <div className="p-md border-b border-border-default flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-sm">
@@ -197,8 +221,6 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                         <motion.button
                             key={index}
                             onClick={() => handleSendMessage(prompt)}
-                            // ✅ FIX: Removed scale from whileHover as requested. 
-                            // Letting CSS handle the background/border color change on hover.
                             whileHover={{}}
                             whileTap={{ scale: 0.95 }}
                             className="flex-shrink-0 text-para-xs px-sm py-xs bg-background-secondary border border-border-default rounded-lg hover:border-accent-default hover:bg-accent-subtle transition-colors whitespace-nowrap"
