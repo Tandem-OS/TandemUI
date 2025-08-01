@@ -379,10 +379,10 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
         return (
             <motion.button
-                onClick={(e) => { 
-                    e.stopPropagation(); 
+                onClick={(e) => {
+                    e.stopPropagation();
                     pointerDownTime.current = Date.now(); // Track button press time
-                    onClick(); 
+                    onClick();
                 }}
                 onPointerDown={() => {
                     if (!pointerDownTime.current) {
@@ -398,8 +398,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 aria-label={config.label}
                 disabled={isDisabled}
             >
-                <Icon className={`text-icon-md ${special ? 'text-white' : `text-text-${config.color}`} transition-colors`} />
-                <span className={`text-para-sm ${special ? 'font-bold text-white' : `font-medium text-text-${config.color}`} transition-colors`}>
+                <Icon className={`text-icon-sm lg:text-icon-md ${special ? 'text-white' : `text-text-${config.color}`} transition-colors`} />
+                <span className={`text-para-xs lg:text-para-sm ${special ? 'font-bold text-white' : `font-medium text-text-${config.color}`} transition-colors`}>
                     {special ? 'Super' : config.label}
                 </span>
             </motion.button>
@@ -457,7 +457,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                 </span>
                             </div>
 
-                            <div className="space-y-xs sm:space-y-sm md:space-y-md pr-md h-[230px] overflow-y-auto">
+                            <div className="space-y-xs sm:space-y-sm md:space-y-md pr-md lg:h-[230px] overflow-y-auto">
                                 <h2 className="text-h5-sm sm:text-h4-sm md:text-h4-md  font-semibold text-text-primary leading-tight">
                                     {component.title}
                                 </h2>
@@ -496,11 +496,11 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
                             {/* Super Like Button with Heart Icon */}
                             <motion.button
-                                onClick={(e) => { 
-                                    e.stopPropagation(); 
+                                onClick={(e) => {
+                                    e.stopPropagation();
                                     pointerDownTime.current = Date.now();
-                                    playClick(); 
-                                    handleSwipeAction('super-like', 'button'); 
+                                    playClick();
+                                    handleSwipeAction('super-like', 'button');
                                 }}
                                 onPointerDown={() => {
                                     if (!pointerDownTime.current) {
