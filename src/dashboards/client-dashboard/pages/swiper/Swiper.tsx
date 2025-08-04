@@ -1,18 +1,38 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { FiX, FiRefreshCw, FiDownload, FiAlertTriangle, FiCheckCircle, FiAward, FiWifi, FiEye } from 'react-icons/fi';
 import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import Modal from '@/comman-components/Modal';
 import PreviewModal from './components/PreviewModal';
-import { categories, getCurrentRoundComponents, getTotalRounds, roundMessages } from './mockData';
-import { type SwipeAction, type UserChoice, type RoundData, type ComponentPreview, type BehavioralSignal, type RoundSummary } from './swiper.types';
+import { roundMessages } from './mockData';
+import { type SwipeAction, type ComponentPreview, type BehavioralSignal, type RoundSummary } from './swiper.types';
+import { type RootState, type AppDispatch } from '@/store';
+import {
+    loadDataSuccess,
+    loadDataFailure,
+    setRetrying,
+    addUserChoice,
+    completeCurrentRound,
+    moveToNextRound,
+    setAnimating,
+    setShowExitModal,
+    setShowPreviewModal,
+    setShouldAskForPreview,
+    setShowRoundCompletion,
+    handlePreviewContinue,
+    handleSkipPreview,
+    resetSwiper,
+    updateRoundStartTime,
+    startLoading
+} from '@/features/swiper/swiperSlice';
 
-// Constants for cleaner code
+// Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
 
-// Animation variants - properly typed for framer-motion
+// Animation variants
 const animations: { [key: string]: Variants | any } = {
     page: {
         initial: { opacity: 0, y: 50 },
@@ -38,17 +58,13 @@ const animations: { [key: string]: Variants | any } = {
 const SkeletonCard: React.FC = () => (
     <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden animate-pulse">
         <div className="grid grid-cols-1 lg:grid-cols-12">
-            {/* Mobile Image Skeleton */}
             <div className="lg:hidden bg-background-muted-low h-48 sm:h-56" />
-
-            {/* Content Skeleton */}
             <div className="lg:col-span-4 bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
                 <div className="space-y-sm md:space-y-md lg:space-y-lg">
                     <div className="flex items-center justify-between gap-xs">
                         <div className="h-6 bg-background-muted-low rounded-md w-20" />
                         <div className="h-6 bg-background-muted-low rounded-md w-16" />
                     </div>
-
                     <div className="space-y-xs sm:space-y-sm md:space-y-md">
                         <div className="h-8 bg-background-muted-low rounded-md w-3/4" />
                         <div className="space-y-2">
@@ -56,23 +72,17 @@ const SkeletonCard: React.FC = () => (
                             <div className="h-4 bg-background-muted-low rounded w-5/6" />
                             <div className="h-4 bg-background-muted-low rounded w-4/6" />
                         </div>
-
                         <div className="flex flex-wrap gap-xs sm:gap-xs md:gap-sm">
                             {[1, 2, 3].map((i) => (
                                 <div key={i} className="h-6 bg-background-muted-low rounded w-12" />
                             ))}
                         </div>
-
                         <div className="h-4 bg-background-muted-low rounded w-1/2" />
                     </div>
                 </div>
             </div>
-
-            {/* Desktop Image Skeleton */}
             <div className="hidden lg:block bg-background-muted-low lg:col-span-8" />
         </div>
-
-        {/* Action Buttons Skeleton */}
         <div className="px-sm py-sm md:px-md md:py-md">
             <div className="flex justify-center">
                 <div className="flex items-center justify-center gap-sm">
@@ -110,126 +120,86 @@ const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetr
 );
 
 const Swiper: React.FC = () => {
-    const [currentRound, setCurrentRound] = useState(0);
-    const [userChoices, setUserChoices] = useState<UserChoice[]>([]);
-    const [roundsData, setRoundsData] = useState<RoundData[]>([]);
-    const [isAnimating, setIsAnimating] = useState(false);
-    const [showRoundCompletion, setShowRoundCompletion] = useState(false);
-    const [showExitModal, setShowExitModal] = useState(false);
+    const dispatch = useDispatch<AppDispatch>();
 
-    // Track round start time for analytics
-    const [roundStartTime, setRoundStartTime] = useState<number>(Date.now());
+    // Redux selectors
+    const {
+        currentRound,
+        roundsData,
+        totalRounds,
+        userChoices,
+        roundStartTime,
+        isAnimating,
+        showRoundCompletion,
+        showExitModal,
+        showPreviewModal,
+        shouldAskForPreview,
+        isInitialLoading,
+        loadingError,
+        isRetrying
+    } = useSelector((state: RootState) => state.swiper);
 
-    // Preview Modal States
-    const [showPreviewModal, setShowPreviewModal] = useState(false);
-    const [shouldAskForPreview, setShouldAskForPreview] = useState(false);
-
-    // Loading States
-    const [isInitialLoading, setIsInitialLoading] = useState(true);
-    const [loadingError, setLoadingError] = useState<string | null>(null);
-    const [isRetrying, setIsRetrying] = useState(false);
-
-    const totalRounds = getTotalRounds();
     const currentRoundData = roundsData[currentRound];
     const hasNextRound = currentRound < totalRounds - 1;
     const allRoundsComplete = !currentRoundData || currentRoundData.completed;
     const isLastRound = currentRound === totalRounds - 1;
     const percentage = Math.round(((currentRound + 1) / totalRounds) * 100);
-
-    // Check if any modal is open (for behavioral signals)
     const isAnyModalOpen = showExitModal || showPreviewModal || shouldAskForPreview;
 
-    // Function to check if preview should be shown after current round
-    const shouldShowPreviewAfterRound = (roundNumber: number): boolean => {
-        // Show preview after every even round (2, 4, 6, 8, 10, etc.)
-        return roundNumber % 2 === 0 && roundNumber > 0;
-    };
-
-    // Simulate data loading with potential errors
+    // Load data on mount
     const loadData = useCallback(async () => {
         try {
-            setLoadingError(null);
-
-            // Simulate network delay
+            dispatch(startLoading());
             await new Promise(resolve => setTimeout(resolve, TIMINGS.LOADING_SIMULATION));
-
-            // Load data
-            const data = categories.map((category, index) => ({
-                roundNumber: index + 1,
-                category,
-                components: getCurrentRoundComponents(index),
-                currentStep: 0,
-                completed: false
-            }));
-
-            // Check if data is empty
-            if (data.length === 0) {
-                throw new Error('No design components available at the moment.');
-            }
-
-            setRoundsData(data);
-            setIsInitialLoading(false);
+            dispatch(loadDataSuccess());
         } catch (error) {
-            setLoadingError(error instanceof Error ? error.message : 'Failed to load content');
-            setIsInitialLoading(false);
+            dispatch(loadDataFailure(error instanceof Error ? error.message : 'Failed to load content'));
         }
-    }, []);
+    }, [dispatch]);
 
-    // Initialize data on mount
     useEffect(() => {
         loadData();
     }, [loadData]);
 
-    // Reset round start time when round changes
     useEffect(() => {
-        setRoundStartTime(Date.now());
-    }, [currentRound]);
+        dispatch(updateRoundStartTime());
+    }, [currentRound, dispatch]);
 
-    // Retry handler
     const handleRetry = useCallback(async () => {
-        setIsRetrying(true);
-        setIsInitialLoading(true);
+        dispatch(setRetrying(true));
         await loadData();
-        setIsRetrying(false);
-    }, [loadData]);
+        dispatch(setRetrying(false));
+    }, [dispatch, loadData]);
 
-    // Enhanced swipe handler with behavioral signals
     const handleSwipe = useCallback((action: SwipeAction, component: ComponentPreview, signals: BehavioralSignal) => {
-        const enhancedChoice: UserChoice = {
-            component_id: component.component_id,
-            category: component.category,
-            vibe: component.vibe,
-            action,
-            timestamp: Date.now(),
-            round: currentRound + 1,
-            behavioral_signals: {
-                ...signals,
-                is_modal_open: signals.is_modal_open || isAnyModalOpen
-            }
-        };
+        dispatch(addUserChoice({
+            choice: {
+                component_id: component.component_id,
+                category: component.category,
+                vibe: component.vibe,
+                action,
+                timestamp: Date.now(),
+                behavioral_signals: signals
+            },
+            isAnyModalOpen
+        }));
 
-        setUserChoices(prev => [...prev, enhancedChoice]);
-
-        // Log individual swipe data
         console.log('[Individual Swipe Data]', {
             round: currentRound + 1,
             component_id: component.component_id,
             action,
-            signals: enhancedChoice.behavioral_signals
+            signals
         });
-    }, [currentRound, isAnyModalOpen]);
+    }, [dispatch, currentRound, isAnyModalOpen]);
 
-    // Function to generate round summary
-    const generateRoundSummary = useCallback((roundChoices: UserChoice[]): RoundSummary => {
+    const generateRoundSummary = useCallback((roundChoices: any[]): RoundSummary => {
         const roundCompletionTime = Date.now();
         const totalHesitation = roundChoices.reduce((sum, choice) => sum + choice.behavioral_signals.hesitation_ms, 0);
         const avgViewDuration = roundChoices.reduce((sum, choice) => sum + choice.behavioral_signals.view_duration_ms, 0) / roundChoices.length;
-
         const gestureCount = roundChoices.filter(choice => choice.behavioral_signals.action_source === 'gesture').length;
         const buttonCount = roundChoices.filter(choice => choice.behavioral_signals.action_source === 'button').length;
         const totalInteractions = gestureCount + buttonCount;
         const gestureRatio = totalInteractions > 0 ? gestureCount / totalInteractions : 0;
-
         const superlikeCount = roundChoices.filter(choice => choice.behavioral_signals.superlike_used).length;
 
         return {
@@ -245,124 +215,36 @@ const Swiper: React.FC = () => {
     }, [currentRound, currentRoundData, roundStartTime]);
 
     const handleRoundComplete = useCallback(() => {
-        // Get choices for this round
         const roundChoices = userChoices.filter(choice => choice.round === currentRound + 1);
-
-        // Generate and log round summary
         const roundSummary = generateRoundSummary(roundChoices);
 
         console.log('='.repeat(60));
         console.log(`[ROUND ${currentRound + 1} COMPLETE - ${currentRoundData?.category}]`);
+        console.log('Round Summary:', roundSummary);
         console.log('='.repeat(60));
-        console.log('Round Summary:', {
-            category: roundSummary.category,
-            total_choices: roundSummary.choices.length,
-            completion_time_ms: roundSummary.completion_time,
-            avg_hesitation_ms: Math.round(roundSummary.total_hesitation_ms / roundSummary.choices.length),
-            avg_view_duration_ms: Math.round(roundSummary.average_view_duration_ms),
-            gesture_percentage: Math.round(roundSummary.gesture_vs_button_ratio * 100) + '%',
-            superlike_count: roundSummary.superlike_count,
-            gesture_ratio: `${Math.round(roundSummary.gesture_vs_button_ratio * 100)}% gestures, ${Math.round((1 - roundSummary.gesture_vs_button_ratio) * 100)}% buttons`,
 
-        });
-
-        console.log('\nDetailed Choices:');
-        roundChoices.forEach((choice, index) => {
-            console.log(`  ${index + 1}. ${choice.component_id}:`, {
-                action: choice.action,
-                vibe: choice.vibe,
-                hesitation_ms: choice.behavioral_signals.hesitation_ms,
-                gesture_velocity: Math.round(choice.behavioral_signals.gesture_velocity),
-                view_duration_ms: choice.behavioral_signals.view_duration_ms,
-                action_source: choice.behavioral_signals.action_source,
-                swipe_direction: choice.behavioral_signals.swipe_direction,
-                modal_open: choice.behavioral_signals.is_modal_open
-            });
-        });
-
-        console.log('\nAction Distribution:');
-        const actionCounts = roundChoices.reduce((acc, choice) => {
-            acc[choice.action] = (acc[choice.action] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-        Object.entries(actionCounts).forEach(([action, count]) => {
-            console.log(`  ${action}: ${count} (${Math.round(count / roundChoices.length * 100)}%)`);
-        });
-
-        console.log('='.repeat(60));
-        console.log('[Ready to send to backend]', JSON.stringify(roundSummary));
-        console.log('='.repeat(60) + '\n');
-
-        // TODO: Send roundSummary to backend here
-        // await sendRoundDataToBackend(roundSummary);
-
-        setRoundsData(prev => prev.map((round, index) =>
-            index === currentRound ? { ...round, completed: true } : round
-        ));
-        setShowRoundCompletion(true);
-
-        // Check if we should show preview after this round
-        const completedRoundNumber = currentRound + 1;
-        const shouldShowPreview = shouldShowPreviewAfterRound(completedRoundNumber);
+        dispatch(completeCurrentRound());
 
         setTimeout(() => {
-            setShowRoundCompletion(false);
+            dispatch(setShowRoundCompletion(false));
+            const shouldShowPreview = (currentRound + 1) % 2 === 0 && !isLastRound;
 
-            if (shouldShowPreview && !isLastRound) {
-                // Show preview ask modal
-                setShouldAskForPreview(true);
+            if (shouldShowPreview) {
+                dispatch(setShouldAskForPreview(true));
             } else if (hasNextRound) {
-                // Continue to next round
-                setTimeout(() => setCurrentRound(prev => prev + 1), TIMINGS.TRANSITION);
+                setTimeout(() => dispatch(moveToNextRound()), TIMINGS.TRANSITION);
             }
         }, TIMINGS.CELEBRATION);
-    }, [currentRound, hasNextRound, isLastRound, userChoices, currentRoundData, generateRoundSummary]);
-
-    const handlePreviewContinue = useCallback(() => {
-        setShowPreviewModal(false);
-        setShouldAskForPreview(false);
-        if (hasNextRound) {
-            setCurrentRound(prev => prev + 1);
-        }
-    }, [hasNextRound]);
-
-    const handleSkipPreview = useCallback(() => {
-        setShouldAskForPreview(false);
-        if (hasNextRound) {
-            setCurrentRound(prev => prev + 1);
-        }
-    }, [hasNextRound]);
-
-    const handleStartOver = useCallback(() => {
-        setIsAnimating(false);
-        setCurrentRound(0);
-        setUserChoices([]);
-        setShowRoundCompletion(false);
-        setShouldAskForPreview(false);
-        setShowPreviewModal(false);
-        setRoundsData(prev => prev.map(round => ({ ...round, completed: false, currentStep: 0 })));
-        setRoundStartTime(Date.now());
-    }, []);
+    }, [dispatch, currentRound, hasNextRound, isLastRound, userChoices, currentRoundData, generateRoundSummary]);
 
     const handleExportChoices = useCallback(() => {
-        // Generate complete session data
         const sessionData = {
             session_id: `session_${Date.now()}`,
             total_rounds: totalRounds,
             completed_at: new Date().toISOString(),
             total_choices: userChoices.length,
-            choices_by_round: categories.map((category, index) => {
-                const roundChoices = userChoices.filter(choice => choice.round === index + 1);
-                return {
-                    round: index + 1,
-                    category,
-                    choices: roundChoices,
-                    summary: generateRoundSummary(roundChoices)
-                };
-            })
+            choices_by_round: userChoices
         };
-
-        console.log('[COMPLETE SESSION DATA]', sessionData);
 
         const dataStr = JSON.stringify(sessionData, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
@@ -370,19 +252,17 @@ const Swiper: React.FC = () => {
         link.setAttribute('href', dataUri);
         link.setAttribute('download', 'design-choices-with-signals.json');
         link.click();
-    }, [userChoices, totalRounds, generateRoundSummary]);
+    }, [userChoices, totalRounds]);
 
-    const handleAnimationStart = useCallback(() => setIsAnimating(true), []);
-    const handleAnimationComplete = useCallback(() => setIsAnimating(false), []);
+    const handleAnimationStart = useCallback(() => dispatch(setAnimating(true)), [dispatch]);
+    const handleAnimationComplete = useCallback(() => dispatch(setAnimating(false)), [dispatch]);
 
     const handleExit = useCallback(() => {
-        setShowExitModal(false);
-        // Add your navigation logic here
-        // For example: navigate('/dashboard') or window.location.href = '/dashboard'
+        dispatch(setShowExitModal(false));
         console.log('Exiting swiper...');
-    }, []);
+    }, [dispatch]);
 
-    // Reusable button component
+    // Action Button Component
     const ActionButton: React.FC<{
         onClick: () => void;
         children: React.ReactNode;
@@ -405,7 +285,6 @@ const Swiper: React.FC = () => {
         </motion.button>
     );
 
-    // Round completion celebration component
     const RoundCompletionCelebration = () => (
         <motion.div {...animations.completion} style={{ willChange: 'transform, opacity' }} className="flex flex-col items-center justify-center text-center mt-md sm:mt-lg md:mt-xl px-md">
             <motion.div {...animations.icon} style={{ willChange: 'transform' }} className="mb-sm sm:mb-md md:mb-lg">
@@ -423,11 +302,10 @@ const Swiper: React.FC = () => {
         </motion.div>
     );
 
-    // Show loading skeleton during initial load
+    // Loading state
     if (isInitialLoading) {
         return (
             <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
-                {/* Header Skeleton */}
                 <div className="w-full flex-shrink-0 relative z-10">
                     <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
                         <div className="flex items-center justify-between gap-sm">
@@ -444,8 +322,6 @@ const Swiper: React.FC = () => {
                             </div>
                         </div>
                     </div>
-
-                    {/* Mobile Progress Skeleton */}
                     <div className="lg:hidden px-sm pb-xs mb-sm">
                         <div className="flex items-center justify-between gap-sm">
                             <div className="flex-1 h-2 bg-background-muted rounded-full animate-pulse" />
@@ -453,12 +329,9 @@ const Swiper: React.FC = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Main Content Skeleton */}
                 <div className="flex items-center justify-center px-xs py-xs sm:p-md md:p-xl relative z-20">
                     <div className="relative w-full max-w-4xl 2xl:max-w-6xl mx-auto px-xs sm:px-sm md:px-0">
                         <div className="relative" style={{ height: 'clamp(380px, calc(100vh - 180px), 600px)' }}>
-                            {/* Stack of skeleton cards */}
                             {[0, 1, 2].map((i) => (
                                 <motion.div
                                     key={i}
@@ -476,8 +349,6 @@ const Swiper: React.FC = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Loading indicator */}
                 <motion.div
                     className="absolute bottom-xs sm:bottom-sm md:bottom-0 left-0 right-0 flex justify-center text-text-secondary text-para-sm text-center pb-xs sm:pb-sm md:pb-md pt-xs sm:pt-sm md:pt-lg z-30"
                     initial={{ opacity: 0 }}
@@ -498,14 +369,11 @@ const Swiper: React.FC = () => {
         );
     }
 
-    // Show error state if loading failed
+    // Error state
     if (loadingError) {
         return (
             <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
-                <ErrorState
-                    onRetry={handleRetry}
-                    message={loadingError}
-                />
+                <ErrorState onRetry={handleRetry} message={loadingError} />
             </div>
         );
     }
@@ -540,7 +408,6 @@ const Swiper: React.FC = () => {
                                 </motion.div>
                             </div>
                         </motion.div>
-
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
@@ -555,7 +422,6 @@ const Swiper: React.FC = () => {
                                 Great job! We've captured your design preferences from <span className="text-accent-default font-semibold">{positiveChoicesCount} components</span> across <span className="text-accent-default font-semibold">{totalRounds} categories</span>.
                             </p>
                         </motion.div>
-
                         <motion.div
                             initial={{ y: 40, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
@@ -563,7 +429,7 @@ const Swiper: React.FC = () => {
                             style={{ willChange: 'transform, opacity' }}
                             className="flex flex-col sm:flex-row gap-sm sm:gap-sm md:gap-md justify-center items-center pt-md sm:pt-lg md:pt-xl"
                         >
-                            <ActionButton onClick={handleStartOver} variant="secondary" icon={FiRefreshCw} disabled={isRetrying}>
+                            <ActionButton onClick={() => dispatch(resetSwiper())} variant="secondary" icon={FiRefreshCw} disabled={isRetrying}>
                                 Start Over
                             </ActionButton>
                             <ActionButton onClick={handleExportChoices} variant="primary" icon={FiDownload}>
@@ -582,18 +448,16 @@ const Swiper: React.FC = () => {
     return (
         <>
             <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
-                {/* Header Section */}
                 <div className="w-full flex-shrink-0 relative z-10">
                     <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
                         <div className="flex items-center justify-between gap-sm">
                             <div className="flex items-center space-x-sm sm:space-x-sm md:space-x-lg flex-1 min-w-0">
                                 <button
-                                    onClick={() => setShowExitModal(true)}
+                                    onClick={() => dispatch(setShowExitModal(true))}
                                     className="flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-background-secondary text-text-secondary rounded-md sm:rounded-lg hover:bg-background-muted hover:text-text-primary transition-colors cursor-pointer"
                                 >
                                     <FiX className="text-icon-sm sm:text-icon-md" />
                                 </button>
-
                                 <div className="space-y-0 md:space-y-xs min-w-0 flex-1">
                                     <div className="flex items-center space-x-xs sm:space-x-sm md:space-x-md flex-wrap">
                                         <h1 className="text-h6-sm sm:text-h5-sm md:text-h4-md 2xl:text-h4-lg font-bold text-text-primary truncate">
@@ -608,12 +472,9 @@ const Swiper: React.FC = () => {
                                     </p>
                                 </div>
                             </div>
-
                             <SwipeProgress current={currentRound + 1} total={totalRounds} className="hidden lg:flex" />
                         </div>
                     </div>
-
-                    {/* Mobile Progress Bar */}
                     <div className="lg:hidden px-sm pb-xs mb-sm">
                         <div className="flex items-center justify-between gap-sm">
                             <div className="flex-1 h-2 bg-background-muted rounded-full overflow-hidden">
@@ -629,8 +490,6 @@ const Swiper: React.FC = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* Main Content Area */}
                 <div className="flex items-center justify-center 2xl:p-xl relative z-20">
                     <AnimatePresence mode="wait">
                         {showRoundCompletion ? (
@@ -651,8 +510,6 @@ const Swiper: React.FC = () => {
                         ) : null}
                     </AnimatePresence>
                 </div>
-
-                {/* Swipe Instructions */}
                 {!showRoundCompletion && (
                     <motion.div
                         className="absolute bottom-xs sm:bottom-sm md:bottom-0 left-0 right-0 flex justify-center text-text-secondary text-para-xs sm:text-para-sm md:text-para-md text-center pb-xs sm:pb-sm md:pb-md pt-xs sm:pt-sm md:pt-lg z-10 pointer-events-none"
@@ -669,13 +526,13 @@ const Swiper: React.FC = () => {
             {/* Preview Ask Modal */}
             <Modal
                 isOpen={shouldAskForPreview}
-                onClose={handleSkipPreview}
+                onClose={() => dispatch(handleSkipPreview())}
                 title="Preview Your Design?"
                 size="sm"
                 footer={
                     <div className="flex gap-sm justify-end">
                         <motion.button
-                            onClick={handleSkipPreview}
+                            onClick={() => dispatch(handleSkipPreview())}
                             className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -684,8 +541,8 @@ const Swiper: React.FC = () => {
                         </motion.button>
                         <motion.button
                             onClick={() => {
-                                setShouldAskForPreview(false);
-                                setShowPreviewModal(true);
+                                dispatch(setShouldAskForPreview(false));
+                                dispatch(setShowPreviewModal(true));
                             }}
                             className="px-lg py-sm text-accent-foreground bg-accent-default hover:bg-accent-hover rounded-lg transition-colors flex items-center gap-sm"
                             whileHover={{ scale: 1.02 }}
@@ -717,22 +574,21 @@ const Swiper: React.FC = () => {
             {/* Preview Modal */}
             <PreviewModal
                 isOpen={showPreviewModal}
-                onClose={() => setShowPreviewModal(false)}
-                onContinue={handlePreviewContinue}
+                onClose={() => dispatch(setShowPreviewModal(false))}
+                onContinue={() => dispatch(handlePreviewContinue())}
                 roundsCompleted={currentRound + 1}
-                userChoices={userChoices}
             />
 
             {/* Exit Modal */}
             <Modal
                 isOpen={showExitModal}
-                onClose={() => setShowExitModal(false)}
+                onClose={() => dispatch(setShowExitModal(false))}
                 title="Exit Design Discovery?"
                 size="sm"
                 footer={
                     <div className="flex gap-sm justify-end">
                         <motion.button
-                            onClick={() => setShowExitModal(false)}
+                            onClick={() => dispatch(setShowExitModal(false))}
                             className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}

@@ -10,7 +10,6 @@ interface PreviewModalProps {
     onClose: () => void;
     onContinue: () => void;
     roundsCompleted: number;
-    userChoices: any[];
 }
 
 type ViewportSize = 'mobile' | 'tablet' | 'desktop';
@@ -40,8 +39,8 @@ const getRoundComponents = (roundsCompleted: number) => {
     return components;
 };
 
-
 const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onContinue, roundsCompleted }) => {
+
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [viewport, setViewport] = useState<ViewportSize>('desktop');
     const [isResizing, setIsResizing] = useState(false);
@@ -70,11 +69,10 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onContinue, roundsC
     };
 
     const handleViewportChange = (key: ViewportSize) => {
-        // FIX: Agar user usi button par click kare jo pehle se active hai, to kuch na karein.
         if (key === viewport) {
             return;
         }
-        
+
         setIsResizing(true);
         setViewport(key);
     };
@@ -145,7 +143,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onContinue, roundsC
 
                         {/* Mobile Viewport Switcher */}
                         <div className="sm:hidden px-md py-sm border-b border-border-default">
-                           <div className="flex items-center justify-center space-x-xs">
+                            <div className="flex items-center justify-center space-x-xs">
                                 {(Object.entries(viewportSizes) as [ViewportSize, ViewportConfig][]).map(([key, config]) => (
                                     <button
                                         key={key}
