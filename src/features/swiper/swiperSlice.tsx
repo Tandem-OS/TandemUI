@@ -90,17 +90,10 @@ const swiperSlice = createSlice({
 
         // Round Management
         completeCurrentRound: (state) => {
-            state.roundsData[state.currentRound].completed = true;
-            state.showRoundCompletion = true;
-
-            // Check if should show preview after even rounds
-            const completedRoundNumber = state.currentRound + 1;
-            const shouldShowPreview = completedRoundNumber % 2 === 0 && completedRoundNumber > 0;
-            const isLastRound = state.currentRound === state.totalRounds - 1;
-
-            if (shouldShowPreview && !isLastRound) {
-                state.shouldAskForPreview = true;
+            if(state.roundsData[state.currentRound]) {
+                state.roundsData[state.currentRound].completed = true;
             }
+            state.showRoundCompletion = true;
         },
 
         moveToNextRound: (state) => {
@@ -139,18 +132,10 @@ const swiperSlice = createSlice({
         handlePreviewContinue: (state) => {
             state.showPreviewModal = false;
             state.shouldAskForPreview = false;
-            if (state.currentRound < state.totalRounds - 1) {
-                state.currentRound += 1;
-                state.roundStartTime = Date.now();
-            }
         },
 
         handleSkipPreview: (state) => {
             state.shouldAskForPreview = false;
-            if (state.currentRound < state.totalRounds - 1) {
-                state.currentRound += 1;
-                state.roundStartTime = Date.now();
-            }
         },
 
         // Reset Action

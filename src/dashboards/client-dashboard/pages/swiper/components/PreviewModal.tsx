@@ -142,7 +142,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onContinue, roundsC
                         </div>
 
                         {/* Mobile Viewport Switcher */}
-                        <div className="sm:hidden px-md py-sm border-b border-border-default">
+                        <div className="sm:hidden px-md py-sm border-b border-border-default hidden lg:block">
                             <div className="flex items-center justify-center space-x-xs">
                                 {(Object.entries(viewportSizes) as [ViewportSize, ViewportConfig][]).map(([key, config]) => (
                                     <button

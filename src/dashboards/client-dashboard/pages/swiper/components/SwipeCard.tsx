@@ -252,12 +252,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         const config = ACTIONS[action];
         const behavioralSignal = createBehavioralSignal(action, source);
 
-        // Log the signal data for debugging
-        console.log(`[Swipe Signal] Card ${queuePosition}/${totalCards}:`, {
-            action,
-            ...behavioralSignal
-        });
-
         if (action === 'super-like') {
             animate(superLikeOpacity, 1, { duration: 0.3 });
             setTimeout(() => {

@@ -140,10 +140,9 @@ const Swiper: React.FC = () => {
     } = useSelector((state: RootState) => state.swiper);
 
     const currentRoundData = roundsData[currentRound];
-    const hasNextRound = currentRound < totalRounds - 1;
     const allRoundsComplete = !currentRoundData || currentRoundData.completed;
     const isLastRound = currentRound === totalRounds - 1;
-    const percentage = Math.round(((currentRound + 1) / totalRounds) * 100);
+    const percentage = Math.round((currentRound / totalRounds) * 100);
     const isAnyModalOpen = showExitModal || showPreviewModal || shouldAskForPreview;
 
     // Load data on mount
@@ -183,59 +182,103 @@ const Swiper: React.FC = () => {
             },
             isAnyModalOpen
         }));
-
-        console.log('[Individual Swipe Data]', {
-            round: currentRound + 1,
-            component_id: component.component_id,
-            action,
-            signals
-        });
-    }, [dispatch, currentRound, isAnyModalOpen]);
+    }, [dispatch, isAnyModalOpen]);
 
     const generateRoundSummary = useCallback((roundChoices: any[]): RoundSummary => {
         const roundCompletionTime = Date.now();
-        const totalHesitation = roundChoices.reduce((sum, choice) => sum + choice.behavioral_signals.hesitation_ms, 0);
-        const avgViewDuration = roundChoices.reduce((sum, choice) => sum + choice.behavioral_signals.view_duration_ms, 0) / roundChoices.length;
-        const gestureCount = roundChoices.filter(choice => choice.behavioral_signals.action_source === 'gesture').length;
-        const buttonCount = roundChoices.filter(choice => choice.behavioral_signals.action_source === 'button').length;
+
+        // Separate choices by action type
+        const likedChoices = roundChoices.filter(choice =>
+            choice.action === 'like' || choice.action === 'super-like'
+        );
+        const savedChoices = roundChoices.filter(choice =>
+            choice.action === 'save'
+        );
+        const rejectedChoices = roundChoices.filter(choice =>
+            choice.action === 'dislike'
+        );
+
+        // Calculate metrics
+        const totalHesitation = roundChoices.reduce((sum, choice) =>
+            sum + choice.behavioral_signals.hesitation_ms, 0
+        );
+        const avgViewDuration = roundChoices.reduce((sum, choice) =>
+            sum + choice.behavioral_signals.view_duration_ms, 0
+        ) / roundChoices.length;
+
+        const gestureCount = roundChoices.filter(choice =>
+            choice.behavioral_signals.action_source === 'gesture'
+        ).length;
+        const buttonCount = roundChoices.filter(choice =>
+            choice.behavioral_signals.action_source === 'button'
+        ).length;
         const totalInteractions = gestureCount + buttonCount;
         const gestureRatio = totalInteractions > 0 ? gestureCount / totalInteractions : 0;
-        const superlikeCount = roundChoices.filter(choice => choice.behavioral_signals.superlike_used).length;
+
+        const superlikeCount = roundChoices.filter(choice =>
+            choice.behavioral_signals.superlike_used
+        ).length;
+        const saveCount = savedChoices.length;
 
         return {
             round_number: currentRound + 1,
             category: currentRoundData?.category || '',
-            choices: roundChoices,
+            choices: likedChoices,
+            saved: savedChoices,           // Now tracking saved choices
+            rejected: rejectedChoices,
             completion_time: roundCompletionTime - roundStartTime,
             total_hesitation_ms: totalHesitation,
             average_view_duration_ms: avgViewDuration,
             gesture_vs_button_ratio: gestureRatio,
             superlike_count: superlikeCount,
+            save_count: saveCount          // New save count
         };
     }, [currentRound, currentRoundData, roundStartTime]);
 
+    useEffect(() => {
+        if (showRoundCompletion) {
+            const roundChoices = userChoices.filter(choice => choice.round === currentRound + 1);
+
+            if (roundChoices.length > 0) {
+                const roundSummary = generateRoundSummary(roundChoices);
+                console.log('='.repeat(60));
+                console.log(`[ROUND ${currentRound + 1} COMPLETE - ${currentRoundData?.category}]`);
+                console.log('📊 Round Summary:', {
+                    ...roundSummary,
+                    // Enhanced breakdown
+                    breakdown: {
+                        total_swipes: roundChoices.length,
+                        liked: roundSummary.choices.length,
+                        saved: roundSummary.saved.length,
+                        rejected: roundSummary.rejected.length,
+                        super_liked: roundSummary.superlike_count
+                    }
+                });
+                console.log('='.repeat(60));
+            }
+        }
+    }, [showRoundCompletion, userChoices, currentRound, generateRoundSummary, currentRoundData]);
+
     const handleRoundComplete = useCallback(() => {
-        const roundChoices = userChoices.filter(choice => choice.round === currentRound + 1);
-        const roundSummary = generateRoundSummary(roundChoices);
-
-        console.log('='.repeat(60));
-        console.log(`[ROUND ${currentRound + 1} COMPLETE - ${currentRoundData?.category}]`);
-        console.log('Round Summary:', roundSummary);
-        console.log('='.repeat(60));
-
+        // Sirf round complete ka action dispatch karein
         dispatch(completeCurrentRound());
 
+        // Aur agle step ke liye timeout set karein
         setTimeout(() => {
             dispatch(setShowRoundCompletion(false));
-            const shouldShowPreview = (currentRound + 1) % 2 === 0 && !isLastRound;
+
+            const isLastRoundNow = currentRound === totalRounds - 1;
+            const completedRoundNumber = currentRound + 1;
+            const shouldShowPreview = completedRoundNumber % 2 === 0 && !isLastRoundNow;
 
             if (shouldShowPreview) {
                 dispatch(setShouldAskForPreview(true));
-            } else if (hasNextRound) {
-                setTimeout(() => dispatch(moveToNextRound()), TIMINGS.TRANSITION);
+            } else if (!isLastRoundNow) {
+                dispatch(moveToNextRound());
             }
         }, TIMINGS.CELEBRATION);
-    }, [dispatch, currentRound, hasNextRound, isLastRound, userChoices, currentRoundData, generateRoundSummary]);
+
+    }, [dispatch, currentRound, totalRounds]); // Dependencies me se bhi summary wali cheezein hata dein
 
     const handleExportChoices = useCallback(() => {
         const sessionData = {
@@ -380,9 +423,72 @@ const Swiper: React.FC = () => {
 
     // Final completion screen
     if (allRoundsComplete && isLastRound && !showRoundCompletion) {
+        // Enhanced counts
         const positiveChoicesCount = userChoices.filter(
             choice => choice.action === 'like' || choice.action === 'super-like'
         ).length;
+        const savedChoicesCount = userChoices.filter(
+            choice => choice.action === 'save'
+        ).length;
+        const rejectedChoicesCount = userChoices.filter(
+            choice => choice.action === 'dislike'
+        ).length;
+
+        // Updated session summary with save tracking
+        const sessionSummary = {
+            session_id: `session_${Date.now()}`,
+            total_rounds: totalRounds,
+            completed_at: new Date().toISOString(),
+            total_choices: userChoices.length,
+
+            // Enhanced summary counts
+            summary_counts: {
+                positive_choices: positiveChoicesCount,
+                saved_choices: savedChoicesCount,           // Now tracking saves
+                rejected_choices: rejectedChoicesCount,
+                super_likes: userChoices.filter(choice =>
+                    choice.behavioral_signals.superlike_used
+                ).length
+            },
+
+            rounds_data: roundsData.map((round, index) => {
+                const roundNumber = index + 1;
+                const roundChoices = userChoices.filter(choice => choice.round === roundNumber);
+
+                const likedChoices = roundChoices.filter(choice =>
+                    choice.action === 'like' || choice.action === 'super-like'
+                );
+                const savedChoices = roundChoices.filter(choice =>
+                    choice.action === 'save'
+                );
+                const rejectedChoices = roundChoices.filter(choice =>
+                    choice.action === 'dislike'
+                );
+
+                return {
+                    round_number: roundNumber,
+                    category: round.category,
+                    choices: likedChoices,
+                    saved: savedChoices,        // Now tracking saved per round
+                    rejected: rejectedChoices,
+                    total_swipes: roundChoices.length,
+                    breakdown: {
+                        likes: likedChoices.length,
+                        saves: savedChoices.length,
+                        rejects: rejectedChoices.length,
+                        super_likes: roundChoices.filter(choice =>
+                            choice.behavioral_signals.superlike_used
+                        ).length
+                    }
+                };
+            })
+        };
+
+        console.log('='.repeat(80));
+        console.log('[SESSION COMPLETE - ALL DATA WITH SAVES]');
+        console.log(sessionSummary);
+        console.log('='.repeat(80));
+
 
         return (
             <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
@@ -526,18 +632,26 @@ const Swiper: React.FC = () => {
             {/* Preview Ask Modal */}
             <Modal
                 isOpen={shouldAskForPreview}
-                onClose={() => dispatch(handleSkipPreview())}
+                onClose={() => {
+                    dispatch(handleSkipPreview());
+                    dispatch(moveToNextRound());
+                }}
                 title="Preview Your Design?"
                 size="sm"
                 footer={
                     <div className="flex gap-sm justify-end">
                         <motion.button
-                            onClick={() => dispatch(handleSkipPreview())}
+                            onClick={() => {
+                                dispatch(handleSkipPreview());
+                                dispatch(moveToNextRound());
+                            }}
                             className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                         >
-                            Continue Swiping
+                            <span className='inline lg:hidden'>Continue</span>
+                            <span className='hidden lg:inline'>Continue Swiping</span>
+
                         </motion.button>
                         <motion.button
                             onClick={() => {
@@ -549,8 +663,8 @@ const Swiper: React.FC = () => {
                             whileTap={{ scale: 0.98 }}
                         >
                             <FiEye className="text-icon-sm" />
-                            Show Preview
-                        </motion.button>
+                            <span className='inline lg:hidden'>Preview</span>
+                            <span className='hidden lg:inline'>Show Preview</span>                        </motion.button>
                     </div>
                 }
             >
@@ -575,7 +689,10 @@ const Swiper: React.FC = () => {
             <PreviewModal
                 isOpen={showPreviewModal}
                 onClose={() => dispatch(setShowPreviewModal(false))}
-                onContinue={() => dispatch(handlePreviewContinue())}
+                onContinue={() => {
+                    dispatch(handlePreviewContinue());
+                    dispatch(moveToNextRound());
+                }}
                 roundsCompleted={currentRound + 1}
             />
 
