@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { FiX, FiRefreshCw, FiDownload, FiAlertTriangle, FiCheckCircle, FiAward, FiWifi, FiEye } from 'react-icons/fi';
+import { FiX, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiAward, FiWifi, FiEye } from 'react-icons/fi';
 import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import KingOfTheHill from './components/KingOfHill';
@@ -42,6 +42,7 @@ import {
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
+const TOTAL_COMPONENTS = 40; // Fixed total components count
 
 // Mock backend check function
 const checkRoundWithBackend = async (roundSummary: RoundSummary): Promise<{ useKingOfHill: boolean }> => {
@@ -179,7 +180,11 @@ const Swiper: React.FC = () => {
     const currentRoundData = roundsData[currentRound];
     const allRoundsComplete = !currentRoundData || currentRoundData.completed;
     const isLastRound = currentRound === totalRounds - 1;
-    const percentage = Math.round((currentRound / totalRounds) * 100);
+
+    // Fix: Calculate percentage based on completed rounds (currentRound starts at 0)
+    const completedRounds = currentRound;  // currentRound is already 0-indexed
+    const percentage = totalRounds > 0 ? Math.round((completedRounds / totalRounds) * 100) : 0;
+
     const isAnyModalOpen = showExitModal || showPreviewModal || shouldAskForPreview;
 
     // Load data on mount
@@ -231,9 +236,9 @@ const Swiper: React.FC = () => {
         const totalHesitation = roundChoices.reduce((sum, choice) =>
             sum + choice.behavioral_signals.hesitation_ms, 0
         );
-        const avgViewDuration = roundChoices.reduce((sum, choice) =>
-            sum + choice.behavioral_signals.view_duration_ms, 0
-        ) / roundChoices.length;
+        const avgViewDuration = roundChoices.length > 0
+            ? roundChoices.reduce((sum, choice) => sum + choice.behavioral_signals.view_duration_ms, 0) / roundChoices.length
+            : 0;
 
         const gestureCount = roundChoices.filter(choice =>
             choice.behavioral_signals.action_source === 'gesture'
@@ -258,7 +263,6 @@ const Swiper: React.FC = () => {
 
     const handleRoundComplete = useCallback(() => {
         dispatch(completeCurrentRound());
-        // Don't log here as state might not be updated yet
     }, [dispatch]);
 
     const handleKingOfHillSelect = useCallback((winner: ComponentPreview, loser: ComponentPreview, signals: KingOfHillBehavioralSignal) => {
@@ -307,25 +311,6 @@ const Swiper: React.FC = () => {
         }
     }, [dispatch, kingOfHill, currentRound, currentRoundData, isLastRound]);
 
-    const handleExportChoices = useCallback(() => {
-        const sessionData = {
-            session_id: `session_${Date.now()}`,
-            total_rounds: totalRounds,
-            completed_at: new Date().toISOString(),
-            total_choices: userChoices.length,
-            choices_by_round: userChoices,
-            king_of_hill_sessions: kingOfHillSessions,
-            total_king_of_hill_sessions: kingOfHillSessions.length
-        };
-
-        const dataStr = JSON.stringify(sessionData, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-        const link = document.createElement('a');
-        link.setAttribute('href', dataUri);
-        link.setAttribute('download', 'design-choices-complete.json');
-        link.click();
-    }, [userChoices, totalRounds, kingOfHillSessions]);
-
     // UseEffect to handle round completion logic after state update
     useEffect(() => {
         if (showRoundCompletion && !kingOfHill.isActive) {
@@ -334,7 +319,6 @@ const Swiper: React.FC = () => {
             if (roundChoices.length > 0) {
                 const roundSummary = generateRoundSummary(roundChoices);
 
-                // Log round completion with all choices properly counted
                 console.log('='.repeat(60));
                 console.log(`[ROUND ${currentRound + 1} COMPLETE - ${currentRoundData?.category}]`);
                 console.log('📊 Round Summary:', roundSummary);
@@ -519,12 +503,12 @@ const Swiper: React.FC = () => {
             },
 
             behavioral_insights: {
-                average_hesitation_ms: userChoices.reduce((sum, choice) =>
-                    sum + choice.behavioral_signals.hesitation_ms, 0
-                ) / userChoices.length,
-                average_view_duration_ms: userChoices.reduce((sum, choice) =>
-                    sum + choice.behavioral_signals.view_duration_ms, 0
-                ) / userChoices.length,
+                average_hesitation_ms: userChoices.length > 0
+                    ? userChoices.reduce((sum, choice) => sum + choice.behavioral_signals.hesitation_ms, 0) / userChoices.length
+                    : 0,
+                average_view_duration_ms: userChoices.length > 0
+                    ? userChoices.reduce((sum, choice) => sum + choice.behavioral_signals.view_duration_ms, 0) / userChoices.length
+                    : 0,
                 gesture_actions: userChoices.filter(choice =>
                     choice.behavioral_signals.action_source === 'gesture'
                 ).length,
@@ -647,7 +631,7 @@ const Swiper: React.FC = () => {
                                 Design Discovery Complete!
                             </h1>
                             <p className="text-para-sm sm:text-para-md md:text-para-lg text-text-secondary font-medium max-w-3xl mx-auto leading-relaxed px-md">
-                                Great job! We've captured your design preferences from <span className="text-accent-default font-semibold">{positiveChoicesCount} components</span> across <span className="text-accent-default font-semibold">{totalRounds} categories</span>.
+                                Great job! You've swiped through <span className="text-accent-default font-semibold">{TOTAL_COMPONENTS} components</span> and selected <span className="text-accent-default font-semibold">{positiveChoicesCount} favorites</span> across <span className="text-accent-default font-semibold">{totalRounds} categories</span>.
                             </p>
                         </motion.div>
                         <motion.div
@@ -659,7 +643,16 @@ const Swiper: React.FC = () => {
                             <ActionButton onClick={() => dispatch(resetSwiper())} variant="secondary" icon={FiRefreshCw} disabled={isRetrying}>
                                 Start Over
                             </ActionButton>
-                            <ActionButton onClick={handleExportChoices} variant="primary" icon={FiDownload}>
+                            <ActionButton
+                                onClick={() => {
+                                    console.log('Generating layout with selected preferences...');
+                                    // Store session data in localStorage or send to backend
+                                    localStorage.setItem('design_session', JSON.stringify(sessionSummary));
+                                    // Add your navigation or action logic here
+                                }}
+                                variant="primary"
+                                icon={FiCheckCircle}
+                            >
                                 Let's Generate Layout
                             </ActionButton>
                         </motion.div>
