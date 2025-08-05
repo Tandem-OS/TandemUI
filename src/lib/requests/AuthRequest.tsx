@@ -34,6 +34,7 @@ export const handleLogout = async () => {
   if (response.data.success) {
     broadcastLogout();
     store.dispatch(logout());
+    return response
   }
 };
 
