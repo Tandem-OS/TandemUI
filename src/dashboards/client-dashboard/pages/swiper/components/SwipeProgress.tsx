@@ -6,7 +6,9 @@ const SwipeProgress: React.FC<SwiperProgressProps> = ({
     total,
     className = ''
 }) => {
-    const percentage = Math.round((current / total) * 100);
+    // Fix: Show 0% at start, calculate based on completed rounds (current - 1)
+    const completedRounds = Math.max(0, current - 1);
+    const percentage = Math.round((completedRounds / total) * 100);
 
     return (
         <div className={`flex flex-col items-end space-y-xs ${className}`}>
