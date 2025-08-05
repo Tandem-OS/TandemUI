@@ -25,7 +25,7 @@ export interface BehavioralSignal {
     view_duration_ms: number;
     queue_position: number;
     action_source: ActionSource;
-    is_modal_open: boolean;
+    is_ai_modal_open: boolean;
     superlike_used: boolean;
 }
 
@@ -80,4 +80,45 @@ export interface RoundSummary {
     gesture_vs_button_ratio: number;
     superlike_count: number;
     save_count: number;           // new field for save count
+}
+
+
+// Add these types to your existing swiper.types.ts file
+
+// King of the Hill Types
+export interface KingOfHillMatch {
+    challenger_id: string;
+    defender_id: string;
+    winner_id: string;
+    match_duration_ms: number;
+    behavioral_signals: BehavioralSignal;
+    match_number: number;
+}
+
+export interface KingOfHillSession {
+    round_number: number;
+    category: string;
+    components: ComponentPreview[];
+    matches: KingOfHillMatch[];
+    final_winner_id: string;
+    session_duration_ms: number;
+    started_at: number;
+    completed_at: number;
+}
+
+export interface KingOfHillState {
+    isActive: boolean;
+    currentDefender: ComponentPreview | null;
+    currentChallenger: ComponentPreview | null;
+    remainingComponents: ComponentPreview[];
+    matches: KingOfHillMatch[];
+    sessionStartTime: number;
+    matchStartTime: number;
+    currentMatchNumber: number;
+}
+
+// Backend Response Mock
+export interface RoundBackendResponse {
+    useKingOfHill: boolean;
+    message?: string;
 }

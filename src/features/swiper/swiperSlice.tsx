@@ -1,5 +1,11 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { type UserChoice, type RoundData } from '@/dashboards/client-dashboard/pages/swiper/swiper.types';
+import { 
+    type UserChoice, 
+    type RoundData, 
+    type KingOfHillState,
+    type KingOfHillMatch,
+    type ComponentPreview
+} from '@/dashboards/client-dashboard/pages/swiper/swiper.types';
 import { categories, getCurrentRoundComponents, getTotalRounds } from '@/dashboards/client-dashboard/pages/swiper/mockData';
 
 interface SwiperState {
@@ -23,7 +29,21 @@ interface SwiperState {
     isInitialLoading: boolean;
     loadingError: string | null;
     isRetrying: boolean;
+
+    // King of the Hill
+    kingOfHill: KingOfHillState;
 }
+
+const initialKingOfHillState: KingOfHillState = {
+    isActive: false,
+    currentDefender: null,
+    currentChallenger: null,
+    remainingComponents: [],
+    matches: [],
+    sessionStartTime: 0,
+    matchStartTime: 0,
+    currentMatchNumber: 0,
+};
 
 const initialState: SwiperState = {
     currentRound: 0,
@@ -39,6 +59,7 @@ const initialState: SwiperState = {
     isInitialLoading: true,
     loadingError: null,
     isRetrying: false,
+    kingOfHill: initialKingOfHillState,
 };
 
 const swiperSlice = createSlice({
@@ -82,7 +103,7 @@ const swiperSlice = createSlice({
                 round: state.currentRound + 1,
                 behavioral_signals: {
                     ...action.payload.choice.behavioral_signals,
-                    is_modal_open: action.payload.choice.behavioral_signals.is_modal_open || action.payload.isAnyModalOpen
+                    is_ai_modal_open: action.payload.choice.behavioral_signals.is_ai_modal_open || action.payload.isAnyModalOpen
                 }
             };
             state.userChoices.push(enhancedChoice);
@@ -138,6 +159,57 @@ const swiperSlice = createSlice({
             state.shouldAskForPreview = false;
         },
 
+        // King of the Hill Actions
+        startKingOfHill: (state, action: PayloadAction<ComponentPreview[]>) => {
+            const components = [...action.payload];
+            const defender = components.shift();
+            const challenger = components.shift();
+
+            state.kingOfHill = {
+                isActive: true,
+                currentDefender: defender || null,
+                currentChallenger: challenger || null,
+                remainingComponents: components,
+                matches: [],
+                sessionStartTime: Date.now(),
+                matchStartTime: Date.now(),
+                currentMatchNumber: 1,
+            };
+        },
+
+        recordKingOfHillMatch: (state, action: PayloadAction<{
+            winner: ComponentPreview;
+            loser: ComponentPreview;
+            signals: any;
+        }>) => {
+            const match: KingOfHillMatch = {
+                challenger_id: state.kingOfHill.currentChallenger?.component_id || '',
+                defender_id: state.kingOfHill.currentDefender?.component_id || '',
+                winner_id: action.payload.winner.component_id,
+                match_duration_ms: Date.now() - state.kingOfHill.matchStartTime,
+                behavioral_signals: action.payload.signals,
+                match_number: state.kingOfHill.currentMatchNumber,
+            };
+
+            state.kingOfHill.matches.push(match);
+
+            // Setup next match
+            if (state.kingOfHill.remainingComponents.length > 0) {
+                const nextChallenger = state.kingOfHill.remainingComponents.shift();
+                state.kingOfHill.currentDefender = action.payload.winner;
+                state.kingOfHill.currentChallenger = nextChallenger || null;
+                state.kingOfHill.matchStartTime = Date.now();
+                state.kingOfHill.currentMatchNumber += 1;
+            } else {
+                // King of the Hill complete
+                state.kingOfHill.isActive = false;
+            }
+        },
+
+        endKingOfHill: (state) => {
+            state.kingOfHill = initialKingOfHillState;
+        },
+
         // Reset Action
         resetSwiper: (state) => {
             state.isAnimating = false;
@@ -152,6 +224,7 @@ const swiperSlice = createSlice({
                 currentStep: 0
             }));
             state.roundStartTime = Date.now();
+            state.kingOfHill = initialKingOfHillState;
         },
 
         // Update round start time
@@ -182,7 +255,10 @@ export const {
     handleSkipPreview,
     resetSwiper,
     updateRoundStartTime,
-    startLoading
+    startLoading,
+    startKingOfHill,
+    recordKingOfHillMatch,
+    endKingOfHill,
 } = swiperSlice.actions;
 
 export default swiperSlice.reducer;

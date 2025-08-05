@@ -237,7 +237,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
             view_duration_ms: viewDuration,
             queue_position: queuePosition,
             action_source: source,
-            is_modal_open: isModalOpen || isAiModalOpen,
+            is_ai_modal_open:  isAiModalOpen,
             superlike_used: action === 'super-like'
         };
     };
