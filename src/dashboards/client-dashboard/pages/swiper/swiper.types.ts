@@ -17,7 +17,7 @@ export type SwipeAction = 'like' | 'dislike' | 'save' | 'super-like' | 'ask-ai';
 
 export type ActionSource = 'gesture' | 'button' | 'keyboard';
 
-// Behavioral Signal Interface
+// Behavioral Signal Interface for regular swiper
 export interface BehavioralSignal {
     hesitation_ms: number;
     gesture_velocity: number;
@@ -25,8 +25,16 @@ export interface BehavioralSignal {
     view_duration_ms: number;
     queue_position: number;
     action_source: ActionSource;
-    is_ai_modal_open: boolean;
+    is_asked_ai: boolean;
     superlike_used: boolean;
+}
+
+// Simplified Behavioral Signal for King of the Hill
+export interface KingOfHillBehavioralSignal {
+    hesitation_ms: number;
+    view_duration_ms: number;
+    match_number: number;
+    action_source: 'button'; // Only button clicks in King of the Hill
 }
 
 // Enhanced User Choice with Behavioral Signals
@@ -82,16 +90,13 @@ export interface RoundSummary {
     save_count: number;           // new field for save count
 }
 
-
-// Add these types to your existing swiper.types.ts file
-
 // King of the Hill Types
 export interface KingOfHillMatch {
     challenger_id: string;
     defender_id: string;
     winner_id: string;
     match_duration_ms: number;
-    behavioral_signals: BehavioralSignal;
+    behavioral_signals: KingOfHillBehavioralSignal; // Using simplified version
     match_number: number;
 }
 

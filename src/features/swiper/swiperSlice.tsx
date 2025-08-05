@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { 
-    type UserChoice, 
-    type RoundData, 
+import {
+    type UserChoice,
+    type RoundData,
     type KingOfHillState,
     type KingOfHillMatch,
     type ComponentPreview
@@ -103,7 +103,7 @@ const swiperSlice = createSlice({
                 round: state.currentRound + 1,
                 behavioral_signals: {
                     ...action.payload.choice.behavioral_signals,
-                    is_ai_modal_open: action.payload.choice.behavioral_signals.is_ai_modal_open || action.payload.isAnyModalOpen
+                    is_asked_ai: action.payload.choice.behavioral_signals.is_asked_ai
                 }
             };
             state.userChoices.push(enhancedChoice);
@@ -111,7 +111,7 @@ const swiperSlice = createSlice({
 
         // Round Management
         completeCurrentRound: (state) => {
-            if(state.roundsData[state.currentRound]) {
+            if (state.roundsData[state.currentRound]) {
                 state.roundsData[state.currentRound].completed = true;
             }
             state.showRoundCompletion = true;

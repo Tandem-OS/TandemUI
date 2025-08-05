@@ -12,6 +12,7 @@ import {
     type SwipeAction,
     type ComponentPreview,
     type BehavioralSignal,
+    type KingOfHillBehavioralSignal,
     type RoundSummary,
     type KingOfHillSession,
 } from './swiper.types';
@@ -143,11 +144,10 @@ const ActionButton: React.FC<{
     <motion.button
         onClick={onClick}
         disabled={disabled}
-        className={`flex items-center gap-xs sm:gap-sm md:gap-sm px-md py-sm sm:px-lg sm:py-sm md:px-xl md:py-md rounded-lg sm:rounded-xl transition-all duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed ${
-            variant === 'primary'
-                ? 'bg-accent-default text-accent-foreground hover:bg-accent-hover shadow-lg'
-                : 'bg-background-muted text-text-primary hover:bg-background-accent border border-border-default hover:border-border-focus'
-        }`}
+        className={`flex items-center gap-xs sm:gap-sm md:gap-sm px-md py-sm sm:px-lg sm:py-sm md:px-xl md:py-md rounded-lg sm:rounded-xl transition-all duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed ${variant === 'primary'
+            ? 'bg-accent-default text-accent-foreground hover:bg-accent-hover shadow-lg'
+            : 'bg-background-muted text-text-primary hover:bg-background-accent border border-border-default hover:border-border-focus'
+            }`}
         {...animations.button}
     >
         <Icon className="text-icon-sm sm:text-icon-md" />
@@ -222,16 +222,16 @@ const Swiper: React.FC = () => {
     }, [dispatch, isAnyModalOpen]);
 
     const generateRoundSummary = useCallback((roundChoices: any[]): RoundSummary => {
-        const likedChoices = roundChoices.filter(choice => 
+        const likedChoices = roundChoices.filter(choice =>
             choice.action === 'like' || choice.action === 'super-like'
         );
         const savedChoices = roundChoices.filter(choice => choice.action === 'save');
         const rejectedChoices = roundChoices.filter(choice => choice.action === 'dislike');
 
-        const totalHesitation = roundChoices.reduce((sum, choice) => 
+        const totalHesitation = roundChoices.reduce((sum, choice) =>
             sum + choice.behavioral_signals.hesitation_ms, 0
         );
-        const avgViewDuration = roundChoices.reduce((sum, choice) => 
+        const avgViewDuration = roundChoices.reduce((sum, choice) =>
             sum + choice.behavioral_signals.view_duration_ms, 0
         ) / roundChoices.length;
 
@@ -261,7 +261,7 @@ const Swiper: React.FC = () => {
         // Don't log here as state might not be updated yet
     }, [dispatch]);
 
-    const handleKingOfHillSelect = useCallback((winner: ComponentPreview, loser: ComponentPreview, signals: BehavioralSignal) => {
+    const handleKingOfHillSelect = useCallback((winner: ComponentPreview, loser: ComponentPreview, signals: KingOfHillBehavioralSignal) => {
         dispatch(recordKingOfHillMatch({ winner, loser, signals }));
 
         if (kingOfHill.remainingComponents.length === 0) {
@@ -333,7 +333,7 @@ const Swiper: React.FC = () => {
 
             if (roundChoices.length > 0) {
                 const roundSummary = generateRoundSummary(roundChoices);
-                
+
                 // Log round completion with all choices properly counted
                 console.log('='.repeat(60));
                 console.log(`[ROUND ${currentRound + 1} COMPLETE - ${currentRoundData?.category}]`);
@@ -489,36 +489,57 @@ const Swiper: React.FC = () => {
 
     // Final completion screen
     if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive) {
-        const positiveChoicesCount = userChoices.filter(choice => 
+        const positiveChoicesCount = userChoices.filter(choice =>
             choice.action === 'like' || choice.action === 'super-like'
         ).length;
-        const savedChoicesCount = userChoices.filter(choice => 
+        const savedChoicesCount = userChoices.filter(choice =>
             choice.action === 'save'
         ).length;
-        const rejectedChoicesCount = userChoices.filter(choice => 
+        const rejectedChoicesCount = userChoices.filter(choice =>
             choice.action === 'dislike'
         ).length;
 
-        // Log complete session data
+        // Create detailed session summary with King of the Hill data
         const sessionSummary = {
             session_id: `session_${Date.now()}`,
             total_rounds: totalRounds,
             completed_at: new Date().toISOString(),
             total_choices: userChoices.length,
-            
+
             summary_counts: {
                 positive_choices: positiveChoicesCount,
                 saved_choices: savedChoicesCount,
                 rejected_choices: rejectedChoicesCount,
-                super_likes: userChoices.filter(choice => 
+                super_likes: userChoices.filter(choice =>
                     choice.behavioral_signals.superlike_used
+                ).length,
+                ai_assistance_used: userChoices.filter(choice =>
+                    choice.behavioral_signals.is_asked_ai
                 ).length
             },
-            
+
+            behavioral_insights: {
+                average_hesitation_ms: userChoices.reduce((sum, choice) =>
+                    sum + choice.behavioral_signals.hesitation_ms, 0
+                ) / userChoices.length,
+                average_view_duration_ms: userChoices.reduce((sum, choice) =>
+                    sum + choice.behavioral_signals.view_duration_ms, 0
+                ) / userChoices.length,
+                gesture_actions: userChoices.filter(choice =>
+                    choice.behavioral_signals.action_source === 'gesture'
+                ).length,
+                button_actions: userChoices.filter(choice =>
+                    choice.behavioral_signals.action_source === 'button'
+                ).length,
+                keyboard_actions: userChoices.filter(choice =>
+                    choice.behavioral_signals.action_source === 'keyboard'
+                ).length
+            },
+
             rounds_data: roundsData.map((round, index) => {
                 const roundNumber = index + 1;
                 const roundChoices = userChoices.filter(choice => choice.round === roundNumber);
-                
+
                 const likedChoices = roundChoices.filter(choice =>
                     choice.action === 'like' || choice.action === 'super-like'
                 );
@@ -528,7 +549,7 @@ const Swiper: React.FC = () => {
                 const rejectedChoices = roundChoices.filter(choice =>
                     choice.action === 'dislike'
                 );
-                
+
                 return {
                     round_number: roundNumber,
                     category: round.category,
@@ -542,24 +563,56 @@ const Swiper: React.FC = () => {
                         rejects: rejectedChoices.length,
                         super_likes: roundChoices.filter(choice =>
                             choice.behavioral_signals.superlike_used
+                        ).length,
+                        ai_assistance: roundChoices.filter(choice =>
+                            choice.behavioral_signals.is_asked_ai
                         ).length
                     }
                 };
             }),
-            
-            king_of_hill_sessions: kingOfHillSessions,
+
+            king_of_hill_sessions: kingOfHillSessions.map(session => ({
+                round_number: session.round_number,
+                category: session.category,
+                final_winner: {
+                    id: session.final_winner_id,
+                    title: session.components.find(c => c.component_id === session.final_winner_id)?.title || 'Unknown'
+                },
+                total_matches: session.matches.length,
+                session_duration_ms: session.session_duration_ms,
+                matches_detail: session.matches.map(match => {
+                    const defender = session.components.find(c => c.component_id === match.defender_id);
+                    const challenger = session.components.find(c => c.component_id === match.challenger_id);
+                    const winner = session.components.find(c => c.component_id === match.winner_id);
+
+                    return {
+                        match_number: match.match_number,
+                        defender: defender?.title || 'Unknown',
+                        challenger: challenger?.title || 'Unknown',
+                        winner: winner?.title || 'Unknown',
+                        match_duration_ms: match.match_duration_ms,
+                        behavioral_signals: {
+                            hesitation_ms: match.behavioral_signals.hesitation_ms,
+                            view_duration_ms: match.behavioral_signals.view_duration_ms,
+                            hesitation_readable: `${(match.behavioral_signals.hesitation_ms / 1000).toFixed(2)}s`,
+                            view_duration_readable: `${(match.behavioral_signals.view_duration_ms / 1000).toFixed(2)}s`
+                        }
+                    };
+                })
+            })),
+
             total_king_of_hill_sessions: kingOfHillSessions.length,
-            king_of_hill_rounds: kingOfHillSessions.map(session => ({
+            king_of_hill_winners: kingOfHillSessions.map(session => ({
                 round: session.round_number,
                 category: session.category,
-                final_winner_id: session.final_winner_id,
-                total_matches: session.matches.length
+                winner: session.components.find(c => c.component_id === session.final_winner_id)?.title || 'Unknown',
+                winner_id: session.final_winner_id
             }))
         };
 
         console.log('='.repeat(80));
-        console.log('[SESSION COMPLETE - ALL DATA WITH KING OF THE HILL]');
-        console.log(sessionSummary);
+        console.log('[SESSION COMPLETE - FULL DATA WITH KING OF THE HILL DETAILS]');
+        console.log(sessionSummary, null, 2);
         console.log('='.repeat(80));
 
         return (

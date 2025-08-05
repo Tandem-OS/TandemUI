@@ -142,10 +142,9 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     isActive = true,
     isAnimating = false,
     queuePosition,
-    totalCards,
-    isModalOpen = false
 }) => {
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+    const [hasAskedAI, setHasAskedAI] = useState(false); // Track if AI was asked for this card
     const [isDragging, setIsDragging] = useState(false);
     const { playSwipe, playClick } = useAudio();
 
@@ -156,6 +155,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const gestureVelocity = useRef<number>(0);
     const lastPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
     const lastVelocityUpdate = useRef<number>(Date.now());
+    const velocityHistory = useRef<number[]>([]);
 
     // Motion values
     const x = useMotionValue(0);
@@ -178,17 +178,27 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     // Update card render time when component changes
     useEffect(() => {
         cardRenderTime.current = Date.now();
+        setHasAskedAI(false); // Reset AI asked state for new card
     }, [component.component_id]);
 
-    // Track velocity during drag
+    // Enhanced velocity tracking during drag
     useEffect(() => {
         const unsubscribeX = x.on('change', (latest) => {
             const now = Date.now();
             const timeDelta = now - lastVelocityUpdate.current;
-            if (timeDelta > 0) {
+            if (timeDelta > 16) { // Update every ~16ms (60fps)
                 const xDelta = Math.abs(latest - lastPosition.current.x);
                 const velocity = xDelta / timeDelta * 1000; // pixels per second
-                gestureVelocity.current = velocity;
+                
+                velocityHistory.current.push(velocity);
+                if (velocityHistory.current.length > 10) {
+                    velocityHistory.current.shift(); // Keep last 10 readings
+                }
+                
+                // Use average of recent velocities for smoother calculation
+                const avgVelocity = velocityHistory.current.reduce((a, b) => a + b, 0) / velocityHistory.current.length;
+                gestureVelocity.current = avgVelocity;
+                
                 lastPosition.current.x = latest;
                 lastVelocityUpdate.current = now;
             }
@@ -197,12 +207,13 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         const unsubscribeY = y.on('change', (latest) => {
             const now = Date.now();
             const timeDelta = now - lastVelocityUpdate.current;
-            if (timeDelta > 0) {
+            if (timeDelta > 16) {
                 const yDelta = Math.abs(latest - lastPosition.current.y);
-                const velocity = yDelta / timeDelta * 1000; // pixels per second
+                const velocity = yDelta / timeDelta * 1000;
+                
+                // Update gesture velocity to max of X and Y velocities
                 gestureVelocity.current = Math.max(gestureVelocity.current, velocity);
                 lastPosition.current.y = latest;
-                lastVelocityUpdate.current = now;
             }
         });
 
@@ -228,16 +239,28 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     ): BehavioralSignal => {
         const now = Date.now();
         const viewDuration = now - cardRenderTime.current;
-        const hesitation = pointerDownTime.current ? now - pointerDownTime.current : 0;
+        
+        // Calculate hesitation properly
+        let hesitation = 0;
+        if (source === 'gesture' && dragStartTime.current) {
+            // For gestures, hesitation is from drag start to end
+            hesitation = now - dragStartTime.current;
+        } else if (source === 'button' && pointerDownTime.current) {
+            // For buttons, hesitation is from card render to button click
+            hesitation = pointerDownTime.current - cardRenderTime.current;
+        } else if (source === 'keyboard') {
+            // For keyboard, use current time - card render time
+            hesitation = now - cardRenderTime.current;
+        }
 
         return {
-            hesitation_ms: hesitation,
-            gesture_velocity: source === 'gesture' ? gestureVelocity.current : 0,
+            hesitation_ms: Math.max(0, hesitation),
+            gesture_velocity: source === 'gesture' ? Math.round(gestureVelocity.current) : 0,
             swipe_direction: calculateSwipeDirection(action),
-            view_duration_ms: viewDuration,
+            view_duration_ms: Math.max(0, viewDuration),
             queue_position: queuePosition,
             action_source: source,
-            is_ai_modal_open:  isAiModalOpen,
+            is_asked_ai: hasAskedAI, // Use the tracked state
             superlike_used: action === 'super-like'
         };
     };
@@ -273,7 +296,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         pointerDownTime.current = null;
         dragStartTime.current = null;
         gestureVelocity.current = 0;
-    }, [isActive, isAnimating, isAiModalOpen, onSwipe, playSwipe, superLikeOpacity, x, y, queuePosition, totalCards, isModalOpen]);
+        velocityHistory.current = [];
+    }, [isActive, isAnimating, isAiModalOpen, onSwipe, playSwipe, superLikeOpacity, x, y, component, hasAskedAI, queuePosition]);
 
     // Keyboard support
     useEffect(() => {
@@ -309,6 +333,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
             pointerDownTime.current = null;
             dragStartTime.current = null;
             gestureVelocity.current = 0;
+            velocityHistory.current = [];
         }
     };
 
@@ -341,6 +366,13 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         setIsDragging(true);
         dragStartTime.current = Date.now();
         if (isAiModalOpen) setIsAiModalOpen(false);
+    };
+
+    const handleAskAI = () => {
+        setIsAiModalOpen(prev => !prev);
+        if (!isAiModalOpen) {
+            setHasAskedAI(true); // Mark that AI was asked for this card
+        }
     };
 
     const canDrag = isActive && !isAnimating && !isAiModalOpen;
@@ -513,7 +545,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
                             {/* Ask AI Button */}
                             <div className="relative">
-                                <ActionButton action="ask-ai" onClick={() => setIsAiModalOpen(prev => !prev)} />
+                                <ActionButton action="ask-ai" onClick={handleAskAI} />
                                 {isActive && (
                                     <AskAiModal
                                         isOpen={isAiModalOpen}

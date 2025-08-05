@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { type ComponentPreview, type BehavioralSignal } from '../swiper.types';
+import { type ComponentPreview, type KingOfHillBehavioralSignal } from '../swiper.types';
 
 interface KingOfHillProps {
     defender: ComponentPreview;
     challenger: ComponentPreview;
-    onSelect: (winner: ComponentPreview, loser: ComponentPreview, signals: BehavioralSignal) => void;
+    onSelect: (winner: ComponentPreview, loser: ComponentPreview, signals: KingOfHillBehavioralSignal) => void;
     matchNumber: number;
     isAnimating: boolean;
     onAnimationStart: () => void;
@@ -25,26 +25,35 @@ const KingOfTheHill: React.FC<KingOfHillProps> = ({
     const [hoveredSide, setHoveredSide] = useState<'left' | 'right' | null>(null);
     const [selectedWinner, setSelectedWinner] = useState<'defender' | 'challenger' | null>(null);
     const isMobile = window.innerWidth < 1024;
+    
+    // Track when component renders
+    const componentRenderTime = useRef<number>(Date.now());
 
     const handleSelection = useCallback((winner: 'defender' | 'challenger') => {
         if (isAnimating || selectedWinner) return;
 
+        const selectionTime = Date.now();
         onAnimationStart();
         setSelectedWinner(winner);
 
         const winnerComponent = winner === 'defender' ? defender : challenger;
         const loserComponent = winner === 'defender' ? challenger : defender;
 
-        const signals: BehavioralSignal = {
-            hesitation_ms: Date.now() - selectionStartTime,
-            gesture_velocity: 0,
-            swipe_direction: 'none',
-            view_duration_ms: Date.now() - selectionStartTime,
-            queue_position: matchNumber,
-            action_source: 'button',
-            is_ai_modal_open: false,
-            superlike_used: false,
+        // Simplified behavioral signals for King of the Hill
+        const signals: KingOfHillBehavioralSignal = {
+            hesitation_ms: selectionTime - componentRenderTime.current,
+            view_duration_ms: selectionTime - selectionStartTime,
+            match_number: matchNumber,
+            action_source: 'button'
         };
+
+        // Log behavioral signal for debugging
+        console.log(`[KING OF THE HILL - Match ${matchNumber}] Selection:`, {
+            winner: winnerComponent.title,
+            loser: loserComponent.title,
+            hesitation: `${(signals.hesitation_ms / 1000).toFixed(2)}s`,
+            view_duration: `${(signals.view_duration_ms / 1000).toFixed(2)}s`
+        });
 
         setTimeout(() => {
             onSelect(winnerComponent, loserComponent, signals);
