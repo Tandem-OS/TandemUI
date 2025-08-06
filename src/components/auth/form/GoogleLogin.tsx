@@ -22,11 +22,17 @@ const GoogleLogin = () => {
                     user: {
                         id: data.user.id,
                         email: data.user.email,
-                        name: data.user.name
+                        name: data.user.name,
+                        role: data.user.role
                     }
                 }));
 
-                navigate('/dashboard/designer');
+                if (data.user.role === 'Client') {
+                    navigate('/dashboard/client')
+                } else {
+                    navigate('/dashboard/designer')
+                }
+
             } else {
                 throw new Error("Token exchange failed");
             }
