@@ -77,36 +77,36 @@ const animations: { [key: string]: Variants | any } = {
 const SkeletonCard: React.FC = () => (
     <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden animate-pulse">
         <div className="grid grid-cols-1 lg:grid-cols-12">
-            <div className="lg:hidden bg-background-muted h-48 sm:h-56" />
+            <div className="lg:hidden bg-background-muted-low h-48 sm:h-56" />
             <div className="lg:col-span-4 bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
                 <div className="space-y-sm md:space-y-md lg:space-y-lg">
                     <div className="flex items-center justify-between gap-xs">
-                        <div className="h-6 bg-background-muted rounded-md w-20" />
-                        <div className="h-6 bg-background-muted rounded-md w-16" />
+                        <div className="h-6 bg-background-muted-low rounded-md w-20" />
+                        <div className="h-6 bg-background-muted-low rounded-md w-16" />
                     </div>
                     <div className="space-y-xs sm:space-y-sm md:space-y-md">
-                        <div className="h-8 bg-background-muted rounded-md w-3/4" />
+                        <div className="h-8 bg-background-muted-low rounded-md w-3/4" />
                         <div className="space-y-2">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="h-4 bg-background-muted rounded" style={{ width: `${100 - i * 10}%` }} />
+                                <div key={i} className="h-4 bg-background-muted-low rounded" style={{ width: `${100 - i * 10}%` }} />
                             ))}
                         </div>
                         <div className="flex flex-wrap gap-xs sm:gap-xs md:gap-sm">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="h-6 bg-background-muted rounded w-12" />
+                                <div key={i} className="h-6 bg-background-muted-low rounded w-12" />
                             ))}
                         </div>
-                        <div className="h-4 bg-background-muted rounded w-1/2" />
+                        <div className="h-4 bg-background-muted-low rounded w-1/2" />
                     </div>
                 </div>
             </div>
-            <div className="hidden lg:block bg-background-muted lg:col-span-8" />
+            <div className="hidden lg:block bg-background-muted-low lg:col-span-8" />
         </div>
         <div className="px-sm py-sm md:px-md md:py-md">
             <div className="flex justify-center">
                 <div className="flex items-center justify-center gap-sm">
                     {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className={`bg-background-muted rounded-lg ${i === 3 ? 'w-16 h-16 rounded-full' : 'w-12 h-16'}`} />
+                        <div key={i} className={`bg-background-muted-low rounded-lg ${i === 3 ? 'w-16 h-16 rounded-full' : 'w-12 h-16'}`} />
                     ))}
                 </div>
             </div>
@@ -231,7 +231,6 @@ const Swiper: React.FC = () => {
         const likedChoices = roundChoices.filter(choice =>
             choice.action === 'like' || choice.action === 'super-like'
         );
-        const savedChoices = roundChoices.filter(choice => choice.action === 'save');
         const rejectedChoices = roundChoices.filter(choice => choice.action === 'dislike');
 
         const totalHesitation = roundChoices.reduce((sum, choice) =>
@@ -251,14 +250,12 @@ const Swiper: React.FC = () => {
             round_number: currentRound + 1,
             category: currentRoundData?.category || '',
             choices: likedChoices,
-            saved: savedChoices,
             rejected: rejectedChoices,
             completion_time: Date.now() - roundStartTime,
             total_hesitation_ms: totalHesitation,
             average_view_duration_ms: avgViewDuration,
             gesture_vs_button_ratio: gestureRatio,
             superlike_count: roundChoices.filter(c => c.behavioral_signals.superlike_used).length,
-            save_count: savedChoices.length
         };
     }, [currentRound, currentRoundData, roundStartTime]);
 
@@ -326,7 +323,6 @@ const Swiper: React.FC = () => {
                 console.log('📈 Breakdown:', {
                     total_swipes: roundChoices.length,
                     liked: roundSummary.choices.length,
-                    saved: roundSummary.saved.length,
                     rejected: roundSummary.rejected.length,
                     super_liked: roundSummary.superlike_count
                 });
@@ -485,9 +481,6 @@ const Swiper: React.FC = () => {
         const positiveChoicesCount = userChoices.filter(choice =>
             choice.action === 'like' || choice.action === 'super-like'
         ).length;
-        const savedChoicesCount = userChoices.filter(choice =>
-            choice.action === 'save'
-        ).length;
         const rejectedChoicesCount = userChoices.filter(choice =>
             choice.action === 'dislike'
         ).length;
@@ -501,7 +494,6 @@ const Swiper: React.FC = () => {
 
             summary_counts: {
                 positive_choices: positiveChoicesCount,
-                saved_choices: savedChoicesCount,
                 rejected_choices: rejectedChoicesCount,
                 super_likes: userChoices.filter(choice =>
                     choice.behavioral_signals.superlike_used
@@ -536,9 +528,6 @@ const Swiper: React.FC = () => {
                 const likedChoices = roundChoices.filter(choice =>
                     choice.action === 'like' || choice.action === 'super-like'
                 );
-                const savedChoices = roundChoices.filter(choice =>
-                    choice.action === 'save'
-                );
                 const rejectedChoices = roundChoices.filter(choice =>
                     choice.action === 'dislike'
                 );
@@ -547,12 +536,10 @@ const Swiper: React.FC = () => {
                     round_number: roundNumber,
                     category: round.category,
                     choices: likedChoices,
-                    saved: savedChoices,
                     rejected: rejectedChoices,
                     total_swipes: roundChoices.length,
                     breakdown: {
                         likes: likedChoices.length,
-                        saves: savedChoices.length,
                         rejects: rejectedChoices.length,
                         super_likes: roundChoices.filter(choice =>
                             choice.behavioral_signals.superlike_used

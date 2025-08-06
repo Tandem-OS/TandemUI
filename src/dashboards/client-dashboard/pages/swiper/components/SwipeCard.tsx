@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, type PanInfo, useMotionValue, useTransform, animate } from 'framer-motion';
-import { FiThumbsUp, FiThumbsDown, FiHelpCircle, FiBookmark, FiHeart, FiImage } from 'react-icons/fi';
+import { FiThumbsUp, FiThumbsDown, FiHelpCircle, FiHeart, FiImage } from 'react-icons/fi';
 import { type SwipeCardProps, type BehavioralSignal, type ActionSource } from '../swiper.types';
 import { AskAiModal } from './AskAiModal';
 import swipeAudio from "@/assets/audio/swipeAudio.mp3";
@@ -9,7 +9,6 @@ import clickAudio from "@/assets/audio/clickAudio.mp3";
 // Constants
 const SWIPE_POWER = 500;
 const X_THRESHOLD = 120;
-// const Y_THRESHOLD = 100;
 const DOUBLE_TAP_DELAY = 300;
 const IMAGE_TIMEOUT = 10000; // 10 seconds timeout for image loading
 const SWIPE_COOLDOWN = 800; // Prevent multiple swipes for 800ms
@@ -18,7 +17,6 @@ const SWIPE_COOLDOWN = 800; // Prevent multiple swipes for 800ms
 const ACTIONS = {
     like: { x: SWIPE_POWER, y: 0, key: 'ArrowRight' },
     dislike: { x: -SWIPE_POWER, y: 0, key: 'ArrowLeft' },
-    // save: { x: 0, y: -SWIPE_POWER, key: 'ArrowUp' },
     'super-like': { x: 0, y: SWIPE_POWER, key: ' ' }
 } as const;
 
@@ -26,7 +24,6 @@ const ACTIONS = {
 const BUTTON_CONFIG = {
     like: { icon: FiThumbsUp, color: 'success', label: 'Like' },
     dislike: { icon: FiThumbsDown, color: 'error', label: 'Nope' },
-    save: { icon: FiBookmark, color: 'warning', label: 'Save' },
     'ask-ai': { icon: FiHelpCircle, color: 'info', label: 'Ask AI' }
 };
 
@@ -171,7 +168,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const overlayOpacities = {
         nope: useTransform(x, [-300, -80, 0], [1, 0.7, 0]),
         like: useTransform(x, [0, 80, 300], [0, 0.7, 1]),
-        save: useTransform(y, [-300, -80, 0], [1, 0.7, 0])
     };
 
     // Double tap detection
@@ -237,7 +233,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         switch (action) {
             case 'like': return 'right';
             case 'dislike': return 'left';
-            // case 'save': return 'up';
             case 'super-like': return 'down';
             default: return 'none';
         }
@@ -352,8 +347,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         setIsDragging(false);
 
         let action: keyof typeof ACTIONS | null = null;
-        // if (info.offset.y < -Y_THRESHOLD) action = 'save';
-         if (info.offset.x > X_THRESHOLD) action = 'like';
+        if (info.offset.x > X_THRESHOLD) action = 'like';
         else if (info.offset.x < -X_THRESHOLD) action = 'dislike';
 
         if (action) {
@@ -422,7 +416,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     }, []);
 
     // Overlay component
-    const Overlay = ({ type, label }: { type: 'nope' | 'like' | 'save', label: string }) => (
+    const Overlay = ({ type, label }: { type: 'nope' | 'like', label: string }) => (
         <motion.div
             className={`absolute z-10 border-2 px-md py-sm font-bold text-para-sm sm:text-para-md 
                  rounded-md sm:rounded-lg pointer-events-none
@@ -438,28 +432,22 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     );
 
     // Action button component
-    const ActionButton = ({
-        action,
-        onClick,
-        special = false,
-        isDisabled = false
-    }: {
-        action: keyof typeof BUTTON_CONFIG;
-        onClick: () => void;
-        special?: boolean;
-        isDisabled?: boolean;
+    // Action button component (Corrected)
+    // Action button component (Simplest version as requested)
+    const ActionButton = ({ action, onClick, special = false }: {
+        action: keyof typeof BUTTON_CONFIG,
+        onClick: () => void,
+        special?: boolean,
+        isDisabled?: boolean,
     }) => {
         const config = BUTTON_CONFIG[action];
         const Icon = config.icon;
 
-        // This ref is not used for animation logic, so it's fine as is.
-        const pointerDownTime = React.useRef<number | null>(null);
-
         return (
             <motion.button
-                layout // Keep layout for smooth size/shape changes from the 'special' prop
                 onClick={(e) => {
                     e.stopPropagation();
+                    pointerDownTime.current = Date.now(); // Track button press time
                     onClick();
                 }}
                 onPointerDown={() => {
@@ -467,23 +455,17 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         pointerDownTime.current = Date.now();
                     }
                 }}
-                className={`flex flex-col items-center gap-1 p-sm 
-            disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]
-            ${special ? 'rounded-full bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 w-16 h-16 shadow-lg justify-center' :
+                className={`flex flex-col items-center gap-1 p-sm transition-all duration-300 
+                   disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]
+                   ${special ? 'rounded-full bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 w-16 h-16 shadow-lg justify-center' :
                         `rounded-lg bg-background-secondary hover:bg-background-${config.color} hover:bg-opacity-20`}`}
-
-                // --- CHANGE #1: Replaced 'spring' with 'tween' for a smooth, non-bouncy animation ---
-                transition={{ type: "tween", ease: "easeInOut", duration: 0.2 }}
-
-                // --- CHANGE #2: Removed the 'y' transform to prevent jitter ---
-                whileHover={!isDisabled ? { scale: special ? 1.1 : 1.05 } : {}}
-
-                whileTap={!isDisabled ? { scale: special ? 0.95 : 0.9 } : {}}
+                whileHover={!isDisabled ? { scale: special ? 1.15 : 1.1, y: special ? -2 : -1 } : {}}
+                whileTap={!isDisabled ? { scale: special ? 0.9 : 0.95 } : {}}
                 aria-label={config.label}
                 disabled={isDisabled}
             >
-                <Icon className={`text-icon-sm lg:text-icon-md ${special ? 'text-white' : `text-text-${config.color}`}`} />
-                <span className={`text-para-xs lg:text-para-sm ${special ? 'font-bold text-white' : `font-medium text-text-${config.color}`}`}>
+                <Icon className={`text-icon-sm lg:text-icon-md ${special ? 'text-white' : `text-text-${config.color}`} transition-colors`} />
+                <span className={`text-para-xs lg:text-para-sm ${special ? 'font-bold text-white' : `font-medium text-text-${config.color}`} transition-colors`}>
                     {special ? 'Super' : config.label}
                 </span>
             </motion.button>
@@ -508,7 +490,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 <>
                     <Overlay type="nope" label="NOPE" />
                     <Overlay type="like" label="LIKE" />
-                    <Overlay type="save" label="SAVE" />
 
                     {/* Super Like overlay - IMPROVED: Smoother animation */}
                     <motion.div
@@ -614,8 +595,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                     />
                                 )}
                             </div>
-
-                            {/* <ActionButton action="save" onClick={() => { playClick(); handleSwipeAction('save', 'button'); }} isDisabled={isDisabled} /> */}
                         </div>
                     </div>
                 </div>

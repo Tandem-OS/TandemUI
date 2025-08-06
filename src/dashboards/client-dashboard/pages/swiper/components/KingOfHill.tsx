@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaCheck } from 'react-icons/fa';
+import { FaCheck, FaCrown, FaFire } from 'react-icons/fa';
 import { type ComponentPreview, type KingOfHillBehavioralSignal } from '../swiper.types';
 
 // Audio files
-const swipeAudio = "@/assets/audio/swipeAudio.mp3";
-const clickAudio = "@/assets/audio/clickAudio.mp3";
+import swipeAudio from "@/assets/audio/swipeAudio.mp3";
+import clickAudio from "@/assets/audio/clickAudio.mp3";
 
 // Audio player helper
 const playAudio = (audioSrc: string, volumePercent: number = 100) => {
@@ -38,13 +38,12 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     onAnimationComplete,
 }) => {
     const [selectionStartTime] = useState<number>(Date.now());
-    const [hoveredSide, setHoveredSide] = useState<'left' | 'right' | null>(null);
     const [selectedCard, setSelectedCard] = useState<string | null>(null);
     const [shakeWinner, setShakeWinner] = useState<string | null>(null);
     const [previousChallengerId, setPreviousChallengerId] = useState<string | null>(null);
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
     const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
-   
+
     // Track when component renders
     const componentRenderTime = useRef<number>(Date.now());
 
@@ -76,10 +75,10 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
         // Add shake animation to winner
         setShakeWinner(winnerId);
 
-        // Remove shake after animation duration
+        // Remove shake after animation
         setTimeout(() => {
             setShakeWinner(null);
-        }, 600);
+        }, 400);
 
         const winnerComponent = winnerId === defender.component_id ? defender : challenger;
         const loserComponent = loserId === defender.component_id ? defender : challenger;
@@ -106,8 +105,166 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
             setSelectedCard(null);
             setIsTransitioning(false);
             onAnimationComplete();
-        }, 800);
+        }, 1000);
     }, [defender, challenger, onSelect, selectionStartTime, matchNumber, isTransitioning, selectedCard, onAnimationStart, onAnimationComplete]);
+
+    // Enhanced Card Component with better visual hierarchy
+    const BattleCard = ({
+        component,
+        isDefender,
+        isMobile = false
+    }: {
+        component: ComponentPreview;
+        side: 'left' | 'right';
+        isDefender: boolean;
+        isMobile?: boolean;
+    }) => {
+        const [isCardHovered, setIsCardHovered] = useState(false);
+        const isWinner = selectedCard === component.component_id;
+        const isShaking = shakeWinner === component.component_id;
+
+        return (
+            <motion.button
+                onClick={() => handleSelection(
+                    component.component_id,
+                    component.component_id === defender.component_id ? challenger.component_id : defender.component_id
+                )}
+                disabled={isTransitioning}
+                animate={
+                    isShaking
+                        ? {
+                            x: isMobile ? [0, -8, 8, -4, 4, 0] : [0, -12, 12, -8, 8, -4, 4, 0],
+                            rotate: isMobile ? [0, -4, 4, -2, 2, 0] : [0, -8, 8, -6, 6, -3, 3, 0],
+                            scale: isMobile ? [1, 1.03, 1, 1.02, 1, 1] : [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
+                        }
+                        : {
+                            opacity: 1,
+                            scale: 1,
+                            x: 0,
+                            rotate: 0
+                        }
+                }
+                transition={{
+                    duration: isShaking ? 0.4 : 0.3,
+                    ease: isShaking ? "easeInOut" : "easeOut",
+                    ...(isShaking && {
+                        times: isMobile ? [0, 0.2, 0.4, 0.6, 0.8, 1] : [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
+                    })
+                }}
+                className={`
+                    relative overflow-hidden rounded-xl shadow-lg transition-all w-full h-full
+                    ${isWinner ? 'ring-4 ring-accent-default shadow-2xl' : ''}
+                    ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}
+                    ${isMobile ? 'touch-manipulation' : ''}
+                `}
+                onMouseEnter={() => !isTransitioning && !isMobile && setIsCardHovered(true)}
+                onMouseLeave={() => !isMobile && setIsCardHovered(false)}
+            >
+                {/* Defender Badge */}
+                {isDefender && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.3 }}
+                        className="absolute top-sm left-sm z-20 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-sm py-xs rounded-lg flex items-center gap-xs shadow-lg"
+                    >
+                        <FaCrown className="text-icon-xs" />
+                        <span className="text-para-xs font-bold">Defender</span>
+                    </motion.div>
+                )}
+
+                {/* Challenger Badge */}
+                {!isDefender && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.3 }}
+                        className="absolute top-sm right-sm z-20 bg-gradient-to-r from-red-500 to-pink-500 text-white px-sm py-xs rounded-lg flex items-center gap-xs shadow-lg"
+                    >
+                        <FaFire className="text-icon-xs" />
+                        <span className="text-para-xs font-bold">Challenger</span>
+                    </motion.div>
+                )}
+
+                {/* Image with hover scale */}
+                <motion.div
+                    className="w-full h-full"
+                    animate={isCardHovered && !isMobile ? { scale: 1.05 } : { scale: 1 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <img
+                        src={component.thumbnail_url}
+                        alt={component.title}
+                        className="w-full h-full object-cover"
+                    />
+                </motion.div>
+
+                {/* Enhanced gradient overlay */}
+                <div className={`
+                    absolute bottom-0 left-0 right-0 
+                    bg-gradient-to-t from-black/80 via-black/40 to-transparent 
+                    p-md ${isMobile ? 'pb-sm' : ''}
+                `}>
+                    <motion.div
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                    >
+                        <h3 className={`text-white ${isMobile ? 'text-para-md' : 'text-para-lg'} font-semibold mb-xs`}>
+                            {component.title}
+                        </h3>
+                        <p className={`text-white/90 ${isMobile ? 'text-para-xs' : 'text-para-sm'}`}>
+                            {component.vibe}
+                        </p>
+                    </motion.div>
+                </div>
+
+                {/* Winner Overlay - Show after shake completes */}
+                <AnimatePresence>
+                    {isWinner && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 bg-accent-default/15 flex items-center justify-center"
+                        >
+                            {isShaking && <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                                className="bg-white rounded-full p-md shadow-xl"
+                            >
+                                <FaCheck className="text-accent-default text-icon-xl" />
+                            </motion.div>
+                            }
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Hover Overlay - No Blur */}
+                <AnimatePresence>
+                    {isCardHovered && !selectedCard && !isMobile && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="absolute inset-0 bg-black/20 flex items-center justify-center"
+                        >
+                            <motion.div
+                                initial={{ scale: 0.9, y: 10 }}
+                                animate={{ scale: 1, y: 0 }}
+                                className="bg-background-primary/95 text-text-primary rounded-xl px-lg py-md font-semibold text-para-md shadow-xl"
+                            >
+                                Select This Design
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.button>
+        );
+    };
 
     return (
         <div className="w-full h-full flex items-center justify-center px-sm lg:px-lg">
@@ -116,72 +273,23 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 <div className="hidden lg:flex w-full gap-lg items-center justify-center">
                     {/* Defender Card */}
                     <div className="flex-1 max-w-lg h-full max-h-[550px]">
-                        <motion.button
-                            onClick={() => handleSelection(defender.component_id, challenger.component_id)}
-                            disabled={isTransitioning}
-                            animate={shakeWinner === defender.component_id ? {
-                                x: [0, -12, 12, -8, 8, -4, 4, 0],
-                                rotate: [0, -8, 8, -6, 6, -3, 3, 0],
-                                scale: [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
-                            } : {
-                                x: 0,
-                                rotate: 0,
-                                scale: 1
-                            }}
-                            transition={{
-                                duration: 0.6,
-                                ease: "easeInOut",
-                                times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
-                            }}
-                            className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full h-full ${
-                                selectedCard === defender.component_id
-                                    ? 'ring-4 ring-accent-default ring-opacity-50'
-                                    : ''
-                            } ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                            onMouseEnter={() => !isTransitioning && setHoveredSide('left')}
-                            onMouseLeave={() => setHoveredSide(null)}
-                        >
-                            <img
-                                src={defender.thumbnail_url}
-                                alt={defender.title}
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-md">
-                                <h3 className="text-white text-para-lg font-medium">
-                                    {defender.title}
-                                </h3>
-                                <p className="text-white/80 text-para-sm">
-                                    {defender.vibe}
-                                </p>
-                            </div>
-                            {selectedCard === defender.component_id && (
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="absolute inset-0 bg-accent-default/20 flex items-center justify-center"
-                                >
-                                    <FaCheck className="text-white text-icon-2xl" />
-                                </motion.div>
-                            )}
-                            {hoveredSide === 'left' && !selectedCard && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="absolute inset-0 bg-black/20 flex items-center justify-center"
-                                >
-                                    <div className="bg-background-primary/90 text-text-primary rounded-lg px-md py-sm font-semibold text-para-md shadow-xl">
-                                        Select This Design
-                                    </div>
-                                </motion.div>
-                            )}
-                        </motion.button>
+                        <BattleCard
+                            component={defender}
+                            side="left"
+                            isDefender={true}
+                        />
                     </div>
 
-                    {/* VS Badge */}
+                    {/* Simple VS Badge */}
                     <div className="flex-shrink-0 flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 bg-gradient-to-br from-accent-default/20 to-accent-hover/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-xl border-2 border-accent-default/30">
-                            <span className="text-h5-sm font-bold text-accent-default">VS</span>
-                        </div>
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 150, damping: 20 }}
+                            className="w-16 h-16 bg-gradient-to-br from-accent-default to-accent-hover rounded-full flex items-center justify-center shadow-xl"
+                        >
+                            <span className="text-h5-sm font-bold text-white">VS</span>
+                        </motion.div>
                     </div>
 
                     {/* Challenger Card with AnimatePresence */}
@@ -191,208 +299,73 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                                 key={challenger.component_id}
                                 initial={{ opacity: 0, y: 50 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -50 }}
-                                transition={{ duration: 0.3 }}
+                                exit={{
+                                    opacity: 0,
+                                    y: -50,
+                                    transition: { duration: 0.3 }
+                                }}
+                                transition={{
+                                    duration: 0.3
+                                }}
                                 className="w-full h-full"
                             >
-                                <motion.button
-                                    onClick={() => handleSelection(challenger.component_id, defender.component_id)}
-                                    disabled={isTransitioning}
-                                    animate={
-                                        selectedCard === defender.component_id
-                                            ? { opacity: 0, y: -50 }
-                                            : shakeWinner === challenger.component_id
-                                                ? {
-                                                    x: [0, -12, 12, -8, 8, -4, 4, 0],
-                                                    rotate: [0, -8, 8, -6, 6, -3, 3, 0],
-                                                    scale: [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
-                                                }
-                                                : { 
-                                                    opacity: 1, 
-                                                    y: 0,
-                                                    x: 0,
-                                                    rotate: 0,
-                                                    scale: 1
-                                                }
-                                    }
-                                    transition={{
-                                        duration: selectedCard === defender.component_id ? 0.3 : shakeWinner === challenger.component_id ? 0.6 : 0.3,
-                                        ease: "easeInOut",
-                                        ...(shakeWinner === challenger.component_id && {
-                                            times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
-                                        })
-                                    }}
-                                    className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full h-full ${
-                                        selectedCard === challenger.component_id
-                                            ? 'ring-4 ring-accent-default ring-opacity-50'
-                                            : ''
-                                    } ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                                    onMouseEnter={() => !isTransitioning && setHoveredSide('right')}
-                                    onMouseLeave={() => setHoveredSide(null)}
-                                >
-                                    <img
-                                        src={challenger.thumbnail_url}
-                                        alt={challenger.title}
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-md">
-                                        <h3 className="text-white text-para-lg font-medium">
-                                            {challenger.title}
-                                        </h3>
-                                        <p className="text-white/80 text-para-sm">
-                                            {challenger.vibe}
-                                        </p>
-                                    </div>
-                                    {selectedCard === challenger.component_id && (
-                                        <motion.div
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            className="absolute inset-0 bg-accent-default/20 flex items-center justify-center"
-                                        >
-                                            <FaCheck className="text-white text-icon-2xl" />
-                                        </motion.div>
-                                    )}
-                                    {hoveredSide === 'right' && !selectedCard && (
-                                        <motion.div
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="absolute inset-0 bg-black/20 flex items-center justify-center"
-                                        >
-                                            <div className="bg-background-primary/90 text-text-primary rounded-lg px-md py-sm font-semibold text-para-md shadow-xl">
-                                                Select This Design
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </motion.button>
+                                <BattleCard
+                                    component={challenger}
+                                    side="right"
+                                    isDefender={false}
+                                />
                             </motion.div>
                         </AnimatePresence>
                     </div>
                 </div>
 
-                {/* Mobile Layout - Stacked */}
-                <div className="lg:hidden flex flex-col w-full h-full gap-sm" style={{ maxHeight: 'calc(100vh - 160px)' }}>
+                {/* Mobile Layout - Optimized Stacked View */}
+                <div className="lg:hidden flex flex-col w-full h-full gap-sm" style={{ maxHeight: 'calc(100vh - 140px)' }}>
                     {/* Top Card - Defender */}
-                    <div className="flex-1 min-h-0" style={{ maxHeight: '40%' }}>
-                        <motion.button
-                            onClick={() => handleSelection(defender.component_id, challenger.component_id)}
-                            disabled={isTransitioning}
-                            animate={shakeWinner === defender.component_id ? {
-                                x: [0, -8, 8, -4, 4, 0],
-                                rotate: [0, -4, 4, -2, 2, 0],
-                                scale: [1, 1.03, 1, 1.02, 1, 1]
-                            } : {
-                                x: 0,
-                                rotate: 0,
-                                scale: 1
-                            }}
-                            transition={{
-                                duration: 0.6,
-                                ease: "easeInOut",
-                                times: [0, 0.2, 0.4, 0.6, 0.8, 1]
-                            }}
-                            className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full h-full ${
-                                selectedCard === defender.component_id
-                                    ? 'ring-4 ring-accent-default ring-opacity-50'
-                                    : ''
-                            } ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                        >
-                            <img
-                                src={defender.thumbnail_url}
-                                alt={defender.title}
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-md">
-                                <h3 className="text-white text-para-lg font-medium">
-                                    {defender.title}
-                                </h3>
-                                <p className="text-white/80 text-para-sm">
-                                    {defender.vibe}
-                                </p>
-                            </div>
-                            {selectedCard === defender.component_id && (
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="absolute inset-0 bg-accent-default/20 flex items-center justify-center"
-                                >
-                                    <FaCheck className="text-white text-icon-2xl" />
-                                </motion.div>
-                            )}
-                        </motion.button>
+                    <div className="flex-1 min-h-0" style={{ maxHeight: '42%' }}>
+                        <BattleCard
+                            component={defender}
+                            side="left"
+                            isDefender={true}
+                            isMobile={true}
+                        />
                     </div>
 
-                    {/* VS Divider */}
-                    <div className="flex items-center justify-center py-0">
-                        <div className="w-8 h-8 bg-gradient-to-br from-accent-default/20 to-accent-hover/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg border border-accent-default/30">
-                            <span className="text-para-xs font-bold text-accent-default">VS</span>
-                        </div>
+                    {/* Mobile VS Divider */}
+                    <div className="flex items-center justify-center py-xs">
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 150, damping: 20 }}
+                            className="w-10 h-10 bg-gradient-to-br from-accent-default to-accent-hover rounded-full flex items-center justify-center shadow-lg"
+                        >
+                            <span className="text-para-xs font-bold text-white">VS</span>
+                        </motion.div>
                     </div>
 
                     {/* Bottom Card - Challenger with AnimatePresence */}
-                    <div className="flex-1 min-h-0" style={{ maxHeight: '40%' }}>
+                    <div className="flex-1 min-h-0" style={{ maxHeight: '42%' }}>
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={challenger.component_id}
                                 initial={{ opacity: 0, y: 50 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -50 }}
-                                transition={{ duration: 0.3 }}
+                                exit={{
+                                    opacity: 0,
+                                    y: -50,
+                                    transition: { duration: 0.3 }
+                                }}
+                                transition={{
+                                    duration: 0.3
+                                }}
                                 className="w-full h-full"
                             >
-                                <motion.button
-                                    onClick={() => handleSelection(challenger.component_id, defender.component_id)}
-                                    disabled={isTransitioning}
-                                    animate={
-                                        selectedCard === defender.component_id
-                                            ? { opacity: 0, y: -50 }
-                                            : shakeWinner === challenger.component_id
-                                                ? {
-                                                    x: [0, -8, 8, -4, 4, 0],
-                                                    rotate: [0, -4, 4, -2, 2, 0],
-                                                    scale: [1, 1.03, 1, 1.02, 1, 1]
-                                                }
-                                                : {
-                                                    x: 0,
-                                                    rotate: 0,
-                                                    scale: 1
-                                                }
-                                    }
-                                    transition={{
-                                        duration: selectedCard === defender.component_id ? 0.3 : shakeWinner === challenger.component_id ? 0.6 : 0.3,
-                                        ease: "easeInOut",
-                                        ...(shakeWinner === challenger.component_id && {
-                                            times: [0, 0.2, 0.4, 0.6, 0.8, 1]
-                                        })
-                                    }}
-                                    className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full h-full ${
-                                        selectedCard === challenger.component_id
-                                            ? 'ring-4 ring-accent-default ring-opacity-50'
-                                            : ''
-                                    } ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                                >
-                                    <img
-                                        src={challenger.thumbnail_url}
-                                        alt={challenger.title}
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-md">
-                                        <h3 className="text-white text-para-lg font-medium">
-                                            {challenger.title}
-                                        </h3>
-                                        <p className="text-white/80 text-para-sm">
-                                            {challenger.vibe}
-                                        </p>
-                                    </div>
-                                    {selectedCard === challenger.component_id && (
-                                        <motion.div
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            className="absolute inset-0 bg-accent-default/20 flex items-center justify-center"
-                                        >
-                                            <FaCheck className="text-white text-icon-2xl" />
-                                        </motion.div>
-                                    )}
-                                </motion.button>
+                                <BattleCard
+                                    component={challenger}
+                                    side="right"
+                                    isDefender={false}
+                                    isMobile={true}
+                                />
                             </motion.div>
                         </AnimatePresence>
                     </div>
