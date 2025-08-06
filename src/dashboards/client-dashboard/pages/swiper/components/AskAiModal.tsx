@@ -80,7 +80,7 @@ const ModalContent = memo(({ description, onClose, isOpen }: AskAiModalProps) =>
         <motion.div
             ref={modalRef}
             className="absolute bottom-full mb-sm
-                      -left-40 w-[85vw] max-w-[280px]
+                      -left-[200px] w-[85vw] max-w-[280px]
                       sm:w-64
                       md:left-0 md:translate-x-0 md:w-80
                       bg-background-primary text-text-primary p-md md:p-lg 

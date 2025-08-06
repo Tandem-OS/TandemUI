@@ -38,6 +38,7 @@ import {
     recordKingOfHillMatch,
     endKingOfHill,
 } from '@/features/swiper/swiperSlice';
+import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
@@ -381,10 +382,18 @@ const Swiper: React.FC = () => {
     }, [dispatch]);
 
     const RoundCompletionCelebration = () => (
-        <motion.div {...animations.completion} className="flex flex-col items-center justify-center text-center mt-md sm:mt-lg md:mt-xl px-md">
-            <motion.div {...animations.icon} className="mb-sm sm:mb-md md:mb-lg">
-                <FiCheckCircle className="text-icon-2xl sm:text-[2.5rem] md:text-[3rem] text-accent-default" />
-            </motion.div>
+        <motion.div {...animations.completion} className="flex flex-col items-center justify-center text-center px-md">
+            <div className="relative">
+                <SuccessAnimation
+                    showConfetti={true}
+                    confettiCount={80}
+                    confettiDuration={4000}
+                />
+                <motion.div {...animations.icon} className="mb-sm sm:mb-md md:mb-lg">
+                    <FiCheckCircle className="text-icon-2xl sm:text-[2.5rem] md:text-[3rem] text-accent-default" />
+                </motion.div>
+            </div>
+
             <motion.h2
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -664,7 +673,7 @@ const Swiper: React.FC = () => {
 
     const currentCategory = currentRoundData?.category || 'Design';
     const roundMessage = kingOfHill.isActive
-        ? 'Choose the design that speaks to you more.'
+        ? 'Select your favorite. It helps refine your taste.'
         : roundMessages[currentCategory] || 'Choose the design that resonates with you.';
 
     return (
@@ -715,7 +724,7 @@ const Swiper: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center justify-center 2xl:p-xl relative z-20">
+                <div className="flex items-center justify-center 2xl:p-xl relative z-20 h-[-webkit-fill-available]">
                     <AnimatePresence mode="wait">
                         {showRoundCompletion ? (
                             <RoundCompletionCelebration />
