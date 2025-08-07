@@ -8,6 +8,7 @@ import SearchBox from '../../../../comman-components/SearchBox';
 import { getAllProjectsByDesignerEmail } from '@/lib/requests/ProjectRequest';
 import type { Project } from '@/types/project.type';
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
+import MagicLinkModal from '@/dashboards/designer-dashboard/components/MagicLinkModal';
 
 type FilterType = 'all' | 'in-progress' | 'completed';
 type SortType = 'recent' | 'progress' | 'name' | 'designer';
@@ -26,6 +27,7 @@ const MyProject: React.FC = () => {
     });
 
     const [project, setProject] = useState<Project[]>([]);
+    const [modalOpen, setModalOpen] = useState(false);
 
     const fetchProjects = async () => {
         setState(prev => ({ ...prev, isLoading: true }));
@@ -149,7 +151,7 @@ const MyProject: React.FC = () => {
     const filterButtons = [
         { key: 'all', label: 'All Projects', count: stats.total },
         { key: 'in-progress', label: 'In Progress', count: stats.inProgress },
-        { key: 'completed', label: 'Completed', count: stats.completed }
+        { key: 'completed', label: 'Completed', count: stats.completed },
     ];
 
     // Shared styles
@@ -192,7 +194,7 @@ const MyProject: React.FC = () => {
     return (
         <>
             {state.isLoading ?
-                <GlobalSpinner />:
+                <GlobalSpinner /> :
                 <div className="min-h-screen">
                     <div className="container mx-auto px-md sm:px-lg lg:px-xl py-lg sm:py-xl lg:py-2xl">
                         {/* Header */}
@@ -207,6 +209,17 @@ const MyProject: React.FC = () => {
                                     <p className="text-text-secondary text-para-md sm:text-para-lg">
                                         Manage and track your creative projects with our talented designers
                                     </p>
+                                </div>
+                                <div>
+                                    <motion.button
+                                        {...motionProps}
+                                        onClick={() => setModalOpen(true)}
+                                        className="flex items-center gap-md px-2xl py-lg bg-accent-default hover:bg-accent-hover text-accent-foreground text-para-lg font-medium rounded-xl transition-all duration-200 hover:shadow-lg"
+                                    >
+                                        <FaPlus className="text-icon-sm" />
+                                        <span>Send Magic Link</span>
+                                    </motion.button>
+                                    {modalOpen && (<MagicLinkModal isOpen={modalOpen} setIsOpen={setModalOpen} />)}
                                 </div>
                                 <div className="grid grid-cols-2 lg:flex lg:justify-center xl:justify-start gap-md sm:gap-lg">
                                     <StatCard

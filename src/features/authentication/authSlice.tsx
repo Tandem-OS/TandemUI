@@ -59,7 +59,6 @@ const authSlice = createSlice({
         };
       }>
     ) => {
-      debugger;
       state.tokens.access = action.payload.access_token ?? null;
       state.tokens.refresh = action.payload.refresh_token ?? null;
       state.user.id = action.payload.user?.id ?? null;
