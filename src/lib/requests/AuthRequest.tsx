@@ -20,6 +20,11 @@ interface ResetPasswordValues {
   token?: string;
 }
 
+interface MagicLinkValues {
+  client_name: string;
+  client_email: string;
+}
+
 export const signUp = async (values: SignUpValues) => {
   return await api.post('/signup', values);
 };
@@ -68,3 +73,7 @@ export const handleRefreshToken = async () => {
 
   return access_token;
 };
+
+export const magicLinkData = async (values: MagicLinkValues) => {
+  return await api.post('/magic-link/send', values)
+}

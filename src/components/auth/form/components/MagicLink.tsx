@@ -19,7 +19,6 @@ const MagicLinkLogin = () => {
   const hasFetched = useRef(false);
 
   useEffect(() => {
-    debugger;
     if (hasFetched.current) return;
     hasFetched.current = true;
 

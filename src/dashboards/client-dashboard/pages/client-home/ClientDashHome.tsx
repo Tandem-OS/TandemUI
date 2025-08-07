@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 import {
     RiCheckLine,
@@ -168,19 +169,19 @@ const ClientDashHome: React.FC = () => {
         window.scrollTo(0, 0);
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
-        
+
         // Disable scroll restoration
         if ('scrollRestoration' in history) {
             history.scrollRestoration = 'manual';
         }
-        
+
         // Enable content after DOM settles
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 setTimeout(() => setProgress(65), 800);
             });
         });
-        
+
         return () => {
             if ('scrollRestoration' in history) {
                 history.scrollRestoration = 'auto';
@@ -189,7 +190,7 @@ const ClientDashHome: React.FC = () => {
     }, []);
 
     const quickActions = [
-        { icon: RiEditLine, label: 'Edit Intake Form', color: 'from-blue-500 to-cyan-500' },
+        { icon: RiEditLine, label: 'Edit Intake Form', color: 'from-blue-500 to-cyan-500', href: '/intake' },
         { icon: RiPaletteLine, label: 'Update Preferences', color: 'from-purple-500 to-pink-500' },
         { icon: RiMessage3Line, label: 'Submit Feedback', color: 'from-emerald-500 to-teal-500' },
         { icon: RiStarLine, label: 'Testimonial', color: 'from-amber-500 to-orange-500', disabled: true }
@@ -266,7 +267,7 @@ const ClientDashHome: React.FC = () => {
 
                                 {/* Progress Ring */}
                                 <div className="relative w-32 h-32 mx-auto mb-6">
-                                    <svg 
+                                    <svg
                                         className="w-full h-full transform -rotate-90"
                                         viewBox="0 0 128 128"
                                     >
@@ -297,10 +298,10 @@ const ClientDashHome: React.FC = () => {
                                             strokeDasharray={351.86}
                                             initial={{ strokeDashoffset: 351.86 }}
                                             animate={{ strokeDashoffset: 351.86 * (1 - progress / 100) }}
-                                            transition={{ 
-                                                duration: 2, 
-                                                delay: 0.5, 
-                                                ease: "easeInOut" 
+                                            transition={{
+                                                duration: 2,
+                                                delay: 0.5,
+                                                ease: "easeInOut"
                                             }}
                                         />
                                     </svg>
@@ -334,7 +335,7 @@ const ClientDashHome: React.FC = () => {
                             </div>
 
                             <motion.button
-                                onClick={() => navigate('/client-dashboard/design-swiper')}
+                                onClick={() => navigate('/onboard')}
                                 className="mx-4 sm:mx-6 mb-4 sm:mb-6 py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 group relative overflow-hidden"
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
@@ -365,7 +366,7 @@ const ClientDashHome: React.FC = () => {
                 </motion.div>
 
                 {/* Status Cards */}
-                <motion.div 
+                <motion.div
                     className="mb-8 sm:mb-12"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -416,77 +417,88 @@ const ClientDashHome: React.FC = () => {
                         </h3>
 
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-                            {quickActions.map((action, index) => (
-                                <motion.button
-                                    key={action.label}
-                                    disabled={action.disabled}
-                                    className={clsx(
-                                        'p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden',
-                                        'flex flex-col items-center justify-center gap-2 sm:gap-3',
-                                        action.disabled
-                                            ? 'bg-background-muted opacity-50 cursor-not-allowed'
-                                            : 'bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg'
-                                    )}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{
-                                        duration: 0.5,
-                                        delay: index * 0.1
-                                    }}
-                                    whileHover={!action.disabled ? {
-                                        y: -8,
-                                        transition: { duration: 0.2 }
-                                    } : {}}
-                                >
-                                    {!action.disabled && (
-                                        <motion.div
-                                            className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-                                        />
-                                    )}
-
-                                    <motion.div
+                            {quickActions.map((action, index) => {
+                                const button = (
+                                    <motion.button
+                                        key={action.label}
+                                        disabled={action.disabled}
                                         className={clsx(
-                                            'p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10',
+                                            'p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden',
+                                            'flex flex-col items-center justify-center gap-2 sm:gap-3',
                                             action.disabled
-                                                ? 'bg-background-secondary'
-                                                : `bg-gradient-to-r ${action.color} shadow-lg`
+                                                ? 'bg-background-muted opacity-50 cursor-not-allowed'
+                                                : 'bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg'
                                         )}
-                                        whileHover={!action.disabled ? { rotate: 10, scale: 1.1 } : {}}
-                                        transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{
+                                            duration: 0.5,
+                                            delay: index * 0.1
+                                        }}
+                                        whileHover={!action.disabled ? {
+                                            y: -8,
+                                            transition: { duration: 0.2 }
+                                        } : {}}
                                     >
-                                        <action.icon className={clsx(
-                                            'text-xl sm:text-2xl',
-                                            action.disabled ? 'text-text-tertiary' : 'text-white'
-                                        )} />
-                                    </motion.div>
+                                        {!action.disabled && (
+                                            <motion.div
+                                                className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                                            />
+                                        )}
 
-                                    <p className={clsx(
-                                        'text-xs sm:text-sm font-semibold text-center relative z-10',
-                                        action.disabled
-                                            ? 'text-text-tertiary'
-                                            : 'text-text-secondary'
-                                    )}>
-                                        {action.label}
-                                    </p>
-
-                                    {action.disabled && (
-                                        <motion.span
-                                            className="absolute top-1 right-1 sm:top-2 sm:right-2 text-xs bg-background-secondary text-text-tertiary px-2 py-0.5 rounded-full font-medium"
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            transition={{ delay: 0.5 }}
+                                        <motion.div
+                                            className={clsx(
+                                                'p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10',
+                                                action.disabled
+                                                    ? 'bg-background-secondary'
+                                                    : `bg-gradient-to-r ${action.color} shadow-lg`
+                                            )}
+                                            whileHover={!action.disabled ? { rotate: 10, scale: 1.1 } : {}}
+                                            transition={{ type: "spring", stiffness: 400, damping: 10 }}
                                         >
-                                            Locked
-                                        </motion.span>
-                                    )}
-                                </motion.button>
-                            ))}
+                                            <action.icon className={clsx(
+                                                'text-xl sm:text-2xl',
+                                                action.disabled ? 'text-text-tertiary' : 'text-white'
+                                            )} />
+                                        </motion.div>
+
+                                        <p className={clsx(
+                                            'text-xs sm:text-sm font-semibold text-center relative z-10',
+                                            action.disabled
+                                                ? 'text-text-tertiary'
+                                                : 'text-text-secondary'
+                                        )}>
+                                            {action.label}
+                                        </p>
+
+                                        {action.disabled && (
+                                            <motion.span
+                                                className="absolute top-1 right-1 sm:top-2 sm:right-2 text-xs bg-background-secondary text-text-tertiary px-2 py-0.5 rounded-full font-medium"
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                transition={{ delay: 0.5 }}
+                                            >
+                                                Locked
+                                            </motion.span>
+                                        )}
+                                    </motion.button>
+                                );
+
+                                // Wrap with Link if not disabled and has href
+                                return !action.disabled && action.href ? (
+                                    <Link to={action.href} key={action.label} className="contents">
+                                        {button}
+                                    </Link>
+                                ) : (
+                                    button
+                                );
+                            })}
                         </div>
                     </Card>
                 </motion.div>
 
                 {/* Progress Timeline */}
-                <motion.div 
+                <motion.div
                     className="mt-8 sm:mt-12"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
