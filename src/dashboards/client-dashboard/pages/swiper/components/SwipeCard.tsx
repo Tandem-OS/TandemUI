@@ -144,7 +144,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const [hasAskedAI, setHasAskedAI] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
-    const [isSwipeInProgress, setIsSwipeInProgress] = useState(false); // NEW: Prevent multiple swipes
+    const [isSwipeInProgress, setIsSwipeInProgress] = useState(false);
     const { playSwipe, playClick } = useAudio();
 
     // Behavioral tracking refs
@@ -155,14 +155,13 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const lastPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
     const lastVelocityUpdate = useRef<number>(Date.now());
     const velocityHistory = useRef<number[]>([]);
-    const swipeCooldownTimer = useRef<NodeJS.Timeout | null>(null); // NEW: Cooldown timer
+    const swipeCooldownTimer = useRef<NodeJS.Timeout | null>(null);
 
     // Motion values
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     const rotate = useTransform(x, [-300, 300], [-25, 25]);
     const opacity = useTransform(x, [-500, -150, 0, 150, 500], [0, 1, 1, 1, 0]);
-    const superLikeOpacity = useMotionValue(0);
 
     // Overlay opacities
     const overlayOpacities = {
@@ -174,11 +173,11 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const lastTap = useRef<number>(0);
     const tapTimeout = useRef<NodeJS.Timeout | null>(null);
 
-    // Update card render time when component changes
+    // FIXED: Reset superLikeOpacity when component changes
     useEffect(() => {
         cardRenderTime.current = Date.now();
         setHasAskedAI(false);
-        setIsSwipeInProgress(false); // NEW: Reset swipe progress on new card
+        setIsSwipeInProgress(false);
 
         // Clear any existing cooldown timer
         if (swipeCooldownTimer.current) {
@@ -271,30 +270,26 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     };
 
     const handleSwipeAction = useCallback((action: keyof typeof ACTIONS | 'ask-ai', source: ActionSource) => {
-        // NEW: Prevent multiple swipes
+        // Prevent multiple swipes
         if (!isActive || isAnimating || isSwipeInProgress) return;
 
         if (isAiModalOpen) setIsAiModalOpen(false);
 
         if (action === 'ask-ai') return;
 
-        // NEW: Set swipe in progress immediately
+        // Set swipe in progress immediately
         setIsSwipeInProgress(true);
 
         const config = ACTIONS[action];
         const behavioralSignal = createBehavioralSignal(action, source);
 
-        // FIXED: Smooth super-like animation without delay
+        // FIXED: Improved super-like animation
         if (action === 'super-like') {
-            // Start super-like overlay and movement simultaneously
-            animate(superLikeOpacity, 1, { duration: 0.2, ease: "easeOut" });
-
             Promise.all([
                 animate(x, config.x, { type: "spring", stiffness: 500, damping: 50 }),
                 animate(y, config.y, { type: "spring", stiffness: 500, damping: 50 })
             ]).then(() => {
                 onSwipe(action, behavioralSignal);
-                // NEW: Reset swipe progress after animation completes
                 setIsSwipeInProgress(false);
             });
         } else {
@@ -303,14 +298,13 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 animate(y, config.y, { type: "spring", stiffness: 500, damping: 50 })
             ]).then(() => {
                 onSwipe(action, behavioralSignal);
-                // NEW: Reset swipe progress after animation completes
                 setIsSwipeInProgress(false);
             });
         }
 
         playSwipe();
 
-        // NEW: Set cooldown timer to prevent rapid consecutive actions
+        // Set cooldown timer to prevent rapid consecutive actions
         if (swipeCooldownTimer.current) {
             clearTimeout(swipeCooldownTimer.current);
         }
@@ -324,12 +318,12 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         dragStartTime.current = null;
         gestureVelocity.current = 0;
         velocityHistory.current = [];
-    }, [isActive, isAnimating, isSwipeInProgress, isAiModalOpen, onSwipe, playSwipe, superLikeOpacity, x, y, component, hasAskedAI, queuePosition]);
+    }, [isActive, isAnimating, isSwipeInProgress, isAiModalOpen, onSwipe, playSwipe, x, y, component, hasAskedAI, queuePosition]);
 
     // Keyboard support
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
-            if (!isActive || isAnimating || isAiModalOpen || isSwipeInProgress) return; // NEW: Check swipe progress
+            if (!isActive || isAnimating || isAiModalOpen || isSwipeInProgress) return;
 
             const action = Object.entries(ACTIONS).find(([_, config]) => config.key === e.key)?.[0];
             if (action) {
@@ -340,10 +334,10 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [isActive, isAnimating, isAiModalOpen, isSwipeInProgress, handleSwipeAction]); // NEW: Added isSwipeInProgress
+    }, [isActive, isAnimating, isAiModalOpen, isSwipeInProgress, handleSwipeAction]);
 
     const handleDragEnd = (_: any, info: PanInfo) => {
-        if (!isActive || isAnimating || isSwipeInProgress) return; // NEW: Check swipe progress
+        if (!isActive || isAnimating || isSwipeInProgress) return;
         setIsDragging(false);
 
         let action: keyof typeof ACTIONS | null = null;
@@ -364,7 +358,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     };
 
     const handleCardClick = useCallback(() => {
-        if (!isActive || isAnimating || isSwipeInProgress) return; // NEW: Check swipe progress
+        if (!isActive || isAnimating || isSwipeInProgress) return;
 
         const now = Date.now();
         if (tapTimeout.current) {
@@ -381,32 +375,32 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
             lastTap.current = now;
             tapTimeout.current = setTimeout(() => { lastTap.current = 0; }, DOUBLE_TAP_DELAY);
         }
-    }, [isActive, isAnimating, isSwipeInProgress, handleSwipeAction]); // NEW: Added isSwipeInProgress
+    }, [isActive, isAnimating, isSwipeInProgress, handleSwipeAction]);
 
     const handlePointerDown = () => {
-        if (!isActive || isAnimating || isSwipeInProgress) return; // NEW: Check swipe progress
+        if (!isActive || isAnimating || isSwipeInProgress) return;
         pointerDownTime.current = Date.now();
     };
 
     const handleDragStart = () => {
-        if (isSwipeInProgress) return; // NEW: Prevent drag if swipe in progress
+        if (isSwipeInProgress) return;
         setIsDragging(true);
         dragStartTime.current = Date.now();
         if (isAiModalOpen) setIsAiModalOpen(false);
     };
 
     const handleAskAI = () => {
-        if (isSwipeInProgress) return; // NEW: Prevent AI modal if swipe in progress
+        if (isSwipeInProgress) return;
         setIsAiModalOpen(prev => !prev);
         if (!isAiModalOpen) {
             setHasAskedAI(true); // Mark that AI was asked for this card
         }
     };
 
-    const canDrag = isActive && !isAnimating && !isAiModalOpen && !isSwipeInProgress; // NEW: Check swipe progress
-    const isDisabled = isDragging || !isActive || isAnimating || isSwipeInProgress; // NEW: Check swipe progress
+    const canDrag = isActive && !isAnimating && !isAiModalOpen && !isSwipeInProgress;
+    const isDisabled = isDragging || !isActive || isAnimating || isSwipeInProgress;
 
-    // NEW: Cleanup function for component unmount
+    // Cleanup function for component unmount
     useEffect(() => {
         return () => {
             if (swipeCooldownTimer.current) {
@@ -432,8 +426,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     );
 
     // Action button component
-    // Action button component (Corrected)
-    // Action button component (Simplest version as requested)
     const ActionButton = ({ action, onClick, special = false }: {
         action: keyof typeof BUTTON_CONFIG,
         onClick: () => void,
@@ -490,16 +482,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 <>
                     <Overlay type="nope" label="NOPE" />
                     <Overlay type="like" label="LIKE" />
-
-                    {/* Super Like overlay - IMPROVED: Smoother animation */}
-                    <motion.div
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 border-2 px-lg py-md font-bold text-para-lg sm:text-h6-sm rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500 to-pink-600 text-white border-pink-400 pointer-events-none shadow-2xl"
-                        style={{ opacity: superLikeOpacity, willChange: 'opacity' }}
-                        animate={{ scale: superLikeOpacity.get() > 0 ? [1, 1.1, 1] : 1 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
-                    >
-                        SUPER LIKE!
-                    </motion.div>
                 </>
             )}
 

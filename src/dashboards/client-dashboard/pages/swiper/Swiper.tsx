@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { FiX, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiAward, FiWifi, FiEye } from 'react-icons/fi';
+import { FiX, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiWifi, FiEye } from 'react-icons/fi';
 import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import KingOfTheHill from './components/KingOfHill';
+import SwiperSummary from './components/SwiperSummary';
 import Modal from '@/comman-components/Modal';
 import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
@@ -43,11 +44,14 @@ import SuccessAnimation from '@/components/animations-components/SuccessAnimatio
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
-const TOTAL_COMPONENTS = 40; // Fixed total components count
 
 // Mock backend check function
 const checkRoundWithBackend = async (roundSummary: RoundSummary): Promise<{ useKingOfHill: boolean }> => {
     await new Promise(resolve => setTimeout(resolve, 500));
+    // Never use King of Hill for round 10 or after
+    if (roundSummary.round_number >= 10) {
+        return { useKingOfHill: false };
+    }
     return { useKingOfHill: roundSummary.round_number % 2 === 0 };
 };
 
@@ -135,28 +139,6 @@ const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetr
     </motion.div>
 );
 
-// Action Button Component
-const ActionButton: React.FC<{
-    onClick: () => void;
-    children: React.ReactNode;
-    variant?: 'primary' | 'secondary';
-    icon: React.ComponentType<{ className?: string }>;
-    disabled?: boolean;
-}> = ({ onClick, children, variant = 'primary', icon: Icon, disabled = false }) => (
-    <motion.button
-        onClick={onClick}
-        disabled={disabled}
-        className={`flex items-center gap-xs sm:gap-sm md:gap-sm px-md py-sm sm:px-lg sm:py-sm md:px-xl md:py-md rounded-lg sm:rounded-xl transition-all duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed ${variant === 'primary'
-            ? 'bg-accent-default text-accent-foreground hover:bg-accent-hover shadow-lg'
-            : 'bg-background-muted text-text-primary hover:bg-background-accent border border-border-default hover:border-border-focus'
-            }`}
-        {...animations.button}
-    >
-        <Icon className="text-icon-sm sm:text-icon-md" />
-        <span className="text-para-sm sm:text-para-md md:text-para-lg font-semibold">{children}</span>
-    </motion.button>
-);
-
 const Swiper: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
@@ -174,7 +156,6 @@ const Swiper: React.FC = () => {
         shouldAskForPreview,
         isInitialLoading,
         loadingError,
-        isRetrying,
         kingOfHill
     } = useSelector((state: RootState) => state.swiper);
 
@@ -401,6 +382,31 @@ const Swiper: React.FC = () => {
         </motion.div>
     );
 
+    const handleStartOver = useCallback(() => {
+        dispatch(resetSwiper());
+    }, [dispatch]);
+
+    const handleGenerateLayout = useCallback(() => {
+        console.log('Generating layout with selected preferences...');
+        
+        // Create detailed session summary
+        const sessionSummary = {
+            session_id: `session_${Date.now()}`,
+            total_rounds: totalRounds,
+            completed_at: new Date().toISOString(),
+            total_choices: userChoices.length,
+            user_choices: userChoices,
+            rounds_data: roundsData,
+            king_of_hill_sessions: kingOfHillSessions
+        };
+        
+        // Store session data in localStorage
+        localStorage.setItem('design_session', JSON.stringify(sessionSummary));
+        
+        // Add your navigation or action logic here
+        // For example: navigate('/generate-layout') or dispatch an action
+    }, [userChoices, roundsData, totalRounds, kingOfHillSessions]);
+
     // Loading state
     if (isInitialLoading) {
         return (
@@ -476,185 +482,17 @@ const Swiper: React.FC = () => {
         );
     }
 
-    // Final completion screen
+    // Final completion screen using SwiperSummary component
     if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive) {
-        const positiveChoicesCount = userChoices.filter(choice =>
-            choice.action === 'like' || choice.action === 'super-like'
-        ).length;
-        const rejectedChoicesCount = userChoices.filter(choice =>
-            choice.action === 'dislike'
-        ).length;
-
-        // Create detailed session summary with King of the Hill data
-        const sessionSummary = {
-            session_id: `session_${Date.now()}`,
-            total_rounds: totalRounds,
-            completed_at: new Date().toISOString(),
-            total_choices: userChoices.length,
-
-            summary_counts: {
-                positive_choices: positiveChoicesCount,
-                rejected_choices: rejectedChoicesCount,
-                super_likes: userChoices.filter(choice =>
-                    choice.behavioral_signals.superlike_used
-                ).length,
-                ai_assistance_used: userChoices.filter(choice =>
-                    choice.behavioral_signals.is_asked_ai
-                ).length
-            },
-
-            behavioral_insights: {
-                average_hesitation_ms: userChoices.length > 0
-                    ? userChoices.reduce((sum, choice) => sum + choice.behavioral_signals.hesitation_ms, 0) / userChoices.length
-                    : 0,
-                average_view_duration_ms: userChoices.length > 0
-                    ? userChoices.reduce((sum, choice) => sum + choice.behavioral_signals.view_duration_ms, 0) / userChoices.length
-                    : 0,
-                gesture_actions: userChoices.filter(choice =>
-                    choice.behavioral_signals.action_source === 'gesture'
-                ).length,
-                button_actions: userChoices.filter(choice =>
-                    choice.behavioral_signals.action_source === 'button'
-                ).length,
-                keyboard_actions: userChoices.filter(choice =>
-                    choice.behavioral_signals.action_source === 'keyboard'
-                ).length
-            },
-
-            rounds_data: roundsData.map((round, index) => {
-                const roundNumber = index + 1;
-                const roundChoices = userChoices.filter(choice => choice.round === roundNumber);
-
-                const likedChoices = roundChoices.filter(choice =>
-                    choice.action === 'like' || choice.action === 'super-like'
-                );
-                const rejectedChoices = roundChoices.filter(choice =>
-                    choice.action === 'dislike'
-                );
-
-                return {
-                    round_number: roundNumber,
-                    category: round.category,
-                    choices: likedChoices,
-                    rejected: rejectedChoices,
-                    total_swipes: roundChoices.length,
-                    breakdown: {
-                        likes: likedChoices.length,
-                        rejects: rejectedChoices.length,
-                        super_likes: roundChoices.filter(choice =>
-                            choice.behavioral_signals.superlike_used
-                        ).length,
-                        ai_assistance: roundChoices.filter(choice =>
-                            choice.behavioral_signals.is_asked_ai
-                        ).length
-                    }
-                };
-            }),
-
-            king_of_hill_sessions: kingOfHillSessions.map(session => ({
-                round_number: session.round_number,
-                category: session.category,
-                final_winner: {
-                    id: session.final_winner_id,
-                    title: session.components.find(c => c.component_id === session.final_winner_id)?.title || 'Unknown'
-                },
-                total_matches: session.matches.length,
-                session_duration_ms: session.session_duration_ms,
-                matches_detail: session.matches.map(match => {
-                    const defender = session.components.find(c => c.component_id === match.defender_id);
-                    const challenger = session.components.find(c => c.component_id === match.challenger_id);
-                    const winner = session.components.find(c => c.component_id === match.winner_id);
-
-                    return {
-                        match_number: match.match_number,
-                        defender: defender?.title || 'Unknown',
-                        challenger: challenger?.title || 'Unknown',
-                        winner: winner?.title || 'Unknown',
-                        match_duration_ms: match.match_duration_ms,
-                        behavioral_signals: {
-                            hesitation_ms: match.behavioral_signals.hesitation_ms,
-                            view_duration_ms: match.behavioral_signals.view_duration_ms,
-                            hesitation_readable: `${(match.behavioral_signals.hesitation_ms / 1000).toFixed(2)}s`,
-                            view_duration_readable: `${(match.behavioral_signals.view_duration_ms / 1000).toFixed(2)}s`
-                        }
-                    };
-                })
-            })),
-
-            total_king_of_hill_sessions: kingOfHillSessions.length,
-            king_of_hill_winners: kingOfHillSessions.map(session => ({
-                round: session.round_number,
-                category: session.category,
-                winner: session.components.find(c => c.component_id === session.final_winner_id)?.title || 'Unknown',
-                winner_id: session.final_winner_id
-            }))
-        };
-
-        console.log('='.repeat(80));
-        console.log('[SESSION COMPLETE - FULL DATA WITH KING OF THE HILL DETAILS]');
-        console.log(sessionSummary, null, 2);
-        console.log('='.repeat(80));
-
         return (
-            <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
-                <div className="w-full max-w-5xl mx-auto">
-                    <motion.div {...animations.page} className="text-center space-y-md sm:space-y-lg md:space-y-xl">
-                        <motion.div
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
-                            className="flex justify-center mb-md sm:mb-lg md:mb-xl"
-                        >
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-background-success rounded-full flex items-center justify-center relative">
-                                <FiCheckCircle className="text-icon-xl sm:text-icon-2xl md:text-[3rem] text-text-success" />
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ delay: 0.8, duration: 0.5 }}
-                                    className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 md:-top-2 md:-right-2 w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-accent-default rounded-full flex items-center justify-center"
-                                >
-                                    <FiAward className="text-accent-foreground text-icon-sm sm:text-icon-md" />
-                                </motion.div>
-                            </div>
-                        </motion.div>
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.5, duration: 0.7 }}
-                            className="space-y-xs sm:space-y-sm md:space-y-sm"
-                        >
-                            <h1 className="text-h3-sm sm:text-h2-sm md:text-h2-md font-bold text-text-primary">
-                                Design Discovery Complete!
-                            </h1>
-                            <p className="text-para-sm sm:text-para-md md:text-para-lg text-text-secondary font-medium max-w-3xl mx-auto leading-relaxed px-md">
-                                Great job! You've swiped through <span className="text-accent-default font-semibold">{TOTAL_COMPONENTS} components</span> and selected <span className="text-accent-default font-semibold">{positiveChoicesCount} favorites</span> across <span className="text-accent-default font-semibold">{totalRounds} categories</span>.
-                            </p>
-                        </motion.div>
-                        <motion.div
-                            initial={{ y: 40, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 1.1, duration: 0.6 }}
-                            className="flex flex-col sm:flex-row gap-sm sm:gap-sm md:gap-md justify-center items-center pt-md sm:pt-lg md:pt-xl"
-                        >
-                            <ActionButton onClick={() => dispatch(resetSwiper())} variant="secondary" icon={FiRefreshCw} disabled={isRetrying}>
-                                Start Over
-                            </ActionButton>
-                            <ActionButton
-                                onClick={() => {
-                                    console.log('Generating layout with selected preferences...');
-                                    // Store session data in localStorage or send to backend
-                                    localStorage.setItem('design_session', JSON.stringify(sessionSummary));
-                                    // Add your navigation or action logic here
-                                }}
-                                variant="primary"
-                                icon={FiCheckCircle}
-                            >
-                                Let's Generate Layout
-                            </ActionButton>
-                        </motion.div>
-                    </motion.div>
-                </div>
-            </div>
+            <SwiperSummary
+                userChoices={userChoices}
+                roundsData={roundsData}
+                totalRounds={totalRounds}
+                kingOfHillSessions={kingOfHillSessions}
+                onStartOver={handleStartOver}
+                onGenerateLayout={handleGenerateLayout}
+            />
         );
     }
 
