@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiInbox, FiRefreshCw } from 'react-icons/fi';
 import SwipeCard from './SwipeCard';
@@ -25,7 +25,7 @@ const EmptyState: React.FC<{ onRetry?: () => void }> = ({ onRetry }) => (
         <div className="w-20 h-20 bg-background-muted rounded-full flex items-center justify-center">
             <FiInbox className="text-icon-2xl text-text-tertiary" />
         </div>
-        
+
         <div className="space-y-sm">
             <h3 className="text-h4-sm font-semibold text-text-primary">No components available</h3>
             <p className="text-text-secondary text-para-md max-w-md">
@@ -59,6 +59,16 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
     const [currentIndex, setCurrentIndex] = useState(0);
     const [lastAction, setLastAction] = useState<SwipeAction | null>(null);
 
+    // 🎯 TIMING FIX: Add proper timing states
+    const [cardTiming, setCardTiming] = useState({
+        cardVisibleTime: null as number | null,
+        interactionStartTime: null as number | null,
+        isCardReady: false
+    });
+
+    // Track round start time (when first card becomes visible)
+    const roundStartTimeRef = useRef<number | null>(null);
+
     const cardStack = useMemo(() => {
         // Return empty if no components
         if (!components || components.length === 0) {
@@ -81,7 +91,51 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
         return stack.reverse(); // Reverse to render from back to front
     }, [components, currentIndex]);
 
-    const handleSwipe = useCallback(async (action: SwipeAction, signals: BehavioralSignal) => {
+    // 🎯 TIMING FIX: Start timing when card is fully visible (after animations)
+    useEffect(() => {
+        if (cardStack.length > 0) {
+            // Set round start time only once (for first card)
+            if (!roundStartTimeRef.current) {
+                roundStartTimeRef.current = Date.now();
+            }
+
+            // Wait for card animation to complete, then start timing
+            const timer = setTimeout(() => {
+                const cardVisibleTime = Date.now();
+                setCardTiming({
+                    cardVisibleTime: cardVisibleTime,
+                    interactionStartTime: null,
+                    isCardReady: true
+                });
+
+            }, 500); // Wait for all animations to complete
+
+            return () => {
+                clearTimeout(timer);
+                // Reset timing when card changes
+                setCardTiming({
+                    cardVisibleTime: null,
+                    interactionStartTime: null,
+                    isCardReady: false
+                });
+            };
+        }
+    }, [currentIndex, cardStack.length]);
+
+
+
+    // 🎯 TIMING FIX: Handle interaction start (when user actually starts swiping/clicking)
+    const handleInteractionStart = useCallback(() => {
+        if (cardTiming.isCardReady && !cardTiming.interactionStartTime) {
+            const interactionTime = Date.now();
+            setCardTiming(prev => ({
+                ...prev,
+                interactionStartTime: interactionTime
+            }));
+        }
+    }, [cardTiming.isCardReady, cardTiming.interactionStartTime, currentIndex]);
+
+    const handleSwipe = useCallback(async (action: SwipeAction, originalSignals: BehavioralSignal) => {
         if (isAnimating || cardStack.length === 0) return;
 
         onAnimationStart(); // Lock the UI
@@ -92,11 +146,34 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
             return;
         }
 
+        // 🎯 TIMING FIX: Calculate accurate timing
+        const currentTime = Date.now();
+
+        // VIEW DURATION = Card visible hone se swipe tak ka time
+        const actualViewDuration = cardTiming.cardVisibleTime
+            ? Math.max(0, currentTime - cardTiming.cardVisibleTime)
+            : 0;
+
+        // HESITATION = User interaction start se swipe complete tak ka time
+        const hesitationTime = cardTiming.interactionStartTime
+            ? Math.max(0, currentTime - cardTiming.interactionStartTime)
+            : 0;
+
+
+        // 🎯 ENHANCED BEHAVIORAL SIGNALS
+        const enhancedSignals: BehavioralSignal = {
+            ...originalSignals,
+            view_duration_ms: actualViewDuration, // Card visible se swipe tak
+            hesitation_ms: hesitationTime, // Interaction start se swipe tak
+
+        };
+
+     
         // Store the action for exit animation
         setLastAction(action);
 
-        // Inform parent about the swipe action with behavioral signals
-        onSwipe(action, topCard.component, signals);
+        // Inform parent about the swipe action with enhanced behavioral signals
+        onSwipe(action, topCard.component, enhancedSignals);
 
         // Wait a bit for the swipe animation to feel natural before updating index
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -125,7 +202,8 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
         onSwipe,
         currentIndex,
         components.length,
-        onComplete
+        onComplete,
+        cardTiming
     ]);
 
     const getStackConfig = (stackIndex: number, totalInStack: number) => {
@@ -136,14 +214,14 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
                 return { scale: 1, zIndex: 40, y: 0, opacity: 1 };
             case 1: // Second card
                 return {
-                    scale: 0.92,
+                    scale: 0.95,
                     zIndex: 30,
                     y: 25,
                     opacity: 1
                 };
             case 2: // Third card
                 return {
-                    scale: 0.84,
+                    scale: 0.9,
                     zIndex: 20,
                     y: 50,
                     opacity: 1
@@ -159,8 +237,6 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
                 return { x: 500, y: 0, opacity: 0, scale: 0.9 };
             case 'dislike':
                 return { x: -500, y: 0, opacity: 0, scale: 0.9 };
-            case 'save':
-                return { x: 0, y: -500, opacity: 0, scale: 0.9 };
             case 'super-like':
                 return { x: 0, y: 500, opacity: 0, scale: 1.1, rotate: 0 };
             default:
@@ -214,6 +290,9 @@ const SwiperStack: React.FC<SwiperStackProps> = ({
                                     zIndex: config.zIndex,
                                     pointerEvents: isTopCard ? 'auto' : 'none'
                                 }}
+                                // 🎯 TIMING FIX: Add interaction start tracking
+                                onTouchStart={isTopCard ? handleInteractionStart : undefined}
+                                onMouseDown={isTopCard ? handleInteractionStart : undefined}
                             >
                                 <SwipeCard
                                     component={stackCard.component}

@@ -130,6 +130,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     component.component_id === defender.component_id ? challenger.component_id : defender.component_id
                 )}
                 disabled={isTransitioning}
+                // Only animate if this card is shaking
                 animate={
                     isShaking
                         ? {
@@ -137,20 +138,17 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                             rotate: isMobile ? [0, -4, 4, -2, 2, 0] : [0, -8, 8, -6, 6, -3, 3, 0],
                             scale: isMobile ? [1, 1.03, 1, 1.02, 1, 1] : [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
                         }
-                        : {
-                            opacity: 1,
-                            scale: 1,
-                            x: 0,
-                            rotate: 0
-                        }
+                        : undefined  // Don't animate if not shaking
                 }
-                transition={{
-                    duration: isShaking ? 0.4 : 0.3,
-                    ease: isShaking ? "easeInOut" : "easeOut",
-                    ...(isShaking && {
-                        times: isMobile ? [0, 0.2, 0.4, 0.6, 0.8, 1] : [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
-                    })
-                }}
+                transition={
+                    isShaking
+                        ? {
+                            duration: 0.4,
+                            ease: "easeInOut",
+                            times: isMobile ? [0, 0.2, 0.4, 0.6, 0.8, 1] : [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
+                        }
+                        : undefined
+                }
                 className={`
                     relative overflow-hidden rounded-xl shadow-lg transition-all w-full h-full
                     ${isWinner ? 'ring-4 ring-accent-default shadow-2xl' : ''}
@@ -160,7 +158,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 onMouseEnter={() => !isTransitioning && !isMobile && setIsCardHovered(true)}
                 onMouseLeave={() => !isMobile && setIsCardHovered(false)}
             >
-                {/* Defender Badge */}
+                {/* Defender Badge - Only animate on initial render */}
                 {isDefender && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -173,7 +171,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     </motion.div>
                 )}
 
-                {/* Challenger Badge */}
+                {/* Challenger Badge - Only animate on initial render */}
                 {!isDefender && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -186,10 +184,10 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     </motion.div>
                 )}
 
-                {/* Image with hover scale */}
+                {/* Image with hover scale - Only animate on hover */}
                 <motion.div
                     className="w-full h-full"
-                    animate={isCardHovered && !isMobile ? { scale: 1.05 } : { scale: 1 }}
+                    animate={isCardHovered && !isMobile && !isShaking ? { scale: 1.05 } : { scale: 1 }}
                     transition={{ duration: 0.3 }}
                 >
                     <img
@@ -199,24 +197,20 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     />
                 </motion.div>
 
-                {/* Enhanced gradient overlay */}
+                {/* Enhanced gradient overlay - Static, no animation */}
                 <div className={`
                     absolute bottom-0 left-0 right-0 
                     bg-gradient-to-t from-black/80 via-black/40 to-transparent 
                     p-md ${isMobile ? 'pb-sm' : ''}
                 `}>
-                    <motion.div
-                        initial={{ y: 10, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                    >
+                    <div>
                         <h3 className={`text-white ${isMobile ? 'text-para-md' : 'text-para-lg'} font-semibold mb-xs`}>
                             {component.title}
                         </h3>
                         <p className={`text-white/90 ${isMobile ? 'text-para-xs' : 'text-para-sm'}`}>
                             {component.vibe}
                         </p>
-                    </motion.div>
+                    </div>
                 </div>
 
                 {/* Winner Overlay - Show after shake completes */}

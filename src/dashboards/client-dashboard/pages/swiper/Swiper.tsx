@@ -38,6 +38,7 @@ import {
     startKingOfHill,
     recordKingOfHillMatch,
     endKingOfHill,
+    unlockTransition,
 } from '@/features/swiper/swiperSlice';
 import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
 
@@ -80,39 +81,67 @@ const animations: { [key: string]: Variants | any } = {
 // Skeleton Card Component
 const SkeletonCard: React.FC = () => (
     <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden animate-pulse">
-        <div className="grid grid-cols-1 lg:grid-cols-12">
-            <div className="lg:hidden bg-background-muted-low h-48 sm:h-56" />
-            <div className="lg:col-span-4 bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
-                <div className="space-y-sm md:space-y-md lg:space-y-lg">
-                    <div className="flex items-center justify-between gap-xs">
-                        <div className="h-6 bg-background-muted-low rounded-md w-20" />
-                        <div className="h-6 bg-background-muted-low rounded-md w-16" />
+        {/* Mobile Layout Skeleton */}
+        <div className="block lg:!hidden">
+            <div className="bg-background-secondary h-48 sm:h-56" />
+
+            <div className="bg-background-primary-2 p-md sm:p-lg">
+                <div className="space-y-md">
+                    <div className="flex justify-between gap-xs">
+                        <div className="h-6 bg-background-secondary rounded w-20" />
+                        <div className="h-6 bg-background-secondary rounded w-16" />
                     </div>
-                    <div className="space-y-xs sm:space-y-sm md:space-y-md">
-                        <div className="h-8 bg-background-muted-low rounded-md w-3/4" />
-                        <div className="space-y-2">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="h-4 bg-background-muted-low rounded" style={{ width: `${100 - i * 10}%` }} />
-                            ))}
+
+                    <div className="h-8 bg-background-secondary rounded w-3/4" />
+
+                    <div className="space-y-2">
+                        <div className="h-4 bg-background-secondary rounded w-full" />
+                        <div className="h-4 bg-background-secondary rounded w-4/5" />
+                        <div className="h-4 bg-background-secondary rounded w-3/5" />
+                    </div>
+
+                    <div className="flex gap-sm">
+                        <div className="h-6 bg-background-secondary rounded w-12" />
+                        <div className="h-6 bg-background-secondary rounded w-12" />
+                        <div className="h-6 bg-background-secondary rounded w-12" />
+                    </div>
+
+                    <div className="h-4 bg-background-secondary rounded w-1/2" />
+                </div>
+            </div>
+        </div>
+
+        {/* Desktop Layout Skeleton */}
+        <div className="!hidden lg:!block relative h-[370px] 2xl:h-[470px]">
+            <div className="absolute inset-0 bg-background-secondary" />
+
+            <div className="absolute top-lg left-lg w-12 h-12 bg-background-primary rounded-full" />
+
+            <div className="absolute bottom-0 left-0 right-0 bg-background-primary-2 px-lg py-md">
+                <div className="flex justify-between gap-md">
+                    <div className="space-y-sm flex-1">
+                        <div className="h-8 bg-background-secondary rounded w-3/4" />
+                        <div className="flex gap-sm">
+                            <div className="h-6 bg-background-secondary rounded-full w-16" />
+                            <div className="h-6 bg-background-secondary rounded-full w-16" />
+                            <div className="h-6 bg-background-secondary rounded-full w-16" />
                         </div>
-                        <div className="flex flex-wrap gap-xs sm:gap-xs md:gap-sm">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="h-6 bg-background-muted-low rounded w-12" />
-                            ))}
-                        </div>
-                        <div className="h-4 bg-background-muted-low rounded w-1/2" />
+                    </div>
+                    <div className="flex gap-sm">
+                        <div className="h-8 bg-background-secondary rounded w-20" />
+                        <div className="h-8 bg-background-secondary rounded w-16" />
                     </div>
                 </div>
             </div>
-            <div className="hidden lg:block bg-background-muted-low lg:col-span-8" />
         </div>
-        <div className="px-sm py-sm md:px-md md:py-md">
-            <div className="flex justify-center">
-                <div className="flex items-center justify-center gap-sm">
-                    {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className={`bg-background-muted-low rounded-lg ${i === 3 ? 'w-16 h-16 rounded-full' : 'w-12 h-16'}`} />
-                    ))}
-                </div>
+
+        {/* Action Buttons */}
+        <div className="px-md py-md">
+            <div className="flex justify-center gap-md">
+                <div className="w-16 h-16 bg-background-secondary rounded-full" />
+                <div className="w-12 h-16 bg-background-secondary rounded-lg" />
+                <div className="w-12 h-16 bg-background-secondary rounded-lg" />
+                <div className="w-12 h-16 bg-background-secondary rounded-lg" />
             </div>
         </div>
     </div>
@@ -328,6 +357,10 @@ const Swiper: React.FC = () => {
                                 dispatch(setShouldAskForPreview(true));
                             } else if (!isLastRound) {
                                 dispatch(moveToNextRound());
+                                setTimeout(() => {
+                                    dispatch(unlockTransition());
+                                }, 1000);
+
                             }
                         }, TIMINGS.CELEBRATION);
                     }
@@ -350,6 +383,7 @@ const Swiper: React.FC = () => {
             setKingOfHillSessions([]);
         };
     }, []);
+
 
     const handleAnimationStart = useCallback(() => dispatch(setAnimating(true)), [dispatch]);
     const handleAnimationComplete = useCallback(() => dispatch(setAnimating(false)), [dispatch]);
@@ -388,7 +422,7 @@ const Swiper: React.FC = () => {
 
     const handleGenerateLayout = useCallback(() => {
         console.log('Generating layout with selected preferences...');
-        
+
         // Create detailed session summary
         const sessionSummary = {
             session_id: `session_${Date.now()}`,
@@ -399,10 +433,10 @@ const Swiper: React.FC = () => {
             rounds_data: roundsData,
             king_of_hill_sessions: kingOfHillSessions
         };
-        
+
         // Store session data in localStorage
         localStorage.setItem('design_session', JSON.stringify(sessionSummary));
-        
+
         // Add your navigation or action logic here
         // For example: navigate('/generate-layout') or dispatch an action
     }, [userChoices, roundsData, totalRounds, kingOfHillSessions]);
@@ -454,21 +488,6 @@ const Swiper: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <motion.div
-                    className="absolute bottom-xs sm:bottom-sm md:bottom-0 left-0 right-0 flex justify-center text-text-secondary text-para-sm text-center pb-xs sm:pb-sm md:pb-md pt-xs sm:pt-sm md:pt-lg z-30"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                >
-                    <div className="flex items-center gap-sm px-md">
-                        <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        >
-                            <FiRefreshCw className="text-icon-sm" />
-                        </motion.div>
-                        <p>Loading amazing designs...</p>
-                    </div>
-                </motion.div>
             </div>
         );
     }
@@ -581,16 +600,7 @@ const Swiper: React.FC = () => {
                         ) : null}
                     </AnimatePresence>
                 </div>
-                {!showRoundCompletion && !kingOfHill.isActive && (
-                    <motion.div
-                        className="absolute bottom-xs sm:bottom-sm md:bottom-0 left-0 right-0 flex justify-center text-text-secondary text-para-xs sm:text-para-sm md:text-para-md text-center pb-xs sm:pb-sm md:pb-md pt-xs sm:pt-sm md:pt-lg z-10 pointer-events-none"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: TIMINGS.INSTRUCTION_DELAY / 1000, duration: 0.8 }}
-                    >
-                        <p className="px-md">Swipe or use buttons • Double tap to super like</p>
-                    </motion.div>
-                )}
+
             </div>
 
             {/* Preview Ask Modal */}
@@ -599,6 +609,10 @@ const Swiper: React.FC = () => {
                 onClose={() => {
                     dispatch(handleSkipPreview());
                     dispatch(moveToNextRound());
+                    // Unlock after 1 second to prevent rapid clicks
+                    setTimeout(() => {
+                        dispatch(unlockTransition());
+                    }, 1000);
                 }}
                 title="Preview Your Design?"
                 size="sm"
@@ -608,6 +622,10 @@ const Swiper: React.FC = () => {
                             onClick={() => {
                                 dispatch(handleSkipPreview());
                                 dispatch(moveToNextRound());
+
+                                setTimeout(() => {
+                                    dispatch(unlockTransition());
+                                }, 1000);
                             }}
                             className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
                             {...animations.button}
@@ -654,6 +672,10 @@ const Swiper: React.FC = () => {
                 onContinue={() => {
                     dispatch(handlePreviewContinue());
                     dispatch(moveToNextRound());
+
+                    setTimeout(() => {
+                        dispatch(unlockTransition());
+                    }, 1000);
                 }}
                 roundsCompleted={currentRound + 1}
             />

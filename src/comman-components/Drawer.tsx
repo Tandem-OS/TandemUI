@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { clsx } from 'clsx';
 import { RiCloseLine } from 'react-icons/ri';
 
+// Defines the properties the Drawer component accepts
 interface DrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -19,6 +21,7 @@ const Drawer: React.FC<DrawerProps> = ({
 }) => {
   const drawerRef = useRef<HTMLDivElement>(null);
 
+  // Effect to handle closing when clicking outside and to prevent body scroll
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
@@ -31,51 +34,86 @@ const Drawer: React.FC<DrawerProps> = ({
       document.body.style.overflow = 'hidden';
     }
 
+    // Cleanup function
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
 
+  // Animation variants for the backdrop overlay
+  const backdropVariants: Variants = {
+    hidden: {
+      opacity: 0,
+    },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.3,
+        ease: 'easeOut',
+      },
+    },
+  };
+
+  // Animation variants for the drawer panel
+  const drawerVariants: Variants = {
+    hidden: {
+      x: position === 'left' ? '-100%' : '100%',
+    },
+    visible: {
+      x: 0,
+      transition: {
+        duration: 0.3,
+        ease: 'easeOut',
+      },
+    },
+  };
+
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className={clsx(
-          'fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 lg:hidden',
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        )}
-        onClick={onClose}
-      />
+    <AnimatePresence mode="wait">
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={backdropVariants}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
+            onClick={onClose}
+          />
 
-      {/* Drawer */}
-      <div
-        ref={drawerRef}
-        className={clsx(
-          'fixed top-0 h-full bg-background-primary z-50 transition-transform duration-300 lg:hidden',
-          width,
-          position === 'left' ? 'left-0' : 'right-0',
-          isOpen
-            ? 'translate-x-0'
-            : position === 'left'
-            ? '-translate-x-full'
-            : 'translate-x-full'
-        )}
-      >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-md right-md p-xs rounded-lg hover:bg-background-secondary transition-colors"
-        >
-          <RiCloseLine className="text-xl text-text-secondary" />
-        </button>
+          {/* Drawer Panel */}
+          <motion.div
+            ref={drawerRef}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={drawerVariants}
+            className={clsx(
+              'fixed top-0 h-full bg-background-primary z-[101] shadow-2xl',
+              width,
+              position === 'left' ? 'left-0' : 'right-0',
+              'will-change-transform' // Animation performance optimization
+            )}
+          >
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute top-md right-md p-xs rounded-lg hover:bg-background-secondary transition-colors"
+              aria-label="Close drawer"
+            >
+              <RiCloseLine className="text-xl text-text-secondary" />
+            </button>
 
-        {/* Content */}
-        <div className="h-full overflow-y-auto">
-          {children}
-        </div>
-      </div>
-    </>
+            {/* Content - REVERTED to your original layout */}
+            <div className="h-full overflow-y-auto">
+              {children}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 };
 
