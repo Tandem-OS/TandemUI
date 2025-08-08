@@ -11,7 +11,7 @@ import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader.tsx';
 import { useNavigate } from 'react-router-dom';
 import { createProject, getProjectByClientEmail } from '@/lib/requests/ProjectRequest.tsx';
 import { useSelector } from 'react-redux';
-import type { RootState } from '../../store';
+import type { RootState } from '@/store';
 
 // Types
 interface OnboardingFormData {
@@ -169,7 +169,8 @@ const OnboardingForm: React.FC = () => {
     const [buttonState, setButtonState] = useState<'default' | 'saving' | 'saved'>('default');
     const navigate = useNavigate();
 
-    const designer_email = useSelector((state: RootState) => state.auth.user.email)!;
+    const client_email = useSelector((state: RootState) => state.auth.user.email)!;
+    const designer_email = useSelector((state: RootState) => state.auth.user.designerEmail);
 
     const fetchForm = async (client_email: string) => {
         setLoading(true);
@@ -202,8 +203,6 @@ const OnboardingForm: React.FC = () => {
         }
         setLoading(false)
     }
-
-    const client_email = "client2@gmail.com";
 
     useEffect(() => {
         if (client_email) {
@@ -265,8 +264,8 @@ const OnboardingForm: React.FC = () => {
             const { projectName, logo, projectType, businessDescription, budget, notReadyToShare, notes } = formData;
 
             const payload = {
-                designer_email,
-                client_email: 'client2@gmail.com',
+                designer_email: designer_email ?? "",
+                client_email,
                 project_name: projectName,
                 logo: logo || "",
                 project_type: projectType,

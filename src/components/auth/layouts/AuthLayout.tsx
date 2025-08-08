@@ -10,6 +10,7 @@ import { pageVariants } from "../../../lib/animations/variants";
 import SimpleHeader from '../../Headers/SimpleHeader/SimpleHeader';
 import GoogleLogin from '../form/GoogleLogin';
 import MagicLinkLogin from '@/components/auth/form/components/MagicLink';
+import ContactDesignerMessage from '@/components/auth/form/components/ContactDesignerMessage';
 
 export type AuthVariant = 'split' | 'centered';
 
@@ -30,6 +31,7 @@ const routes = [
     { path: 'new-password', element: NewPasswordForm, key: 'password' },
     { path: 'google-login', element: GoogleLogin, key: 'google' },
     { path: 'magic-link', element: MagicLinkLogin, key: 'magicLink' },
+    { path: 'magic-link-message', element: ContactDesignerMessage, key: 'magicLinkMessage' },
 ];
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
