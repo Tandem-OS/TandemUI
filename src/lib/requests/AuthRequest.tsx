@@ -77,3 +77,7 @@ export const handleRefreshToken = async () => {
 export const magicLinkData = async (values: MagicLinkValues) => {
   return await api.post('/magic-link/send', values)
 }
+
+export const callMagicLinkVerification = async () =>{
+  return await api.get('/magic-link/secure')
+}
