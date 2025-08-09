@@ -26,6 +26,8 @@ interface SwiperSummaryProps {
     kingOfHillSessions?: any[];
     onStartOver?: () => void;
     onGenerateLayout?: () => void;
+
+
 }
 
 // Mock data for demo
@@ -82,7 +84,9 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
     userChoices = mockData.userChoices,
     roundsData = mockData.roundsData,
     onStartOver = () => console.log('Start Over'),
-    onGenerateLayout = () => console.log('Generate Layout')
+    onGenerateLayout = () => console.log('Generate Layout'),
+    totalRounds,
+    kingOfHillSessions
 }) => {
     const [showInsights, setShowInsights] = useState(false);
 
@@ -168,7 +172,33 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
         fullMark: 100,
     }));
 
-    
+    const handleGenerateLayoutClick = () => {
+        const sessionSummary = {
+            session_id: `session_${Date.now()}`,
+            total_rounds: totalRounds,
+            completed_at: new Date().toISOString(),
+            total_choices: userChoices.length,
+            summary_counts: {
+                likes: analytics.likedCount,
+                super_likes: analytics.superLikesCount,
+                rejected: analytics.rejectedCount,
+                ai_assistance_used: analytics.aiAssistedCount,
+            },
+            behavioral_insights: {
+                overall_average_hesitation_ms: userChoices.reduce((sum, choice) => sum + (choice.behavioral_signals?.hesitation_ms || 0), 0) / userChoices.length,
+                overall_average_view_duration_ms: userChoices.reduce((sum, choice) => sum + (choice.behavioral_signals?.view_duration_ms || 0), 0) / userChoices.length,
+            },
+            user_choices_detailed: userChoices,
+            king_of_hill_sessions: kingOfHillSessions
+        };
+
+        console.log('='.repeat(80));
+        console.log('✅ [SESSION LAYOUT DATA GENERATED]');
+        console.log(JSON.stringify(sessionSummary, null, 2));
+        console.log('='.repeat(80));
+
+        onGenerateLayout();
+    };
 
     return (
         <div className="min-h-screen bg-background-secondary">
@@ -443,7 +473,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                             </button>
 
                             <button
-                                onClick={onGenerateLayout}
+                                onClick={handleGenerateLayoutClick}
                                 className="flex-1 px-xl py-lg bg-accent-default hover:bg-accent-hover text-white rounded-xl lg:rounded-2xl font-bold text-para-md sm:text-para-lg transition-all duration-300 flex items-center justify-center gap-sm shadow-xl hover:shadow-2xl"
                             >
                                 <FiZap className="text-icon-md" />

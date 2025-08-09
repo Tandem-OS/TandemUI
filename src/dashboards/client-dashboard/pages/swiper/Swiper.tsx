@@ -83,53 +83,53 @@ const SkeletonCard: React.FC = () => (
     <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden animate-pulse">
         {/* Mobile Layout Skeleton */}
         <div className="block lg:!hidden">
-            <div className="bg-background-secondary h-48 sm:h-56" />
+            <div className="bg-background-secondary-2 h-48 sm:h-56" />
 
             <div className="bg-background-primary-2 p-md sm:p-lg">
                 <div className="space-y-md">
                     <div className="flex justify-between gap-xs">
-                        <div className="h-6 bg-background-secondary rounded w-20" />
-                        <div className="h-6 bg-background-secondary rounded w-16" />
+                        <div className="h-6 bg-background-secondary-2 rounded w-20" />
+                        <div className="h-6 bg-background-secondary-2 rounded w-16" />
                     </div>
 
-                    <div className="h-8 bg-background-secondary rounded w-3/4" />
+                    <div className="h-8 bg-background-secondary-2 rounded w-3/4" />
 
                     <div className="space-y-2">
-                        <div className="h-4 bg-background-secondary rounded w-full" />
-                        <div className="h-4 bg-background-secondary rounded w-4/5" />
-                        <div className="h-4 bg-background-secondary rounded w-3/5" />
+                        <div className="h-4 bg-background-secondary-2 rounded w-full" />
+                        <div className="h-4 bg-background-secondary-2 rounded w-4/5" />
+                        <div className="h-4 bg-background-secondary-2 rounded w-3/5" />
                     </div>
 
                     <div className="flex gap-sm">
-                        <div className="h-6 bg-background-secondary rounded w-12" />
-                        <div className="h-6 bg-background-secondary rounded w-12" />
-                        <div className="h-6 bg-background-secondary rounded w-12" />
+                        <div className="h-6 bg-background-secondary-2 rounded w-12" />
+                        <div className="h-6 bg-background-secondary-2 rounded w-12" />
+                        <div className="h-6 bg-background-secondary-2 rounded w-12" />
                     </div>
 
-                    <div className="h-4 bg-background-secondary rounded w-1/2" />
+                    <div className="h-4 bg-background-secondary-2 rounded w-1/2" />
                 </div>
             </div>
         </div>
 
         {/* Desktop Layout Skeleton */}
         <div className="!hidden lg:!block relative h-[370px] 2xl:h-[470px]">
-            <div className="absolute inset-0 bg-background-secondary" />
+            <div className="absolute inset-0 bg-background-secondary-2" />
 
-            <div className="absolute top-lg left-lg w-12 h-12 bg-background-primary rounded-full" />
+            <div className="absolute top-lg left-lg w-12 h-12 bg-background-primary-2 rounded-full" />
 
             <div className="absolute bottom-0 left-0 right-0 bg-background-primary-2 px-lg py-md">
                 <div className="flex justify-between gap-md">
                     <div className="space-y-sm flex-1">
-                        <div className="h-8 bg-background-secondary rounded w-3/4" />
+                        <div className="h-8 bg-background-secondary-2 rounded w-3/4" />
                         <div className="flex gap-sm">
-                            <div className="h-6 bg-background-secondary rounded-full w-16" />
-                            <div className="h-6 bg-background-secondary rounded-full w-16" />
-                            <div className="h-6 bg-background-secondary rounded-full w-16" />
+                            <div className="h-6 bg-background-secondary-2 rounded-full w-16" />
+                            <div className="h-6 bg-background-secondary-2 rounded-full w-16" />
+                            <div className="h-6 bg-background-secondary-2 rounded-full w-16" />
                         </div>
                     </div>
                     <div className="flex gap-sm">
-                        <div className="h-8 bg-background-secondary rounded w-20" />
-                        <div className="h-8 bg-background-secondary rounded w-16" />
+                        <div className="h-8 bg-background-secondary-2 rounded w-20" />
+                        <div className="h-8 bg-background-secondary-2 rounded w-16" />
                     </div>
                 </div>
             </div>
@@ -138,10 +138,10 @@ const SkeletonCard: React.FC = () => (
         {/* Action Buttons */}
         <div className="px-md py-md">
             <div className="flex justify-center gap-md">
-                <div className="w-16 h-16 bg-background-secondary rounded-full" />
-                <div className="w-12 h-16 bg-background-secondary rounded-lg" />
-                <div className="w-12 h-16 bg-background-secondary rounded-lg" />
-                <div className="w-12 h-16 bg-background-secondary rounded-lg" />
+                <div className="w-16 h-16 bg-background-secondary-2 rounded-full" />
+                <div className="w-12 h-16 bg-background-secondary-2 rounded-lg" />
+                <div className="w-12 h-16 bg-background-secondary-2 rounded-lg" />
+                <div className="w-12 h-16 bg-background-secondary-2 rounded-lg" />
             </div>
         </div>
     </div>
