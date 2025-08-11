@@ -298,7 +298,7 @@ const Swiper: React.FC = () => {
 
             console.log('='.repeat(60));
             console.log(`[KING OF THE HILL COMPLETE - Round ${currentRound + 1}]`);
-            console.log('🏆 King of the Hill Summary:', sessionSummary);
+            console.log('🏆 King of the Hill Summary:', JSON.stringify(sessionSummary));
             console.log('👑 Final Winner:', winner.title);
             console.log('='.repeat(60));
 
@@ -329,7 +329,7 @@ const Swiper: React.FC = () => {
 
                 console.log('='.repeat(60));
                 console.log(`[ROUND ${currentRound + 1} COMPLETE - ${currentRoundData?.category}]`);
-                console.log('📊 Round Summary:', roundSummary);
+                console.log('📊 Round Summary:', JSON.stringify(roundSummary));
                 console.log('📈 Breakdown:', {
                     total_swipes: roundChoices.length,
                     liked: roundSummary.choices.length,

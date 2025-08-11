@@ -91,7 +91,7 @@ const Drawer: React.FC<DrawerProps> = ({
             exit="hidden"
             variants={drawerVariants}
             className={clsx(
-              'fixed top-0 h-full bg-background-primary z-[101] shadow-2xl',
+              'fixed top-0 h-full bg-background-primary z-[999999999] shadow-2xl',
               width,
               position === 'left' ? 'left-0' : 'right-0',
               'will-change-transform' // Animation performance optimization
