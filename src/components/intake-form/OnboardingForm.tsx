@@ -279,7 +279,7 @@ const OnboardingForm: React.FC = () => {
                 console.log(payload)
                 const result = await createProject(payload);
                 if (result.status === 200) {
-                    navigate("/onboardcomplete");
+                    navigate("onboard-compelete");
                 }
             } catch (error) {
                 console.error("Project creation failed:", error);
