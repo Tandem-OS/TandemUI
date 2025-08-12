@@ -140,22 +140,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({ isOpen, onContinue, roundsC
                                 </button>
                             </div>
                         </div>
-
-                        {/* Mobile Viewport Switcher */}
-                        <div className="sm:hidden px-md py-sm border-b border-border-default hidden lg:block">
-                            <div className="flex items-center justify-center space-x-xs">
-                                {(Object.entries(viewportSizes) as [ViewportSize, ViewportConfig][]).map(([key, config]) => (
-                                    <button
-                                        key={key}
-                                        onClick={() => handleViewportChange(key)}
-                                        className={`p-sm rounded-lg transition-all ${viewport === key ? 'bg-accent-subtle text-accent-default' : 'text-text-tertiary'}`}
-                                    >
-                                        <config.icon className="text-icon-sm" />
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
+                       
                         {/* Preview Area */}
                         <div className="flex-1 bg-background-muted overflow-hidden relative">
                             <AnimatePresence>

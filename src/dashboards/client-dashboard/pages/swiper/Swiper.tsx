@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { FiX, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiAward, FiWifi, FiEye } from 'react-icons/fi';
+import { FiX, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiWifi, FiEye } from 'react-icons/fi';
 import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import KingOfTheHill from './components/KingOfHill';
+import SwiperSummary from './components/SwiperSummary';
 import Modal from '@/comman-components/Modal';
 import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
@@ -37,16 +38,21 @@ import {
     startKingOfHill,
     recordKingOfHillMatch,
     endKingOfHill,
+    unlockTransition,
 } from '@/features/swiper/swiperSlice';
+import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
-const TOTAL_COMPONENTS = 40; // Fixed total components count
 
 // Mock backend check function
 const checkRoundWithBackend = async (roundSummary: RoundSummary): Promise<{ useKingOfHill: boolean }> => {
     await new Promise(resolve => setTimeout(resolve, 500));
+    // Never use King of Hill for round 10 or after
+    if (roundSummary.round_number >= 10) {
+        return { useKingOfHill: false };
+    }
     return { useKingOfHill: roundSummary.round_number % 2 === 0 };
 };
 
@@ -75,39 +81,67 @@ const animations: { [key: string]: Variants | any } = {
 // Skeleton Card Component
 const SkeletonCard: React.FC = () => (
     <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden animate-pulse">
-        <div className="grid grid-cols-1 lg:grid-cols-12">
-            <div className="lg:hidden bg-background-muted h-48 sm:h-56" />
-            <div className="lg:col-span-4 bg-background-primary-2 p-md sm:p-lg lg:p-xl flex flex-col justify-center">
-                <div className="space-y-sm md:space-y-md lg:space-y-lg">
-                    <div className="flex items-center justify-between gap-xs">
-                        <div className="h-6 bg-background-muted rounded-md w-20" />
-                        <div className="h-6 bg-background-muted rounded-md w-16" />
+        {/* Mobile Layout Skeleton */}
+        <div className="block lg:!hidden">
+            <div className="bg-background-secondary-2 h-48 sm:h-56" />
+
+            <div className="bg-background-primary-2 p-md sm:p-lg">
+                <div className="space-y-md">
+                    <div className="flex justify-between gap-xs">
+                        <div className="h-6 bg-background-secondary-2 rounded w-20" />
+                        <div className="h-6 bg-background-secondary-2 rounded w-16" />
                     </div>
-                    <div className="space-y-xs sm:space-y-sm md:space-y-md">
-                        <div className="h-8 bg-background-muted rounded-md w-3/4" />
-                        <div className="space-y-2">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="h-4 bg-background-muted rounded" style={{ width: `${100 - i * 10}%` }} />
-                            ))}
+
+                    <div className="h-8 bg-background-secondary-2 rounded w-3/4" />
+
+                    <div className="space-y-2">
+                        <div className="h-4 bg-background-secondary-2 rounded w-full" />
+                        <div className="h-4 bg-background-secondary-2 rounded w-4/5" />
+                        <div className="h-4 bg-background-secondary-2 rounded w-3/5" />
+                    </div>
+
+                    <div className="flex gap-sm">
+                        <div className="h-6 bg-background-secondary-2 rounded w-12" />
+                        <div className="h-6 bg-background-secondary-2 rounded w-12" />
+                        <div className="h-6 bg-background-secondary-2 rounded w-12" />
+                    </div>
+
+                    <div className="h-4 bg-background-secondary-2 rounded w-1/2" />
+                </div>
+            </div>
+        </div>
+
+        {/* Desktop Layout Skeleton */}
+        <div className="!hidden lg:!block relative h-[370px] 2xl:h-[470px]">
+            <div className="absolute inset-0 bg-background-secondary-2" />
+
+            <div className="absolute top-lg left-lg w-12 h-12 bg-background-primary-2 rounded-full" />
+
+            <div className="absolute bottom-0 left-0 right-0 bg-background-primary-2 px-lg py-md">
+                <div className="flex justify-between gap-md">
+                    <div className="space-y-sm flex-1">
+                        <div className="h-8 bg-background-secondary-2 rounded w-3/4" />
+                        <div className="flex gap-sm">
+                            <div className="h-6 bg-background-secondary-2 rounded-full w-16" />
+                            <div className="h-6 bg-background-secondary-2 rounded-full w-16" />
+                            <div className="h-6 bg-background-secondary-2 rounded-full w-16" />
                         </div>
-                        <div className="flex flex-wrap gap-xs sm:gap-xs md:gap-sm">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="h-6 bg-background-muted rounded w-12" />
-                            ))}
-                        </div>
-                        <div className="h-4 bg-background-muted rounded w-1/2" />
+                    </div>
+                    <div className="flex gap-sm">
+                        <div className="h-8 bg-background-secondary-2 rounded w-20" />
+                        <div className="h-8 bg-background-secondary-2 rounded w-16" />
                     </div>
                 </div>
             </div>
-            <div className="hidden lg:block bg-background-muted lg:col-span-8" />
         </div>
-        <div className="px-sm py-sm md:px-md md:py-md">
-            <div className="flex justify-center">
-                <div className="flex items-center justify-center gap-sm">
-                    {[1, 2, 3, 4, 5].map(i => (
-                        <div key={i} className={`bg-background-muted rounded-lg ${i === 3 ? 'w-16 h-16 rounded-full' : 'w-12 h-16'}`} />
-                    ))}
-                </div>
+
+        {/* Action Buttons */}
+        <div className="px-md py-md">
+            <div className="flex justify-center gap-md">
+                <div className="w-16 h-16 bg-background-secondary-2 rounded-full" />
+                <div className="w-12 h-16 bg-background-secondary-2 rounded-lg" />
+                <div className="w-12 h-16 bg-background-secondary-2 rounded-lg" />
+                <div className="w-12 h-16 bg-background-secondary-2 rounded-lg" />
             </div>
         </div>
     </div>
@@ -134,28 +168,6 @@ const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetr
     </motion.div>
 );
 
-// Action Button Component
-const ActionButton: React.FC<{
-    onClick: () => void;
-    children: React.ReactNode;
-    variant?: 'primary' | 'secondary';
-    icon: React.ComponentType<{ className?: string }>;
-    disabled?: boolean;
-}> = ({ onClick, children, variant = 'primary', icon: Icon, disabled = false }) => (
-    <motion.button
-        onClick={onClick}
-        disabled={disabled}
-        className={`flex items-center gap-xs sm:gap-sm md:gap-sm px-md py-sm sm:px-lg sm:py-sm md:px-xl md:py-md rounded-lg sm:rounded-xl transition-all duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed ${variant === 'primary'
-            ? 'bg-accent-default text-accent-foreground hover:bg-accent-hover shadow-lg'
-            : 'bg-background-muted text-text-primary hover:bg-background-accent border border-border-default hover:border-border-focus'
-            }`}
-        {...animations.button}
-    >
-        <Icon className="text-icon-sm sm:text-icon-md" />
-        <span className="text-para-sm sm:text-para-md md:text-para-lg font-semibold">{children}</span>
-    </motion.button>
-);
-
 const Swiper: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
@@ -173,7 +185,6 @@ const Swiper: React.FC = () => {
         shouldAskForPreview,
         isInitialLoading,
         loadingError,
-        isRetrying,
         kingOfHill
     } = useSelector((state: RootState) => state.swiper);
 
@@ -230,7 +241,6 @@ const Swiper: React.FC = () => {
         const likedChoices = roundChoices.filter(choice =>
             choice.action === 'like' || choice.action === 'super-like'
         );
-        const savedChoices = roundChoices.filter(choice => choice.action === 'save');
         const rejectedChoices = roundChoices.filter(choice => choice.action === 'dislike');
 
         const totalHesitation = roundChoices.reduce((sum, choice) =>
@@ -250,14 +260,12 @@ const Swiper: React.FC = () => {
             round_number: currentRound + 1,
             category: currentRoundData?.category || '',
             choices: likedChoices,
-            saved: savedChoices,
             rejected: rejectedChoices,
             completion_time: Date.now() - roundStartTime,
             total_hesitation_ms: totalHesitation,
             average_view_duration_ms: avgViewDuration,
             gesture_vs_button_ratio: gestureRatio,
             superlike_count: roundChoices.filter(c => c.behavioral_signals.superlike_used).length,
-            save_count: savedChoices.length
         };
     }, [currentRound, currentRoundData, roundStartTime]);
 
@@ -290,7 +298,7 @@ const Swiper: React.FC = () => {
 
             console.log('='.repeat(60));
             console.log(`[KING OF THE HILL COMPLETE - Round ${currentRound + 1}]`);
-            console.log('🏆 King of the Hill Summary:', sessionSummary);
+            console.log('🏆 King of the Hill Summary:', JSON.stringify(sessionSummary));
             console.log('👑 Final Winner:', winner.title);
             console.log('='.repeat(60));
 
@@ -321,11 +329,10 @@ const Swiper: React.FC = () => {
 
                 console.log('='.repeat(60));
                 console.log(`[ROUND ${currentRound + 1} COMPLETE - ${currentRoundData?.category}]`);
-                console.log('📊 Round Summary:', roundSummary);
+                console.log('📊 Round Summary:', JSON.stringify(roundSummary));
                 console.log('📈 Breakdown:', {
                     total_swipes: roundChoices.length,
                     liked: roundSummary.choices.length,
-                    saved: roundSummary.saved.length,
                     rejected: roundSummary.rejected.length,
                     super_liked: roundSummary.superlike_count
                 });
@@ -350,6 +357,10 @@ const Swiper: React.FC = () => {
                                 dispatch(setShouldAskForPreview(true));
                             } else if (!isLastRound) {
                                 dispatch(moveToNextRound());
+                                setTimeout(() => {
+                                    dispatch(unlockTransition());
+                                }, 1000);
+
                             }
                         }, TIMINGS.CELEBRATION);
                     }
@@ -373,6 +384,7 @@ const Swiper: React.FC = () => {
         };
     }, []);
 
+
     const handleAnimationStart = useCallback(() => dispatch(setAnimating(true)), [dispatch]);
     const handleAnimationComplete = useCallback(() => dispatch(setAnimating(false)), [dispatch]);
     const handleExit = useCallback(() => {
@@ -381,10 +393,18 @@ const Swiper: React.FC = () => {
     }, [dispatch]);
 
     const RoundCompletionCelebration = () => (
-        <motion.div {...animations.completion} className="flex flex-col items-center justify-center text-center mt-md sm:mt-lg md:mt-xl px-md">
-            <motion.div {...animations.icon} className="mb-sm sm:mb-md md:mb-lg">
-                <FiCheckCircle className="text-icon-2xl sm:text-[2.5rem] md:text-[3rem] text-accent-default" />
-            </motion.div>
+        <motion.div {...animations.completion} className="flex flex-col items-center justify-center text-center px-md">
+            <div className="relative">
+                <SuccessAnimation
+                    showConfetti={true}
+                    confettiCount={80}
+                    confettiDuration={4000}
+                />
+                <motion.div {...animations.icon} className="mb-sm sm:mb-md md:mb-lg">
+                    <FiCheckCircle className="text-icon-2xl sm:text-[2.5rem] md:text-[3rem] text-accent-default" />
+                </motion.div>
+            </div>
+
             <motion.h2
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -395,6 +415,31 @@ const Swiper: React.FC = () => {
             </motion.h2>
         </motion.div>
     );
+
+    const handleStartOver = useCallback(() => {
+        dispatch(resetSwiper());
+    }, [dispatch]);
+
+    const handleGenerateLayout = useCallback(() => {
+        console.log('Generating layout with selected preferences...');
+
+        // Create detailed session summary
+        const sessionSummary = {
+            session_id: `session_${Date.now()}`,
+            total_rounds: totalRounds,
+            completed_at: new Date().toISOString(),
+            total_choices: userChoices.length,
+            user_choices: userChoices,
+            rounds_data: roundsData,
+            king_of_hill_sessions: kingOfHillSessions
+        };
+
+        // Store session data in localStorage
+        localStorage.setItem('design_session', JSON.stringify(sessionSummary));
+
+        // Add your navigation or action logic here
+        // For example: navigate('/generate-layout') or dispatch an action
+    }, [userChoices, roundsData, totalRounds, kingOfHillSessions]);
 
     // Loading state
     if (isInitialLoading) {
@@ -443,21 +488,6 @@ const Swiper: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <motion.div
-                    className="absolute bottom-xs sm:bottom-sm md:bottom-0 left-0 right-0 flex justify-center text-text-secondary text-para-sm text-center pb-xs sm:pb-sm md:pb-md pt-xs sm:pt-sm md:pt-lg z-30"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                >
-                    <div className="flex items-center gap-sm px-md">
-                        <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        >
-                            <FiRefreshCw className="text-icon-sm" />
-                        </motion.div>
-                        <p>Loading amazing designs...</p>
-                    </div>
-                </motion.div>
             </div>
         );
     }
@@ -471,200 +501,23 @@ const Swiper: React.FC = () => {
         );
     }
 
-    // Final completion screen
+    // Final completion screen using SwiperSummary component
     if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive) {
-        const positiveChoicesCount = userChoices.filter(choice =>
-            choice.action === 'like' || choice.action === 'super-like'
-        ).length;
-        const savedChoicesCount = userChoices.filter(choice =>
-            choice.action === 'save'
-        ).length;
-        const rejectedChoicesCount = userChoices.filter(choice =>
-            choice.action === 'dislike'
-        ).length;
-
-        // Create detailed session summary with King of the Hill data
-        const sessionSummary = {
-            session_id: `session_${Date.now()}`,
-            total_rounds: totalRounds,
-            completed_at: new Date().toISOString(),
-            total_choices: userChoices.length,
-
-            summary_counts: {
-                positive_choices: positiveChoicesCount,
-                saved_choices: savedChoicesCount,
-                rejected_choices: rejectedChoicesCount,
-                super_likes: userChoices.filter(choice =>
-                    choice.behavioral_signals.superlike_used
-                ).length,
-                ai_assistance_used: userChoices.filter(choice =>
-                    choice.behavioral_signals.is_asked_ai
-                ).length
-            },
-
-            behavioral_insights: {
-                average_hesitation_ms: userChoices.length > 0
-                    ? userChoices.reduce((sum, choice) => sum + choice.behavioral_signals.hesitation_ms, 0) / userChoices.length
-                    : 0,
-                average_view_duration_ms: userChoices.length > 0
-                    ? userChoices.reduce((sum, choice) => sum + choice.behavioral_signals.view_duration_ms, 0) / userChoices.length
-                    : 0,
-                gesture_actions: userChoices.filter(choice =>
-                    choice.behavioral_signals.action_source === 'gesture'
-                ).length,
-                button_actions: userChoices.filter(choice =>
-                    choice.behavioral_signals.action_source === 'button'
-                ).length,
-                keyboard_actions: userChoices.filter(choice =>
-                    choice.behavioral_signals.action_source === 'keyboard'
-                ).length
-            },
-
-            rounds_data: roundsData.map((round, index) => {
-                const roundNumber = index + 1;
-                const roundChoices = userChoices.filter(choice => choice.round === roundNumber);
-
-                const likedChoices = roundChoices.filter(choice =>
-                    choice.action === 'like' || choice.action === 'super-like'
-                );
-                const savedChoices = roundChoices.filter(choice =>
-                    choice.action === 'save'
-                );
-                const rejectedChoices = roundChoices.filter(choice =>
-                    choice.action === 'dislike'
-                );
-
-                return {
-                    round_number: roundNumber,
-                    category: round.category,
-                    choices: likedChoices,
-                    saved: savedChoices,
-                    rejected: rejectedChoices,
-                    total_swipes: roundChoices.length,
-                    breakdown: {
-                        likes: likedChoices.length,
-                        saves: savedChoices.length,
-                        rejects: rejectedChoices.length,
-                        super_likes: roundChoices.filter(choice =>
-                            choice.behavioral_signals.superlike_used
-                        ).length,
-                        ai_assistance: roundChoices.filter(choice =>
-                            choice.behavioral_signals.is_asked_ai
-                        ).length
-                    }
-                };
-            }),
-
-            king_of_hill_sessions: kingOfHillSessions.map(session => ({
-                round_number: session.round_number,
-                category: session.category,
-                final_winner: {
-                    id: session.final_winner_id,
-                    title: session.components.find(c => c.component_id === session.final_winner_id)?.title || 'Unknown'
-                },
-                total_matches: session.matches.length,
-                session_duration_ms: session.session_duration_ms,
-                matches_detail: session.matches.map(match => {
-                    const defender = session.components.find(c => c.component_id === match.defender_id);
-                    const challenger = session.components.find(c => c.component_id === match.challenger_id);
-                    const winner = session.components.find(c => c.component_id === match.winner_id);
-
-                    return {
-                        match_number: match.match_number,
-                        defender: defender?.title || 'Unknown',
-                        challenger: challenger?.title || 'Unknown',
-                        winner: winner?.title || 'Unknown',
-                        match_duration_ms: match.match_duration_ms,
-                        behavioral_signals: {
-                            hesitation_ms: match.behavioral_signals.hesitation_ms,
-                            view_duration_ms: match.behavioral_signals.view_duration_ms,
-                            hesitation_readable: `${(match.behavioral_signals.hesitation_ms / 1000).toFixed(2)}s`,
-                            view_duration_readable: `${(match.behavioral_signals.view_duration_ms / 1000).toFixed(2)}s`
-                        }
-                    };
-                })
-            })),
-
-            total_king_of_hill_sessions: kingOfHillSessions.length,
-            king_of_hill_winners: kingOfHillSessions.map(session => ({
-                round: session.round_number,
-                category: session.category,
-                winner: session.components.find(c => c.component_id === session.final_winner_id)?.title || 'Unknown',
-                winner_id: session.final_winner_id
-            }))
-        };
-
-        console.log('='.repeat(80));
-        console.log('[SESSION COMPLETE - FULL DATA WITH KING OF THE HILL DETAILS]');
-        console.log(sessionSummary, null, 2);
-        console.log('='.repeat(80));
-
         return (
-            <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
-                <div className="w-full max-w-5xl mx-auto">
-                    <motion.div {...animations.page} className="text-center space-y-md sm:space-y-lg md:space-y-xl">
-                        <motion.div
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
-                            className="flex justify-center mb-md sm:mb-lg md:mb-xl"
-                        >
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-background-success rounded-full flex items-center justify-center relative">
-                                <FiCheckCircle className="text-icon-xl sm:text-icon-2xl md:text-[3rem] text-text-success" />
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ delay: 0.8, duration: 0.5 }}
-                                    className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 md:-top-2 md:-right-2 w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-accent-default rounded-full flex items-center justify-center"
-                                >
-                                    <FiAward className="text-accent-foreground text-icon-sm sm:text-icon-md" />
-                                </motion.div>
-                            </div>
-                        </motion.div>
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.5, duration: 0.7 }}
-                            className="space-y-xs sm:space-y-sm md:space-y-sm"
-                        >
-                            <h1 className="text-h3-sm sm:text-h2-sm md:text-h2-md font-bold text-text-primary">
-                                Design Discovery Complete!
-                            </h1>
-                            <p className="text-para-sm sm:text-para-md md:text-para-lg text-text-secondary font-medium max-w-3xl mx-auto leading-relaxed px-md">
-                                Great job! You've swiped through <span className="text-accent-default font-semibold">{TOTAL_COMPONENTS} components</span> and selected <span className="text-accent-default font-semibold">{positiveChoicesCount} favorites</span> across <span className="text-accent-default font-semibold">{totalRounds} categories</span>.
-                            </p>
-                        </motion.div>
-                        <motion.div
-                            initial={{ y: 40, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 1.1, duration: 0.6 }}
-                            className="flex flex-col sm:flex-row gap-sm sm:gap-sm md:gap-md justify-center items-center pt-md sm:pt-lg md:pt-xl"
-                        >
-                            <ActionButton onClick={() => dispatch(resetSwiper())} variant="secondary" icon={FiRefreshCw} disabled={isRetrying}>
-                                Start Over
-                            </ActionButton>
-                            <ActionButton
-                                onClick={() => {
-                                    console.log('Generating layout with selected preferences...');
-                                    // Store session data in localStorage or send to backend
-                                    localStorage.setItem('design_session', JSON.stringify(sessionSummary));
-                                    // Add your navigation or action logic here
-                                }}
-                                variant="primary"
-                                icon={FiCheckCircle}
-                            >
-                                Let's Generate Layout
-                            </ActionButton>
-                        </motion.div>
-                    </motion.div>
-                </div>
-            </div>
+            <SwiperSummary
+                userChoices={userChoices}
+                roundsData={roundsData}
+                totalRounds={totalRounds}
+                kingOfHillSessions={kingOfHillSessions}
+                onStartOver={handleStartOver}
+                onGenerateLayout={handleGenerateLayout}
+            />
         );
     }
 
     const currentCategory = currentRoundData?.category || 'Design';
     const roundMessage = kingOfHill.isActive
-        ? 'Choose the design that speaks to you more.'
+        ? 'Select your favorite. It helps refine your taste.'
         : roundMessages[currentCategory] || 'Choose the design that resonates with you.';
 
     return (
@@ -715,7 +568,7 @@ const Swiper: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center justify-center 2xl:p-xl relative z-20">
+                <div className="flex items-center justify-center 2xl:p-xl relative z-20 h-[-webkit-fill-available]">
                     <AnimatePresence mode="wait">
                         {showRoundCompletion ? (
                             <RoundCompletionCelebration />
@@ -747,16 +600,7 @@ const Swiper: React.FC = () => {
                         ) : null}
                     </AnimatePresence>
                 </div>
-                {!showRoundCompletion && !kingOfHill.isActive && (
-                    <motion.div
-                        className="absolute bottom-xs sm:bottom-sm md:bottom-0 left-0 right-0 flex justify-center text-text-secondary text-para-xs sm:text-para-sm md:text-para-md text-center pb-xs sm:pb-sm md:pb-md pt-xs sm:pt-sm md:pt-lg z-10 pointer-events-none"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: TIMINGS.INSTRUCTION_DELAY / 1000, duration: 0.8 }}
-                    >
-                        <p className="px-md">Swipe or use buttons • Double tap to super like</p>
-                    </motion.div>
-                )}
+
             </div>
 
             {/* Preview Ask Modal */}
@@ -765,6 +609,10 @@ const Swiper: React.FC = () => {
                 onClose={() => {
                     dispatch(handleSkipPreview());
                     dispatch(moveToNextRound());
+                    // Unlock after 1 second to prevent rapid clicks
+                    setTimeout(() => {
+                        dispatch(unlockTransition());
+                    }, 1000);
                 }}
                 title="Preview Your Design?"
                 size="sm"
@@ -774,6 +622,10 @@ const Swiper: React.FC = () => {
                             onClick={() => {
                                 dispatch(handleSkipPreview());
                                 dispatch(moveToNextRound());
+
+                                setTimeout(() => {
+                                    dispatch(unlockTransition());
+                                }, 1000);
                             }}
                             className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
                             {...animations.button}
@@ -820,6 +672,10 @@ const Swiper: React.FC = () => {
                 onContinue={() => {
                     dispatch(handlePreviewContinue());
                     dispatch(moveToNextRound());
+
+                    setTimeout(() => {
+                        dispatch(unlockTransition());
+                    }, 1000);
                 }}
                 roundsCompleted={currentRound + 1}
             />
