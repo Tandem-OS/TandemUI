@@ -53,11 +53,11 @@ interface GradientIconBoxProps {
     size?: 'sm' | 'md' | 'lg';
 }
 
-const GradientIconBox: React.FC<GradientIconBoxProps> = ({ 
-    icon, 
-    gradientFrom, 
-    gradientTo, 
-    size = 'md' 
+const GradientIconBox: React.FC<GradientIconBoxProps> = ({
+    icon,
+    gradientFrom,
+    gradientTo,
+    size = 'md'
 }) => {
     const sizeClasses = {
         sm: 'w-10 h-10',
@@ -67,11 +67,11 @@ const GradientIconBox: React.FC<GradientIconBoxProps> = ({
 
     return (
         <motion.div
-            whileHover={{ 
+            whileHover={{
                 rotate: 360,
                 scale: 1.05
             }}
-            transition={{ 
+            transition={{
                 rotate: { duration: 0.6, ease: "easeInOut" },
                 scale: { duration: 0.2, ease: "easeOut" }
             }}
@@ -166,11 +166,10 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ component, userChoice, isSupe
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: i * 0.1, duration: 0.2 }}
-                                className={`px-sm py-xs text-white text-para-xs font-medium rounded-md border ${
-                                    isSuperlike 
-                                        ? 'bg-gradient-to-r from-rose-500/30 to-pink-600/30 border-rose-400/40' 
-                                        : 'bg-gradient-to-r from-emerald-500/30 to-green-600/30 border-emerald-400/40'
-                                }`}
+                                className={`px-sm py-xs text-white text-para-xs font-medium rounded-md border ${isSuperlike
+                                    ? 'bg-gradient-to-r from-rose-500/30 to-pink-600/30 border-rose-400/40'
+                                    : 'bg-gradient-to-r from-emerald-500/30 to-green-600/30 border-emerald-400/40'
+                                    }`}
                             >
                                 {tag.replace(/-/g, ' ')}
                             </motion.span>
@@ -373,45 +372,99 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
             <div className="max-w-7xl mx-auto px-md py-xl sm:px-lg sm:py-2xl lg:px-xl">
 
                 {/* Enhanced Hero Section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="text-center space-y-lg mb-lg"
-                >
-                    <div className="flex justify-center">
-                        <motion.div
-                            initial={{ scale: 0, rotate: 0 }}
-                            animate={{ scale: 1, rotate: 360 }}
-                            transition={{ 
-                                scale: { type: "spring", stiffness: 200, damping: 15, delay: 0.2 },
-                                rotate: { duration: 1.2, ease: "easeOut", delay: 0.4 }
-                            }}
-                            className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-default via-indigo-600 to-purple-600 flex items-center justify-center shadow-xl"
-                        >
-                            <FiZap className="text-icon-xl text-white" />
-                        </motion.div>
-                    </div>
+                <div className="mb-lg overflow-hidden">
+                    {/* Background decoration */}
 
-                    <div className="space-y-md">
-                        <motion.h1
-                            initial={{ opacity: 0, y: 15 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4, duration: 0.6 }}
-                            className="text-h3-sm lg:text-h2-sm font-bold text-text-primary"
-                        >
-                            Design Intelligence Decoded
-                        </motion.h1>
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.6, duration: 0.5 }}
-                            className="text-para-md sm:text-para-lg text-text-secondary max-w-2xl mx-auto"
-                        >
-                            <span className="font-semibold text-accent-default">{userChoices.length}</span> interactions analyzed to reveal your aesthetic preferences
-                        </motion.p>
-                    </div>
-                </motion.div>
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        className="relative bg-background-primary-2 border-2 border-border-default rounded-3xl p-xl"
+                    >
+
+                        <div className="flex flex-col lg:flex-row items-center gap-lg">
+                            {/* Left side - Icon and stats */}
+                            <div className="flex flex-col items-center lg:items-start space-y-md">
+                                <motion.div
+                                    initial={{ x: -50, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: 0.3, duration: 0.7, ease: "easeOut" }}
+                                    className="relative"
+                                >
+                                    {/* Icon container with floating effect */}
+                                    <motion.div
+                                        animate={{
+                                            y: [0, -8, 0],
+                                            rotate: [0, 5, -5, 0]
+                                        }}
+                                        transition={{
+                                            duration: 4,
+                                            repeat: Infinity,
+                                            ease: "easeInOut"
+                                        }}
+                                        className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-accent-default to-indigo-500 flex items-center justify-center shadow-lg relative overflow-hidden"
+                                    >
+
+                                        <FiZap className="text-icon-2xl text-white relative z-10" />
+                                    </motion.div>
+
+                                    {/* Floating accent dots */}
+                                    <motion.div
+                                        initial={{ scale: 0, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        transition={{ delay: 0.8, duration: 0.5 }}
+                                        className="absolute -top-2 -right-2 w-6 h-6 bg-accent-default rounded-full flex items-center justify-center"
+                                    >
+                                        <span className="text-h7-sm font-bold text-white">{userChoices.length}</span>
+                                    </motion.div>
+                                </motion.div>
+                            </div>
+
+                            {/* Right side - Content */}
+                            <div className="flex-1 text-center lg:text-left space-y-md">
+                                <motion.div
+                                    initial={{ opacity: 0, x: 30 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.4, duration: 0.6 }}
+                                    className="space-y-sm"
+                                >
+                                    <h1 className="text-h3-sm lg:text-h2-md font-bold text-text-primary relative">
+                                        Design Intelligence Decoded
+                                        {/* Underline effect */}
+                                        <motion.div
+                                            initial={{ width: 0 }}
+                                            animate={{ width: "100%" }}
+                                            transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
+                                            className="absolute -bottom-1 left-0 lg:left-0 right-0 lg:right-auto h-1 bg-gradient-to-r from-accent-default to-purple-500 rounded-full"
+                                        />
+                                    </h1>
+                                </motion.div>
+
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.6, duration: 0.6 }}
+                                    className="flex flex-col lg:flex-row lg:items-center gap-sm lg:gap-md"
+                                >
+                                    <p className="text-para-md lg:text-para-lg text-text-secondary flex gap-3 items-center">
+                                        <span className="inline-flex items-center gap-xs bg-accent-subtle px-sm py-xs rounded-lg font-semibold text-accent-default">
+                                            <motion.span
+                                                key={userChoices.length}
+                                                initial={{ scale: 1.5 }}
+                                                animate={{ scale: 1 }}
+                                                transition={{ type: "spring", stiffness: 300 }}
+                                            >
+                                                {userChoices.length}
+                                            </motion.span>
+                                            interactions
+                                        </span>
+                                        analyzed to reveal your aesthetic preferences
+                                    </p>
+                                </motion.div>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
 
                 {/* Enhanced Behavioral Intelligence Section */}
                 <motion.div
@@ -738,8 +791,8 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                             <ResponsiveContainer width="100%" height={200}>
                                 <RadarChart data={radarData}>
                                     <PolarGrid stroke="rgb(var(--border-muted))" />
-                                    <PolarAngleAxis 
-                                        dataKey="category" 
+                                    <PolarAngleAxis
+                                        dataKey="category"
                                         tick={{ fontSize: 10, fill: 'rgb(var(--text-secondary))' }}
                                         className="text-para-xs"
                                     />

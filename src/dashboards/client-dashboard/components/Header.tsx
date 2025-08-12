@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { RiMenuLine, RiSettings4Line, RiLogoutBoxLine, RiArrowDownSLine } from 'react-icons/ri';
 import { clsx } from 'clsx';
 import Drawer from '../../../comman-components/Drawer';
@@ -10,9 +10,22 @@ import { menuItems } from '../config/menuItems';
 const Header = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
 
     // Avatar image URL
     const avatarUrl = "/images/avatar.png";
+
+    // Function to check if a menu item is active
+    const isActiveRoute = (path: string) => {
+        // Exact match
+        if (location.pathname === path) return true;
+        
+        // For nested routes - check if current path starts with menu item path
+        // This will highlight parent routes when on child routes
+        if (path !== '/' && location.pathname.startsWith(path)) return true;
+        
+        return false;
+    };
 
     const profileDropdownItems = [
         {
@@ -49,19 +62,27 @@ const Header = () => {
 
                         {/* Desktop Navigation */}
                         <nav className="hidden lg:flex items-center gap-lg">
-                            {menuItems.map((item: any) => (
-                                <Link
-                                    key={item.id}
-                                    to={item.path}
-                                    className={clsx(
-                                        'text-para-md font-poppins text-text-secondary',
-                                        'hover:text-accent-default',
-                                        'transition-colors duration-200'
-                                    )}
-                                >
-                                    {item.name}
-                                </Link>
-                            ))}
+                            {menuItems.map((item: any) => {
+                                const isActive = isActiveRoute(item.path);
+                                
+                                return (
+                                    <Link
+                                        key={item.id}
+                                        to={item.path}
+                                        className={clsx(
+                                            'text-para-md font-poppins transition-colors duration-200',
+                                            {
+                                                // Active state - only color change
+                                                'text-accent-default': isActive,
+                                                // Inactive state
+                                                'text-text-secondary hover:text-accent-default': !isActive,
+                                            }
+                                        )}
+                                    >
+                                        {item.name}
+                                    </Link>
+                                );
+                            })}
 
                             {/* Theme Toggle */}
                             <div>
@@ -133,22 +154,29 @@ const Header = () => {
 
                     {/* Menu Items */}
                     <nav className="space-y-sm mb-lg">
-                        {menuItems.map((item: any) => (
-                            <Link
-                                key={item.id}
-                                to={item.path}
-                                onClick={() => setIsDrawerOpen(false)}
-                                className={clsx(
-                                    'block px-md py-sm rounded-lg text-para-md font-poppins',
-                                    'text-text-secondary',
-                                    'hover:bg-background-muted',
-                                    'hover:text-accent-default',
-                                    'transition-all duration-200'
-                                )}
-                            >
-                                {item.name}
-                            </Link>
-                        ))}
+                        {menuItems.map((item: any) => {
+                            const isActive = isActiveRoute(item.path);
+                            
+                            return (
+                                <Link
+                                    key={item.id}
+                                    to={item.path}
+                                    onClick={() => setIsDrawerOpen(false)}
+                                    className={clsx(
+                                        'block px-md py-sm rounded-lg text-para-md font-poppins',
+                                        'transition-colors duration-200',
+                                        {
+                                            // Active state - only color change
+                                            'text-accent-default': isActive,
+                                            // Inactive state
+                                            'text-text-secondary hover:bg-background-muted hover:text-accent-default': !isActive,
+                                        }
+                                    )}
+                                >
+                                    {item.name}
+                                </Link>
+                            );
+                        })}
                     </nav>
 
                     {/* Theme Toggle Section */}

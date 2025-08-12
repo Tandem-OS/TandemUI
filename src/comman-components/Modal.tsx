@@ -35,17 +35,20 @@ const Modal: React.FC<ModalProps> = ({
 }) => {
     const modalRef = useRef<HTMLDivElement>(null);
 
-    // Prevent body scroll when modal is open
     useEffect(() => {
         if (preventScroll && isOpen) {
+            const originalPaddingRight = document.body.style.paddingRight;
+            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
             document.body.style.overflow = 'hidden';
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
+            
             return () => {
                 document.body.style.overflow = 'unset';
+                document.body.style.paddingRight = originalPaddingRight;
             };
         }
     }, [isOpen, preventScroll]);
 
-    // Handle escape key
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape' && isOpen) {
@@ -58,18 +61,12 @@ const Modal: React.FC<ModalProps> = ({
 
     const getSizeClasses = () => {
         switch (size) {
-            case 'sm':
-                return 'max-w-md';
-            case 'md':
-                return 'max-w-lg';
-            case 'lg':
-                return 'max-w-2xl';
-            case 'xl':
-                return 'max-w-4xl';
-            case 'full':
-                return 'max-w-full mx-md';
-            default:
-                return 'max-w-lg';
+            case 'sm': return 'max-w-md';
+            case 'md': return 'max-w-lg';
+            case 'lg': return 'max-w-2xl';
+            case 'xl': return 'max-w-4xl';
+            case 'full': return 'max-w-full mx-md';
+            default: return 'max-w-lg';
         }
     };
 
@@ -83,7 +80,6 @@ const Modal: React.FC<ModalProps> = ({
         <AnimatePresence>
             {isOpen && (
                 <>
-                    {/* Overlay */}
                     <motion.div
                         className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-50 ${overlayClassName}`}
                         initial={{ opacity: 0 }}
@@ -92,8 +88,6 @@ const Modal: React.FC<ModalProps> = ({
                         transition={{ duration: 0.2 }}
                         onClick={handleOverlayClick}
                     />
-
-                    {/* Modal Container */}
                     <div
                         className={`fixed inset-0 z-50 overflow-y-auto ${className}`}
                         onClick={handleOverlayClick}
@@ -101,18 +95,13 @@ const Modal: React.FC<ModalProps> = ({
                         <div className={`min-h-screen px-md py-lg flex ${centered ? 'items-center' : 'items-start pt-20'} justify-center`}>
                             <motion.div
                                 ref={modalRef}
-                                className={`relative w-full ${getSizeClasses()} bg-background-primary rounded-xl shadow-2xl border border-border-default ${contentClassName}`}
-                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                transition={{
-                                    type: "spring",
-                                    damping: 25,
-                                    stiffness: 300
-                                }}
+                                className={`relative w-full ${getSizeClasses()} bg-background-primary rounded-xl shadow-2xl border border-border-default transform-gpu will-change-transform ${contentClassName}`}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ ease: "easeInOut", duration: 0.2 }}
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                {/* Header */}
                                 {(title || showCloseButton) && (
                                     <div className="flex items-center justify-between px-lg py-md border-b border-border-default">
                                         {title && (
@@ -132,12 +121,10 @@ const Modal: React.FC<ModalProps> = ({
                                     </div>
                                 )}
 
-                                {/* Content */}
                                 <div className="px-lg py-lg">
                                     {children}
                                 </div>
 
-                                {/* Footer */}
                                 {footer && (
                                     <div className="px-lg py-md border-t border-border-default">
                                         {footer}

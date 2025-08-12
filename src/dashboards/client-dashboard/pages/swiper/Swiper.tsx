@@ -6,6 +6,7 @@ import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
+import SwiperIntro from './components/SwiperIntro';
 import Modal from '@/comman-components/Modal';
 import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
@@ -171,6 +172,7 @@ const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetr
 const Swiper: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
+    const [showIntro, setShowIntro] = useState(true);
 
     const {
         currentRound,
@@ -198,6 +200,8 @@ const Swiper: React.FC = () => {
 
     const isAnyModalOpen = showExitModal || showPreviewModal || shouldAskForPreview;
 
+
+
     // Load data on mount
     const loadData = useCallback(async () => {
         try {
@@ -210,8 +214,10 @@ const Swiper: React.FC = () => {
     }, [dispatch]);
 
     useEffect(() => {
-        loadData();
-    }, [loadData]);
+        if (!showIntro) {
+            loadData();
+        }
+    }, [loadData, showIntro]);
 
     useEffect(() => {
         dispatch(updateRoundStartTime());
@@ -222,6 +228,10 @@ const Swiper: React.FC = () => {
         await loadData();
         dispatch(setRetrying(false));
     }, [dispatch, loadData]);
+
+    const handleIntroComplete = useCallback(() => {
+        setShowIntro(false);
+    }, []);
 
     const handleSwipe = useCallback((action: SwipeAction, component: ComponentPreview, signals: BehavioralSignal) => {
         dispatch(addUserChoice({
@@ -440,6 +450,21 @@ const Swiper: React.FC = () => {
         // Add your navigation or action logic here
         // For example: navigate('/generate-layout') or dispatch an action
     }, [userChoices, roundsData, totalRounds, kingOfHillSessions]);
+
+    // Show intro
+    if (showIntro) {
+        return (
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full h-full"
+                style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}
+            >
+                <SwiperIntro onStart={handleIntroComplete} />
+            </motion.div>
+        );
+    }
 
     // Loading state
     if (isInitialLoading) {
