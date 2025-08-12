@@ -13,7 +13,7 @@ export interface ComponentPreview {
     category: string;
 }
 
-export type SwipeAction = 'like' | 'dislike' | 'save' | 'super-like' | 'ask-ai';
+export type SwipeAction = 'like' | 'dislike' | 'super-like' | 'ask-ai';
 
 export type ActionSource = 'gesture' | 'button' | 'keyboard';
 
@@ -80,14 +80,12 @@ export interface RoundSummary {
     round_number: number;
     category: string;
     choices: UserChoice[];        // liked + super-liked choices
-    saved: UserChoice[];          // saved choices  
     rejected: UserChoice[];       // disliked choices
     completion_time: number;
     total_hesitation_ms: number;
     average_view_duration_ms: number;
     gesture_vs_button_ratio: number;
     superlike_count: number;
-    save_count: number;           // new field for save count
 }
 
 // King of the Hill Types

@@ -32,6 +32,7 @@ interface SwiperState {
 
     // King of the Hill
     kingOfHill: KingOfHillState;
+    isTransitioning: boolean;
 }
 
 const initialKingOfHillState: KingOfHillState = {
@@ -60,6 +61,7 @@ const initialState: SwiperState = {
     loadingError: null,
     isRetrying: false,
     kingOfHill: initialKingOfHillState,
+    isTransitioning: false,
 };
 
 const swiperSlice = createSlice({
@@ -118,13 +120,23 @@ const swiperSlice = createSlice({
         },
 
         moveToNextRound: (state) => {
+            // Check for transition lock
+            if (state.isAnimating || state.showRoundCompletion || state.isTransitioning) return;
+
+            state.isTransitioning = true; // Lock transitions
             state.showRoundCompletion = false;
             state.shouldAskForPreview = false;
             state.showPreviewModal = false;
+
             if (state.currentRound < state.totalRounds - 1) {
                 state.currentRound += 1;
                 state.roundStartTime = Date.now();
             }
+        },
+
+        // Add new reducer to unlock transitions
+        unlockTransition: (state) => {
+            state.isTransitioning = false;
         },
 
         // Animation States
@@ -259,6 +271,7 @@ export const {
     startKingOfHill,
     recordKingOfHillMatch,
     endKingOfHill,
+    unlockTransition,
 } = swiperSlice.actions;
 
 export default swiperSlice.reducer;
