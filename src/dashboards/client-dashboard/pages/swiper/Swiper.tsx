@@ -274,7 +274,7 @@ const Swiper: React.FC = () => {
     dispatch(completeCurrentRound());
   }, [dispatch]);
 
-  const handleKingOfHillSelect = useCallback((winner: ComponentPreview, loser: ComponentPreview, signals: KingOfHillBehavioralSignal) => {
+  const handleKingOfHillSelect = useCallback(async (winner: ComponentPreview, loser: ComponentPreview, signals: KingOfHillBehavioralSignal) => {
     dispatch(recordKingOfHillMatch({ winner, loser, signals }));
 
     if (kingOfHill.remainingComponents.length === 0) {
@@ -283,14 +283,17 @@ const Swiper: React.FC = () => {
         round_number: currentRound + 1,
         category: currentRoundData?.category || '',
         components: currentRoundData?.components || [],
-        matches: [...kingOfHill.matches, {
-          challenger_id: kingOfHill.currentChallenger?.component_id || '',
-          defender_id: kingOfHill.currentDefender?.component_id || '',
-          winner_id: winner.component_id,
-          match_duration_ms: Date.now() - kingOfHill.matchStartTime,
-          behavioral_signals: signals,
-          match_number: kingOfHill.currentMatchNumber,
-        }],
+        matches: [
+          ...kingOfHill.matches,
+          {
+            challenger_id: kingOfHill.currentChallenger?.component_id || '',
+            defender_id: kingOfHill.currentDefender?.component_id || '',
+            winner_id: winner.component_id,
+            match_duration_ms: Date.now() - kingOfHill.matchStartTime,
+            behavioral_signals: signals,
+            match_number: kingOfHill.currentMatchNumber,
+          },
+        ],
         final_winner_id: winner.component_id,
         session_duration_ms: Date.now() - kingOfHill.sessionStartTime,
         started_at: kingOfHill.sessionStartTime,
@@ -301,38 +304,62 @@ const Swiper: React.FC = () => {
       console.log(`[KING OF THE HILL COMPLETE - Round ${currentRound + 1}]`);
       console.log('🏆 King of the Hill Summary:', JSON.stringify(sessionSummary));
 
-      sessionSummary.components.forEach(componentPreview => {
-        swiperComponentData(componentPreview);
-      });
+      let saveSuccess = false;
 
+      try {
+        // Wait for all component saves to finish
+        await Promise.all(
+          sessionSummary.components.map(componentPreview =>
+            swiperComponentData(componentPreview)
+          )
+        );
+        console.log('✅ All components saved');
+        saveSuccess = true;
 
-      console.log('👑 Final Winner:', winner.title);
-      console.log('='.repeat(60));
+        console.log('👑 Final Winner:', winner.title);
+        console.log('='.repeat(60));
 
-      // Store the session
-      setKingOfHillSessions(prev => [...prev, sessionSummary]);
-
-      setTimeout(() => {
+        // Store locally
+        setKingOfHillSessions(prev => [...prev, sessionSummary]);
+      } catch (error) {
+        console.error('❌ Error saving components', error);
+        alert("Try again Save unsuccssfull")
         dispatch(endKingOfHill());
-        const completedRoundNumber = currentRound + 1;
-        const shouldShowPreview = completedRoundNumber % 2 === 0 && !isLastRound;
 
-        if (shouldShowPreview) {
-          dispatch(setShouldAskForPreview(true));
-        } else if (!isLastRound) {
-          dispatch(moveToNextRound());
+        // Explicitly reload the current round’s components
+        if (currentRoundData?.components) {
+          dispatch(startKingOfHill(currentRoundData.components));
         }
-      }, 1000);
+        saveSuccess = false;
+      }
+
+      if (saveSuccess) {
+        setTimeout(() => {
+          dispatch(endKingOfHill());
+          const completedRoundNumber = currentRound + 1;
+          const shouldShowPreview = completedRoundNumber % 2 === 0 && !isLastRound;
+
+          if (shouldShowPreview) {
+            dispatch(setShouldAskForPreview(true));
+          } else if (!isLastRound) {
+            dispatch(moveToNextRound());
+          }
+        }, 1000);
+      }
     }
   }, [dispatch, kingOfHill, currentRound, currentRoundData, isLastRound]);
 
   // UseEffect to handle round completion logic after state update
   useEffect(() => {
     if (showRoundCompletion && !kingOfHill.isActive) {
-      try {
-        const roundChoices = userChoices.filter(choice => choice.round === currentRound + 1);
+      const saveRoundData = async () => {
+        try {
+          const roundChoices = userChoices.filter(
+            choice => choice.round === currentRound + 1
+          );
 
-        if (roundChoices.length > 0) {
+          if (!roundChoices.length) return;
+
           const roundSummary = generateRoundSummary(roundChoices);
 
           console.log('='.repeat(60));
@@ -348,7 +375,6 @@ const Swiper: React.FC = () => {
 
           const payload = {
             choices: roundSummary.choices || [],
-            // saved: roundSummary.saved || [], // uncomment if needed
             rejected: roundSummary.rejected || [],
             round_number: roundSummary.round_number,
             category: currentRoundData?.category || "",
@@ -365,51 +391,46 @@ const Swiper: React.FC = () => {
             },
           };
 
-          swiperData(payload)
-            .then(result => {
-              if (result.status === 200) {
-                return checkRoundWithBackend(roundSummary);
-              } else {
-                throw new Error('swiperData response not OK');
-              }
-            })
-            .then(backendResponse => {
-              if (backendResponse.useKingOfHill && currentRoundData) {
-                console.log('🏆 Backend requested King of the Hill for this round!');
-                setTimeout(() => {
-                  dispatch(setShowRoundCompletion(false));
-                  dispatch(startKingOfHill(currentRoundData.components));
-                }, TIMINGS.CELEBRATION);
-              } else {
-                setTimeout(() => {
-                  dispatch(setShowRoundCompletion(false));
-                  const completedRoundNumber = currentRound + 1;
-                  const shouldShowPreview = completedRoundNumber % 2 === 0 && !isLastRound;
+          const result = await swiperData(payload);
+          if (result.status !== 200) {
+            throw new Error("swiperData response not OK");
+          }
 
-                  if (shouldShowPreview) {
-                    dispatch(setShouldAskForPreview(true));
-                  } else if (!isLastRound) {
-                    dispatch(moveToNextRound());
-                    setTimeout(() => {
-                      dispatch(unlockTransition());
-                    }, 1000);
-                  }
-                }, TIMINGS.CELEBRATION);
+          const backendResponse = await checkRoundWithBackend(roundSummary);
+          if (backendResponse.useKingOfHill && currentRoundData) {
+            console.log("🏆 Backend requested King of the Hill for this round!");
+            setTimeout(() => {
+              dispatch(setShowRoundCompletion(false));
+              dispatch(startKingOfHill(currentRoundData.components));
+            }, TIMINGS.CELEBRATION);
+          } else {
+            setTimeout(() => {
+              dispatch(setShowRoundCompletion(false));
+              const completedRoundNumber = currentRound + 1;
+              const shouldShowPreview =
+                completedRoundNumber % 2 === 0 && !isLastRound;
+
+              if (shouldShowPreview) {
+                dispatch(setShouldAskForPreview(true));
+              } else if (!isLastRound) {
+                dispatch(moveToNextRound());
+                setTimeout(() => {
+                  dispatch(unlockTransition());
+                }, 1000);
               }
-            })
-            .catch(error => {
-              console.error('Backend check failed:', error);
-              setTimeout(() => {
-                dispatch(setShowRoundCompletion(false));
-                if (currentRound < totalRounds - 1) {
-                  dispatch(moveToNextRound());
-                }
-              }, TIMINGS.CELEBRATION);
-            });
+            }, TIMINGS.CELEBRATION);
+          }
+
+        } catch (error) {
+          console.error("❌ Backend save/check failed:", error);
+          alert("Failed to save round. Please try again.");
+          // dispatch(setRetrying(true));
+          await loadData();
+          dispatch(setShowRoundCompletion(false));
         }
-      } catch (err) {
-        console.error('Synchronous error:', err);
-      }
+      };
+
+      saveRoundData();
     }
   }, [showRoundCompletion, userChoices, currentRound, generateRoundSummary, currentRoundData, kingOfHill.isActive, dispatch, isLastRound, totalRounds]);
 
