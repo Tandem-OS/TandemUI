@@ -41,7 +41,7 @@ import {
   unlockTransition,
 } from '@/features/swiper/swiperSlice';
 import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
-import { swiperComponentData, swiperData } from '@/lib/requests/SwiperRequest';
+import { swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData } from '@/lib/requests/SwiperRequest';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
@@ -304,9 +304,29 @@ const Swiper: React.FC = () => {
       console.log(`[KING OF THE HILL COMPLETE - Round ${currentRound + 1}]`);
       console.log('🏆 King of the Hill Summary:', JSON.stringify(sessionSummary));
 
+      const payload = {
+        round_number: sessionSummary.round_number,
+        category: sessionSummary.category,
+        final_winner_id: sessionSummary.final_winner_id,
+        session_duration_ms: sessionSummary.session_duration_ms,
+        started_at: sessionSummary.started_at,
+        completed_at: sessionSummary.completed_at
+      }
+
       let saveSuccess = false;
 
       try {
+        const response = await swiperKingOfHillSessionData(payload);
+        const sessionId = response.data.id;
+
+        await Promise.all(
+          sessionSummary.matches.map(componentPreview => {
+
+            const payload = { ...componentPreview, session_id: sessionId };
+            swiperKingOfHillMatchesData(payload)
+          })
+        );
+
         // Wait for all component saves to finish
         await Promise.all(
           sessionSummary.components.map(componentPreview =>
@@ -424,7 +444,6 @@ const Swiper: React.FC = () => {
         } catch (error) {
           console.error("❌ Backend save/check failed:", error);
           alert("Failed to save round. Please try again.");
-          // dispatch(setRetrying(true));
           await loadData();
           dispatch(setShowRoundCompletion(false));
         }
