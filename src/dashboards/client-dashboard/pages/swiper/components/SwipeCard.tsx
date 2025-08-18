@@ -410,7 +410,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 className={`flex flex-col items-center gap-1 p-sm duration-300 
                    disabled:opacity-50 disabled:cursor-not-allowed group min-w-[40px]
                    ${special ? 'rounded-full bg-gradient-to-br from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 w-16 h-16 shadow-lg justify-center' :
-                        `rounded-lg bg-background-secondary hover:bg-background-${config.color} hover:bg-opacity-20`}`}
+                        `rounded-lg bg-background-secondary hover:bg-opacity-20`}`}
                 whileHover={!isDisabled ? { scale: special ? 1.15 : 1.1, y: special ? -2 : -1 } : {}}
                 whileTap={!isDisabled ? { scale: special ? 0.9 : 0.95 } : {}}
                 aria-label={config.label}
