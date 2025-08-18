@@ -51,12 +51,13 @@ export const swiperData = async (values: SwiperRoundSummary) => {
 
   const clientEmail = store.getState().auth.user.email!;
   const designerEmail = store.getState().auth.user.designerEmail;
+  const projectId = store.getState().project.projectId;
 
   const payload = {
     ...values,
     client_email: clientEmail,
     designer_email: designerEmail,
-    project_id: '9a545f58-341d-4152-a8e9-fddd6a752aa8'
+    project_id: projectId
   };
 
   return await api.post("/swiper/event", payload);
@@ -66,12 +67,13 @@ export const swiperComponentData = async (values: SwiperComponent) => {
 
   const clientEmail = store.getState().auth.user.email!;
   const designerEmail = store.getState().auth.user.designerEmail;
+  const projectId = store.getState().project.projectId;
 
   const payload = {
     ...values,
     client_email: clientEmail,
     designer_email: designerEmail,
-    project_id: '9a545f58-341d-4152-a8e9-fddd6a752aa8'
+    project_id: projectId
   };
 
   return await api.post("/swiper/components", payload);
@@ -80,12 +82,13 @@ export const swiperComponentData = async (values: SwiperComponent) => {
 export const swiperKingOfHillSessionData = async (values: KingOfHillSession) => {
   const clientEmail = store.getState().auth.user.email!;
   const designerEmail = store.getState().auth.user.designerEmail;
+  const projectId = store.getState().project.projectId;
 
   const payload = {
     ...values,
     client_email: clientEmail,
     designer_email: designerEmail,
-    project_id: '9a545f58-341d-4152-a8e9-fddd6a752aa8'
+    project_id: projectId
   };
 
   return await api.post("/swiper/session", payload)
@@ -94,12 +97,13 @@ export const swiperKingOfHillSessionData = async (values: KingOfHillSession) => 
 export const swiperKingOfHillMatchesData = async (values: KingOfMatches) => {
   const clientEmail = store.getState().auth.user.email!;
   const designerEmail = store.getState().auth.user.designerEmail;
+  const projectId = store.getState().project.projectId;
 
   const payload = {
     ...values,
     client_email: clientEmail,
     designer_email: designerEmail,
-    project_id: '404b1eb4-a7b5-4b9c-4a76b-b1fd389cc20e'
+    project_id: projectId
   };
 
   return await api.post("/swiper/session/matches", payload)
