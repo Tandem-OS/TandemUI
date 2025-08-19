@@ -233,18 +233,16 @@ const Swiper: React.FC = () => {
         const data = summaryResult.data.data;
         const { swipes, king_of_hill_sessions, king_of_hill_matches, components } = data;
 
-        // Map components by component_id
         const componentsMap = components.reduce((acc: any, c: any) => {
           acc[c.component_id] = c;
           return acc;
         }, {});
 
-        // 1️⃣ Build roundsData with unique keys
         const roundsDataPrepopulated = king_of_hill_sessions.map((session: any, sessionIndex: number) => {
           const sessionMatches = king_of_hill_matches
             .filter((m: any) => m.session_id === session.id)
             .map((m: any, matchIndex: number) => ({
-              id: `${session.id}-match-${matchIndex}-${Math.random()}`, // unique key
+              id: `${session.id}-match-${matchIndex}-${Math.random()}`,
               challenger_id: m.challenger_id,
               defender_id: m.defender_id,
               winner_id: m.winner_id,
@@ -254,18 +252,18 @@ const Swiper: React.FC = () => {
             }));
 
           const sessionComponentIds = Array.from(
-            new Set(sessionMatches.flatMap(m => [m.challenger_id, m.defender_id]))
+            new Set(sessionMatches.flatMap((m: any) => [m.challenger_id, m.defender_id]))
           );
 
           const sessionComponents = sessionComponentIds
-            .map((id, compIndex) => ({
+            .map((id: any, compIndex) => ({
               ...componentsMap[id],
-              key: `${session.id}-component-${id}-${compIndex}-${Math.random()}` // unique key
+              key: `${session.id}-component-${id}-${compIndex}-${Math.random()}`
             }))
             .filter(Boolean);
 
           return {
-            key: `round-${session.id}-${sessionIndex}-${Math.random()}`, // unique key for the round
+            key: `round-${session.id}-${sessionIndex}-${Math.random()}`,
             round_number: session.round_number,
             category: session.category,
             components: sessionComponents,
@@ -277,18 +275,16 @@ const Swiper: React.FC = () => {
           };
         });
 
-        // 2️⃣ Prepopulate swipes with unique keys
         const swipesWithComponents = swipes.map((s: any, swipeIndex: number) => ({
           ...s,
-          key: `swipe-${s.id || swipeIndex}-${Math.random()}`, // unique
+          key: `swipe-${s.id || swipeIndex}-${Math.random()}`,
           component: componentsMap[s.component_id]
             ? { ...componentsMap[s.component_id], key: `swipe-${s.id || swipeIndex}-${s.component_id}-${Math.random()}` }
             : null
         }));
 
-        // 3️⃣ Dispatch all swipes to Redux as user choices with unique keys
-        swipesWithComponents.forEach((s: any, swipeIndex: number) => {
-          s.choices.forEach((choice: any, choiceIndex: number) => {
+        swipesWithComponents.forEach((s: any) => {
+          s.choices.forEach((choice: any) => {
             dispatch(addUserChoice({
               choice: {
                 component_id: choice.component_id,
@@ -297,7 +293,6 @@ const Swiper: React.FC = () => {
                 action: choice.action,
                 timestamp: Date.now(),
                 behavioral_signals: choice.behavioral_signals || {},
-                key: `userchoice-${s.id || swipeIndex}-${choice.component_id}-${choiceIndex}-${Math.random()}` // unique key
               },
               isAnyModalOpen: false
             }));
@@ -307,7 +302,7 @@ const Swiper: React.FC = () => {
         setKingOfHillSessions(roundsDataPrepopulated);
 
       } catch (err) {
-        console.error("❌ Failed to prepopulate swiper data:", err);
+        console.error("Failed to prepopulate swiper data:", err);
       }
     };
 
