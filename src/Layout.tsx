@@ -16,11 +16,11 @@ const Layout = () => {
                 <Route path={ROUTES.HOME} element={<DemoPage />} />
                 <Route path={`${ROUTES.AUTH}/*`} element={<AuthLayout variant="split" />} />
                 <Route element={<ProtectedRoute />}>
-                    <Route path={ROUTES.INTAKE_FORM} element={<IntakeForm />} />
-                    <Route path={ROUTES.ONBOARD_COMPLETE} element={<OnboardComplete />} />
-                    <Route path={ROUTES.ONBOARDING} element={<OnboardingForm />} />
-                    <Route path={ROUTES.SCRAPER} element={<ScraperIntelligencePage />} />
                 </Route>
+                <Route path={ROUTES.INTAKE_FORM} element={<IntakeForm />} />
+                <Route path={ROUTES.ONBOARD_COMPLETE} element={<OnboardComplete />} />
+                <Route path={ROUTES.ONBOARDING} element={<OnboardingForm />} />
+                <Route path={ROUTES.SCRAPER} element={<ScraperIntelligencePage />} />
                 <Route path={`${ROUTES.DASHBOARD}/*`} element={<DashboardRoutes />} />
             </Routes>
         </main>

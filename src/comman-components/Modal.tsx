@@ -1,13 +1,42 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiX } from 'react-icons/fi';
+import { createPortal } from 'react-dom';
+
+// Scrollbar width ko cache karo
+let cachedScrollbarWidth: number | null = null;
+const getScrollbarWidth = () => {
+    if (cachedScrollbarWidth !== null) return cachedScrollbarWidth;
+    
+    const outer = document.createElement('div');
+    outer.style.visibility = 'hidden';
+    outer.style.overflow = 'scroll';
+    document.body.appendChild(outer);
+    
+    const inner = document.createElement('div');
+    outer.appendChild(inner);
+    
+    cachedScrollbarWidth = outer.offsetWidth - inner.offsetWidth;
+    outer.parentNode?.removeChild(outer);
+    
+    return cachedScrollbarWidth;
+};
+
+// Size classes ko constant object mein store karo
+const SIZE_CLASSES = {
+    sm: 'max-w-md',
+    md: 'max-w-lg',
+    lg: 'max-w-2xl',
+    xl: 'max-w-4xl',
+    full: 'max-w-full mx-md'
+} as const;
 
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
     children: React.ReactNode;
-    size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+    size?: keyof typeof SIZE_CLASSES;
     closeOnOverlayClick?: boolean;
     showCloseButton?: boolean;
     footer?: React.ReactNode;
@@ -18,7 +47,7 @@ interface ModalProps {
     preventScroll?: boolean;
 }
 
-const Modal: React.FC<ModalProps> = ({
+const Modal = React.memo<ModalProps>(({
     isOpen,
     onClose,
     title,
@@ -35,49 +64,53 @@ const Modal: React.FC<ModalProps> = ({
 }) => {
     const modalRef = useRef<HTMLDivElement>(null);
 
+    // Memoize scroll handling
     useEffect(() => {
-        if (preventScroll && isOpen) {
-            const originalPaddingRight = document.body.style.paddingRight;
-            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-            document.body.style.overflow = 'hidden';
-            document.body.style.paddingRight = `${scrollbarWidth}px`;
-            
-            return () => {
-                document.body.style.overflow = 'unset';
-                document.body.style.paddingRight = originalPaddingRight;
-            };
-        }
+        if (!preventScroll || !isOpen) return;
+
+        const originalStyles = {
+            overflow: document.body.style.overflow,
+            paddingRight: document.body.style.paddingRight
+        };
+        
+        const scrollbarWidth = getScrollbarWidth();
+        document.body.style.overflow = 'hidden';
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+        
+        return () => {
+            document.body.style.overflow = originalStyles.overflow;
+            document.body.style.paddingRight = originalStyles.paddingRight;
+        };
     }, [isOpen, preventScroll]);
 
+    // Memoize escape handler
     useEffect(() => {
+        if (!isOpen) return;
+        
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && isOpen) {
+            if (e.key === 'Escape') {
                 onClose();
             }
         };
+        
         document.addEventListener('keydown', handleEscape);
         return () => document.removeEventListener('keydown', handleEscape);
     }, [isOpen, onClose]);
 
-    const getSizeClasses = () => {
-        switch (size) {
-            case 'sm': return 'max-w-md';
-            case 'md': return 'max-w-lg';
-            case 'lg': return 'max-w-2xl';
-            case 'xl': return 'max-w-4xl';
-            case 'full': return 'max-w-full mx-md';
-            default: return 'max-w-lg';
-        }
-    };
-
-    const handleOverlayClick = (e: React.MouseEvent) => {
+    // Memoize overlay click handler
+    const handleOverlayClick = useCallback((e: React.MouseEvent) => {
         if (closeOnOverlayClick && e.target === e.currentTarget) {
             onClose();
         }
-    };
+    }, [closeOnOverlayClick, onClose]);
 
-    return (
-        <AnimatePresence>
+    // Memoize size class
+    const sizeClass = useMemo(() => SIZE_CLASSES[size], [size]);
+
+    if (!isOpen) return null;
+
+    const modalContent = (
+        <AnimatePresence mode="wait">
             {isOpen && (
                 <>
                     <motion.div
@@ -95,7 +128,7 @@ const Modal: React.FC<ModalProps> = ({
                         <div className={`min-h-screen px-md py-lg flex ${centered ? 'items-center' : 'items-start pt-20'} justify-center`}>
                             <motion.div
                                 ref={modalRef}
-                                className={`relative w-full ${getSizeClasses()} bg-background-primary rounded-xl shadow-2xl border border-border-default transform-gpu will-change-transform ${contentClassName}`}
+                                className={`relative w-full ${sizeClass} bg-background-primary rounded-xl shadow-2xl border border-border-default transform-gpu will-change-transform ${contentClassName}`}
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
@@ -137,6 +170,11 @@ const Modal: React.FC<ModalProps> = ({
             )}
         </AnimatePresence>
     );
-};
+
+    // Use portal to render at document root
+    return createPortal(modalContent, document.body);
+});
+
+Modal.displayName = 'Modal';
 
 export default Modal;

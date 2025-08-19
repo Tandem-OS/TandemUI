@@ -17,7 +17,7 @@ interface FloatingShapesProps {
     borderWidth?: number;
     maxShapes?: number;
     spawnInterval?: number;
-    className?: string; // ✅ Add className here
+    className?: string;
 }
 
 const SHAPE_TYPES: ShapeType[] = ['square', 'circle', 'triangle', 'diamond'];
@@ -31,12 +31,12 @@ const createShape = (): Shape => ({
 });
 
 const FloatingShapesBackground: React.FC<FloatingShapesProps> = ({
-    bgGradient = 'bg-gradient-to-t from-indigo-800 via-indigo-600 to-accent-default-dark',
-    shapeColor = '#1f2937',
+    bgGradient = 'bg-gradient-to-t from-accent-subtle via-accent-default to-background-accent',
+    shapeColor = 'rgb(var(--border-default) / 0.3)',
     borderWidth = 6,
     maxShapes = 80,
     spawnInterval = 500,
-    className = '', // ✅ Destructure with default
+    className = '',
 }) => {
     const [shapes, setShapes] = useState<Shape[]>(() =>
         [...Array(5)].map(createShape)
@@ -86,11 +86,22 @@ const FloatingShapesBackground: React.FC<FloatingShapesProps> = ({
                     return (
                         <motion.div
                             key={id}
-                            initial={{ y: -size, rotate: 0 }}
-                            animate={{ y: '100vh', rotate }}
-                            transition={{ duration, ease: 'easeInOut' }}
+                            initial={{ y: -size, opacity: 0 }}
+                            animate={{ 
+                                y: window.innerHeight + size * 2, // Go beyond viewport
+                                opacity: [0, 0.6, 0.6, 0], // Fade in, stay visible, then fade out
+                                rotate 
+                            }}
+                            transition={{ 
+                                duration, 
+                                ease: 'linear', // Linear for consistent speed
+                                opacity: {
+                                    times: [0, 0.1, 0.9, 1], // Control opacity timing
+                                    duration
+                                }
+                            }}
                             onAnimationComplete={() => removeShape(id)}
-                            className="absolute top-0 opacity-60"
+                            className="absolute top-0 pointer-events-none"
                             style={{
                                 ...commonStyle,
                                 display: 'flex',
@@ -115,17 +126,28 @@ const FloatingShapesBackground: React.FC<FloatingShapesProps> = ({
                     type === 'circle'
                         ? 'rounded-full'
                         : type === 'diamond'
-                        ? 'rotate-45'
-                        : '';
+                        ? 'rotate-45 rounded-lg'
+                        : 'rounded-md';
 
                 return (
                     <motion.div
                         key={id}
-                        initial={{ y: -size }}
-                        animate={{ y: '100vh', rotate: type === 'diamond' ? 0 : 360 }}
-                        transition={{ duration, ease: 'easeInOut' }}
+                        initial={{ y: -size, opacity: 0 }}
+                        animate={{ 
+                            y: window.innerHeight + size * 2, // Go beyond viewport
+                            opacity: [0, 0.6, 0.6, 0], // Fade in, stay visible, then fade out
+                            rotate: type === 'diamond' ? 0 : 360 
+                        }}
+                        transition={{ 
+                            duration, 
+                            ease: 'linear', // Linear for consistent speed
+                            opacity: {
+                                times: [0, 0.1, 0.9, 1], // Control opacity timing
+                                duration
+                            }
+                        }}
                         onAnimationComplete={() => removeShape(id)}
-                        className={`absolute top-0 opacity-60 ${shapeClass}`}
+                        className={`absolute top-0 pointer-events-none ${shapeClass}`}
                         style={{
                             ...commonStyle,
                             border: `${borderWidth}px solid ${shapeColor}`,

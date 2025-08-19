@@ -1,9 +1,26 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { clsx } from 'clsx';
 import { RiCloseLine } from 'react-icons/ri';
 
-// Defines the properties the Drawer component accepts
+// Animation variants ko component ke bahar
+const BACKDROP_VARIANTS: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.3, ease: 'easeOut' }
+  }
+};
+
+const createDrawerVariants = (position: 'left' | 'right'): Variants => ({
+  hidden: { x: position === 'left' ? '-100%' : '100%' },
+  visible: {
+    x: 0,
+    transition: { duration: 0.3, ease: 'easeOut' }
+  }
+});
+
 interface DrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,7 +29,7 @@ interface DrawerProps {
   width?: string;
 }
 
-const Drawer: React.FC<DrawerProps> = ({
+const Drawer = React.memo<DrawerProps>(({
   isOpen,
   onClose,
   children,
@@ -21,55 +38,31 @@ const Drawer: React.FC<DrawerProps> = ({
 }) => {
   const drawerRef = useRef<HTMLDivElement>(null);
 
-  // Effect to handle closing when clicking outside and to prevent body scroll
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
+  const drawerVariants = useMemo(
+    () => createDrawerVariants(position),
+    [position]
+  );
 
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
+      onClose();
+    }
+  }, [onClose]);
+
+  useEffect(() => {
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'hidden';
     }
 
-    // Cleanup function
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClickOutside]);
 
-  // Animation variants for the backdrop overlay
-  const backdropVariants: Variants = {
-    hidden: {
-      opacity: 0,
-    },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.3,
-        ease: 'easeOut',
-      },
-    },
-  };
-
-  // Animation variants for the drawer panel
-  const drawerVariants: Variants = {
-    hidden: {
-      x: position === 'left' ? '-100%' : '100%',
-    },
-    visible: {
-      x: 0,
-      transition: {
-        duration: 0.3,
-        ease: 'easeOut',
-      },
-    },
-  };
-
-  return (
+  // Portal ke andar content - NO early return!
+  const drawerContent = (
     <AnimatePresence mode="wait">
       {isOpen && (
         <>
@@ -78,7 +71,7 @@ const Drawer: React.FC<DrawerProps> = ({
             initial="hidden"
             animate="visible"
             exit="hidden"
-            variants={backdropVariants}
+            variants={BACKDROP_VARIANTS}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100]"
             onClick={onClose}
           />
@@ -94,7 +87,7 @@ const Drawer: React.FC<DrawerProps> = ({
               'fixed top-0 h-full bg-background-primary z-[999999999] shadow-2xl',
               width,
               position === 'left' ? 'left-0' : 'right-0',
-              'will-change-transform' // Animation performance optimization
+              'will-change-transform'
             )}
           >
             {/* Close Button */}
@@ -106,7 +99,7 @@ const Drawer: React.FC<DrawerProps> = ({
               <RiCloseLine className="text-xl text-text-secondary" />
             </button>
 
-            {/* Content - REVERTED to your original layout */}
+            {/* Content */}
             <div className="h-full overflow-y-auto">
               {children}
             </div>
@@ -115,6 +108,10 @@ const Drawer: React.FC<DrawerProps> = ({
       )}
     </AnimatePresence>
   );
-};
+
+  return createPortal(drawerContent, document.body);
+});
+
+Drawer.displayName = 'Drawer';
 
 export default Drawer;
