@@ -108,3 +108,30 @@ export const swiperKingOfHillMatchesData = async (values: KingOfMatches) => {
 
   return await api.post("/swiper/session/matches", payload)
 }
+
+export const saveRoundCompleted = async () => {
+  const clientEmail = store.getState().auth.user.email!;
+  const designerEmail = store.getState().auth.user.designerEmail;
+  const projectId = store.getState().project.projectId;
+
+  const payload = {
+    client_email: clientEmail,
+    designer_email: designerEmail,
+    project_id: projectId,
+    round_completed: true
+  };
+
+  return await api.post("/rounds/completed", payload)
+}
+
+export const fetchRoundCompleted = async () => {
+  const project_id = store.getState().project.projectId;
+
+  return await api.get(`/rounds/completed/${project_id}`)
+}
+
+export const fetchRoundCompletedData = async () => {
+  const project_id = store.getState().project.projectId;
+
+  return await api.get(`/rounds/completed/summary/${project_id}`)
+}

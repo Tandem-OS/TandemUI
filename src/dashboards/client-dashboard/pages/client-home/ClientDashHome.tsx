@@ -236,7 +236,6 @@ const ClientDashHome: React.FC = () => {
 
   const fetchProject = async () => {
     const result = await getProjectByClientEmail({ client_email });
-    debugger;
     if (result.status === 200 && result.data.data?.id) {
       dispatch(setProjectId(result.data.data?.id));
     }

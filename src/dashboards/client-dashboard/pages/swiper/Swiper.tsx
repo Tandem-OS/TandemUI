@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { FiX, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiWifi, FiEye } from 'react-icons/fi';
@@ -41,7 +41,7 @@ import {
   unlockTransition,
 } from '@/features/swiper/swiperSlice';
 import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
-import { swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData } from '@/lib/requests/SwiperRequest';
+import { fetchRoundCompleted, fetchRoundCompletedData, saveRoundCompleted, swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData } from '@/lib/requests/SwiperRequest';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
@@ -172,6 +172,8 @@ const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetr
 const Swiper: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
+  const [roundCompleted, setRoundCompleted] = useState(false);
+  const hasFetched = useRef(false);
 
   const {
     currentRound,
@@ -217,6 +219,101 @@ const Swiper: React.FC = () => {
   useEffect(() => {
     dispatch(updateRoundStartTime());
   }, [currentRound, dispatch]);
+
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
+    const prepopulateFromBackend = async () => {
+      try {
+        const statusResult = await fetchRoundCompleted();
+        if (!statusResult.data.round_completed) return;
+        setRoundCompleted(true);
+
+        const summaryResult = await fetchRoundCompletedData();
+        const data = summaryResult.data.data;
+        const { swipes, king_of_hill_sessions, king_of_hill_matches, components } = data;
+
+        // Map components by component_id
+        const componentsMap = components.reduce((acc: any, c: any) => {
+          acc[c.component_id] = c;
+          return acc;
+        }, {});
+
+        // 1️⃣ Build roundsData with unique keys
+        const roundsDataPrepopulated = king_of_hill_sessions.map((session: any, sessionIndex: number) => {
+          const sessionMatches = king_of_hill_matches
+            .filter((m: any) => m.session_id === session.id)
+            .map((m: any, matchIndex: number) => ({
+              id: `${session.id}-match-${matchIndex}-${Math.random()}`, // unique key
+              challenger_id: m.challenger_id,
+              defender_id: m.defender_id,
+              winner_id: m.winner_id,
+              match_duration_ms: m.match_duration_ms,
+              behavioral_signals: { ...m.behavioral_signals, match_number: matchIndex + 1 },
+              match_number: matchIndex + 1
+            }));
+
+          const sessionComponentIds = Array.from(
+            new Set(sessionMatches.flatMap(m => [m.challenger_id, m.defender_id]))
+          );
+
+          const sessionComponents = sessionComponentIds
+            .map((id, compIndex) => ({
+              ...componentsMap[id],
+              key: `${session.id}-component-${id}-${compIndex}-${Math.random()}` // unique key
+            }))
+            .filter(Boolean);
+
+          return {
+            key: `round-${session.id}-${sessionIndex}-${Math.random()}`, // unique key for the round
+            round_number: session.round_number,
+            category: session.category,
+            components: sessionComponents,
+            matches: sessionMatches,
+            final_winner_id: sessionMatches.length ? sessionMatches[sessionMatches.length - 1].winner_id : null,
+            session_duration_ms: session.completed_at - session.started_at,
+            started_at: session.started_at,
+            completed_at: session.completed_at
+          };
+        });
+
+        // 2️⃣ Prepopulate swipes with unique keys
+        const swipesWithComponents = swipes.map((s: any, swipeIndex: number) => ({
+          ...s,
+          key: `swipe-${s.id || swipeIndex}-${Math.random()}`, // unique
+          component: componentsMap[s.component_id]
+            ? { ...componentsMap[s.component_id], key: `swipe-${s.id || swipeIndex}-${s.component_id}-${Math.random()}` }
+            : null
+        }));
+
+        // 3️⃣ Dispatch all swipes to Redux as user choices with unique keys
+        swipesWithComponents.forEach((s: any, swipeIndex: number) => {
+          s.choices.forEach((choice: any, choiceIndex: number) => {
+            dispatch(addUserChoice({
+              choice: {
+                component_id: choice.component_id,
+                category: choice.category,
+                vibe: choice.vibe,
+                action: choice.action,
+                timestamp: Date.now(),
+                behavioral_signals: choice.behavioral_signals || {},
+                key: `userchoice-${s.id || swipeIndex}-${choice.component_id}-${choiceIndex}-${Math.random()}` // unique key
+              },
+              isAnyModalOpen: false
+            }));
+          });
+        });
+
+        setKingOfHillSessions(roundsDataPrepopulated);
+
+      } catch (err) {
+        console.error("❌ Failed to prepopulate swiper data:", err);
+      }
+    };
+
+    prepopulateFromBackend();
+  }, [dispatch]);
+
 
   const handleRetry = useCallback(async () => {
     dispatch(setRetrying(true));
@@ -417,6 +514,14 @@ const Swiper: React.FC = () => {
           }
 
           const backendResponse = await checkRoundWithBackend(roundSummary);
+          if (isLastRound) {
+            try {
+              console.log("✅ Marking project round as completed...");
+              await saveRoundCompleted();
+            } catch (err) {
+              console.error("❌ Failed to mark round completed:", err);
+            }
+          }
           if (backendResponse.useKingOfHill && currentRoundData) {
             console.log("🏆 Backend requested King of the Hill for this round!");
             setTimeout(() => {
@@ -578,7 +683,7 @@ const Swiper: React.FC = () => {
   }
 
   // Final completion screen using SwiperSummary component
-  if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive) {
+  if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive || roundCompleted) {
     return (
       <SwiperSummary
         userChoices={userChoices}

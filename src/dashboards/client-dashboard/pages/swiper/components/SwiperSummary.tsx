@@ -486,7 +486,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                                 >
                                     {intelligence.topTags.map((tag, index) => (
                                         <motion.div
-                                            key={tag.tag}
+                                             key={`${tag.tag}-${index}`} 
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{
@@ -558,7 +558,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                                     <AnimatePresence>
                                         {visibleSuperChoices.map((item, index) => (
                                             <SummaryCard
-                                                key={item.choice.component_id}
+                                                key={`${item.component.component_id}-super-${index}`}
                                                 component={item.component}
                                                 userChoice={item.choice}
                                                 isSuperlike={true}
@@ -581,7 +581,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                                     }}
                                 >
                                     {intelligence.superLikedChoicesWithComponents.map((item, index) => (
-                                        <SwiperSlide key={item.choice.component_id}>
+                                        <SwiperSlide key={`superLiked-${item.component.component_id}-${index}`}>
                                             <SummaryCard
                                                 component={item.component}
                                                 userChoice={item.choice}
@@ -641,7 +641,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                                 <AnimatePresence>
                                     {visibleRegularChoices.map((item, index) => (
                                         <SummaryCard
-                                            key={item.choice.component_id}
+                                            key={`${item.component.component_id}-regular-${index}`}
                                             component={item.component}
                                             userChoice={item.choice}
                                             index={index}
@@ -663,7 +663,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                                 }}
                             >
                                 {regularLikedChoices.map((item, index) => (
-                                    <SwiperSlide key={item.choice.component_id}>
+                                    <SwiperSlide key={`regular-${item.component.component_id}-${index}`}>
                                         <SummaryCard
                                             component={item.component}
                                             userChoice={item.choice}
