@@ -211,7 +211,15 @@ const IntakeForm: React.FC = () => {
                 const payload = {
                     ...rest,
                     designer_email: designerEmail,
-                    client_email: clientEmail
+                    client_email: clientEmail,
+                    key_features: formData.keyFeatures,
+                    inspiration_urls: formData.inspirationUrls,
+                    color_strategy: formData.colorStrategy,
+                    custom_colors: formData.customColors,
+                    current_site_url: formData.currentSiteUrl,
+                    additional_details: formData.additionalDetails,
+                    dead_line:formData.deadline,
+                    not_sure_deadline: formData.notSureDeadline,
                 };
 
                 await submitIntakeStep(payload);

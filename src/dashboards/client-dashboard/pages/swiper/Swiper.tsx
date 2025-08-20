@@ -411,20 +411,15 @@ const Swiper: React.FC = () => {
         const response = await swiperKingOfHillSessionData(payload);
         const sessionId = response.data.id;
 
-        await Promise.all(
-          sessionSummary.matches.map(componentPreview => {
-
-            const payload = { ...componentPreview, session_id: sessionId };
-            swiperKingOfHillMatchesData(payload)
-          })
-        );
+        for (const match of sessionSummary.matches) {
+          const payload = { ...match, session_id: sessionId };
+          await swiperKingOfHillMatchesData(payload);
+        }
 
         // Wait for all component saves to finish
-        await Promise.all(
-          sessionSummary.components.map(componentPreview =>
-            swiperComponentData(componentPreview)
-          )
-        );
+        for (const component of sessionSummary.components) {
+          await swiperComponentData(component);
+        }
         console.log('✅ All components saved');
         saveSuccess = true;
 
