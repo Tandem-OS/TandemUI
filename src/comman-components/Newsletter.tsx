@@ -1,6 +1,4 @@
-// src/comman-components/Newsletter.tsx
-
-import React, { useState, type CSSProperties } from 'react';
+import React, { useState, useCallback, useMemo, memo, type CSSProperties } from 'react';
 import Input from '../components/auth/form/components/Input';
 import FormButton from '../components/auth/form/components/FormButton';
 
@@ -54,7 +52,7 @@ interface NewsletterProps {
     theme?: 'light' | 'dark';
 }
 
-const Newsletter: React.FC<NewsletterProps> = ({
+const Newsletter: React.FC<NewsletterProps> = memo(({
     placeholder = "Enter your email",
     buttonText = "Sign up",
     message = "By clicking Sign Up you're confirming that you agree with our Terms and Conditions.",
@@ -66,13 +64,84 @@ const Newsletter: React.FC<NewsletterProps> = ({
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
+    const [isButtonHovered, setIsButtonHovered] = useState(false);
 
-    const getColor = (config: ColorValue | undefined, fallback: string): string => {
+    // Memoized color getter
+    const getColor = useCallback((config: ColorValue | undefined, fallback: string): string => {
         if (!config) return fallback;
         return (theme === 'dark' ? config.dark : config.light) ?? config.light ?? fallback;
-    };
+    }, [theme]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    // Memoized styles
+    const styles = useMemo(() => {
+        // Input styles with focus support
+        const inputStyles: CSSProperties = colors ? {
+            backgroundColor: getColor(colors.input?.background, theme === 'dark' ? '#1f2937' : '#ffffff'),
+            color: getColor(colors.input?.text, theme === 'dark' ? '#f9fafb' : '#111827'),
+            borderColor: isFocused
+                ? getColor(colors.input?.focusBorder, getColor(colors.input?.border, theme === 'dark' ? '#4f46e5' : '#3b82f6'))
+                : getColor(colors.input?.border, theme === 'dark' ? '#374151' : '#d1d5db'),
+            borderWidth: '1px',
+            borderStyle: 'solid',
+        } : {};
+
+        // Button styles - including hover state
+        const buttonBaseStyles: CSSProperties = colors ? {
+            backgroundColor: getColor(colors.button?.background, '#4f46e5'),
+            color: getColor(colors.button?.text, '#ffffff'),
+            borderColor: getColor(colors.button?.border, '#4f46e5'),
+            borderWidth: '2px',
+            borderStyle: 'solid',
+        } : {};
+
+        const buttonHoverStyles: CSSProperties = colors?.button?.hover ? {
+            backgroundColor: getColor(colors.button.hover.background, buttonBaseStyles.backgroundColor as string),
+            color: getColor(colors.button.hover.text, buttonBaseStyles.color as string),
+            borderColor: getColor(colors.button.hover.border, buttonBaseStyles.borderColor as string),
+            borderWidth: '2px',
+            borderStyle: 'solid',
+        } : buttonBaseStyles;
+
+        const buttonStyles = isButtonHovered && colors?.button?.hover ? buttonHoverStyles : buttonBaseStyles;
+
+        // Message styles
+        const messageStyles: CSSProperties = colors ? {
+            color: getColor(colors.message, theme === 'dark' ? '#9ca3af' : '#6b7280'),
+        } : {};
+
+        return {
+            input: inputStyles,
+            button: buttonStyles,
+            message: messageStyles
+        };
+    }, [colors, theme, isFocused, isButtonHovered, getColor]);
+
+    // Memoized callbacks
+    const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setEmail(e.target.value);
+    }, []);
+
+    const handleInputFocus = useCallback(() => {
+        setIsFocused(true);
+    }, []);
+
+    const handleInputBlur = useCallback(() => {
+        setIsFocused(false);
+    }, []);
+
+    const handleButtonMouseEnter = useCallback(() => {
+        if (colors?.button?.hover) {
+            setIsButtonHovered(true);
+        }
+    }, [colors?.button?.hover]);
+
+    const handleButtonMouseLeave = useCallback(() => {
+        if (colors?.button?.hover) {
+            setIsButtonHovered(false);
+        }
+    }, [colors?.button?.hover]);
+
+    const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email.trim()) return;
 
@@ -90,48 +159,12 @@ const Newsletter: React.FC<NewsletterProps> = ({
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [email, onSubmit]);
 
-    const handleButtonHover = (e: React.MouseEvent<HTMLButtonElement>, isHovering: boolean) => {
-        if (!colors?.button?.hover) return;
-
-        const target = e.currentTarget.style;
-
-        if (isHovering) {
-            target.backgroundColor = getColor(colors.button.hover.background, target.backgroundColor);
-            target.color = getColor(colors.button.hover.text, target.color);
-            target.borderColor = getColor(colors.button.hover.border, target.borderColor);
-        } else {
-            target.backgroundColor = getColor(colors.button?.background, '#4f46e5');
-            target.color = getColor(colors.button?.text, '#ffffff');
-            target.borderColor = getColor(colors.button?.border, '#4f46e5');
-        }
-    };
-
-    // Input styles with focus support
-    const inputStyles: CSSProperties = colors ? {
-        backgroundColor: getColor(colors.input?.background, theme === 'dark' ? '#1f2937' : '#ffffff'),
-        color: getColor(colors.input?.text, theme === 'dark' ? '#f9fafb' : '#111827'),
-        borderColor: isFocused
-            ? getColor(colors.input?.focusBorder, getColor(colors.input?.border, theme === 'dark' ? '#4f46e5' : '#3b82f6'))
-            : getColor(colors.input?.border, theme === 'dark' ? '#374151' : '#d1d5db'),
-        borderWidth: '1px',
-        borderStyle: 'solid',
-    } : {};
-
-    // Button styles
-    const buttonStyles: CSSProperties = colors ? {
-        backgroundColor: getColor(colors.button?.background, '#4f46e5'),
-        color: getColor(colors.button?.text, '#ffffff'),
-        borderColor: getColor(colors.button?.border, '#4f46e5'),
-        borderWidth: '2px',
-        borderStyle: 'solid',
-    } : {};
-
-    // Message styles
-    const messageStyles: CSSProperties = colors ? {
-        color: getColor(colors.message, theme === 'dark' ? '#9ca3af' : '#6b7280'),
-    } : {};
+    // Memoized component props
+    const inputVariant = useMemo(() => colors ? 'basic' : 'filled', [colors]);
+    const buttonVariant = useMemo(() => colors ? 'basic' : 'solid', [colors]);
+    const messageClassName = useMemo(() => `text-para-xs ${colors ? '' : 'text-text-tertiary'}`, [colors]);
 
     return (
         <div className={`w-full ${className}`}>
@@ -142,26 +175,26 @@ const Newsletter: React.FC<NewsletterProps> = ({
                             type="email"
                             name="newsletter-email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
+                            onChange={handleEmailChange}
+                            onFocus={handleInputFocus}
+                            onBlur={handleInputBlur}
                             placeholder={placeholder}
-                            variant={colors ? 'basic' : 'filled'}
+                            variant={inputVariant}
                             className="w-full min-h-[2.75rem]"
-                            style={inputStyles}
+                            style={styles.input}
                             required
                         />
                     </div>
 
                     <FormButton
                         type="submit"
-                        variant={colors ? 'basic' : 'solid'}
+                        variant={buttonVariant}
                         size="md"
                         className="w-full sm:w-auto min-h-[2.75rem]"
-                        style={buttonStyles}
+                        style={styles.button}
                         isLoading={isLoading}
-                        onMouseEnter={colors ? (e) => handleButtonHover(e, true) : undefined}
-                        onMouseLeave={colors ? (e) => handleButtonHover(e, false) : undefined}
+                        onMouseEnter={handleButtonMouseEnter}
+                        onMouseLeave={handleButtonMouseLeave}
                     >
                         {buttonText}
                     </FormButton>
@@ -169,8 +202,8 @@ const Newsletter: React.FC<NewsletterProps> = ({
 
                 {message && (
                     <p
-                        className={`text-para-xs ${colors ? '' : 'text-text-tertiary'}`}
-                        style={messageStyles}
+                        className={messageClassName}
+                        style={styles.message}
                     >
                         {message}
                     </p>
@@ -178,6 +211,8 @@ const Newsletter: React.FC<NewsletterProps> = ({
             </form>
         </div>
     );
-};
+});
+
+Newsletter.displayName = 'Newsletter';
 
 export default Newsletter;

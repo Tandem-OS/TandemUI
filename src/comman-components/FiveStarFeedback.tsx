@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
 import { FaStar, FaPaperPlane } from 'react-icons/fa';
 import FormButton from '../components/auth/form/components/FormButton';
@@ -11,7 +11,100 @@ interface FiveStarFeedbackProps {
     className?: string;
 }
 
-const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = ({
+// Memoized timer component to prevent parent re-renders
+const TimerDisplay = memo(({ 
+    timeLeft, 
+    autoSkipSeconds, 
+    hasInteracted 
+}: { 
+    timeLeft: number; 
+    autoSkipSeconds: number; 
+    hasInteracted: boolean;
+}) => {
+    if (hasInteracted) return null;
+    
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex items-center justify-center gap-sm text-text-tertiary"
+        >
+            <div className="w-6 h-6 relative">
+                <svg className="w-6 h-6 transform -rotate-90" viewBox="0 0 32 32">
+                    <circle
+                        cx="16"
+                        cy="16"
+                        r="14"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        fill="transparent"
+                        className="opacity-20"
+                    />
+                    <motion.circle
+                        cx="16"
+                        cy="16"
+                        r="14"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        fill="transparent"
+                        strokeLinecap="round"
+                        initial={{ pathLength: 1 }}
+                        animate={{ pathLength: timeLeft / autoSkipSeconds }}
+                        transition={{ duration: 1, ease: "linear" }}
+                        className="text-accent-default"
+                    />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-para-xs font-bold text-text-primary">
+                        {timeLeft}
+                    </span>
+                </div>
+            </div>
+            <span className="text-para-xs">Auto-skip in {timeLeft}s</span>
+        </motion.div>
+    );
+});
+
+TimerDisplay.displayName = 'TimerDisplay';
+
+// Memoized star button component
+const StarButton = memo(({ 
+    star, 
+    isActive, 
+    onClick, 
+    onMouseEnter, 
+    onMouseLeave 
+}: {
+    star: number;
+    isActive: boolean;
+    onClick: (star: number) => void;
+    onMouseEnter: (star: number) => void;
+    onMouseLeave: () => void;
+}) => {
+    const handleClick = useCallback(() => onClick(star), [onClick, star]);
+    const handleMouseEnter = useCallback(() => onMouseEnter(star), [onMouseEnter, star]);
+    
+    return (
+        <motion.button
+            onClick={handleClick}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={onMouseLeave}
+            className="relative p-xs transition-all duration-200 outline-none focus:outline-none border-none"
+            style={{ outline: 'none' }}
+        >
+            <FaStar
+                className={`text-icon-xl transition-all duration-200 ${
+                    isActive ? 'text-amber-400' : 'text-gray-300 dark:text-gray-600'
+                }`}
+            />
+        </motion.button>
+    );
+});
+
+StarButton.displayName = 'StarButton';
+
+const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = memo(({
     question,
     onSubmit,
     onSkip,
@@ -25,60 +118,50 @@ const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = ({
     const [timeLeft, setTimeLeft] = useState<number>(autoSkipSeconds);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-    // Emoji mapping based on rating
-    const getEmoji = (currentRating: number) => {
-        if (currentRating === 0) return '😊'; // Default happy face
-        if (currentRating === 1) return '😡'; // Angry
-        if (currentRating === 2) return '😞'; // Sad
-        if (currentRating === 3) return '😐'; // Neutral
-        if (currentRating === 4) return '😊'; // Happy
-        if (currentRating === 5) return '🤩'; // Star-struck
-        return '😊';
-    };
+    // Memoized emoji logic
+    const emojiData = useMemo(() => {
+        const emojiMap: { [key: number]: { emoji: string; scale: number } } = {
+            0: { emoji: '😊', scale: 1 },
+            1: { emoji: '😡', scale: 1.1 },
+            2: { emoji: '😞', scale: 0.95 },
+            3: { emoji: '😐', scale: 1 },
+            4: { emoji: '😊', scale: 1.05 },
+            5: { emoji: '🤩', scale: 1.15 }
+        };
+        
+        const currentRating = hoveredRating || rating;
+        return emojiMap[currentRating] || emojiMap[0];
+    }, [hoveredRating, rating]);
 
-    // Get emoji color based on rating
-    const getEmojiScale = (currentRating: number) => {
-        if (currentRating === 0) return 1;
-        if (currentRating === 1) return 1.1; // Slightly bigger for angry
-        if (currentRating === 2) return 0.95; // Slightly smaller for sad
-        if (currentRating === 3) return 1;
-        if (currentRating === 4) return 1.05;
-        if (currentRating === 5) return 1.15; // Biggest for star-struck
-        return 1;
-    };
-
-    // Mark user interaction and stop timer
+    // Memoized callbacks
     const markInteraction = useCallback(() => {
-        if (!hasInteracted) {
-            setHasInteracted(true);
-        }
-    }, [hasInteracted]);
+        setHasInteracted(true);
+    }, []);
 
-    // Handle rating selection
-    const handleRatingClick = (selectedRating: number) => {
+    const handleRatingClick = useCallback((selectedRating: number) => {
         markInteraction();
         setRating(selectedRating);
-    };
+    }, [markInteraction]);
 
-    // Handle rating hover
-    const handleRatingHover = (hoveredStar: number) => {
+    const handleRatingHover = useCallback((hoveredStar: number) => {
         markInteraction();
         setHoveredRating(hoveredStar);
-    };
+    }, [markInteraction]);
 
-    // Handle message change
-    const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleRatingLeave = useCallback(() => {
+        setHoveredRating(0);
+    }, []);
+
+    const handleMessageChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
         markInteraction();
         setMessage(e.target.value);
-    };
+    }, [markInteraction]);
 
-    // Handle textarea focus
-    const handleTextareaFocus = () => {
+    const handleTextareaFocus = useCallback(() => {
         markInteraction();
-    };
+    }, [markInteraction]);
 
-    // Handle submit
-    const handleSubmit = async () => {
+    const handleSubmit = useCallback(async () => {
         if (rating === 0) return;
 
         markInteraction();
@@ -88,32 +171,33 @@ const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = ({
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         onSubmit(rating, message.trim());
-    };
+    }, [rating, message, onSubmit, markInteraction]);
 
-    // Handle skip
-    const handleSkip = () => {
+    const handleSkip = useCallback(() => {
         markInteraction();
         onSkip();
-    };
+    }, [onSkip, markInteraction]);
 
-    // Auto-skip timer effect
+    // Optimized timer effect
     useEffect(() => {
-        if (hasInteracted) return; // Stop timer if user has interacted
-
-        if (timeLeft <= 0) {
-            onSkip();
+        if (hasInteracted || timeLeft <= 0) {
+            if (!hasInteracted && timeLeft <= 0) {
+                onSkip();
+            }
             return;
         }
 
         const timer = setTimeout(() => {
-            setTimeLeft(timeLeft - 1);
+            setTimeLeft(prev => prev - 1);
         }, 1000);
 
         return () => clearTimeout(timer);
     }, [timeLeft, hasInteracted, onSkip]);
 
-    const currentEmoji = getEmoji(hoveredRating || rating);
-    const currentScale = getEmojiScale(hoveredRating || rating);
+    // Memoized star active state calculation
+    const isStarActive = useCallback((star: number) => {
+        return star <= (hoveredRating || rating);
+    }, [hoveredRating, rating]);
 
     return (
         <motion.div
@@ -125,47 +209,11 @@ const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = ({
         >
             {/* Skip Button at Top Right */}
             <div className={`flex ${!hasInteracted ? 'justify-between' : 'justify-end'} mb-md h-6`}>
-                {!hasInteracted && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="flex items-center justify-center gap-sm text-text-tertiary"
-                    >
-                        <div className="w-6 h-6 relative">
-                            <svg className="w-6 h-6 transform -rotate-90" viewBox="0 0 32 32">
-                                <circle
-                                    cx="16"
-                                    cy="16"
-                                    r="14"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    fill="transparent"
-                                    className="opacity-20"
-                                />
-                                <motion.circle
-                                    cx="16"
-                                    cy="16"
-                                    r="14"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    fill="transparent"
-                                    strokeLinecap="round"
-                                    initial={{ pathLength: 1 }}
-                                    animate={{ pathLength: timeLeft / autoSkipSeconds }}
-                                    transition={{ duration: 1, ease: "linear" }}
-                                    className="text-accent-default"
-                                />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-para-xs font-bold text-text-primary">
-                                    {timeLeft}
-                                </span>
-                            </div>
-                        </div>
-                        <span className="text-para-xs">Auto-skip in {timeLeft}s</span>
-                    </motion.div>
-                )}
+                <TimerDisplay 
+                    timeLeft={timeLeft} 
+                    autoSkipSeconds={autoSkipSeconds} 
+                    hasInteracted={hasInteracted} 
+                />
                 <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -180,10 +228,10 @@ const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = ({
             <div className="text-center mb-md">
                 <div className="h-20 flex items-center justify-center mb-sm">
                     <motion.div
-                        key={currentEmoji}
+                        key={emojiData.emoji}
                         initial={{ scale: 0.5, rotate: -10 }}
                         animate={{
-                            scale: currentScale,
+                            scale: emojiData.scale,
                             rotate: 0
                         }}
                         transition={{
@@ -193,7 +241,7 @@ const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = ({
                         }}
                         className="text-7xl"
                     >
-                        {currentEmoji}
+                        {emojiData.emoji}
                     </motion.div>
                 </div>
             </div>
@@ -214,21 +262,14 @@ const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = ({
             {/* Star Rating */}
             <div className="flex justify-center gap-sm mb-md">
                 {[1, 2, 3, 4, 5].map((star) => (
-                    <motion.button
+                    <StarButton
                         key={star}
-                        onClick={() => handleRatingClick(star)}
-                        onMouseEnter={() => handleRatingHover(star)}
-                        onMouseLeave={() => setHoveredRating(0)}
-                        className="relative p-xs transition-all duration-200 outline-none focus:outline-none border-none"
-                        style={{ outline: 'none' }}
-                    >
-                        <FaStar
-                            className={`text-icon-xl transition-all duration-200 ${star <= (hoveredRating || rating)
-                                ? 'text-amber-400'
-                                : 'text-gray-300 dark:text-gray-600'
-                                }`}
-                        />
-                    </motion.button>
+                        star={star}
+                        isActive={isStarActive(star)}
+                        onClick={handleRatingClick}
+                        onMouseEnter={handleRatingHover}
+                        onMouseLeave={handleRatingLeave}
+                    />
                 ))}
             </div>
 
@@ -246,16 +287,14 @@ const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = ({
 
             {/* Action Buttons */}
             <div className="space-y-md">
-
                 {/* Submit Button - Full Width */}
                 <FormButton
                     onClick={handleSubmit}
                     isLoading={isSubmitting}
                     size="lg"
                     className='w-full'
-
+                    disabled={rating === 0}
                 >
-
                     <div className="flex items-center gap-sm">
                         <FaPaperPlane className="text-icon-sm" />
                         <span>Submit Feedback</span>
@@ -264,6 +303,8 @@ const FiveStarFeedback: React.FC<FiveStarFeedbackProps> = ({
             </div>
         </motion.div>
     );
-};
+});
+
+FiveStarFeedback.displayName = 'FiveStarFeedback';
 
 export default FiveStarFeedback;

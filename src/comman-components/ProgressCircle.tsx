@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, memo } from 'react';
 import { motion } from 'framer-motion';
 
 interface ProgressCircleProps {
@@ -9,22 +9,29 @@ interface ProgressCircleProps {
   secondaryColor?: string;
 }
 
-const ProgressCircle: React.FC<ProgressCircleProps> = ({
+// Static size map outside component to prevent recreation
+const SIZE_MAP = {
+  sm: 40,
+  md: 56,
+  lg: 72
+} as const;
+
+const ProgressCircle: React.FC<ProgressCircleProps> = memo(({
   percentage,
   size = 'md',
   strokeWidth = 6,
   primaryColor = 'stroke-accent-default',
   secondaryColor = 'stroke-border-muted'
 }) => {
-  const sizeMap = {
-    sm: 40,
-    md: 56,
-    lg: 72
-  };
-
-  const dimension = sizeMap[size];
-  const radius = (dimension - strokeWidth * 2) / 2;
-  const circumference = 2 * Math.PI * radius;
+  // Memoized calculations
+  const dimension = useMemo(() => SIZE_MAP[size], [size]);
+  const radius = useMemo(() => (dimension - strokeWidth * 2) / 2, [dimension, strokeWidth]);
+  const circumference = useMemo(() => 2 * Math.PI * radius, [radius]);
+  
+  // Memoized stroke dash offset
+  const targetStrokeDashoffset = useMemo(() => {
+    return circumference - (percentage / 100) * circumference;
+  }, [circumference, percentage]);
 
   return (
     <div className="relative inline-flex items-center justify-center">
@@ -51,7 +58,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
           strokeLinecap="round"
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: circumference - (percentage / 100) * circumference }}
+          animate={{ strokeDashoffset: targetStrokeDashoffset }}
           transition={{ duration: 1.2, ease: "easeInOut" }}
         />
       </svg>
@@ -60,6 +67,8 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({
       </div>
     </div>
   );
-};
+});
+
+ProgressCircle.displayName = 'ProgressCircle';
 
 export default ProgressCircle;
