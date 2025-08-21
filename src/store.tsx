@@ -8,7 +8,7 @@ import projectReducer from "@/features/project/projectSlice"
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth'], // Only persist `auth` reducer
+  whitelist: ['auth','project'], // Only persist `auth` reducer
 };
 
 const rootReducer = combineReducers({

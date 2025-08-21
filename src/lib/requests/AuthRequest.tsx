@@ -1,6 +1,7 @@
 import api from "@/lib/requests/Axios";
 import { store } from '@/store';
 import { logout, updateTokens } from '@/features/authentication/authSlice';
+import { clearProjectId } from "@/features/project/projectSlice";
 import { broadcastLogout } from '@/utils/logoutChannel';
 
 interface SignUpValues {
@@ -39,6 +40,7 @@ export const handleLogout = async () => {
   if (response.data.success) {
     broadcastLogout();
     store.dispatch(logout());
+    store.dispatch(clearProjectId());
     return response
   }
 };

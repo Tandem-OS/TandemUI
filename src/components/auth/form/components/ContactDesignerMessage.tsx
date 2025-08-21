@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { callMagicLinkVerification } from '@/lib/requests/AuthRequest';
+import { store } from '@/store';
+import { clearProjectId } from '@/features/project/projectSlice';
 
 const MagicLinkSecurePage = () => {
   const [message, setMessage] = useState<string>('Signing in with Magic Link...');
@@ -7,16 +9,16 @@ const MagicLinkSecurePage = () => {
 
   const fetchSecure = async () => {
     try {
-  
        const response = await callMagicLinkVerification()
       setMessage(response.data.message);
+      store.dispatch(clearProjectId());
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to authenticate.');
+      store.dispatch(clearProjectId());
     }
   };
 
   useEffect(() => {
-
     fetchSecure();
   }, []);
 
