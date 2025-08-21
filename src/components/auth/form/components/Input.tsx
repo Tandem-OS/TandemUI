@@ -1,6 +1,4 @@
-// src/components/auth/form/components/Input.tsx
-
-import React, { useState, type CSSProperties } from 'react';
+import React, { useState, useCallback, memo, type CSSProperties } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import clsx from 'clsx';
 import { cva } from 'class-variance-authority';
@@ -25,7 +23,33 @@ interface InputProps {
   disabled?: boolean;
 }
 
-const Input: React.FC<InputProps> = ({
+const inputVariants = cva(
+  'w-full rounded-lg text-para-md transition-all outline-none border px-md',
+  {
+    variants: {
+      variant: {
+        default:
+          'bg-background-primary text-text-primary border-border-default focus:border-border-focus placeholder:text-text-secondary',
+        outlined:
+          'bg-transparent text-text-primary border-border-default focus:border-border-focus placeholder:text-text-secondary',
+        filled:
+          'bg-background-muted text-text-primary border-border-muted focus:border-border-focus placeholder:text-text-secondary',
+        basic:
+          'border transition-all outline-none',
+      },
+      error: {
+        true: 'border-border-error focus:border-border-error',
+        false: '',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      error: false,
+    },
+  }
+);
+
+const Input: React.FC<InputProps> = memo(({
   label,
   name,
   type,
@@ -54,31 +78,19 @@ const Input: React.FC<InputProps> = ({
         : 'password'
       : type;
 
-  const inputVariants = cva(
-    'w-full rounded-lg text-para-md transition-all outline-none border px-md',
-    {
-      variants: {
-        variant: {
-          default:
-            'bg-background-primary text-text-primary border-border-default focus:border-border-focus placeholder:text-text-secondary',
-          outlined:
-            'bg-transparent text-text-primary border-border-default focus:border-border-focus placeholder:text-text-secondary',
-          filled:
-            'bg-background-muted text-text-primary border-border-muted focus:border-border-focus placeholder:text-text-secondary',
-          basic:
-            'border transition-all outline-none', // No theme colors, just structure
-        },
-        error: {
-          true: 'border-border-error focus:border-border-error',
-          false: '',
-        },
-      },
-      defaultVariants: {
-        variant: 'default',
-        error: false,
-      },
-    }
-  );
+  const togglePassword = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
+
+  const handleFocus = useCallback(() => {
+    setIsFocused(true);
+    onFocus?.();
+  }, [onFocus]);
+
+  const handleBlur = useCallback(() => {
+    setIsFocused(false);
+    onBlur?.();
+  }, [onBlur]);
 
   return (
     <div className="w-full">
@@ -119,14 +131,8 @@ const Input: React.FC<InputProps> = ({
           disabled={disabled}
           onChange={onChange}
           onKeyPress={onKeyPress}
-          onFocus={() => {
-            setIsFocused(true);
-            onFocus?.();
-          }}
-          onBlur={() => {
-            setIsFocused(false);
-            onBlur?.();
-          }}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder={placeholder}
           className={clsx(
             inputVariants({ variant, error: !!error && variant !== 'basic' }),
@@ -148,7 +154,7 @@ const Input: React.FC<InputProps> = ({
                 ? 'text-current opacity-60 hover:opacity-80'
                 : 'text-text-tertiary hover:text-text-secondary'
             )}
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={togglePassword}
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </div>
@@ -160,6 +166,8 @@ const Input: React.FC<InputProps> = ({
       )}
     </div>
   );
-};
+});
+
+Input.displayName = 'Input';
 
 export default Input;

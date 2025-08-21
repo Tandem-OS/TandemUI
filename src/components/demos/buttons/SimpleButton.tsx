@@ -1,6 +1,14 @@
-// src/components/demos/buttons/SimpleButton.tsx (OR wherever your SimpleButton lives)
+// src/components/demos/buttons/SimpleButton.tsx
 
-import { type FC, type ButtonHTMLAttributes, type CSSProperties, type ReactNode, useCallback } from 'react';
+import {
+  type FC,
+  type ButtonHTMLAttributes,
+  type CSSProperties,
+  type ReactNode,
+  useCallback,
+  useMemo,
+  memo
+} from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
@@ -16,10 +24,9 @@ const buttonStyles = cva(
           'border-2 border-accent-default text-accent-default hover:text-accent-foreground bg-transparent hover:bg-accent-default',
         ghost:
           'bg-transparent text-accent-default hover:bg-accent-subtle',
-        // 'basic' variant: Designed to be purely structural.
-        // It will allow external `style` prop to fully control colors (background, text, border).
+        // 'basic' variant is for structural styling only, colors are controlled externally.
         basic:
-          'border-2 transition-all duration-200 cursor-pointer', // Minimal structural styling
+          'border-2 transition-all duration-200 cursor-pointer',
       },
       shape: {
         rounded: 'rounded-lg',
@@ -59,7 +66,7 @@ const SimpleButton: FC<SimpleButtonProps> = ({
   size,
   fullWidth,
   className,
-  style, // This is the key prop for dynamic colors
+  style,
   children,
   linkTo,
   icon,
@@ -72,34 +79,35 @@ const SimpleButton: FC<SimpleButtonProps> = ({
     if (onClick) {
       onClick(event as React.MouseEvent<HTMLButtonElement>);
     }
-    if (linkTo) {
-      window.location.href=linkTo;
+    if (linkTo?.startsWith('/')) {
+      event.preventDefault();
+      navigate(linkTo);
     }
   }, [onClick, linkTo, navigate]);
 
-  const buttonContent = (
+  const buttonContent = useMemo(() => (
     <>
       {children}
       {icon && <span className="ml-2 flex-shrink-0">{icon}</span>}
     </>
-  );
+  ), [children, icon]);
 
-  // Determine the CVA classes. When variant is 'basic', ensure no conflicting color classes are generated.
-  // The 'basic' variant itself already has no background/text/border color classes by design,
-  // so the inline `style` prop will naturally take precedence.
-  const classes = clsx(
+  const classes = useMemo(() => clsx(
     buttonStyles({ variant, shape, size, fullWidth }),
     className,
     icon && 'flex items-center justify-center'
-  );
+  ), [variant, shape, size, fullWidth, className, icon]);
 
   if (linkTo) {
+    const isExternal = !linkTo.startsWith('/');
     return (
       <a
         href={linkTo}
         className={classes}
-        style={style} // Apply inline style here
+        style={style}
         onClick={handleClick}
+        target={isExternal ? '_blank' : undefined}
+        rel={isExternal ? 'noopener noreferrer' : undefined}
         {...rest as React.AnchorHTMLAttributes<HTMLAnchorElement>}
       >
         {buttonContent}
@@ -110,7 +118,7 @@ const SimpleButton: FC<SimpleButtonProps> = ({
   return (
     <button
       className={classes}
-      style={style} // Apply inline style here
+      style={style}
       onClick={handleClick}
       {...rest}
     >
@@ -119,4 +127,4 @@ const SimpleButton: FC<SimpleButtonProps> = ({
   );
 };
 
-export default SimpleButton;
+export default memo(SimpleButton);

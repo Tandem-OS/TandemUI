@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, memo, useMemo } from 'react';
 import { FaStar, FaCheckCircle, FaArrowRight, FaHeart, FaPaperPlane } from 'react-icons/fa';
 import FormButton from '../../../../components/auth/form/components/FormButton';
 import SimpleButton from '../../../../components/demos/buttons/SimpleButton';
@@ -45,12 +45,14 @@ interface ReviewStepProps {
 
 // --- REUSABLE COMPONENTS ---
 
-// StarRating Component (Updated with responsive visibility for the count)
-const StarRating: React.FC<StarRatingProps> = ({ rating, onRatingChange, hoveredRating, setHoveredRating }) => {
+// StarRating Component (Memoized for better performance)
+const StarRating: React.FC<StarRatingProps> = memo(({ rating, onRatingChange, hoveredRating, setHoveredRating }) => {
+    const stars = useMemo(() => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], []);
+
     return (
         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-md">
             <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
+                {stars.map((star) => (
                     <button
                         key={star}
                         type="button"
@@ -66,16 +68,17 @@ const StarRating: React.FC<StarRatingProps> = ({ rating, onRatingChange, hovered
                     </button>
                 ))}
             </div>
-            {/* Rating count is now hidden on mobile */}
             <span className="text-para-lg md:text-para-xl text-white font-medium leading-none hidden sm:inline sm:pt-1">
                 {rating}/10
             </span>
         </div>
     );
-};
+});
 
-// InfoStep Component (Now more responsive)
-const InfoStep: React.FC<InfoStepProps> = ({ icon, title, message, buttonText, onButtonClick, buttonIcon }) => {
+StarRating.displayName = 'StarRating';
+
+// InfoStep Component (Memoized)
+const InfoStep: React.FC<InfoStepProps> = memo(({ icon, title, message, buttonText, onButtonClick, buttonIcon }) => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true });
 
@@ -133,10 +136,12 @@ const InfoStep: React.FC<InfoStepProps> = ({ icon, title, message, buttonText, o
             </motion.div>
         </motion.div>
     );
-};
+});
 
-// ReviewStep Component (Updated with new mobile layout)
-const ReviewStep: React.FC<ReviewStepProps> = ({
+InfoStep.displayName = 'InfoStep';
+
+// ReviewStep Component (Memoized)
+const ReviewStep: React.FC<ReviewStepProps> = memo(({
     data,
     overallRating,
     setOverallRating,
@@ -153,9 +158,9 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
     const isInView = useInView(ref, { once: true });
     const [emojiKey, setEmojiKey] = useState(0);
 
-    const handleAnswerChange = (questionId: string, value: string) => {
+    const handleAnswerChange = useCallback((questionId: string, value: string) => {
         setAnswers({ ...answers, [questionId]: value });
-    };
+    }, [answers, setAnswers]);
 
     useEffect(() => {
         if (overallRating > 0) {
@@ -192,7 +197,6 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
             </motion.div>
 
             <div className="space-y-lg md:space-y-xl">
-                {/* Overall Rating - Updated Layout */}
                 <motion.div
                     animate={isInView ? "visible" : "hidden"}
                     variants={variants}
@@ -200,7 +204,6 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                     className="bg-accent-default rounded-xl p-md sm:p-lg lg:p-xl border border-border-default shadow-lg"
                 >
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-md sm:gap-lg">
-                        {/* Emoji first */}
                         <motion.div
                             key={emojiKey}
                             initial={{ scale: 0.5, rotate: -180 }}
@@ -211,12 +214,10 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                             {getEmojiForRating(hoveredRating || overallRating)}
                         </motion.div>
 
-                        {/* Question and Stars second */}
                         <div className="space-y-md text-center sm:text-left order-2 sm:order-1">
                             <h3 className="text-para-lg sm:text-h5-sm lg:text-h4-sm font-medium text-white">
                                 {data.ratingQuestion}
                             </h3>
-                            {/* "Your rating" label is now hidden on mobile */}
                             <p className="text-para-md lg:text-para-lg text-white/90 font-semibold hidden sm:block">Your rating</p>
                             <StarRating
                                 rating={overallRating}
@@ -228,7 +229,6 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                     </div>
                 </motion.div>
 
-                {/* Dynamic Questions */}
                 {data.questions.map((q, index) => (
                     <motion.div
                         key={q.id}
@@ -280,7 +280,9 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
             </motion.div>
         </motion.div>
     );
-};
+});
+
+ReviewStep.displayName = 'ReviewStep';
 
 
 // --- MAIN COMPONENT ---
@@ -303,15 +305,13 @@ const FinalTestimonial: React.FC = () => {
                 submittedAt: new Date().toISOString()
             };
 
-            // Replace '/api/testimonials' with your actual API endpoint
             console.log('Submitting data:', submissionData);
             await axios.post('/api/testimonials', submissionData);
 
-            setCurrentStep(2); // Move to success step on successful submission
+            setCurrentStep(2);
 
         } catch (error) {
             console.error('Submission error:', error);
-            // Optionally, handle error state or show a message to the user
         } finally {
             setIsSubmitting(false);
         }
@@ -335,7 +335,7 @@ const FinalTestimonial: React.FC = () => {
         navigate('/dashboard/client');
     }, [navigate]);
 
-    const steps = [
+    const steps = useMemo(() => [
         <InfoStep
             key="intro"
             icon={<FaHeart className="text-h3-lg lg:text-h2-lg text-accent-default" />}
@@ -368,7 +368,7 @@ const FinalTestimonial: React.FC = () => {
             onButtonClick={handleGoToDashboard}
             buttonIcon={<FaArrowRight className="text-icon-sm" />}
         />
-    ];
+    ], [overallRating, answers, handleSubmit, isSubmitting, canSubmit, hoveredRating, getEmojiForRating, handleGoToDashboard]);
 
     return (
         <div className="bg-background-secondary-2">
