@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { store } from '@/store';
 import { logout } from '@/features/authentication/authSlice';
+import { clearProjectId } from '@/features/project/projectSlice';
 import { handleRefreshToken } from '@/lib/requests/AuthRequest';
 
 const api = axios.create({
@@ -35,7 +36,8 @@ api.interceptors.response.use(
           originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
           return api(originalRequest);
         } catch (err) {
-          store.dispatch(logout()); 
+          store.dispatch(logout());
+          store.dispatch(clearProjectId());
           window.location.href = "/auth";
           return Promise.reject(err);
         }
@@ -43,12 +45,14 @@ api.interceptors.response.use(
 
       if (userRole === "Client") {
         store.dispatch(logout());
+        store.dispatch(clearProjectId());
         window.location.href = "/auth/magic-link-message";
         return Promise.reject(error);
       }
 
       // fallback for unknown role or missing userRole
       store.dispatch(logout());
+      store.dispatch(clearProjectId());
       window.location.href = "/auth";
       return Promise.reject(error);
     }

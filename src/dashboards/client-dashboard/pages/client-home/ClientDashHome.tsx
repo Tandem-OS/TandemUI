@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import type { RootState } from '@/store';
+import { useSelector } from 'react-redux';
+import { getProjectByClientEmail } from '@/lib/requests/ProjectRequest';
+import { setProjectId } from '@/features/project/projectSlice';
 
 import {
   RiCheckLine,
@@ -21,6 +25,7 @@ import { clsx } from 'clsx';
 import Card from '../../../../comman-components/Card';
 import ProgressChart from '../../components/ProgressChart';
 import BrowserMockup from './components/BroserMockup';
+import { useDispatch } from 'react-redux';
 
 interface StatusCardProps {
   title: string;
@@ -182,6 +187,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
 
 const ClientDashHome: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [progress, setProgress] = useState(0);
 
   // Prevent scroll issues on mount
@@ -225,6 +231,20 @@ const ClientDashHome: React.FC = () => {
   ];
 
 
+  const clientName = useSelector((state: RootState) => state.auth.user.name)!;
+  const client_email = useSelector((state: RootState) => state.auth.user.email)!;
+
+  const fetchProject = async () => {
+    const result = await getProjectByClientEmail({ client_email });
+    if (result.status === 200 && result.data.data?.id) {
+      dispatch(setProjectId(result.data.data?.id));
+    }
+  }
+
+  useEffect(() => {
+    fetchProject()
+  }, [])
+
   return (
     <div className="min-h-screen overflow-x-hidden">
       <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-12">
@@ -241,7 +261,7 @@ const ClientDashHome: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            Welcome back, John!
+            Welcome back, {clientName}
             <motion.span
               className="ml-2 inline-block text-2l sm:text-4xl"
               animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}

@@ -5,6 +5,7 @@ import BrowserMockup from '../client-home/components/BroserMockup';
 import { getProjectById } from '@/lib/requests/ProjectRequest';
 import { useParams } from 'react-router-dom';
 import type { Project } from '@/types/project.type';
+import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 
 interface Stage {
   id: string;
@@ -176,7 +177,7 @@ const ProjectOverview: React.FC = () => {
   return (
     <>
       {loading || !project ? <>
-        Loading
+        <GlobalSpinner />
       </> :
         <div className="min-h-screen">
           {/* Hero Section - Fixed mobile text sizes */}
