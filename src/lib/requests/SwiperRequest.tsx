@@ -16,6 +16,7 @@ interface SwiperRoundSummary {
 }
 
 interface SwiperComponent {
+  session_id: string
   component_id: string;
   layout_structure: string;
   tone: string[];

@@ -421,7 +421,8 @@ const Swiper: React.FC = () => {
 
         // Wait for all component saves to finish
         for (const component of sessionSummary.components) {
-          await swiperComponentData(component);
+          const payload = { ...component, session_id: sessionId };
+          await swiperComponentData(payload);
         }
         console.log('✅ All components saved');
         saveSuccess = true;
