@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import Card from "@/comman-components/Card";
+import Card from "@/common-components/Card";
 import { getUser } from "@/lib/requests/ProfileRequest";
 
 interface ProfileData {

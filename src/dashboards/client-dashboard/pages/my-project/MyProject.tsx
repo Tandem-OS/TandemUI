@@ -3,8 +3,8 @@ import { FaFilter, FaProjectDiagram, FaChartLine, FaSortAmountDown, FaPlus, FaCl
 import { motion, AnimatePresence } from 'framer-motion';
 import Heading from "../../../../components/demos/typography/Heading";
 import ProjectCard from './components/ProjectCard';
-import Dropdown from '../../../../comman-components/Dropdown';
-import SearchBox from '../../../../comman-components/SearchBox';
+import Dropdown from '../../../../common-components/Dropdown';
+import SearchBox from '../../../../common-components/SearchBox';
 import { getAllProjectsByDesignerEmail } from '@/lib/requests/ProjectRequest';
 import type { Project } from '@/types/project.type';
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';

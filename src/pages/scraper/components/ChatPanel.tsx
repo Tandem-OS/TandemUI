@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaComments, FaTimes, FaPaperPlane } from 'react-icons/fa';
 import { mockChatResponses, chatPrompts } from '../constants';
 import Heading from '../../../components/demos/typography/Heading';
-import Para from '../../../comman-components/Para';
+import Para from '../../../common-components/Para';
 
 // Custom hook to check screen size
 const useMediaQuery = (query: string) => {

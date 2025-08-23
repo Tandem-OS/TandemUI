@@ -5,8 +5,8 @@ import { motion, type Variants } from 'framer-motion';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
 import Heading from '../../../components/demos/typography/Heading';
-import Para from '../../../comman-components/Para';
-import Newsletter from '../../../comman-components/Newsletter';
+import Para from '../../../common-components/Para';
+import Newsletter from '../../../common-components/Newsletter';
 import { type Hero_04Props, defaultColors } from './Hero_04.types';
 
 // Types (No changes here)

@@ -17,7 +17,7 @@ import {
     RiShieldCheckLine
 } from 'react-icons/ri';
 import { clsx } from 'clsx';
-import Card from '../../../../comman-components/Card';
+import Card from '../../../../common-components/Card';
 import ProgressChart from '../../components/ProgressChart';
 import BrowserMockup from './components/BroserMockup';
 

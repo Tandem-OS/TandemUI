@@ -4,7 +4,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
 import Heading from '../../../components/demos/typography/Heading';
 import SimpleButton from '../../../components/demos/buttons/SimpleButton';
-import Para from '../../../comman-components/Para';
+import Para from '../../../common-components/Para';
 import {
   type Hero_01Props,
   defaultColors,

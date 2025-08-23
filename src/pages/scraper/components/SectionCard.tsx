@@ -22,7 +22,7 @@ import {
 import { likeReasons, dislikeReasons } from '../constants';
 import SuggestionsCarousel from './SuggestionsCarousel';
 import Heading from '../../../components/demos/typography/Heading';
-import Para from '../../../comman-components/Para';
+import Para from '../../../common-components/Para';
 import { AiOutlineRadiusUpright } from "react-icons/ai";
 
 interface SectionCardProps {

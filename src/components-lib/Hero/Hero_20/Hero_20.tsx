@@ -3,8 +3,8 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp } from '../../../lib/animations/variants';
 import Heading from '../../../components/demos/typography/Heading';
-import Para from '../../../comman-components/Para';
-import Newsletter from '../../../comman-components/Newsletter';
+import Para from '../../../common-components/Para';
+import Newsletter from '../../../common-components/Newsletter';
 import { type Hero_20Props, defaultColors } from './Hero_20.types';
 
 // Types

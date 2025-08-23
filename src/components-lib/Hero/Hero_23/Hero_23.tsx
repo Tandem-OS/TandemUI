@@ -4,8 +4,8 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp } from '../../../lib/animations/variants';
 import Heading from '../../../components/demos/typography/Heading';
 import SimpleButton from '../../../components/demos/buttons/SimpleButton';
-import Para from '../../../comman-components/Para';
-import VideoPlayBtn from '../../../comman-components/VideoPlayBtn';
+import Para from '../../../common-components/Para';
+import VideoPlayBtn from '../../../common-components/VideoPlayBtn';
 import { type Hero_23Props, defaultColors } from './Hero_23.types';
 
 // Types

@@ -5,7 +5,7 @@ import Support from "../pages/support/Support";
 import ProjectOverview from "../pages/project-overview/ProjectOverview";
 import FinalTestimonial from "../pages/final-testimonial/FinalTestimonial";
 import DesignerTestimonial from "../pages/desinger-testimonial/DesignerTestimonial";
-import ScrollToTop from "../../../comman-components/ScrollToTop";
+import ScrollToTop from "../../../common-components/ScrollToTop";
 
 const ClientDashMain = () => {
     return (

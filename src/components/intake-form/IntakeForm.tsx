@@ -12,7 +12,7 @@ import SimpleButton from '@/components/demos/buttons/SimpleButton';
 import Heading from '@/components/demos/typography/Heading';
 import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader';
 import { KingOfTheHill } from '@/components/intake-form/KingOfTheHill';
-import FiveStarFeedback from '@/comman-components/FiveStarFeedback';
+import FiveStarFeedback from '@/common-components/FiveStarFeedback';
 import { initialFormData, suggestedPageChips, OPTIONS } from '@/components/intake-form/constants';
 import { type IntakeFormData, type ButtonState } from '@/components/intake-form/types';
 import { submitIntakeStep, getIntakeByClientEmail } from '@/lib/requests/IntakeRequest';

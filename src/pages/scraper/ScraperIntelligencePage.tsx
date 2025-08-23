@@ -18,10 +18,10 @@ import LayoutPlan from './components/LayoutPlan';
 import StartFromIdea from './components/StartFromIdea';
 import SectionCard from './components/SectionCard';
 import Heading from '../../components/demos/typography/Heading';
-import Para from '../../comman-components/Para';
+import Para from '../../common-components/Para';
 // Import constants
 import { dummyScrapedData, quickSuggestions, processingSteps } from './constants';
-import Toast from '@/comman-components/Toast';
+import Toast from '@/common-components/Toast';
 
 // Custom hook for taste profile
 const useTasteProfile = () => {

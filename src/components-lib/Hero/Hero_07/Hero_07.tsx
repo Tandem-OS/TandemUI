@@ -5,9 +5,9 @@ import { motion, type Variants } from 'framer-motion';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
 import Heading from '../../../components/demos/typography/Heading';
-import Para from '../../../comman-components/Para';
-import Newsletter from '../../../comman-components/Newsletter';
-import VideoPlayBtn from '../../../comman-components/VideoPlayBtn';
+import Para from '../../../common-components/Para';
+import Newsletter from '../../../common-components/Newsletter';
+import VideoPlayBtn from '../../../common-components/VideoPlayBtn';
 import { type Hero_07Props, defaultColors } from './Hero_07.types';
 
 // Types

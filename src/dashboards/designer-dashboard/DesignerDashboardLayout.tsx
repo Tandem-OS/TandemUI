@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import DesignerDashSidebar from './components/DesignerDashSidebar';
 import DesignerDashTopbar from './components/DesignerDashTopbar';
 import DesignerDashMain from './components/DesignerDashMain';
-import Drawer from '../../comman-components/Drawer';
+import Drawer from '../../common-components/Drawer';
 
 const DesignerDashboardLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

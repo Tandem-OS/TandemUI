@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaCheck, FaChevronLeft, FaChevronRight, FaInfoCircle } from 'react-icons/fa';
 import { mockSuggestions } from '../constants';
-import Para from '../../../comman-components/Para';
+import Para from '../../../common-components/Para';
 import Heading from '../../../components/demos/typography/Heading';
 
 interface Suggestion {
