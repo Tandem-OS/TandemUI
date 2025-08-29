@@ -4,8 +4,8 @@ import FormButton from '../../../../components/auth/form/components/FormButton';
 import SimpleButton from '../../../../components/demos/buttons/SimpleButton';
 import { motion, useInView } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { mockFeedbackQuestionData } from '../../../../mock-data/testimonial-questions-mock';
+import { paltformTestimonialSubmission } from '@/lib/requests/TestimonialRequest';
 
 // --- TYPE DEFINITIONS ---
 interface StarRatingProps {
@@ -298,14 +298,15 @@ const FinalTestimonial: React.FC = () => {
         setIsSubmitting(true);
         try {
             const submissionData = {
-                overallRating,
-                answers,
+                rating: overallRating,
+                standout: answers.unique,
+                recommend: answers.recommend,
                 submittedAt: new Date().toISOString()
             };
 
             // Replace '/api/testimonials' with your actual API endpoint
             console.log('Submitting data:', submissionData);
-            await axios.post('/api/testimonials', submissionData);
+            await paltformTestimonialSubmission(submissionData)
 
             setCurrentStep(2); // Move to success step on successful submission
 
