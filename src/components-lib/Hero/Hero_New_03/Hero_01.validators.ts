@@ -17,6 +17,23 @@ export interface ValidationResult {
     warnings?: string[];
 }
 
+// === Constants ===
+const LIMITS = {
+    TITLE_MAX: 60,
+    DESCRIPTION_MAX: 220,
+    CTA_TEXT_MAX: 24,
+    ALT_TEXT_MAX: 125,
+    CLASSNAME_MAX: 200,
+    CLASSNAME_PART_MAX: 50,
+    WORD_LENGTH_WARNING_TITLE: 15,
+    WORD_LENGTH_WARNING_DESCRIPTION: 20,
+    WORD_LENGTH_WARNING_CTA: 12,
+    WORD_LENGTH_WARNING_DESCRIPTION_CHECK: 25,
+    ASPECT_RATIO_MIN: 0.5,
+    ASPECT_RATIO_MAX: 3.0,
+    ASPECT_RATIO_THRESHOLD: 0.8
+} as const;
+
 // === Security Patterns ===
 const DANGEROUS_PATTERNS = [
     /<script[^>]*>.*?<\/script>/gi,
@@ -34,9 +51,24 @@ const DANGEROUS_PATTERNS = [
 const HEX_COLOR_PATTERN = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
 const SAFE_CLASS_PATTERN = /^[a-zA-Z0-9\s\-_:]+$/;
 
+const PATTERNS = {
+    dangerous: DANGEROUS_PATTERNS,
+    hexColor: HEX_COLOR_PATTERN,
+    safeClass: SAFE_CLASS_PATTERN
+} as const;
+
+// === Type Guards ===
+const isImageAsset = (img: unknown): img is ImageAsset => {
+    return typeof img === 'object' && img !== null && 'src' in img;
+};
+
+const isColorValue = (color: unknown): color is Record<string, unknown> => {
+    return typeof color === 'object' && color !== null && 'light' in color && 'dark' in color;
+};
+
 // === Security Functions ===
 export function containsXSS(text: string): boolean {
-    return DANGEROUS_PATTERNS.some(pattern => pattern.test(text));
+    return PATTERNS.dangerous.some(pattern => pattern.test(text));
 }
 
 export function isValidURL(url: string): boolean {
@@ -55,7 +87,7 @@ export function hasLongWords(text: string, maxWordLength: number = 20): boolean 
 
 export function sanitizeHTML(html: string): string {
     let sanitized = html;
-    DANGEROUS_PATTERNS.forEach(pattern => {
+    PATTERNS.dangerous.forEach(pattern => {
         sanitized = sanitized.replace(pattern, '');
     });
 
@@ -74,8 +106,44 @@ export function sanitizeHTML(html: string): string {
 }
 
 export function isValidClassName(className: string): boolean {
-    return SAFE_CLASS_PATTERN.test(className);
+    return PATTERNS.safeClass.test(className);
 }
+
+// === Common Validation Helper ===
+const validateStringField = (
+    value: unknown,
+    fieldName: string,
+    displayName: string,
+    maxLength: number,
+    errors: ValidationError[]
+): string | undefined => {
+    if (typeof value !== 'string') {
+        errors.push({
+            field: fieldName,
+            message: `${displayName} must be a string`,
+            userMessage: `Please enter text for the ${displayName.toLowerCase()}`
+        });
+        return undefined;
+    }
+
+    if (value.length > maxLength) {
+        errors.push({
+            field: fieldName,
+            message: `${displayName} must be ${maxLength} characters or less (current: ${value.length})`,
+            userMessage: `${displayName} is too long. Please shorten to ${maxLength} characters (you have ${value.length})`
+        });
+    }
+
+    if (containsXSS(value)) {
+        errors.push({
+            field: fieldName,
+            message: `${displayName} contains potentially unsafe content`,
+            userMessage: `${displayName} contains invalid characters. Please use only plain text.`
+        });
+    }
+
+    return value;
+};
 
 // === Main Validation Function ===
 export function validateHero01Props(props: Hero_01Props): ValidationResult {
@@ -84,63 +152,17 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
 
     // 1. Title validation with XSS protection
     if (props.title !== undefined) {
-        if (typeof props.title !== 'string') {
-            errors.push({
-                field: 'title',
-                message: 'Title must be a string',
-                userMessage: 'Please enter text for the title'
-            });
-        } else {
-            if (props.title.length > 60) {
-                errors.push({
-                    field: 'title',
-                    message: `Title must be 60 characters or less (current: ${props.title.length})`,
-                    userMessage: `Title is too long. Please shorten to 60 characters (you have ${props.title.length})`
-                });
-            }
-
-            if (containsXSS(props.title)) {
-                errors.push({
-                    field: 'title',
-                    message: 'Title contains potentially unsafe content',
-                    userMessage: 'Title contains invalid characters. Please use only plain text.'
-                });
-            }
-
-            if (hasLongWords(props.title, 15)) {
-                warnings.push('Title has long words that might look awkward on mobile screens');
-            }
+        const titleStr = validateStringField(props.title, 'title', 'Title', LIMITS.TITLE_MAX, errors);
+        if (titleStr && hasLongWords(titleStr, LIMITS.WORD_LENGTH_WARNING_TITLE)) {
+            warnings.push('Title has long words that might look awkward on mobile screens');
         }
     }
 
     // 2. Description validation with XSS protection
     if (props.description !== undefined) {
-        if (typeof props.description !== 'string') {
-            errors.push({
-                field: 'description',
-                message: 'Description must be a string',
-                userMessage: 'Please enter text for the description'
-            });
-        } else {
-            if (props.description.length > 220) {
-                errors.push({
-                    field: 'description',
-                    message: `Description must be 220 characters or less (current: ${props.description.length})`,
-                    userMessage: `Description is too long. Please shorten to 220 characters (you have ${props.description.length})`
-                });
-            }
-
-            if (containsXSS(props.description)) {
-                errors.push({
-                    field: 'description',
-                    message: 'Description contains potentially unsafe content',
-                    userMessage: 'Description contains invalid characters. Please use only plain text.'
-                });
-            }
-
-            if (hasLongWords(props.description, 20)) {
-                warnings.push('Description has very long words that might affect layout');
-            }
+        const descStr = validateStringField(props.description, 'description', 'Description', LIMITS.DESCRIPTION_MAX, errors);
+        if (descStr && hasLongWords(descStr, LIMITS.WORD_LENGTH_WARNING_DESCRIPTION)) {
+            warnings.push('Description has very long words that might affect layout');
         }
     }
 
@@ -149,29 +171,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
         if (!cta) return;
 
         if (cta.text !== undefined) {
-            if (typeof cta.text !== 'string') {
-                errors.push({
-                    field: `${fieldPrefix}.text`,
-                    message: `${displayName} text must be a string`,
-                    userMessage: `Please enter text for the ${displayName.toLowerCase()} button`
-                });
-            } else {
-                if (cta.text.length > 24) {
-                    errors.push({
-                        field: `${fieldPrefix}.text`,
-                        message: `${displayName} text must be 24 characters or less (current: ${cta.text.length})`,
-                        userMessage: `${displayName} button text is too long (max 24 characters)`
-                    });
-                }
-
-                if (containsXSS(cta.text)) {
-                    errors.push({
-                        field: `${fieldPrefix}.text`,
-                        message: `${displayName} text contains potentially unsafe content`,
-                        userMessage: `${displayName} button text contains invalid characters`
-                    });
-                }
-            }
+            validateStringField(cta.text, `${fieldPrefix}.text`, `${displayName} text`, LIMITS.CTA_TEXT_MAX, errors);
         }
 
         if (cta.href !== undefined) {
@@ -221,8 +221,8 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
                     userMessage: 'Please provide a valid image URL or file path'
                 });
             }
-        } else if (typeof props.image === 'object' && props.image !== null) {
-            const img = props.image as ImageAsset;
+        } else if (isImageAsset(props.image)) {
+            const img = props.image;
 
             if (!img.src || typeof img.src !== 'string') {
                 errors.push({
@@ -240,19 +240,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
 
             // Sanitize alt text
             if (img.alt !== undefined) {
-                if (typeof img.alt !== 'string') {
-                    errors.push({
-                        field: 'image.alt',
-                        message: 'Image alt must be a string',
-                        userMessage: 'Please provide text description for the image'
-                    });
-                } else if (containsXSS(img.alt)) {
-                    errors.push({
-                        field: 'image.alt',
-                        message: 'Image alt text contains potentially unsafe content',
-                        userMessage: 'Image description contains invalid characters'
-                    });
-                }
+                validateStringField(img.alt, 'image.alt', 'Image alt', Infinity, errors);
             }
 
             if (img.width !== undefined && img.height !== undefined) {
@@ -264,8 +252,8 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
                     });
                 } else {
                     const aspectRatio = img.width / img.height;
-                    if (aspectRatio < 0.5 || aspectRatio > 3.0) {
-                        warnings.push(`Image proportions might look distorted (ideal range: 0.5-3.0, yours: ${aspectRatio.toFixed(2)})`);
+                    if (aspectRatio < LIMITS.ASPECT_RATIO_MIN || aspectRatio > LIMITS.ASPECT_RATIO_MAX) {
+                        warnings.push(`Image proportions might look distorted (ideal range: ${LIMITS.ASPECT_RATIO_MIN}-${LIMITS.ASPECT_RATIO_MAX}, yours: ${aspectRatio.toFixed(2)})`);
                     }
                 }
             }
@@ -290,7 +278,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
             const validateColor = (color: unknown, path: string, displayPath: string) => {
                 if (color === undefined) return;
 
-                if (typeof color !== 'object' || color === null) {
+                if (!isColorValue(color)) {
                     errors.push({
                         field: path,
                         message: `${path} must be a ColorValue object`,
@@ -299,18 +287,9 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
                     return;
                 }
 
-                const colorObj = color as Record<string, unknown>;
+                const colorObj = color;
 
-                if (!('light' in colorObj) || !('dark' in colorObj)) {
-                    errors.push({
-                        field: path,
-                        message: 'Color must have both light and dark values',
-                        userMessage: `${displayPath} needs both light and dark mode colors`
-                    });
-                    return;
-                }
-
-                if (typeof colorObj.light !== 'string' || !HEX_COLOR_PATTERN.test(colorObj.light as string)) {
+                if (typeof colorObj.light !== 'string' || !PATTERNS.hexColor.test(colorObj.light as string)) {
                     errors.push({
                         field: `${path}.light`,
                         message: `Must be a valid hex color (got: "${colorObj.light}")`,
@@ -318,7 +297,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
                     });
                 }
 
-                if (typeof colorObj.dark !== 'string' || !HEX_COLOR_PATTERN.test(colorObj.dark as string)) {
+                if (typeof colorObj.dark !== 'string' || !PATTERNS.hexColor.test(colorObj.dark as string)) {
                     errors.push({
                         field: `${path}.dark`,
                         message: `Must be a valid hex color (got: "${colorObj.dark}")`,
@@ -399,7 +378,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
                 warnings.push('Custom CSS classes contain unusual characters that might not work as expected');
             }
 
-            if (props.className.length > 200) {
+            if (props.className.length > LIMITS.CLASSNAME_MAX) {
                 warnings.push('Custom CSS classes seem very long - consider simplifying');
             }
         }
@@ -417,25 +396,25 @@ export function sanitizeProps(props: Hero_01Props): Hero_01Props {
     const sanitized = { ...props };
 
     if (sanitized.title) {
-        sanitized.title = sanitizeHTML(sanitized.title).substring(0, 60);
+        sanitized.title = sanitizeHTML(sanitized.title).substring(0, LIMITS.TITLE_MAX);
     }
 
     if (sanitized.description) {
-        sanitized.description = sanitizeHTML(sanitized.description).substring(0, 220);
+        sanitized.description = sanitizeHTML(sanitized.description).substring(0, LIMITS.DESCRIPTION_MAX);
     }
 
     if (sanitized.primaryCTA?.text) {
-        sanitized.primaryCTA.text = sanitizeHTML(sanitized.primaryCTA.text).substring(0, 24);
+        sanitized.primaryCTA.text = sanitizeHTML(sanitized.primaryCTA.text).substring(0, LIMITS.CTA_TEXT_MAX);
     }
 
     if (sanitized.secondaryCTA?.text) {
-        sanitized.secondaryCTA.text = sanitizeHTML(sanitized.secondaryCTA.text).substring(0, 24);
+        sanitized.secondaryCTA.text = sanitizeHTML(sanitized.secondaryCTA.text).substring(0, LIMITS.CTA_TEXT_MAX);
     }
 
-    if (sanitized.image && typeof sanitized.image === 'object') {
+    if (sanitized.image && isImageAsset(sanitized.image)) {
         // Sanitize alt text
         if (sanitized.image.alt) {
-            sanitized.image.alt = sanitizeHTML(sanitized.image.alt).substring(0, 125);
+            sanitized.image.alt = sanitizeHTML(sanitized.image.alt).substring(0, LIMITS.ALT_TEXT_MAX);
         }
     }
 
@@ -443,9 +422,9 @@ export function sanitizeProps(props: Hero_01Props): Hero_01Props {
         // Remove dangerous patterns but keep valid CSS classes
         sanitized.className = sanitized.className
             .split(/\s+/)
-            .filter(cls => isValidClassName(cls) && cls.length < 50)
+            .filter(cls => isValidClassName(cls) && cls.length < LIMITS.CLASSNAME_PART_MAX)
             .join(' ')
-            .substring(0, 200);
+            .substring(0, LIMITS.CLASSNAME_MAX);
     }
 
     return sanitized;
@@ -459,7 +438,7 @@ export function truncateText(text: string, maxLength: number): string {
     const truncated = text.substring(0, maxLength);
     const lastSpace = truncated.lastIndexOf(' ');
 
-    if (lastSpace > maxLength * 0.8) {
+    if (lastSpace > maxLength * LIMITS.ASPECT_RATIO_THRESHOLD) {
         return truncated.substring(0, lastSpace).trim();
     }
 
@@ -469,19 +448,19 @@ export function truncateText(text: string, maxLength: number): string {
 export function validateLayoutSafety(props: Hero_01Props): { safe: boolean; warnings: string[] } {
     const warnings: string[] = [];
 
-    if (props.title && hasLongWords(props.title, 15)) {
+    if (props.title && hasLongWords(props.title, LIMITS.WORD_LENGTH_WARNING_TITLE)) {
         warnings.push('Title contains words that might not wrap nicely on small screens');
     }
 
-    if (props.description && hasLongWords(props.description, 25)) {
+    if (props.description && hasLongWords(props.description, LIMITS.WORD_LENGTH_WARNING_DESCRIPTION_CHECK)) {
         warnings.push('Description has very long words that could break the layout');
     }
 
-    if (props.primaryCTA?.text && hasLongWords(props.primaryCTA.text, 12)) {
+    if (props.primaryCTA?.text && hasLongWords(props.primaryCTA.text, LIMITS.WORD_LENGTH_WARNING_CTA)) {
         warnings.push('Primary button text might be too wide on mobile');
     }
 
-    if (props.secondaryCTA?.text && hasLongWords(props.secondaryCTA.text, 12)) {
+    if (props.secondaryCTA?.text && hasLongWords(props.secondaryCTA.text, LIMITS.WORD_LENGTH_WARNING_CTA)) {
         warnings.push('Secondary button text might be too wide on mobile');
     }
 
