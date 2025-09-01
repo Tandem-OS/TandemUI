@@ -47,6 +47,19 @@ const meta: Hero_01Meta = {
             cta: "text-btn-lg"
         },
 
+        // Button System - Complete token-based button styling
+        button: {
+            base: "inline-flex items-center justify-center font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed leading-none text-center no-underline rounded-lg",
+            sizes: {
+                sm: "h-[2.25rem] px-sm text-btn-sm",
+                md: "h-[2.75rem] px-sm text-btn-sm sm:px-md sm:text-btn-md",
+                lg: "h-[3.25rem] px-md text-btn-md lg:px-lg lg:text-btn-lg"
+            },
+            iconSpacing: "ml-2 flex-shrink-0",
+            borderWidth: "2px",
+            borderStyle: "solid"
+        },
+
         // Responsive Behavior - All tokens used in component
         responsive: {
             flexDirection: "flex flex-col md:flex-row",
@@ -367,7 +380,7 @@ const meta: Hero_01Meta = {
         }
     },
 
-    // === Defaults (Fixed with className) ===
+    // === Defaults ===
     defaults: {
         title: "Medium length hero heading goes here",
         description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique.",
@@ -386,7 +399,7 @@ const meta: Hero_01Meta = {
         image: "/images/component-lib-images/hero/placeholder-img.png",
         imageAlt: "",
         animated: true,
-        className: "", // Added
+        className: "",
 
         // Default Colors for AI Customization
         colors: {
@@ -425,7 +438,7 @@ const meta: Hero_01Meta = {
         }
     },
 
-    // === Variants (Fixed token references) ===
+    // === Variants ===
     variants: [
         {
             id: "compact",
@@ -595,9 +608,6 @@ const meta: Hero_01Meta = {
             "import { motion, type Variants } from 'framer-motion';",
             "import { useTheme } from '../../../contexts/ThemeContext';",
             "import { fadeInUp, fadeIn } from '../../../lib/animations/variants';",
-            "import Heading from '../../../components/demos/typography/Heading';",
-            "import SimpleButton from '../../../components/demos/buttons/SimpleButton';",
-            "import Para from '../../../common-components/Para';",
             "import { type Hero_01Props, type ColorOverrides } from './Hero_01.types';",
             "import { validateHero01Props, sanitizeProps, formatValidationMessage } from './Hero_01.validators';",
             "import meta from './Hero_01.meta';"
@@ -623,22 +633,21 @@ const meta: Hero_01Meta = {
             <div className={meta.tokens.layout.grid}>
                 <div className={\`\${meta.tokens.layout.contentColumn} \${meta.tokens.spacing.containerX} \${meta.tokens.spacing.containerY}\`}>
                     <div className={\`\${meta.tokens.layout.contentContainer} \${meta.tokens.spacing.contentSpacing}\`}>
-                        <Heading
-                            level="h1"
+                        <h1
                             className={meta.tokens.typography.heading.complete}
                             style={styles.title}
                             aria-label={\`Hero title: \${title}\`}
                         >
                             {title}
-                        </Heading>
-                        <Para
+                        </h1>
+                        <p
                             className={meta.tokens.typography.body.complete}
                             style={styles.description}
                         >
                             {description}
-                        </Para>
+                        </p>
                         <div className={\`\${meta.tokens.responsive.flexDirection} \${meta.tokens.spacing.buttonSpacing}\`}>
-                            {/* CTA Buttons */}
+                            {/* Native Button/Anchor Elements with Token Classes */}
                         </div>
                     </div>
                 </div>
@@ -668,8 +677,8 @@ const meta: Hero_01Meta = {
             accessibilityTests: true
         },
         documentation: {
-            designNotes: "Primary conversion component for landing pages with split layout. All styles are tokenized and customizable via props or AI generation.",
-            usageGuidelines: "Use for product introductions and value propositions. Colors are fully customizable via props. All text content is sanitized for security. Animations can be disabled for accessibility."
+            designNotes: "Primary conversion component for landing pages with split layout. All styles are tokenized using native HTML elements. Fully independent with no component dependencies.",
+            usageGuidelines: "Use native h1, p, button/a elements with complete token classes. Colors are fully customizable via props. Animations can be disabled for accessibility. No external component dependencies."
         }
     }
 };

@@ -387,13 +387,13 @@ const DemoPage: React.FC = () => {
                     text: "See Our Work",
                     href: "/portfolio",
                     variant: "solid",
-                    size: "lg"
+                    size: "sm"
                 }}
                 secondaryCTA={{
                     text: "Get Quote",
                     href: "/contact",
                     variant: "outline",
-                    size: "lg"
+                    size: "sm"
                 }}
                 className="creative-hero onclick=alert('xss')" // Dangerous class - will be cleaned
                 colors={{

@@ -2,17 +2,17 @@
 import { type ReactNode } from 'react';
 
 // === Base Schema Types ===
-export interface MetaV1_1<P = any, T = any> {
+export interface MetaV1_1<P = Record<string, unknown>, T = Record<string, unknown>> {
     version: string;
     component_id: string;
     category: string;
     intent: string;
     layout_structure: string;
     tokens: T;
-    props: any;
+    props: Record<string, PropDefinition>; // Changed from Record<keyof P, PropDefinition>
     defaults: P;
-    slots?: any[];
-    variants?: Variant[];
+    slots?: SlotDefinition[];
+    variants?: Variant[];  // Simplified - no type params
     fluffyTags?: string[];
     layoutContract: LayoutContract;
     accessibility: AccessibilityConfig;
@@ -25,8 +25,18 @@ export interface MetaV1_1<P = any, T = any> {
     tags?: string[];
 }
 
-export interface PropDefinition<T = any> {
-    type: "text" | "richtext" | "url" | "image" | "select" | "boolean" | "number" | "object" | "color";
+// Slot definition type
+export interface SlotDefinition {
+    id: string;
+    name: string;
+    type: string;
+    required?: boolean;
+}
+
+export type PropType = "text" | "richtext" | "url" | "image" | "select" | "boolean" | "number" | "object" | "color";
+
+export interface PropDefinition<T = unknown> {
+    type: PropType;
     label: string;
     required?: boolean;
     max?: number;
@@ -79,7 +89,7 @@ export type DeepPartial<T> = {
     [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
-export interface Variant<P = any, T = any> {
+export interface Variant<P = Record<string, unknown>, T = Record<string, unknown>> {
     id: string;
     label: string;
     propsPatch?: Partial<P>;
@@ -225,7 +235,7 @@ export interface Hero_01Props {
     colors?: ColorOverrides;
 }
 
-// === Token Structure ===
+// === Token Structure - Updated with Button Tokens ===
 export interface Hero_01Tokens {
     // Layout Structure
     layout: {
@@ -260,6 +270,19 @@ export interface Hero_01Tokens {
             complete: string;
         };
         cta: string;
+    };
+
+    // Button System - Added for native button elements
+    button: {
+        base: string;
+        sizes: {
+            sm: string;
+            md: string;
+            lg: string;
+        };
+        iconSpacing: string;
+        borderWidth: string;
+        borderStyle: string;
     };
 
     // Responsive Behavior
@@ -391,7 +414,7 @@ export type Hero_01PropsPatch = Partial<Hero_01Props>;
 export type Hero_01TokensPatch = DeepPartial<Hero_01Tokens>;
 
 // For validation results
-export interface ValidationResult<T = any> {
+export interface ValidationResult<T = Hero_01Props> {
     valid: boolean;
     errors: string[];
     data?: T;

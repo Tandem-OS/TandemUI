@@ -1,0 +1,124 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Hero_01 - Token Usage Validation > should render with consistent token-based classes 1`] = `
+<div>
+  <section
+    aria-label="Main hero content"
+    class="relative w-full lg:h-screen lg:overflow-hidden "
+    data-testid="hero-section"
+    role="banner"
+    style="background-color: rgb(255, 255, 255);"
+  >
+    <div
+      class="grid grid-cols-1 lg:grid-cols-2 lg:h-screen"
+    >
+      <div
+        class="flex flex-col justify-center order-1 lg:order-1 min-h-[50vh] lg:min-h-0 px-lg lg:px-2xl xl:px-5xl 2xl:px-6xl py-xl"
+        initial="hidden"
+        transition="[object Object]"
+        variants="[object Object]"
+        viewport="[object Object]"
+        whileinview="show"
+      >
+        <div
+          class="xl:max-w-lg space-y-md lg:space-y-lg"
+        >
+          <div
+            data-testid="hero-title"
+            initial="hidden"
+            transition="[object Object]"
+            variants="[object Object]"
+            viewport="[object Object]"
+            whileinview="show"
+          >
+            <h1
+              aria-label="Hero title: Test Title"
+              class="text-h2-sm lg:text-h1-md font-bold break-words"
+              style="color: rgb(17, 24, 39);"
+            >
+              Test Title
+            </h1>
+          </div>
+          <div
+            data-testid="hero-description"
+            initial="hidden"
+            transition="[object Object]"
+            variants="[object Object]"
+            viewport="[object Object]"
+            whileinview="show"
+          >
+            <p
+              aria-label="Hero description: Test Description"
+              class="text-para-md lg:text-para-lg leading-relaxed break-words"
+              style="color: rgb(75, 85, 99);"
+            >
+              Test Description
+            </p>
+          </div>
+          <div
+            aria-label="Call to action buttons"
+            class="flex flex-col md:flex-row gap-md"
+            data-testid="hero-buttons"
+            initial="hidden"
+            role="group"
+            transition="[object Object]"
+            variants="[object Object]"
+            viewport="[object Object]"
+            whileinview="show"
+          >
+            <div
+              class="w-full md:w-auto"
+            >
+              <a
+                aria-label="Primary action: Get Started"
+                class="inline-flex items-center justify-center font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed leading-none text-center no-underline rounded-lg h-[3.25rem] px-md text-btn-md lg:px-lg lg:text-btn-lg w-full md:w-auto"
+                href="/start"
+                role="button"
+                style="background-color: rgb(79, 70, 229); color: rgb(255, 255, 255); border-color: rgb(79, 70, 229); border-width: 2px; border-style: solid;"
+              >
+                Get Started
+              </a>
+            </div>
+            <div
+              class="w-full md:w-auto"
+            >
+              <a
+                aria-label="Secondary action: Learn More"
+                class="inline-flex items-center justify-center font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed leading-none text-center no-underline rounded-lg h-[3.25rem] px-md text-btn-md lg:px-lg lg:text-btn-lg w-full md:w-auto"
+                href="#learn-more"
+                role="button"
+                style="background-color: transparent; color: rgb(79, 70, 229); border-color: rgb(79, 70, 229); border-width: 2px; border-style: solid;"
+              >
+                Learn More
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="relative h-96 lg:h-screen order-2 lg:order-2"
+      >
+        <div
+          class="w-full h-full"
+          data-testid="hero-image-container"
+          initial="hidden"
+          transition="[object Object]"
+          variants="[object Object]"
+          viewport="[object Object]"
+          whileinview="show"
+        >
+          <img
+            alt="decorative"
+            aria-hidden="true"
+            class="w-full h-full lg:h-screen object-cover object-bottom"
+            data-testid="hero-image"
+            loading="lazy"
+            role="presentation"
+            src="/images/component-lib-images/hero/placeholder-img.png"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;

@@ -287,7 +287,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
                 userMessage: 'Color configuration is invalid'
             });
         } else {
-            const validateColor = (color: any, path: string, displayPath: string) => {
+            const validateColor = (color: unknown, path: string, displayPath: string) => {
                 if (color === undefined) return;
 
                 if (typeof color !== 'object' || color === null) {
@@ -299,7 +299,9 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
                     return;
                 }
 
-                if (!('light' in color) || !('dark' in color)) {
+                const colorObj = color as Record<string, unknown>;
+
+                if (!('light' in colorObj) || !('dark' in colorObj)) {
                     errors.push({
                         field: path,
                         message: 'Color must have both light and dark values',
@@ -308,24 +310,24 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
                     return;
                 }
 
-                if (typeof color.light !== 'string' || !HEX_COLOR_PATTERN.test(color.light)) {
+                if (typeof colorObj.light !== 'string' || !HEX_COLOR_PATTERN.test(colorObj.light as string)) {
                     errors.push({
                         field: `${path}.light`,
-                        message: `Must be a valid hex color (got: "${color.light}")`,
+                        message: `Must be a valid hex color (got: "${colorObj.light}")`,
                         userMessage: `${displayPath} light color must be a hex code (e.g., #FFFFFF)`
                     });
                 }
 
-                if (typeof color.dark !== 'string' || !HEX_COLOR_PATTERN.test(color.dark)) {
+                if (typeof colorObj.dark !== 'string' || !HEX_COLOR_PATTERN.test(colorObj.dark as string)) {
                     errors.push({
                         field: `${path}.dark`,
-                        message: `Must be a valid hex color (got: "${color.dark}")`,
+                        message: `Must be a valid hex color (got: "${colorObj.dark}")`,
                         userMessage: `${displayPath} dark color must be a hex code (e.g., #000000)`
                     });
                 }
             };
 
-            const validateButtonColors = (button: any, path: string, displayName: string) => {
+            const validateButtonColors = (button: unknown, path: string, displayName: string) => {
                 if (button === undefined) return;
 
                 if (typeof button !== 'object' || button === null) {
@@ -337,21 +339,24 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
                     return;
                 }
 
-                validateColor(button.background, `${path}.background`, `${displayName} background`);
-                validateColor(button.text, `${path}.text`, `${displayName} text`);
-                validateColor(button.border, `${path}.border`, `${displayName} border`);
+                const buttonObj = button as Record<string, unknown>;
 
-                if (button.hover !== undefined) {
-                    if (typeof button.hover !== 'object' || button.hover === null) {
+                validateColor(buttonObj.background, `${path}.background`, `${displayName} background`);
+                validateColor(buttonObj.text, `${path}.text`, `${displayName} text`);
+                validateColor(buttonObj.border, `${path}.border`, `${displayName} border`);
+
+                if (buttonObj.hover !== undefined) {
+                    if (typeof buttonObj.hover !== 'object' || buttonObj.hover === null) {
                         errors.push({
                             field: `${path}.hover`,
                             message: 'Hover must be an object',
                             userMessage: `${displayName} hover colors are invalid`
                         });
                     } else {
-                        validateColor(button.hover.background, `${path}.hover.background`, `${displayName} hover background`);
-                        validateColor(button.hover.text, `${path}.hover.text`, `${displayName} hover text`);
-                        validateColor(button.hover.border, `${path}.hover.border`, `${displayName} hover border`);
+                        const hoverObj = buttonObj.hover as Record<string, unknown>;
+                        validateColor(hoverObj.background, `${path}.hover.background`, `${displayName} hover background`);
+                        validateColor(hoverObj.text, `${path}.hover.text`, `${displayName} hover text`);
+                        validateColor(hoverObj.border, `${path}.hover.border`, `${displayName} hover border`);
                     }
                 }
             };

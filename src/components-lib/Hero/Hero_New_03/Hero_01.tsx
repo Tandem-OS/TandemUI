@@ -1,14 +1,14 @@
+/* eslint-disable react-refresh/only-export-components */
 // Hero_01.tsx
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
-import Heading from '../../../components/demos/typography/Heading';
-import SimpleButton from '../../../components/demos/buttons/SimpleButton';
-import Para from '../../../common-components/Para';
 import {
     type Hero_01Props,
-    type ColorOverrides
+    type ColorOverrides,
+    type ColorValue,
+    type ButtonColorOverride
 } from './Hero_01.types';
 import {
     validateHero01Props,
@@ -38,34 +38,53 @@ const getAnimationProps = (variant: Variants, delay = 0, amount = 0, animated = 
     };
 };
 
+// Button style types
+interface ButtonStyles {
+    backgroundColor: string;
+    color: string;
+    borderColor: string;
+    borderWidth: string;
+    borderStyle: string;
+}
+
+interface ComponentStyles {
+    background: { backgroundColor: string };
+    title: { color: string };
+    description: { color: string };
+    primaryButton: ButtonStyles;
+    primaryButtonHover: Omit<ButtonStyles, 'borderWidth' | 'borderStyle'>;
+    secondaryButton: ButtonStyles;
+    secondaryButtonHover: Omit<ButtonStyles, 'borderWidth' | 'borderStyle'>;
+}
+
 // Style hook with complete color handling
 const useComponentStyles = (
     userColors: ColorOverrides | undefined,
     theme: 'light' | 'dark'
-) => {
+): ComponentStyles => {
     return useMemo(() => {
         const defaults = meta.defaults.colors;
 
-        const getColor = (userValue: any, defaultValue: any): string => {
+        const getColor = (userValue: ColorValue | undefined, defaultValue: ColorValue): string => {
             const value = userValue || defaultValue;
             return theme === 'dark' ? value.dark : value.light;
         };
 
-        const getButtonStyles = (userButton: any, defaultButton: any) => {
+        const getButtonStyles = (userButton: ButtonColorOverride | undefined, defaultButton: ButtonColorOverride): ButtonStyles => {
             const button = userButton || defaultButton;
             return {
-                background: getColor(button.background, defaultButton.background),
+                backgroundColor: getColor(button.background, defaultButton.background),
                 color: getColor(button.text, defaultButton.text),
                 borderColor: getColor(button.border, defaultButton.border),
-                borderWidth: '2px',
-                borderStyle: 'solid' as const,
+                borderWidth: meta.tokens.button.borderWidth,
+                borderStyle: meta.tokens.button.borderStyle,
             };
         };
 
-        const getButtonHoverStyles = (userButton: any, defaultButton: any) => {
+        const getButtonHoverStyles = (userButton: ButtonColorOverride | undefined, defaultButton: ButtonColorOverride) => {
             const button = userButton || defaultButton;
             return {
-                background: getColor(button.hover?.background, defaultButton.hover.background),
+                backgroundColor: getColor(button.hover?.background, defaultButton.hover.background),
                 color: getColor(button.hover?.text, defaultButton.hover.text),
                 borderColor: getColor(button.hover?.border, defaultButton.hover.border),
             };
@@ -89,7 +108,7 @@ const useComponentStyles = (
     }, [userColors, theme]);
 };
 
-// Action Button Component with full token usage
+// Native Button Component using ONLY meta tokens
 interface ActionButtonProps {
     text: string;
     href: string;
@@ -111,26 +130,62 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     animated = true,
     ariaLabel
 }) => {
-    const [isHovered, setIsHovered] = React.useState(false);
+    const buttonClasses = `${meta.tokens.button.base} ${meta.tokens.button.sizes[size]} ${meta.tokens.responsive.width}`;
 
-    // Wrapper div uses token for responsive width
+    const combinedStyles = {
+        ...baseStyles,
+        transition: animated ? meta.tokens.effects.button : 'none'
+    };
+
+    const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
+        if (animated) {
+            Object.assign(e.currentTarget.style, {
+                ...combinedStyles,
+                ...hoverStyles
+            });
+        }
+    };
+
+    const handleMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+        if (animated) {
+            Object.assign(e.currentTarget.style, combinedStyles);
+        }
+    };
+
+    const buttonContent = (
+        <>
+            {text}
+            {icon && <span className={meta.tokens.button.iconSpacing}>{icon}</span>}
+        </>
+    );
+
     return (
         <div className={meta.tokens.responsive.width}>
-            <SimpleButton
-                variant="basic"
-                size={size}
-                fullWidth
-                className={`${meta.tokens.responsive.width} ${meta.tokens.effects.button} ${meta.tokens.effects.hover}`}
-                style={isHovered ? { ...baseStyles, ...hoverStyles } : baseStyles}
-                onMouseEnter={() => animated && setIsHovered(true)}
-                onMouseLeave={() => animated && setIsHovered(false)}
-                linkTo={href}
-                icon={icon}
-                aria-label={ariaLabel || text}
-            >
-                {text}
-            </SimpleButton>
-        </div>
+            {href.startsWith('http') || href.startsWith('/') || href.startsWith('#') ? (
+                <a
+                    href={href}
+                    className={buttonClasses}
+                    style={combinedStyles}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                    aria-label={ariaLabel || text}
+                    role="button"
+                >
+                    {buttonContent}
+                </a>
+            ) : (
+                <button
+                    className={buttonClasses}
+                    style={combinedStyles}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                    onClick={() => window.location.href = href}
+                    aria-label={ariaLabel || text}
+                >
+                    {buttonContent}
+                </button>
+            )}
+        </div >
     );
 };
 
@@ -143,15 +198,13 @@ const Hero_01: React.FC<Hero_01Props> = (props = {}) => {
     const sanitized = sanitizeProps(props);
 
     // Log validation results in development
-    useEffect(() => {
-        if (process.env.NODE_ENV === 'development') {
-            if (!validation.valid || validation.warnings) {
-                console.group('Hero_01 Validation');
-                console.log(formatValidationMessage(validation));
-                console.groupEnd();
-            }
+    if (process.env.NODE_ENV === 'development') {
+        if (!validation.valid || validation.warnings) {
+            console.group('Hero_01 Validation');
+            console.log(formatValidationMessage(validation));
+            console.groupEnd();
         }
-    }, [validation]);
+    }
 
     // Use sanitized props with meta defaults as final fallback
     const title = sanitized.title || meta.defaults.title;
@@ -204,38 +257,33 @@ const Hero_01: React.FC<Hero_01Props> = (props = {}) => {
                 >
                     <div className={`${meta.tokens.layout.contentContainer} ${meta.tokens.spacing.contentSpacing}`}>
 
-                        {/* Title */}
+                        {/* Title - Native H1 with meta tokens only */}
                         <MotionWrapper
                             {...(animated ? getAnimationProps(fadeInUp, 0, 0, true) : {})}
                             data-testid="hero-title"
                         >
-                            <Heading
-                                level="h1"
-                                weight="bold"
+                            <h1
                                 className={meta.tokens.typography.heading.complete}
                                 style={styles.title}
-                                aria-label={`Hero title: ${title}`}
                             >
                                 {title}
-                            </Heading>
+                            </h1>
                         </MotionWrapper>
 
-                        {/* Description */}
+                        {/* Description - Native P with meta tokens only */}
                         <MotionWrapper
                             {...(animated ? getAnimationProps(fadeInUp, 0.1, 0, true) : {})}
                             data-testid="hero-description"
                         >
-                            <Para
-                                size="md"
+                            <p
                                 className={meta.tokens.typography.body.complete}
                                 style={styles.description}
-                                aria-label={`Hero description: ${description}`}
                             >
                                 {description}
-                            </Para>
+                            </p>
                         </MotionWrapper>
 
-                        {/* Buttons */}
+                        {/* Buttons - Using meta tokens only */}
                         <MotionWrapper
                             className={`${meta.tokens.responsive.flexDirection} ${meta.tokens.spacing.buttonSpacing}`}
                             {...(animated ? getAnimationProps(fadeInUp, 0.2, 0, true) : {})}
