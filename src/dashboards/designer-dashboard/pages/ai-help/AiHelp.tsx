@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiSearch, FiPlay, FiFileText, FiGrid, FiList, FiCheck, FiClock, FiInfo, FiChevronDown } from 'react-icons/fi';
 import { HiSparkles, HiLightningBolt, HiDocumentText } from 'react-icons/hi';
 import { mockComponents, mockProjects, sampleBriefs } from '@/mock-data/designer.ai-help.mock';
@@ -7,6 +7,10 @@ import SimpleButton from '@/components/demos/buttons/SimpleButton';
 import Heading from '@/components/demos/typography/Heading';
 import Para from '@/comman-components/Para';
 import Dropdown from '@/comman-components/Dropdown';
+import { getAllProjectsByDesignerEmail } from '@/lib/requests/ProjectRequest';
+import { ensureEmbeddings } from '@/lib/requests/AiRequest';
+import { getIntakeByClientEmail } from '@/lib/requests/IntakeRequest';
+import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 
 const AiHelp = () => {
     const [activeTab, setActiveTab] = useState('embeddings');
@@ -17,8 +21,56 @@ const AiHelp = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [clientEmail, setClientEmail] = useState('');
     const [designerEmail, setDesignerEmail] = useState('');
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const [isEmbedding, setIsEmbedding] = useState<number | null>(null);
+
+    useEffect(() => {
+        const callAllProjects = async () => {
+            setLoading(true);
+            try {
+                const projectsRes = await getAllProjectsByDesignerEmail();
+
+                const mappedProjects: any[] = [];
+
+                for (const p of projectsRes.data) {
+                    // Call embeddings API
+                    const embRes = await ensureEmbeddings({ project_id: p.id });
+
+                    // Get intake
+                    const intakeRes = await getIntakeByClientEmail({ client_email: p.client_email });
+                    const intake = intakeRes.data?.data; // <-- this is either object or null
+
+                    // Derive status
+                    let status = "embedded";
+                    if (p.intake_completed && p.swiper_completed) status = "completed";
+                    if ((embRes?.components_indexed || 0) === 0) status = "no-components";
+
+                    mappedProjects.push({
+                        id: p.id,
+                        name: p.project_name,
+                        status,
+                        lastUpdate: new Date(p.last_updated).toLocaleDateString(),
+                        components: embRes?.components_indexed || 0,
+                        client: p.client_email,
+                        designer: p.designer_email,
+                        intakeMissing: intake == null, // ✅ true if missing
+                    });
+
+                    console.log("Intake check:", p.client_email, intakeRes.data, "-> intakeMissing:", intake == null);
+                }
+
+                setProjects(mappedProjects);
+            } catch (error) {
+                console.error("Failed to load projects:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        callAllProjects();
+    }, []);
 
     // Mock function to generate brief
     const handleGenerateBrief = () => {
@@ -73,8 +125,8 @@ const AiHelp = () => {
                         onClick={() => setActiveTab('embeddings')}
                         variant="ghost"
                         className={`px-md py-sm text-para-md font-medium transition-all ${activeTab === 'embeddings'
-                                ? 'text-accent-default border-b-2 border-accent-default'
-                                : 'text-text-secondary hover:text-text-primary'
+                            ? 'text-accent-default border-b-2 border-accent-default'
+                            : 'text-text-secondary hover:text-text-primary'
                             }`}
                     >
                         <div className="flex items-center gap-sm">
@@ -86,8 +138,8 @@ const AiHelp = () => {
                         onClick={() => setActiveTab('brief')}
                         variant="ghost"
                         className={`px-md py-sm text-para-md font-medium transition-all ${activeTab === 'brief'
-                                ? 'text-accent-default border-b-2 border-accent-default'
-                                : 'text-text-secondary hover:text-text-primary'
+                            ? 'text-accent-default border-b-2 border-accent-default'
+                            : 'text-text-secondary hover:text-text-primary'
                             }`}
                     >
                         <div className="flex items-center gap-sm">
@@ -99,8 +151,8 @@ const AiHelp = () => {
                         onClick={() => setActiveTab('similar')}
                         variant="ghost"
                         className={`px-md py-sm text-para-md font-medium transition-all ${activeTab === 'similar'
-                                ? 'text-accent-default border-b-2 border-accent-default'
-                                : 'text-text-secondary hover:text-text-primary'
+                            ? 'text-accent-default border-b-2 border-accent-default'
+                            : 'text-text-secondary hover:text-text-primary'
                             }`}
                     >
                         <div className="flex items-center gap-sm">
@@ -124,45 +176,72 @@ const AiHelp = () => {
                                 </Para>
                             </div>
 
-                            <div className="space-y-sm">
-                                {mockProjects.map((project) => (
-                                    <div
-                                        key={project.id}
-                                        className="flex items-center justify-between p-md bg-background-secondary rounded-lg border border-border-default hover:border-border-muted transition-colors"
-                                    >
-                                        <div className="flex-1">
-                                            <Heading level="h6" color="primary" weight="medium" className="text-para-lg">
-                                                {project.name}
-                                            </Heading>
-                                            <div className="flex items-center gap-md mt-xs">
-                                                <span className={`flex items-center gap-xs text-para-sm ${project.status === 'embedded' ? 'text-text-success' : 'text-text-warning'
-                                                    }`}>
-                                                    {project.status === 'embedded' ? <FiCheck /> : <FiClock />}
-                                                    {project.status === 'embedded' ? 'Embedded' : 'Pending'}
-                                                </span>
-                                                <Para size="sm" color="tertiary" className="!mb-0">
-                                                    Last updated: {project.lastUpdate}
-                                                </Para>
-                                            </div>
-                                        </div>
-                                        <FormButton
-                                            onClick={() => handleEnsureEmbeddings(project.id)}
-                                            isLoading={isEmbedding === project.id}
-                                            variant="solid"
-                                            size="md"
+
+                            {loading ? <GlobalSpinner /> : (
+                                <div className="space-y-sm">
+                                    {projects.map((project) => (
+                                        <div
+                                            key={project.id}
+                                            className="flex items-center justify-between p-md bg-background-secondary rounded-lg border border-border-default hover:border-border-muted transition-colors"
                                         >
-                                            {isEmbedding === project.id ? (
-                                                'Processing...'
-                                            ) : (
-                                                <>
-                                                    <FiPlay className="text-icon-sm mr-xs" />
-                                                    {project.status === 'embedded' ? 'Re-embed' : 'Embed Now'}
-                                                </>
-                                            )}
-                                        </FormButton>
-                                    </div>
-                                ))}
-                            </div>
+                                            <div className="flex-1">
+                                                <Heading
+                                                    level="h6"
+                                                    color="primary"
+                                                    weight="medium"
+                                                    className="text-para-lg"
+                                                >
+                                                    {project.name}
+                                                </Heading>
+
+                                                <div className="flex items-center gap-md mt-xs">
+                                                    <span
+                                                        className={`flex items-center gap-xs text-para-sm ${project.status === "embedded"
+                                                            ? "text-text-success"
+                                                            : "text-text-warning"
+                                                            }`}
+                                                    >
+                                                        {project.status === "embedded" ? <FiCheck /> : <FiClock />}
+                                                        {project.status === "embedded" ? "Embedded" : "Pending"}
+                                                    </span>
+                                                    <Para size="sm" color="tertiary" className="!mb-0">
+                                                        Last updated: {project.lastUpdate}
+                                                    </Para>
+                                                </div>
+
+                                                {/* Intake warning */}
+                                                {project.intakeMissing && (
+                                                    <Para size="sm" color="warning" className="mt-xs">
+                                                        ⚠️ Intake data missing — please complete intake to enable embedding
+                                                    </Para>
+                                                )}
+                                            </div>
+
+                                            <FormButton
+                                                onClick={() => handleEnsureEmbeddings(project.id)}
+                                                isLoading={isEmbedding === project.id}
+                                                variant="solid"
+                                                size="md"
+                                                disabled={project.intakeMissing} // 🔥 disable if intake is missing
+                                            >
+                                                {isEmbedding === project.id ? (
+                                                    'Processing...'
+                                                ) : (
+                                                    <>
+                                                        <FiPlay className="text-icon-sm mr-xs" />
+                                                        {project.intakeMissing
+                                                            ? 'Intake Required' // 🔥 show proper text
+                                                            : project.status === 'embedded'
+                                                                ? 'Re-embed'
+                                                                : 'Embed Now'}
+                                                    </>
+                                                )}
+                                            </FormButton>
+
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
 
                             <div className="mt-lg p-md bg-background-info rounded-lg border border-border-info">
                                 <div className="flex gap-sm">

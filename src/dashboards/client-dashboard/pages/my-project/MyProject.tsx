@@ -52,7 +52,7 @@ const MyProject: React.FC = () => {
           : raw.swiper_started
             ? 'in-progress'
             : 'in-progress',
-        currentStage: raw.status_note || 'Intake',
+        currentStage: raw.status_note || 'This going to be create',
         feedbackCount: raw.notes ? raw.notes.length : 0,
         createdAt: new Date(raw.last_updated).toISOString().split("T")[0],
         description: raw.business_description,
