@@ -6,7 +6,8 @@ import {
     RiSwapLine,
     RiGlobalLine,
     RiChatQuoteLine,
-    RiUserLine
+    RiUserLine,
+    RiBrain2Line 
 } from 'react-icons/ri';
 import { type IconType } from 'react-icons';
 
@@ -86,6 +87,12 @@ export const menuItems: MenuItem[] = [
         name: 'Testimonials',
         icon: RiChatQuoteLine,
         path: '/dashboard/designer/testimonials'
+    },
+    {
+        id: 'aihelp',
+        name: 'Ai Help',
+        icon: RiBrain2Line,
+        path: '/dashboard/designer/ai-help'
     },
     {
         id: 'daconsah',

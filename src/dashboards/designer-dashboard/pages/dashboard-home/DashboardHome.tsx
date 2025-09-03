@@ -120,7 +120,7 @@ const StatusTag: React.FC<StatusTagProps> = ({ status, label, colors }) => {
 
   return (
     <div className="w-full flex justify-center">
-      <span className={`block w-full px-sm py-xs flex justify-center rounded-full text-para-xs font-medium border ${statusStyles[status]}`}>
+      <span className={`w-full px-sm py-xs flex justify-center rounded-full text-para-xs font-medium border ${statusStyles[status]}`}>
         {label}
       </span>
     </div>
