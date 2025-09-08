@@ -105,7 +105,7 @@ const AiHelp = () => {
 
     return (
         <div className="min-h-screen">
-            <div className="max-w-7xl mx-auto">
+            <div>
                 {/* Header */}
                 <div className="mb-lg">
                     <div className="flex items-center gap-sm mb-sm">

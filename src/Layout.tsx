@@ -20,8 +20,8 @@ const Layout = () => {
                     <Route path={ROUTES.ONBOARD_COMPLETE} element={<OnboardComplete />} />
                     <Route path={ROUTES.ONBOARDING} element={<OnboardingForm />} />
                     <Route path={ROUTES.SCRAPER} element={<ScraperIntelligencePage />} />
+                    <Route path={`${ROUTES.DASHBOARD}/*`} element={<DashboardRoutes />} />
                 </Route>
-                <Route path={`${ROUTES.DASHBOARD}/*`} element={<DashboardRoutes />} />
             </Routes>
         </main>
     )
