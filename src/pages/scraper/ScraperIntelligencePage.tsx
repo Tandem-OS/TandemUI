@@ -22,6 +22,9 @@ import Para from '../../comman-components/Para';
 // Import constants
 import { dummyScrapedData, quickSuggestions, processingSteps } from './constants';
 import Toast from '@/comman-components/Toast';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store';
+import { createDesignerScraper } from '@/lib/requests/ScraperRequest';
 
 // Custom hook for taste profile
 const useTasteProfile = () => {
@@ -74,10 +77,22 @@ const ScraperIntelligencePage = () => {
 
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
 
+    // const clientEmail = useSelector((state: RootState) => state.auth.user.email)!;
+    const email = useSelector((state: RootState) => state.auth.user.email);
+    const userRole = useSelector((state: RootState) => state.auth.user.role);
+
     // Save layout plan to localStorage whenever it changes
     useEffect(() => {
         localStorage.setItem('layoutPlan', JSON.stringify(layoutPlan));
     }, [layoutPlan]);
+
+    useEffect(() => {
+        if (userRole === 'Designer') {
+            handleModeToggle(true);
+        } else {
+            handleModeToggle(false);
+        }
+    }, [userRole]);
 
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
@@ -85,22 +100,54 @@ const ScraperIntelligencePage = () => {
     };
 
     const handleStartScraping = async (url: string) => {
-        setCurrentStep('processing');
-        setProcessingStep(0);
+  try {
+    let scrapedDataFromBackend: any = null;
 
-        for (let i = 0; i < processingSteps.length; i++) {
-            await new Promise(resolve => setTimeout(resolve, 800));
-            setProcessingStep(i);
-        }
+    // ✅ Start processing state immediately
+    setCurrentStep("processing");
+    setProcessingStep(0);
 
-        setTimeout(() => {
-            const data = { ...dummyScrapedData, url };
-            // Apply taste scoring to sections
-            const scoredSections = scoreSections(data.sections);
-            setScrapedData({ ...data, sections: scoredSections });
-            setCurrentStep('results');
-        }, 1000);
-    };
+    // 🔹 Kick off scraper request in parallel
+    const scraperPromise = (async () => {
+      if (userRole === "Designer" && email) {
+
+        const payload = {
+        designer_email: email,
+        role: "designer",
+        url,
+      };
+        const response = await createDesignerScraper(payload);
+        return response.data;
+      }
+      return null;
+    })();
+
+    // 🔹 Run step-by-step processing animation
+    const processingPromise = (async () => {
+      for (let i = 0; i < processingSteps.length; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        setProcessingStep(i);
+      }
+    })();
+
+    // ✅ Wait for both backend scraping AND animation to finish
+    const [scrapedData] = await Promise.all([scraperPromise, processingPromise]);
+
+    // ✅ After both are done → show results
+    const data = scrapedData
+      ? { ...scrapedData, url }
+      : { ...dummyScrapedData, url };
+
+    const scoredSections = scoreSections(data.sections);
+    setScrapedData({ ...data, sections: scoredSections });
+    setCurrentStep("results");
+  } catch (error) {
+    console.error("Error during scraping:", error);
+    setCurrentStep("error");
+  }
+};
+
+
 
     const handleSectionFeedback = (sectionId: string, feedback: 'like' | 'dislike') => {
         setUserFeedback(prev => ({ ...prev, [sectionId]: feedback }));
@@ -130,6 +177,7 @@ const ScraperIntelligencePage = () => {
     };
 
     // ✅ UPDATED: Handle mode toggle with fade transition
+
     const handleModeToggle = async (mode: boolean) => {
         setIsTransitioning(true);
         await new Promise(resolve => setTimeout(resolve, 150));
@@ -258,7 +306,7 @@ const ScraperIntelligencePage = () => {
                                     <div className="flex items-center justify-center">
                                         <div className="bg-background-secondary rounded-full p-1 flex">
                                             <button
-                                                onClick={() => handleModeToggle(false)}
+                                                // onClick={() => handleModeToggle(false)}
                                                 className={`flex items-center justify-center gap-xs sm:gap-sm px-md sm:px-lg py-xs sm:py-sm rounded-full text-para-sm sm:text-para-md font-medium transition-all ${!isDesignerMode
                                                     ? 'bg-accent-default text-accent-foreground shadow-lg'
                                                     : 'text-text-secondary hover:text-text-primary'
@@ -269,7 +317,7 @@ const ScraperIntelligencePage = () => {
                                                 <span className="sm:hidden">Client</span>
                                             </button>
                                             <button
-                                                onClick={() => handleModeToggle(true)}
+                                                // onClick={() => handleModeToggle(true)}
                                                 className={`flex items-center justify-center gap-xs sm:gap-sm px-md sm:px-lg py-xs sm:py-sm rounded-full text-para-sm sm:text-para-md font-medium transition-all ${isDesignerMode
                                                     ? 'bg-accent-default text-accent-foreground shadow-lg'
                                                     : 'text-text-secondary hover:text-text-primary'
