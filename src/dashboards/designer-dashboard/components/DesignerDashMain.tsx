@@ -8,12 +8,13 @@ import AnalyticsOverview from '../pages/AnalyticsOverview';
 import AnalyticsPerformance from '../pages/AnalyticsPerformance';
 import AnalyticsReports from '../pages/AnalyticsReports';
 import SwiperPage from '../pages/SwiperPage';
-import WebsiteScraperPage from '../pages/WebsiteScraperPage';
+// import WebsiteScraperPage from '../pages/WebsiteScraperPage';
 import TestimonialsPage from '../pages/TestimonialsPage';
 import DaconsahPage from '../pages/DaconsahPage';
 import MyProject from '@/dashboards/client-dashboard/pages/my-project/MyProject';
 import ProjectOverview from '@/dashboards/client-dashboard/pages/project-overview/ProjectOverview';
 import ProfileView from '@/components/profile/ProfileView';
+import ScraperIntelligencePage from '@/pages/scraper/ScraperIntelligencePage';
 
 const DesignerDashMain: React.FC = () => {
     return (
@@ -29,10 +30,11 @@ const DesignerDashMain: React.FC = () => {
                     <Route path="/analytics/performance" element={<AnalyticsPerformance />} />
                     <Route path="/analytics/reports" element={<AnalyticsReports />} />
                     <Route path="/swiper" element={<SwiperPage />} />
-                    <Route path="/website-scraper" element={<WebsiteScraperPage />} />
+                    <Route path="/website-scraper" element={<ScraperIntelligencePage />} />
                     <Route path="/testimonials" element={<TestimonialsPage />} />
                     <Route path="/daconsah" element={<DaconsahPage />} />
                     <Route path="/profile-view" element={<ProfileView />} />
+
                 </Routes>
             </div>
         </main>

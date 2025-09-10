@@ -24,7 +24,7 @@ import { dummyScrapedData, quickSuggestions, processingSteps } from './constants
 import Toast from '@/comman-components/Toast';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
-import { createDesignerScraper } from '@/lib/requests/ScraperRequest';
+import { createScraper } from '@/lib/requests/ScraperRequest';
 
 // Custom hook for taste profile
 const useTasteProfile = () => {
@@ -80,6 +80,7 @@ const ScraperIntelligencePage = () => {
     // const clientEmail = useSelector((state: RootState) => state.auth.user.email)!;
     const email = useSelector((state: RootState) => state.auth.user.email);
     const userRole = useSelector((state: RootState) => state.auth.user.role);
+    const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
 
     // Save layout plan to localStorage whenever it changes
     useEffect(() => {
@@ -100,53 +101,61 @@ const ScraperIntelligencePage = () => {
     };
 
     const handleStartScraping = async (url: string) => {
-  try {
-    let scrapedDataFromBackend: any = null;
+        try {
+            setCurrentStep("processing");
+            setProcessingStep(0);
 
-    // ✅ Start processing state immediately
-    setCurrentStep("processing");
-    setProcessingStep(0);
+            const scraperPromise = (async () => {
+                let payload;
 
-    // 🔹 Kick off scraper request in parallel
-    const scraperPromise = (async () => {
-      if (userRole === "Designer" && email) {
+                if (userRole === "Designer" && email) {
+                    payload = {
+                        designer_email: email,
+                        client_email: null,
+                        role: "designer",
+                        url,
+                    };
+                } else if (userRole === 'Client' && designerEmail) {
+                    payload = {
+                        designer_email: designerEmail,
+                        role: "client",
+                        client_email: email,
+                        url,
+                    };
+                }
 
-        const payload = {
-        designer_email: email,
-        role: "designer",
-        url,
-      };
-        const response = await createDesignerScraper(payload);
-        return response.data;
-      }
-      return null;
-    })();
+                if (!payload) {
+                    return null;
+                }
 
-    // 🔹 Run step-by-step processing animation
-    const processingPromise = (async () => {
-      for (let i = 0; i < processingSteps.length; i++) {
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        setProcessingStep(i);
-      }
-    })();
+                const response = await createScraper(payload);
+                return response.data;
+            })();
 
-    // ✅ Wait for both backend scraping AND animation to finish
-    const [scrapedData] = await Promise.all([scraperPromise, processingPromise]);
+            const processingPromise = (async () => {
+                for (let i = 0; i < processingSteps.length; i++) {
+                    setProcessingStep(i);
+                    await new Promise((resolve) => setTimeout(resolve, 800));
+                }
+            })();
 
-    // ✅ After both are done → show results
-    const data = scrapedData
-      ? { ...scrapedData, url }
-      : { ...dummyScrapedData, url };
+            const [scrapedData] = await Promise.all([scraperPromise, processingPromise]);
 
-    const scoredSections = scoreSections(data.sections);
-    setScrapedData({ ...data, sections: scoredSections });
-    setCurrentStep("results");
-  } catch (error) {
-    console.error("Error during scraping:", error);
-    setCurrentStep("error");
-  }
-};
+            setProcessingStep(processingSteps.length);
+            await new Promise((resolve) => setTimeout(resolve, 800));
 
+            const data = scrapedData
+                ? { ...scrapedData, url }
+                : { ...dummyScrapedData, url };
+
+            const scoredSections = scoreSections(data.sections);
+            setScrapedData({ ...data, sections: scoredSections });
+            setCurrentStep("results");
+        } catch (error) {
+            console.error("Error during scraping:", error);
+            setCurrentStep("error");
+        }
+    };
 
 
     const handleSectionFeedback = (sectionId: string, feedback: 'like' | 'dislike') => {
@@ -563,14 +572,14 @@ const ScraperIntelligencePage = () => {
                                         <StartFromIdea onGenerateLayout={handleGenerateLayout} />
                                         <div className="bg-background-secondary rounded-full p-0.5 sm:p-1 flex">
                                             <button
-                                                onClick={() => handleModeToggle(false)}
+                                                // onClick={() => handleModeToggle(false)}
                                                 className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${!isDesignerMode ? 'bg-accent-default text-accent-foreground' : 'text-text-secondary hover:text-text-primary'}`}
                                             >
                                                 <FaUser className="inline mr-xs text-icon-sm" />
                                                 <span className="hidden sm:inline">Client</span>
                                             </button>
                                             <button
-                                                onClick={() => handleModeToggle(true)}
+                                                // onClick={() => handleModeToggle(true)}
                                                 className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${isDesignerMode ? 'bg-accent-default text-accent-foreground' : 'text-text-secondary hover:text-text-primary'}`}
                                             >
                                                 <FaPalette className="inline mr-xs text-icon-sm" />

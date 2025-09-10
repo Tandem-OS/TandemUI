@@ -10,6 +10,7 @@ import Swiper from "../pages/swiper/Swiper";
 import IntakeForm from "@/components/intake-form/IntakeForm";
 import OnboardingForm from "@/components/intake-form/OnboardingForm";
 import OnboardComplete from "@/components/onboard-completed/OnboardComplete";
+import ScraperIntelligencePage from "@/pages/scraper/ScraperIntelligencePage";
 
 const ClientDashMain = () => {
     return (
@@ -21,6 +22,7 @@ const ClientDashMain = () => {
                 <Route path="/project-overview/:id" element={<ProjectOverview />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/final-testimonial" element={<FinalTestimonial />} />
+                <Route path="/scraper" element={<ScraperIntelligencePage />} />
                 <Route path="/designer-testimonial" element={<DesignerTestimonial />} />
                 <Route path="/intake" element={<IntakeForm />} />
                 <Route path="/onboard" element={<OnboardingForm />} />
