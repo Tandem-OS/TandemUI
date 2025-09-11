@@ -81,6 +81,7 @@ const ScraperIntelligencePage = () => {
     const email = useSelector((state: RootState) => state.auth.user.email);
     const userRole = useSelector((state: RootState) => state.auth.user.role);
     const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
+    const projectId = useSelector((state: RootState) => state.project.projectId);
 
     // Save layout plan to localStorage whenever it changes
     useEffect(() => {
@@ -108,17 +109,19 @@ const ScraperIntelligencePage = () => {
             const scraperPromise = (async () => {
                 let payload;
 
-                if (userRole === "Designer" && email) {
+                if (userRole === "Designer" && email && projectId) {
                     payload = {
                         designer_email: email,
                         client_email: null,
+                        project_id: projectId,
                         role: "designer",
                         url,
                     };
-                } else if (userRole === 'Client' && designerEmail) {
+                } else if (userRole === 'Client' && designerEmail && projectId) {
                     payload = {
                         designer_email: designerEmail,
                         role: "client",
+                        project_id: projectId,
                         client_email: email,
                         url,
                     };
