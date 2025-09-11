@@ -4,6 +4,7 @@ interface Scrapervalues {
   designer_email: string;
   url: string;
   role: string;
+  project_id: string;
   client_email?: string | null;
 }
 
