@@ -19,7 +19,8 @@ import {
   RiStarLine,
   RiThunderstormsLine,
   RiRocketLine,
-  RiShieldCheckLine
+  RiShieldCheckLine,
+  RiLinkM
 } from 'react-icons/ri';
 import { clsx } from 'clsx';
 import Card from '../../../../comman-components/Card';
@@ -230,6 +231,10 @@ const ClientDashHome: React.FC = () => {
     { title: "Design Approval", status: "pending" as const, icon: <RiCheckDoubleLine />, action: "Review", route: '/client-dashboard/approval', delay: 0.3 }
   ];
 
+  const scrapperButton = [
+    { icon: RiLinkM, label: 'Add Favorite Website', color: 'from-blue-500 to-cyan-500', href: 'scraper', disabled: false },
+  ];
+
 
   const clientName = useSelector((state: RootState) => state.auth.user.name)!;
   const client_email = useSelector((state: RootState) => state.auth.user.email)!;
@@ -250,38 +255,120 @@ const ClientDashHome: React.FC = () => {
       <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-12">
         {/* Welcome Section */}
         <motion.div
-          className="mb-8 sm:mb-12"
+          className="mb-8 sm:mb-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
-          <motion.h1
-            className="text-h1-sm md:text-h1-md xl:text-h1-lg font-bold bg-gradient-to-r from-text-primary via-text-secondary to-text-primary bg-clip-text text-transparent mb-2 sm:mb-3"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            Welcome back, {clientName}
-            <motion.span
-              className="ml-2 inline-block text-2l sm:text-4xl"
-              animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-              style={{ color: '#FFD700' }}
+          {/* Text Content */}
+          <div className="flex-1">
+            <motion.h1
+              className="text-h1-sm md:text-h1-md xl:text-h1-lg font-bold bg-gradient-to-r from-text-primary via-text-secondary to-text-primary bg-clip-text text-transparent mb-2 sm:mb-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
             >
-              🤗
-            </motion.span>
-          </motion.h1>
+              Welcome back, {clientName}
+              <motion.span
+                className="ml-2 inline-block text-2l sm:text-4xl"
+                animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
+                style={{ color: '#FFD700' }}
+              >
+                🤗
+              </motion.span>
+            </motion.h1>
 
-          <motion.p
-            className="text-sm sm:text-base md:text-lg lg:text-xl text-text-secondary max-w-3xl leading-relaxed"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            You're making incredible progress on your project. Let's continue building something
-            <span className="text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-semibold"> amazing </span>
-            together!
-          </motion.p>
+            <motion.p
+              className="text-sm sm:text-base md:text-lg lg:text-xl text-text-secondary max-w-3xl leading-relaxed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              You're making incredible progress on your project. Let's continue building something
+              <span className="text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-semibold"> amazing </span>
+              together!
+            </motion.p>
+          </div>
+
+          {/* Scraper Button */}
+          <div className="flex-shrink-0">
+            {scrapperButton.map((action, index) => {
+              const button = (
+                <motion.button
+                  key={action.label}
+                  disabled={action.disabled}
+                  className={clsx(
+                    'p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden',
+                    'flex flex-col items-center justify-center gap-2 sm:gap-3',
+                    action.disabled
+                      ? 'bg-background-muted opacity-50 cursor-not-allowed'
+                      : 'bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg'
+                  )}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{
+                    duration: 0.5,
+                    delay: index * 0.1
+                  }}
+                  whileHover={!action.disabled ? {
+                    y: -8,
+                    transition: { duration: 0.2 }
+                  } : {}}
+                >
+                  {!action.disabled && (
+                    <motion.div
+                      className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                    />
+                  )}
+
+                  <motion.div
+                    className={clsx(
+                      'p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10',
+                      action.disabled
+                        ? 'bg-background-secondary'
+                        : `bg-gradient-to-r ${action.color} shadow-lg`
+                    )}
+                    whileHover={!action.disabled ? { rotate: 10, scale: 1.1 } : {}}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    <action.icon className={clsx(
+                      'text-xl sm:text-2xl',
+                      action.disabled ? 'text-text-tertiary' : 'text-white'
+                    )} />
+                  </motion.div>
+
+                  <p className={clsx(
+                    'text-xs sm:text-sm font-semibold text-center relative z-10',
+                    action.disabled
+                      ? 'text-text-tertiary'
+                      : 'text-text-secondary'
+                  )}>
+                    {action.label}
+                  </p>
+
+                  {action.disabled && (
+                    <motion.span
+                      className="absolute top-1 right-1 sm:top-2 sm:right-2 text-xs bg-background-secondary text-text-tertiary px-2 py-0.5 rounded-full font-medium"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      Locked
+                    </motion.span>
+                  )}
+                </motion.button>
+              );
+
+              return !action.disabled && action.href ? (
+                <Link to={action.href} key={action.label} className="contents">
+                  {button}
+                </Link>
+              ) : (
+                button
+              );
+            })}
+          </div>
         </motion.div>
 
         {/* Main Grid */}

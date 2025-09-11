@@ -244,12 +244,13 @@ export const quickSuggestions = [
 ];
 
 // ✅ UPDATED: Enhanced processing steps with better copy and completion message
-export const processingSteps = [
-    "Learning page structure...",
-    "Capturing full-page snapshot",
-    "Mapping layout sections...", 
-    "Generating intelligent previews...",
-    "Complete! Found X sections",
+export const processingSteps  = [
+  "Analyzing Website",
+  "Extracting design patterns and layout intelligence",
+  "Learning page structure...",
+  "Capturing full-page snapshot",
+  "Mapping layout sections...",
+  "Generating intelligent previews...",
 ];
 
 // Like reason options
