@@ -10,7 +10,6 @@ import { containerVariant, fadeInLeft } from '@/lib/animations/variants';
 import Input from '@/components/auth/form/components/Input';
 import SimpleButton from '@/components/demos/buttons/SimpleButton';
 import Heading from '@/components/demos/typography/Heading';
-import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader';
 import { KingOfTheHill } from '@/components/intake-form/KingOfTheHill';
 import FiveStarFeedback from '@/comman-components/FiveStarFeedback';
 import { initialFormData, suggestedPageChips, OPTIONS } from '@/components/intake-form/constants';
@@ -555,7 +554,6 @@ const IntakeForm: React.FC = () => {
             ) :
                 <div className="relative min-h-screen flex bg-background-secondary transition-colors">
                     <div className="flex-1 flex flex-col z-10">
-                        <SimpleHeader />
 
                         <div className="flex-1 flex items-center justify-center px-lg max-md:mb-md">
                             <AnimatePresence mode="wait">

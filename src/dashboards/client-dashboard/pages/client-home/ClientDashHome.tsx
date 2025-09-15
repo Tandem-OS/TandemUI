@@ -224,7 +224,7 @@ const ClientDashHome: React.FC = () => {
   ];
 
   const statusItems = [
-    { title: "Intake Submitted", status: "completed" as const, icon: <RiFileTextLine />, action: "View", route: '/client-dashboard/intake', delay: 0 },
+    { title: "Intake Submitted", status: "completed" as const, icon: <RiFileTextLine />, action: "View", route: 'intake', delay: 0 },
     { title: "Preferences Swiped", status: "completed" as const, icon: <RiPaletteLine />, action: "View", route: 'swiper', delay: 0.1 },
     { title: "Feedback Pending", status: "pending" as const, icon: <RiMessage3Line />, action: "Submit", route: '/client-dashboard/feedback', delay: 0.2 },
     { title: "Design Approval", status: "pending" as const, icon: <RiCheckDoubleLine />, action: "Review", route: '/client-dashboard/approval', delay: 0.3 }

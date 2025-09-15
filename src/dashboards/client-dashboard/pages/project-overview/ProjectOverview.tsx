@@ -329,15 +329,6 @@ const ProjectOverview: React.FC = () => {
                 </div>
               </div>
 
-              {/* Progress Bar */}
-              <div className="w-full bg-background-muted dark:bg-background-primary rounded-full h-2 mb-xl overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${project.progress}%` }}
-                  transition={{ duration: 1.5, ease: "easeOut" }}
-                  className="h-full bg-gradient-to-r from-accent-default to-accent-hover rounded-full"
-                />
-              </div>
 
               {/* Timeline */}
               <div className="relative">

@@ -7,7 +7,6 @@ import { containerVariant, fadeInLeft } from '@/lib/animations/variants.ts';
 import Input from '@/components/auth/form/components/Input.tsx';
 import SimpleButton from '@/components/demos/buttons/SimpleButton.tsx';
 import Heading from '@/components/demos/typography/Heading.tsx';
-import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader.tsx';
 import { useNavigate } from 'react-router-dom';
 import { createProject, getProjectByClientEmail } from '@/lib/requests/ProjectRequest.tsx';
 import { useSelector } from 'react-redux';
@@ -414,9 +413,6 @@ const OnboardingForm: React.FC = () => {
             ) :
                 <div className="relative min-h-screen flex bg-background-secondary transition-colors">
                     <div className="flex-1 flex flex-col px-lg z-10">
-
-                        <SimpleHeader />
-
                         <div className="flex-1 flex items-center justify-center max-md:mb-md">
                             <AnimatePresence mode="wait">
                                 <motion.div
