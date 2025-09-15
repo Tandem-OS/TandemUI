@@ -74,7 +74,7 @@ export function containsXSS(text: string): boolean {
 export function isValidURL(url: string): boolean {
     try {
         const urlObj = new URL(url);
-        return ['http:', 'https:'].includes(urlObj.protocol);
+        return ['http:', 'https:', 'mailto:', 'tel:'].includes(urlObj.protocol);
     } catch {
         return false;
     }

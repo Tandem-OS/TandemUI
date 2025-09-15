@@ -5,7 +5,7 @@ const meta: Hero_01Meta = {
     version: "1.1",
 
     // === Identity ===
-    component_id: "hero.split-right-01",
+    component_id: "hero-split-right-01",
     category: "hero",
     intent: "convert",
     layout_structure: "split",

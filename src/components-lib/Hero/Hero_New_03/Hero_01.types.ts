@@ -347,7 +347,7 @@ export type Hero_01PropsSchema = {
 
 // === Meta ===
 export interface Hero_01Meta extends MetaV1_1<Hero_01Defaults, Hero_01Tokens> {
-    component_id: "hero.split-right-01";
+    component_id: "hero-split-right-01";
     category: "hero";
     intent: "convert";
     layout_structure: "split";

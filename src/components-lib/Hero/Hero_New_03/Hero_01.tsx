@@ -1,7 +1,6 @@
-/* eslint-disable react-refresh/only-export-components */
-// Hero_01.tsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useId } from 'react';
 import { motion, type Variants } from 'framer-motion';
+import styled from 'styled-components';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
 import {
@@ -17,16 +16,7 @@ import {
 } from './Hero_01.validators';
 import meta from './Hero_01.meta';
 
-// Add preload hint for image
-if (typeof window !== 'undefined' && meta.performance.preloadHints.includes('image')) {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = meta.defaults.image;
-    document.head.appendChild(link);
-}
-
-// Animation helper - respects animated prop
+// Animation helper function
 const getAnimationProps = (variant: Variants, delay = 0, amount = 0, animated = true) => {
     if (!animated) return {};
     return {
@@ -38,86 +28,68 @@ const getAnimationProps = (variant: Variants, delay = 0, amount = 0, animated = 
     };
 };
 
-// Button style types
-interface ButtonStyles {
-    backgroundColor: string;
-    color: string;
-    borderColor: string;
-    borderWidth: string;
-    borderStyle: string;
-}
-
-interface ComponentStyles {
-    background: { backgroundColor: string };
-    title: { color: string };
-    description: { color: string };
-    primaryButton: ButtonStyles;
-    primaryButtonHover: Omit<ButtonStyles, 'borderWidth' | 'borderStyle'>;
-    secondaryButton: ButtonStyles;
-    secondaryButtonHover: Omit<ButtonStyles, 'borderWidth' | 'borderStyle'>;
-}
-
-// Style hook with complete color handling
+// Component styles hook
 const useComponentStyles = (
     userColors: ColorOverrides | undefined,
     theme: 'light' | 'dark'
-): ComponentStyles => {
+): Record<string, string> => {
     return useMemo(() => {
         const defaults = meta.defaults.colors;
-
         const getColor = (userValue: ColorValue | undefined, defaultValue: ColorValue): string => {
             const value = userValue || defaultValue;
             return theme === 'dark' ? value.dark : value.light;
         };
-
-        const getButtonStyles = (userButton: ButtonColorOverride | undefined, defaultButton: ButtonColorOverride): ButtonStyles => {
+        const getButtonVars = (
+            userButton: ButtonColorOverride | undefined,
+            defaultButton: ButtonColorOverride,
+            prefix: string
+        ) => {
             const button = userButton || defaultButton;
             return {
-                backgroundColor: getColor(button.background, defaultButton.background),
-                color: getColor(button.text, defaultButton.text),
-                borderColor: getColor(button.border, defaultButton.border),
-                borderWidth: meta.tokens.button.borderWidth,
-                borderStyle: meta.tokens.button.borderStyle,
+                [`--btn-${prefix}-bg`]: getColor(button.background, defaultButton.background),
+                [`--btn-${prefix}-text`]: getColor(button.text, defaultButton.text),
+                [`--btn-${prefix}-border`]: getColor(button.border, defaultButton.border),
+                [`--btn-${prefix}-hover-bg`]: getColor(button.hover?.background, defaultButton.hover.background),
+                [`--btn-${prefix}-hover-text`]: getColor(button.hover?.text, defaultButton.hover.text),
+                [`--btn-${prefix}-hover-border`]: getColor(button.hover?.border, defaultButton.hover.border),
             };
         };
-
-        const getButtonHoverStyles = (userButton: ButtonColorOverride | undefined, defaultButton: ButtonColorOverride) => {
-            const button = userButton || defaultButton;
-            return {
-                backgroundColor: getColor(button.hover?.background, defaultButton.hover.background),
-                color: getColor(button.hover?.text, defaultButton.hover.text),
-                borderColor: getColor(button.hover?.border, defaultButton.hover.border),
-            };
-        };
-
         return {
-            background: {
-                backgroundColor: getColor(userColors?.background, defaults.background)
-            },
-            title: {
-                color: getColor(userColors?.title, defaults.title)
-            },
-            description: {
-                color: getColor(userColors?.description, defaults.description)
-            },
-            primaryButton: getButtonStyles(userColors?.primaryButton, defaults.primaryButton),
-            primaryButtonHover: getButtonHoverStyles(userColors?.primaryButton, defaults.primaryButton),
-            secondaryButton: getButtonStyles(userColors?.secondaryButton, defaults.secondaryButton),
-            secondaryButtonHover: getButtonHoverStyles(userColors?.secondaryButton, defaults.secondaryButton)
+            '--hero-bg': getColor(userColors?.background, defaults.background),
+            '--hero-title': getColor(userColors?.title, defaults.title),
+            '--hero-desc': getColor(userColors?.description, defaults.description),
+            ...getButtonVars(userColors?.primaryButton, defaults.primaryButton, 'primary'),
+            ...getButtonVars(userColors?.secondaryButton, defaults.secondaryButton, 'secondary'),
         };
     }, [userColors, theme]);
 };
 
-// Native Button Component using ONLY meta tokens
+// Styled components - ONLY for hover states
+const HoverButton = styled.button<{ $buttonType: 'primary' | 'secondary' }>`
+    &:hover:not(:disabled) {
+        background-color: var(--btn-${props => props.$buttonType}-hover-bg) !important;
+        color: var(--btn-${props => props.$buttonType}-hover-text) !important;
+        border-color: var(--btn-${props => props.$buttonType}-hover-border) !important;
+    }
+`;
+
+const HoverLink = styled.a<{ $buttonType: 'primary' | 'secondary' }>`
+    &:hover:not(:disabled) {
+        background-color: var(--btn-${props => props.$buttonType}-hover-bg) !important;
+        color: var(--btn-${props => props.$buttonType}-hover-text) !important;
+        border-color: var(--btn-${props => props.$buttonType}-hover-border) !important;
+    }
+`;
+
+// ActionButton component
 interface ActionButtonProps {
     text: string;
     href: string;
     size?: "sm" | "md" | "lg";
     icon?: React.ReactNode;
-    baseStyles: React.CSSProperties;
-    hoverStyles: React.CSSProperties;
     animated?: boolean;
     ariaLabel?: string;
+    buttonType: 'primary' | 'secondary';
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({
@@ -125,31 +97,23 @@ const ActionButton: React.FC<ActionButtonProps> = ({
     href,
     size = 'lg',
     icon,
-    baseStyles,
-    hoverStyles,
     animated = true,
-    ariaLabel
+    ariaLabel,
+    buttonType
 }) => {
-    const buttonClasses = `${meta.tokens.button.base} ${meta.tokens.button.sizes[size]} ${meta.tokens.responsive.width}`;
+    const buttonClasses = [
+        meta.tokens.button.base,
+        meta.tokens.button.sizes[size],
+        meta.tokens.responsive.width,
+        animated ? meta.tokens.effects.button : 'transition-none'
+    ].join(' ');
 
-    const combinedStyles = {
-        ...baseStyles,
-        transition: animated ? meta.tokens.effects.button : 'none'
-    };
-
-    const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
-        if (animated) {
-            Object.assign(e.currentTarget.style, {
-                ...combinedStyles,
-                ...hoverStyles
-            });
-        }
-    };
-
-    const handleMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
-        if (animated) {
-            Object.assign(e.currentTarget.style, combinedStyles);
-        }
+    const buttonStyle: React.CSSProperties = {
+        backgroundColor: `var(--btn-${buttonType}-bg)`,
+        color: `var(--btn-${buttonType}-text)`,
+        borderColor: `var(--btn-${buttonType}-border)`,
+        borderWidth: meta.tokens.button.borderWidth,
+        borderStyle: meta.tokens.button.borderStyle,
     };
 
     const buttonContent = (
@@ -159,45 +123,42 @@ const ActionButton: React.FC<ActionButtonProps> = ({
         </>
     );
 
+    if (href.startsWith('http') || href.startsWith('/') || href.startsWith('#')) {
+        return (
+            <HoverLink
+                href={href}
+                className={buttonClasses}
+                style={buttonStyle}
+                aria-label={ariaLabel || text}
+                $buttonType={buttonType}
+            >
+                {buttonContent}
+            </HoverLink>
+        );
+    }
+
     return (
-        <div className={meta.tokens.responsive.width}>
-            {href.startsWith('http') || href.startsWith('/') || href.startsWith('#') ? (
-                <a
-                    href={href}
-                    className={buttonClasses}
-                    style={combinedStyles}
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                    aria-label={ariaLabel || text}
-                    role="button"
-                >
-                    {buttonContent}
-                </a>
-            ) : (
-                <button
-                    className={buttonClasses}
-                    style={combinedStyles}
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                    onClick={() => window.location.href = href}
-                    aria-label={ariaLabel || text}
-                >
-                    {buttonContent}
-                </button>
-            )}
-        </div >
+        <HoverButton
+            className={buttonClasses}
+            style={buttonStyle}
+            onClick={() => window.location.href = href}
+            aria-label={ariaLabel || text}
+            type='button'
+            $buttonType={buttonType}
+        >
+            {buttonContent}
+        </HoverButton>
     );
 };
 
-// Main Component with complete token usage and validation
+// Main Hero_01 component
 const Hero_01: React.FC<Hero_01Props> = (props = {}) => {
     const { theme } = useTheme();
+    const uniqueId = useId();
 
-    // Validate and sanitize props
     const validation = validateHero01Props(props);
     const sanitized = sanitizeProps(props);
 
-    // Log validation results in development
     if (process.env.NODE_ENV === 'development') {
         if (!validation.valid || validation.warnings) {
             console.group('Hero_01 Validation');
@@ -206,13 +167,11 @@ const Hero_01: React.FC<Hero_01Props> = (props = {}) => {
         }
     }
 
-    // Use sanitized props with meta defaults as final fallback
     const title = sanitized.title || meta.defaults.title;
     const description = sanitized.description || meta.defaults.description;
     const animated = sanitized.animated !== undefined ? sanitized.animated : meta.defaults.animated;
     const className = sanitized.className || meta.defaults.className;
 
-    // Primary CTA with complete defaults
     const primaryCTA = {
         text: sanitized.primaryCTA?.text || meta.defaults.primaryCTA.text,
         href: sanitized.primaryCTA?.href || meta.defaults.primaryCTA.href,
@@ -220,7 +179,6 @@ const Hero_01: React.FC<Hero_01Props> = (props = {}) => {
         icon: sanitized.primaryCTA?.icon
     };
 
-    // Secondary CTA with conditional rendering
     const hasSecondaryCTA = sanitized.secondaryCTA !== undefined || !('secondaryCTA' in sanitized);
     const secondaryCTA = hasSecondaryCTA ? {
         text: sanitized.secondaryCTA?.text || meta.defaults.secondaryCTA.text,
@@ -229,61 +187,55 @@ const Hero_01: React.FC<Hero_01Props> = (props = {}) => {
         icon: sanitized.secondaryCTA?.icon
     } : undefined;
 
-    // Image handling with proper alt text
     const image = sanitized.image || meta.defaults.image;
     const imageSrc = typeof image === 'string' ? image : image.src;
     const imageAlt = typeof image === 'object' ? (image.alt || meta.defaults.imageAlt) : meta.defaults.imageAlt;
 
-    // Get component styles
     const styles = useComponentStyles(sanitized.colors, theme);
-
-    // Motion wrapper component that respects animated prop
     const MotionWrapper = animated ? motion.div : 'div';
 
     return (
         <section
+            style={styles as React.CSSProperties}
             className={`${meta.tokens.layout.section} ${className}`}
-            style={styles.background}
             data-testid="hero-section"
             role="banner"
             aria-label={meta.accessibility.screenReaderHints?.section || "Main hero content"}
+            id={uniqueId}
         >
-            <div className={meta.tokens.layout.grid}>
-
-                {/* Content Column */}
+            <div
+                className={meta.tokens.layout.grid}
+                style={{ backgroundColor: 'var(--hero-bg)' }}
+            >
                 <MotionWrapper
                     className={`${meta.tokens.layout.contentColumn} ${meta.tokens.spacing.containerX} ${meta.tokens.spacing.containerY}`}
                     {...(animated ? getAnimationProps(fadeInUp, 0, 0.3, true) : {})}
                 >
                     <div className={`${meta.tokens.layout.contentContainer} ${meta.tokens.spacing.contentSpacing}`}>
-
-                        {/* Title - Native H1 with meta tokens only */}
                         <MotionWrapper
                             {...(animated ? getAnimationProps(fadeInUp, 0, 0, true) : {})}
                             data-testid="hero-title"
                         >
                             <h1
                                 className={meta.tokens.typography.heading.complete}
-                                style={styles.title}
+                                style={{ color: 'var(--hero-title)' }}
                             >
                                 {title}
                             </h1>
                         </MotionWrapper>
 
-                        {/* Description - Native P with meta tokens only */}
                         <MotionWrapper
                             {...(animated ? getAnimationProps(fadeInUp, 0.1, 0, true) : {})}
                             data-testid="hero-description"
                         >
                             <p
                                 className={meta.tokens.typography.body.complete}
-                                style={styles.description}
+                                style={{ color: 'var(--hero-desc)' }}
                             >
                                 {description}
                             </p>
                         </MotionWrapper>
 
-                        {/* Buttons - Using meta tokens only */}
                         <MotionWrapper
                             className={`${meta.tokens.responsive.flexDirection} ${meta.tokens.spacing.buttonSpacing}`}
                             {...(animated ? getAnimationProps(fadeInUp, 0.2, 0, true) : {})}
@@ -296,10 +248,9 @@ const Hero_01: React.FC<Hero_01Props> = (props = {}) => {
                                 href={primaryCTA.href}
                                 size={primaryCTA.size}
                                 icon={primaryCTA.icon}
-                                baseStyles={styles.primaryButton}
-                                hoverStyles={styles.primaryButtonHover}
                                 animated={animated}
                                 ariaLabel={`Primary action: ${primaryCTA.text}`}
+                                buttonType="primary"
                             />
                             {secondaryCTA && (
                                 <ActionButton
@@ -307,17 +258,15 @@ const Hero_01: React.FC<Hero_01Props> = (props = {}) => {
                                     href={secondaryCTA.href}
                                     size={secondaryCTA.size}
                                     icon={secondaryCTA.icon}
-                                    baseStyles={styles.secondaryButton}
-                                    hoverStyles={styles.secondaryButtonHover}
                                     animated={animated}
                                     ariaLabel={`Secondary action: ${secondaryCTA.text}`}
+                                    buttonType="secondary"
                                 />
                             )}
                         </MotionWrapper>
                     </div>
                 </MotionWrapper>
 
-                {/* Image Column */}
                 <div className={meta.tokens.layout.imageColumn}>
                     <MotionWrapper
                         className={meta.tokens.layout.imageContainer}
