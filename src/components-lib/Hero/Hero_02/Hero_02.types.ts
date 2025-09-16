@@ -1,92 +1,447 @@
-// src/components-lib/Hero/Hero_02/Hero_02.types.ts
+// Hero_02.types.ts
+import { type ReactNode } from 'react';
 
-/**
- * Color configuration for Hero_02, allowing for full theme customization.
- */
-export interface Hero_02Colors {
-  background?: {
-    light?: string;
-    dark?: string;
-  };
-  title?: {
-    light?: string;
-    dark?: string;
-  };
-  description?: {
-    light?: string;
-    dark?: string;
-  };
-  primaryButton?: {
-    background?: { light?: string; dark?: string };
-    text?: { light?: string; dark?: string };
-    border?: { light?: string; dark?: string };
-    hover?: {
-      background?: { light?: string; dark?: string };
-      text?: { light?: string; dark?: string };
-      border?: { light?: string; dark?: string };
-    };
-  };
-  secondaryButton?: {
-    background?: { light?: string; dark?: string };
-    text?: { light?: string; dark?: string };
-    border?: { light?: string; dark?: string };
-    hover?: {
-      background?: { light?: string; dark?: string };
-      text?: { light?: string; dark?: string };
-      border?: { light?: string; dark?: string };
-    };
-  };
+// === Base Schema Types ===
+export interface MetaV1_1<P = Record<string, unknown>, T = Record<string, unknown>> {
+    version: string;
+    component_id: string;
+    category: string;
+    intent: string;
+    layout_structure: string;
+    tokens: T;
+    props: Record<string, PropDefinition>; // Changed from Record<keyof P, PropDefinition>
+    defaults: P;
+    slots?: SlotDefinition[];
+    variants?: Variant[];  // Simplified - no type params
+    fluffyTags?: string[];
+    layoutContract: LayoutContract;
+    accessibility: AccessibilityConfig;
+    performance: PerformanceConfig;
+    generation: GenerationConfig;
+    semanticProfile: SemanticProfile;
+    figma: FigmaExportConfig;
+    code: CodeTemplateConfig;
+    development: DevelopmentConfig;
+    tags?: string[];
 }
 
-/**
- * Hero_02 Component Props
- */
-export interface Hero_02Props {
-  title?: string;
-  description?: string;
-  primaryCta?: string;
-  secondaryCta?: string;
-  imageSrc?: string;
-  imageAlt?: string;
-  animated?: boolean;
-  className?: string;
-  colors?: Hero_02Colors;
+// Slot definition type
+export interface SlotDefinition {
+    id: string;
+    name: string;
+    type: string;
+    required?: boolean;
 }
 
-/**
- * Default color configuration for Hero_02.
- */
-export const defaultColors: Hero_02Colors = {
-  background: {
-    light: '#ffffff',
-    dark: '#0f172a'
-  },
-  title: {
-    light: '#111827',
-    dark: '#f9fafb'
-  },
-  description: {
-    light: '#4b5563',
-    dark: '#d1d5db'
-  },
-  primaryButton: {
-    background: { light: '#4f46e5', dark: '#6366f1' },
-    text: { light: '#ffffff', dark: '#ffffff' },
-    border: { light: '#4f46e5', dark: '#6366f1' },
+export type PropType = "text" | "richtext" | "url" | "image" | "select" | "boolean" | "number" | "object" | "color";
+
+export interface PropDefinition<T = unknown> {
+    type: PropType;
+    label: string;
+    required?: boolean;
+    max?: number;
+    min?: number;
+    default?: T;
+    options?: readonly string[];
+    placeholder?: string;
+    shape?: Record<string, PropDefinition>;
+}
+
+export interface RichText {
+    html: string;
+    text: string;
+}
+
+export interface ImageAsset {
+    src: string;
+    alt?: string;
+    width?: number;
+    height?: number;
+}
+
+// === Color Types (Tightened) ===
+export interface ColorValue {
+    light: string;
+    dark: string;
+}
+
+export interface ButtonColorOverride {
+    background: ColorValue;
+    text: ColorValue;
+    border: ColorValue;
     hover: {
-      background: { light: '#3730a3', dark: '#4f46e5' },
-      text: { light: '#ffffff', dark: '#ffffff' },
-      border: { light: '#3730a3', dark: '#4f46e5' }
-    }
-  },
-  secondaryButton: {
-    background: { light: 'transparent', dark: 'transparent' },
-    text: { light: '#4f46e5', dark: '#6366f1' },
-    border: { light: '#4f46e5', dark: '#6366f1' },
-    hover: {
-      background: { light: '#4f46e5', dark: '#6366f1' },
-      text: { light: '#ffffff', dark: '#ffffff' },
-      border: { light: '#4f46e5', dark: '#6366f1' }
-    }
-  }
+        background: ColorValue;
+        text: ColorValue;
+        border: ColorValue;
+    };
+}
+
+export interface ColorOverrides {
+    background?: ColorValue;
+    title?: ColorValue;
+    description?: ColorValue;
+    primaryButton?: ButtonColorOverride;
+    secondaryButton?: ButtonColorOverride;
+}
+
+// === Deep Partial Helper ===
+export type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
+
+export interface Variant<P = Record<string, unknown>, T = Record<string, unknown>> {
+    id: string;
+    label: string;
+    propsPatch?: Partial<P>;
+    tokensPatch?: DeepPartial<T>;
+}
+
+export interface LayoutContract {
+    grid: string;
+    maxWidth: string;
+    sectionPaddingY: string;
+    containerPaddingX: string;
+    supportsBleed: boolean;
+    topEdge?: string;
+    bottomEdge?: string;
+    breakpoints: {
+        mobile: string;
+        tablet: string;
+        desktop: string;
+    };
+}
+
+export interface AccessibilityConfig {
+    landmarks: string[];
+    ariaHints: string[];
+    colorContrastMin: number;
+    focusManagement: string;
+    keyboardNavigation: boolean;
+    screenReaderHints?: {
+        image?: string;
+        section?: string;
+    };
+}
+
+export interface PerformanceConfig {
+    lazyImages: boolean;
+    bundleKbBudget: number;
+    criticalCSS: boolean;
+    preloadHints: string[];
+}
+
+export interface GenerationConfig {
+    aiPromptHints: string[];
+    contentConstraints: {
+        title: ContentConstraint;
+        description: ContentConstraint;
+        ctaText: ContentConstraint;
+    };
+    brandAdaptation: {
+        industry: string;
+        personality: string;
+        positioning: string;
+    };
+}
+
+export interface ContentConstraint {
+    tone: string[];
+    avoid?: string[];
+    maxSentences: number;
+    readingLevel?: string;
+}
+
+export interface SemanticProfile {
+    primaryConcepts: string[];
+    contentTypes: string[];
+    embeddingWeights: {
+        visual: number;
+        copy: number;
+        interaction: number;
+    };
+    contextualRelevance: string[];
+}
+
+export interface FigmaExportConfig {
+    autoLayout: boolean;
+    figmaComponentName: string;
+    componentSets: {
+        main: string;
+        variants?: string;
+    };
+    textStyleRefs: Record<string, string>;
+    colorStyleRefs?: Record<string, string>;
+    effectStyleRefs: Record<string, string>;
+    constraints: Record<string, string>;
+    spacing: Record<string, string>;
+    exportSettings: {
+        format: string;
+        scale: number;
+        includeVariants: boolean;
+    };
+}
+
+export interface CodeTemplateConfig {
+    language: string;
+    imports: string[];
+    template: string;
+}
+
+export interface DevelopmentConfig {
+    storybook: {
+        title: string;
+        category: string;
+    };
+    testing: {
+        testIds: string[];
+        accessibilityTests: boolean;
+    };
+    documentation: {
+        designNotes: string;
+        usageGuidelines: string;
+    };
+}
+
+// === Strict CTA Types ===
+export type CTAVariant = "solid" | "outline";
+export type CTASize = "sm" | "md" | "lg";
+
+export interface CTAConfig {
+    text?: string;
+    href?: string;
+    variant?: CTAVariant;
+    size?: CTASize;
+    icon?: ReactNode;
+}
+
+// === Core Props (Tightened) ===
+export interface Hero_02Props {
+    // Content
+    title?: string;
+    description?: string;
+
+    // Actions (using strict types)
+    primaryCTA?: CTAConfig;
+    secondaryCTA?: CTAConfig;
+
+    // Media
+    image?: ImageAsset | string;
+
+    // Customization
+    animated?: boolean;
+    className?: string;
+
+    // Custom colors (enforced structure)
+    colors?: ColorOverrides;
+}
+
+// === Token Structure - Updated with Button Tokens ===
+export interface Hero_02Tokens {
+    // Layout Structure - Image Left, Content Right
+    layout: {
+        section: string;
+        grid: string;
+        contentColumn: string;
+        imageColumn: string;
+        contentContainer: string;
+        imageContainer: string;
+    };
+
+    // Responsive Spacing
+    spacing: {
+        containerX: string;
+        containerY: string;
+        contentSpacing: string;
+        buttonSpacing: string;
+    };
+
+    // Typography
+    typography: {
+        heading: {
+            desktop: string;
+            mobile: string;
+            weight: string;
+            complete: string;
+        };
+        body: {
+            desktop: string;
+            mobile: string;
+            leading: string;
+            complete: string;
+        };
+        cta: string;
+    };
+
+    // Button System - Added for native button elements
+    button: {
+        base: string;
+        sizes: {
+            sm: string;
+            md: string;
+            lg: string;
+        };
+        iconSpacing: string;
+        borderWidth: string;
+        borderStyle: string;
+    };
+
+    // Responsive Behavior
+    responsive: {
+        flexDirection: string;
+        width: string;
+    };
+
+    // Effects & Animations
+    effects: {
+        transition: string;
+        hover: string;
+        button: string;
+    };
+
+    // Image Properties
+    image: {
+        classes: string;
+        loading: string;
+    };
+
+    // Additional tokens
+    radius: string;
+    animation: string;
+    colorScheme: string;
+    elevation: string;
+}
+
+// === Defaults (with strict types) ===
+export interface Hero_02Defaults {
+    title: string;
+    description: string;
+    primaryCTA: {
+        text: string;
+        href: string;
+        variant: CTAVariant;
+        size: CTASize;
+    };
+    secondaryCTA: {
+        text: string;
+        href: string;
+        variant: CTAVariant;
+        size: CTASize;
+    };
+    image: string;
+    imageAlt: string;
+    animated: boolean;
+    className: string;
+    colors: {
+        background: ColorValue;
+        title: ColorValue;
+        description: ColorValue;
+        primaryButton: ButtonColorOverride;
+        secondaryButton: ButtonColorOverride;
+    };
+}
+
+// === Props Schema ===
+export type Hero_02PropsSchema = {
+    [K in keyof Required<Hero_02Props>]: PropDefinition<Hero_02Props[K]>;
+};
+
+// === Meta ===
+export interface Hero_02Meta extends MetaV1_1<Hero_02Defaults, Hero_02Tokens> {
+    component_id: "Hero_02";
+    category: "hero";
+    intent: "convert";
+    layout_structure: "split-reverse";
+    props: Hero_02PropsSchema;
+    defaults: Hero_02Defaults;
+    tokens: Hero_02Tokens;
+    variants: Variant<Partial<Hero_02Props>, DeepPartial<Hero_02Tokens>>[];
+}
+
+// === Runtime Type Guards (Enhanced) ===
+export function isColorValue(obj: unknown): obj is ColorValue {
+    if (!obj || typeof obj !== "object") return false;
+    const o = obj as Record<string, unknown>;
+    return typeof o.light === "string" && typeof o.dark === "string";
+}
+
+export function isCTAConfig(obj: unknown): obj is CTAConfig {
+    if (!obj || typeof obj !== "object") return false;
+    const o = obj as Record<string, unknown>;
+
+    const textOk = o.text === undefined || typeof o.text === "string";
+    const hrefOk = o.href === undefined || typeof o.href === "string";
+    const variantOk = o.variant === undefined || ["solid", "outline"].includes(o.variant as string);
+    const sizeOk = o.size === undefined || ["sm", "md", "lg"].includes(o.size as string);
+
+    return textOk && hrefOk && variantOk && sizeOk;
+}
+
+export function isHero_02Props(obj: unknown): obj is Hero_02Props {
+    if (!obj || typeof obj !== "object") return false;
+    const o = obj as Record<string, unknown>;
+
+    // Enhanced validations
+    const titleOk = o.title === undefined || typeof o.title === "string";
+    const descriptionOk = o.description === undefined || typeof o.description === "string";
+    const primaryCTAOk = o.primaryCTA === undefined || isCTAConfig(o.primaryCTA);
+    const secondaryCTAOk = o.secondaryCTA === undefined || isCTAConfig(o.secondaryCTA);
+
+    // Enhanced image validation
+    const imageOk = o.image === undefined || typeof o.image === "string" ||
+        (typeof o.image === "object" && o.image !== null &&
+            typeof (o.image as ImageAsset).src === "string");
+
+    const animatedOk = o.animated === undefined || typeof o.animated === "boolean";
+    const classNameOk = o.className === undefined || typeof o.className === "string";
+
+    // Enhanced colors validation
+    const colorsOk = o.colors === undefined || (
+        typeof o.colors === "object" && o.colors !== null
+    );
+
+    return Boolean(
+        titleOk && descriptionOk && primaryCTAOk &&
+        secondaryCTAOk && imageOk && animatedOk && classNameOk && colorsOk
+    );
+}
+
+// === Utility Types for Better DX ===
+export type Hero_02PropsKeys = keyof Hero_02Props;
+export type Hero_02TokenKeys = keyof Hero_02Tokens;
+
+// For variant creation
+export type Hero_02PropsPatch = Partial<Hero_02Props>;
+export type Hero_02TokensPatch = DeepPartial<Hero_02Tokens>;
+
+// For validation results
+export interface ValidationResult<T = Hero_02Props> {
+    valid: boolean;
+    errors: string[];
+    data?: T;
+}
+
+// For sanitized props
+export type SanitizedHero_02Props = Required<Hero_02Props>;
+
+// Brand context for AI generation
+export interface Hero_02BrandContext {
+    industry: string;
+    personality: string;
+    positioning: string;
+    targetAudience?: string;
+    colorPalette?: {
+        primary: string;
+        secondary: string;
+        accent?: string;
+    };
+}
+
+// Generation context (enhanced)
+export interface Hero_02GenerationContext {
+    props: Partial<Hero_02Props>;
+    tokens: Partial<Hero_02Tokens>;
+    brand: Hero_02BrandContext;
+    layout?: "image-left" | "image-right" | "centered";
+    variant?: string;
+    customColors?: ColorOverrides;
+}

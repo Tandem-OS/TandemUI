@@ -1,4 +1,4 @@
-import Hero_01 from '@/components-lib/Hero/Hero_New_03/Hero_01';
+import { Hero_01, Hero_05, Hero_06, Hero_07, Hero_08 } from '@/components-lib/Hero';
 import React from 'react';
 
 const DemoPage: React.FC = () => {
@@ -499,6 +499,7 @@ const DemoPage: React.FC = () => {
 
     return (
         <div className="space-y-12">
+            <Hero_08 />
             <h1 className="text-4xl font-bold mb-8">Hero_01 Component Test Suite</h1>
             <p className="text-lg text-gray-600 mb-12">
                 Testing 10 real-world scenarios with different customizations, validations, and edge cases.

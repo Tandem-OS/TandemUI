@@ -1,197 +1,418 @@
-// src/components-lib/Hero/Hero_07/Hero_07.tsx
-
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useMemo, useId, useState, useRef, useCallback } from 'react';
 import { motion, type Variants } from 'framer-motion';
+import styled from 'styled-components';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
-import Heading from '../../../components/demos/typography/Heading';
-import Para from '../../../common-components/Para';
-import Newsletter from '../../../common-components/Newsletter';
-import VideoPlayBtn from '../../../common-components/VideoPlayBtn';
-import { type Hero_07Props, defaultColors } from './Hero_07.types';
+import { FaPlay, FaPause } from 'react-icons/fa';
+import {
+    type Hero_07Props,
+    type ColorOverrides,
+    type ColorValue,
+    type NewsletterColorOverride,
+    type VideoColorOverride
+} from './Hero_07.types';
+import {
+    validateHero07Props,
+    sanitizeProps,
+    formatValidationMessage
+} from './Hero_07.validators';
+import meta from './Hero_07.meta';
 
-// Types
-type ColorValue = { light?: string; dark?: string };
-
-// Centralized hook for all style calculations
-const useComponentStyles = (colors: Hero_07Props['colors'], theme: 'light' | 'dark') => {
-  return useMemo(() => {
-    const getColor = (config: ColorValue | undefined, fallback: string): string => {
-      if (!config) return fallback;
-      return (theme === 'dark' ? config.dark : config.light) ?? config.light ?? fallback;
-    };
-
-    const mergedColors = {
-      background: { ...defaultColors.background, ...colors?.background },
-      title: { ...defaultColors.title, ...colors?.title },
-      description: { ...defaultColors.description, ...colors?.description },
-      newsletter: {
-        ...(defaultColors.newsletter ?? {}),
-        ...(colors?.newsletter ?? {}),
-      },
-      video: {
-        ...(defaultColors.video ?? {}),
-        ...(colors?.video ?? {}),
-        playButton: {
-          ...(defaultColors.video?.playButton ?? {}),
-          ...(colors?.video?.playButton ?? {}),
-        },
-      },
-    };
-
+// Animation helper function
+const getAnimationProps = (variant: Variants, delay = 0, amount = 0, animated = true) => {
+    if (!animated) return {};
     return {
-      background: { background: getColor(mergedColors.background, '#ffffff') },
-      title: { color: getColor(mergedColors.title, '#111827') },
-      description: { color: getColor(mergedColors.description, '#4b5563') },
-      newsletter: mergedColors.newsletter,
-      videoOverlay: { backgroundColor: getColor(mergedColors.video.overlay, 'rgba(0, 0, 0, 0.3)') },
-      videoPlayButton: mergedColors.video.playButton,
-      getColor,
+        initial: "hidden",
+        whileInView: "show",
+        viewport: { once: true, amount: amount || undefined },
+        variants: variant,
+        transition: { delay }
     };
-  }, [colors, theme]);
 };
 
-// Animation props helper
-const getAnimationProps = (variant: Variants, delay: number = 0, amount: number = 0, animated: boolean = true) => {
-  if (!animated) return {};
-  return {
-    initial: "hidden",
-    whileInView: "show",
-    viewport: { once: true, amount: amount || undefined },
-    variants: variant,
-    transition: { delay }
-  };
+// Component styles hook
+const useComponentStyles = (
+    userColors: ColorOverrides | undefined,
+    theme: 'light' | 'dark'
+): Record<string, string> => {
+    return useMemo(() => {
+        const defaults = meta.defaults.colors;
+        const getColor = (userValue: ColorValue | undefined, defaultValue: ColorValue): string => {
+            const value = userValue || defaultValue;
+            return theme === 'dark' ? value.dark : value.light;
+        };
+        const getNewsletterVars = (
+            userNewsletter: NewsletterColorOverride | undefined,
+            defaultNewsletter: NewsletterColorOverride
+        ) => {
+            const newsletter = userNewsletter || defaultNewsletter;
+            return {
+                '--newsletter-input-bg': getColor(newsletter.input?.background, defaultNewsletter.input.background),
+                '--newsletter-input-text': getColor(newsletter.input?.text, defaultNewsletter.input.text),
+                '--newsletter-input-border': getColor(newsletter.input?.border, defaultNewsletter.input.border),
+                '--newsletter-input-focus-border': getColor(newsletter.input?.focusBorder, defaultNewsletter.input.focusBorder),
+                '--newsletter-input-placeholder': getColor(newsletter.input?.placeholder, defaultNewsletter.input.placeholder),
+                '--newsletter-btn-bg': getColor(newsletter.button?.background, defaultNewsletter.button.background),
+                '--newsletter-btn-text': getColor(newsletter.button?.text, defaultNewsletter.button.text),
+                '--newsletter-btn-border': getColor(newsletter.button?.border, defaultNewsletter.button.border),
+                '--newsletter-btn-hover-bg': getColor(newsletter.button?.hover?.background, defaultNewsletter.button.hover.background),
+                '--newsletter-btn-hover-text': getColor(newsletter.button?.hover?.text, defaultNewsletter.button.hover.text),
+                '--newsletter-btn-hover-border': getColor(newsletter.button?.hover?.border, defaultNewsletter.button.hover.border),
+                '--newsletter-message-text': getColor(newsletter.message, defaultNewsletter.message),
+            };
+        };
+        const getVideoVars = (
+            userVideo: VideoColorOverride | undefined,
+            defaultVideo: VideoColorOverride
+        ) => {
+            const video = userVideo || defaultVideo;
+            return {
+                '--video-overlay': getColor(video.overlay, defaultVideo.overlay),
+                '--video-play-bg': getColor(video.playButton?.background, defaultVideo.playButton.background),
+                '--video-play-bg-hover': getColor(video.playButton?.backgroundHover, defaultVideo.playButton.backgroundHover),
+                '--video-play-border': getColor(video.playButton?.border, defaultVideo.playButton.border),
+                '--video-play-icon': getColor(video.playButton?.icon, defaultVideo.playButton.icon),
+                '--video-play-icon-hover': getColor(video.playButton?.iconHover, defaultVideo.playButton.iconHover),
+            };
+        };
+        return {
+            '--hero-bg': getColor(userColors?.background, defaults.background),
+            '--hero-title': getColor(userColors?.title, defaults.title),
+            '--hero-desc': getColor(userColors?.description, defaults.description),
+            ...getNewsletterVars(userColors?.newsletter, defaults.newsletter),
+            ...getVideoVars(userColors?.video, defaults.video),
+        };
+    }, [userColors, theme]);
 };
 
-/**
- * Hero_07 Component
- * Split layout hero section with content and newsletter on left, video on right
- * Features newsletter signup and video player with viewport-triggered animations
- */
-const Hero_07: React.FC<Hero_07Props> = ({
-  title = "Medium length hero heading goes here",
-  description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat.",
-  newsletterPlaceholder = "Enter your email",
-  newsletterButtonText = "Sign up",
-  newsletterMessage = "By clicking Sign Up you're confirming that you agree with our Terms and Conditions.",
-  videoSrc = "/images/component-lib-images/hero/placeholder-video.mp4",
-  videoThumbnailSrc = "/images/component-lib-images/hero/placeholder-video-thumbnail.png",
-  animated = true,
-  videoAutoPlay = false,
-  videoLoop = true,
-  className = "",
-  colors
-}) => {
-  const { theme } = useTheme();
-  const styles = useComponentStyles(colors, theme);
-  const [isPlaying, setIsPlaying] = useState(videoAutoPlay);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const handlePlayPause = useCallback(() => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+// Styled components - ONLY for hover and focus states
+const HoverButton = styled.button`
+    &:hover:not(:disabled) {
+        background-color: var(--newsletter-btn-hover-bg) !important;
+        color: var(--newsletter-btn-hover-text) !important;
+        border-color: var(--newsletter-btn-hover-border) !important;
     }
-  }, [isPlaying]);
+`;
 
-  return (
-    <section
-      className={`relative w-full lg:h-screen lg:overflow-hidden ${className}`}
-      style={styles.background}
-    >
-      <div className="w-full h-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 lg:h-screen">
+const FocusInput = styled.input`
+    &:focus {
+        border-color: var(--newsletter-input-focus-border) !important;
+        outline: none;
+    }
+    &::placeholder {
+        color: var(--newsletter-input-placeholder) !important;
+    }
+`;
 
-          {/* Content Column */}
-          <motion.div
-            className="flex flex-col justify-center px-lg py-xl lg:px-2xl xl:px-5xl 2xl:px-6xl order-1 lg:order-1 min-h-[50vh] lg:min-h-0"
-            {...getAnimationProps(fadeInUp, 0, 0.3, animated)}
-          >
-            <div className="xl:max-w-lg space-y-md lg:space-y-lg">
+const VideoPlayButton = styled(motion.button)`
+    &:hover:not(:disabled) {
+        background-color: var(--video-play-bg-hover) !important;
+        color: var(--video-play-icon-hover) !important;
+    }
+`;
 
-              {/* Main Heading */}
-              <motion.div {...getAnimationProps(fadeInUp, 0, 0, animated)}>
-                <Heading
-                  level="h1"
-                  weight="bold"
-                  className="text-h2-sm lg:text-h1-md"
-                  style={styles.title}
-                >
-                  {title}
-                </Heading>
-              </motion.div>
+// Newsletter component
+interface NewsletterProps {
+    placeholder: string;
+    buttonText: string;
+    message: string;
+    animated?: boolean;
+}
 
-              {/* Description */}
-              <motion.div {...getAnimationProps(fadeInUp, 0.1, 0, animated)}>
-                <Para
-                  size="md"
-                  className="lg:text-para-lg leading-relaxed"
-                  style={styles.description}
-                >
-                  {description}
-                </Para>
-              </motion.div>
+const Newsletter: React.FC<NewsletterProps> = ({
+    placeholder,
+    buttonText,
+    message,
+    animated = true
+}) => {
+    const [email, setEmail] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-              {/* Newsletter Form */}
-              <motion.div {...getAnimationProps(fadeInUp, 0.2, 0, animated)}>
-                <Newsletter
-                  placeholder={newsletterPlaceholder}
-                  buttonText={newsletterButtonText}
-                  message={newsletterMessage}
-                  colors={styles.newsletter}
-                  theme={theme}
-                />
-              </motion.div>
-            </div>
-          </motion.div>
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email.trim()) return;
 
-          {/* Video Column */}
-          <div className="relative h-96 lg:h-screen order-2 lg:order-2">
-            <motion.div
-              className="relative w-full h-full overflow-hidden"
-              {...getAnimationProps(fadeIn, 0, 0.3, animated)}
-            >
-              {/* Video overlay */}
-              <div 
-                className="absolute inset-0 z-10" 
-                style={styles.videoOverlay}
-              />
+        setIsLoading(true);
+        try {
+            // Default behavior - just log
+            console.log('Newsletter subscription:', email);
+            setEmail(''); // Clear on success
+        } catch (error) {
+            console.error('Newsletter submission error:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-              {/* Video element */}
-              <video
+    const inputStyle: React.CSSProperties = {
+        backgroundColor: 'var(--newsletter-input-bg)',
+        color: 'var(--newsletter-input-text)',
+        borderColor: 'var(--newsletter-input-border)',
+        borderWidth: meta.tokens.newsletter.input.borderWidth,
+        borderStyle: meta.tokens.newsletter.input.borderStyle,
+    };
+
+    const buttonStyle: React.CSSProperties = {
+        backgroundColor: 'var(--newsletter-btn-bg)',
+        color: 'var(--newsletter-btn-text)',
+        borderColor: 'var(--newsletter-btn-border)',
+        borderWidth: meta.tokens.newsletter.button.borderWidth,
+        borderStyle: meta.tokens.newsletter.button.borderStyle,
+    };
+
+    return (
+        <div className={meta.tokens.newsletter.container}>
+            <form onSubmit={handleSubmit} className={meta.tokens.newsletter.form}>
+                <div className={meta.tokens.newsletter.inputGroup}>
+                    <div className={meta.tokens.newsletter.inputWrapper}>
+                        <FocusInput
+                            type="email"
+                            name="newsletter-email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder={placeholder}
+                            className={meta.tokens.newsletter.input.classes}
+                            style={inputStyle}
+                            required
+                            aria-label="Email address for newsletter"
+                        />
+                    </div>
+
+                    <HoverButton
+                        type="submit"
+                        className={`${meta.tokens.newsletter.button.classes} ${animated ? meta.tokens.effects.button : 'transition-none'}`}
+                        style={buttonStyle}
+                        disabled={isLoading}
+                        aria-label={`Subscribe to newsletter: ${buttonText}`}
+                    >
+                        {isLoading ? 'Signing up...' : buttonText}
+                    </HoverButton>
+                </div>
+
+                {message && (
+                    <p
+                        className={meta.tokens.newsletter.message.classes}
+                        style={{ color: 'var(--newsletter-message-text)' }}
+                    >
+                        {message}
+                    </p>
+                )}
+            </form>
+        </div>
+    );
+};
+
+// VideoPlayer component
+interface VideoPlayerProps {
+    videoSrc: string;
+    thumbnailSrc: string;
+    autoPlay: boolean;
+    loop: boolean;
+    animated?: boolean;
+}
+
+const VideoPlayer: React.FC<VideoPlayerProps> = ({
+    videoSrc,
+    thumbnailSrc,
+    autoPlay,
+    loop,
+    animated = true
+}) => {
+    const [isPlaying, setIsPlaying] = useState(autoPlay);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    const handlePlayPause = useCallback(() => {
+        if (videoRef.current) {
+            if (isPlaying) {
+                videoRef.current.pause();
+            } else {
+                videoRef.current.play();
+            }
+            setIsPlaying(!isPlaying);
+        }
+    }, [isPlaying]);
+
+    const playButtonStyle: React.CSSProperties = {
+        backgroundColor: 'var(--video-play-bg)',
+        borderColor: 'var(--video-play-border)',
+        color: 'var(--video-play-icon)',
+        borderWidth: meta.tokens.video.playButton.borderWidth,
+        borderStyle: meta.tokens.video.playButton.borderStyle,
+    };
+
+    return (
+        <div className={meta.tokens.video.container}>
+            <div
+                className={meta.tokens.video.overlay}
+                style={{ backgroundColor: 'var(--video-overlay)' }}
+            />
+
+            <video
                 ref={videoRef}
-                className="w-full h-full object-cover object-center"
-                poster={videoThumbnailSrc}
-                loop={videoLoop}
+                className={meta.tokens.video.element}
+                poster={thumbnailSrc}
+                loop={loop}
                 muted
                 playsInline
                 onEnded={() => setIsPlaying(false)}
-              >
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+            >
                 <source src={videoSrc} type="video/mp4" />
                 Your browser does not support the video tag.
-              </video>
+            </video>
 
-              {/* Play/Pause button */}
-              <div className="absolute inset-0 flex items-center justify-center z-20">
-                <VideoPlayBtn
-                  isPlaying={isPlaying}
-                  onClick={handlePlayPause}
-                  size="lg"
-                  variant={colors ? 'basic' : 'default'}
-                  colors={colors ? styles.videoPlayButton : undefined}
-                  theme={theme}
-                />
-              </div>
-            </motion.div>
-          </div>
+            <div className={meta.tokens.video.controls}>
+                <VideoPlayButton
+                    className={meta.tokens.video.playButton.classes}
+                    style={playButtonStyle}
+                    onClick={handlePlayPause}
+                    type="button"
+                    aria-label={isPlaying ? 'Pause video' : 'Play video'}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 1 }}
+                    animate={{ 
+                        opacity: isPlaying ? 0.3 : 1,
+                        scale: animated ? 1 : 1
+                    }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <motion.div
+                        key={isPlaying ? 'pause' : 'play'}
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className={meta.tokens.video.playButton.iconContainer}
+                    >
+                        {isPlaying ? (
+                            <FaPause className={meta.tokens.video.playButton.icon} />
+                        ) : (
+                            <FaPlay className={meta.tokens.video.playButton.icon} />
+                        )}
+                    </motion.div>
+                </VideoPlayButton>
+            </div>
         </div>
-      </div>
-    </section>
-  );
+    );
 };
+
+// Main Hero_07 component
+const Hero_07: React.FC<Hero_07Props> = (props = {}) => {
+    const { theme } = useTheme();
+    const uniqueId = useId();
+
+    const validation = validateHero07Props(props);
+    const sanitized = sanitizeProps(props);
+
+    if (process.env.NODE_ENV === 'development') {
+        if (!validation.valid || validation.warnings) {
+            console.group('Hero_07 Validation');
+            console.log(formatValidationMessage(validation));
+            console.groupEnd();
+        }
+    }
+
+    const title = sanitized.title || meta.defaults.title;
+    const description = sanitized.description || meta.defaults.description;
+    const animated = sanitized.animated !== undefined ? sanitized.animated : meta.defaults.animated;
+    const className = sanitized.className || meta.defaults.className;
+
+    const newsletterPlaceholder = sanitized.newsletterPlaceholder || meta.defaults.newsletterPlaceholder;
+    const newsletterButtonText = sanitized.newsletterButtonText || meta.defaults.newsletterButtonText;
+    const newsletterMessage = sanitized.newsletterMessage || meta.defaults.newsletterMessage;
+
+    const videoSrc = sanitized.videoSrc || meta.defaults.videoSrc;
+    const videoThumbnail = sanitized.videoThumbnail || meta.defaults.videoThumbnail;
+    const videoAutoPlay = sanitized.videoAutoPlay !== undefined ? sanitized.videoAutoPlay : meta.defaults.videoAutoPlay;
+    const videoLoop = sanitized.videoLoop !== undefined ? sanitized.videoLoop : meta.defaults.videoLoop;
+
+    const styles = useComponentStyles(sanitized.colors, theme);
+    const MotionWrapper = animated ? motion.div : 'div';
+
+    return (
+        <section
+            style={styles as React.CSSProperties}
+            className={`${meta.tokens.layout.section} ${className}`}
+            data-testid="hero-section"
+            role="banner"
+            aria-label={meta.accessibility.screenReaderHints?.section || "Main hero content with newsletter signup and video"}
+            id={uniqueId}
+        >
+            <div className={meta.tokens.layout.wrapper}>
+                <div
+                    className={meta.tokens.layout.grid}
+                    style={{ backgroundColor: 'var(--hero-bg)' }}
+                >
+                    {/* Content+Newsletter Column - LEFT SIDE */}
+                    <MotionWrapper
+                        className={`${meta.tokens.layout.contentColumn} ${meta.tokens.spacing.containerX} ${meta.tokens.spacing.containerY}`}
+                        {...(animated ? getAnimationProps(fadeInUp, 0, 0.3, true) : {})}
+                    >
+                        <div className={`${meta.tokens.layout.contentContainer} ${meta.tokens.spacing.contentSpacing}`}>
+                            <MotionWrapper
+                                {...(animated ? getAnimationProps(fadeInUp, 0, 0, true) : {})}
+                                data-testid="hero-title"
+                            >
+                                <h1
+                                    className={meta.tokens.typography.heading.complete}
+                                    style={{ color: 'var(--hero-title)' }}
+                                >
+                                    {title}
+                                </h1>
+                            </MotionWrapper>
+
+                            <MotionWrapper
+                                {...(animated ? getAnimationProps(fadeInUp, 0.1, 0, true) : {})}
+                                data-testid="hero-description"
+                            >
+                                <p
+                                    className={meta.tokens.typography.body.complete}
+                                    style={{ color: 'var(--hero-desc)' }}
+                                >
+                                    {description}
+                                </p>
+                            </MotionWrapper>
+
+                            <MotionWrapper
+                                {...(animated ? getAnimationProps(fadeInUp, 0.2, 0, true) : {})}
+                                data-testid="hero-newsletter"
+                                role="complementary"
+                                aria-label="Newsletter signup form"
+                            >
+                                <Newsletter
+                                    placeholder={newsletterPlaceholder}
+                                    buttonText={newsletterButtonText}
+                                    message={newsletterMessage}
+                                    animated={animated}
+                                />
+                            </MotionWrapper>
+                        </div>
+                    </MotionWrapper>
+
+                    {/* Video Column - RIGHT SIDE */}
+                    <div className={meta.tokens.layout.videoColumn}>
+                        <MotionWrapper
+                            className={meta.tokens.layout.videoContainer}
+                            {...(animated ? getAnimationProps(fadeIn, 0, 0.3, true) : {})}
+                            data-testid="hero-video-container"
+                        >
+                            <VideoPlayer
+                                videoSrc={videoSrc}
+                                thumbnailSrc={videoThumbnail}
+                                autoPlay={videoAutoPlay}
+                                loop={videoLoop}
+                                animated={animated}
+                            />
+                        </MotionWrapper>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+Hero_07.displayName = 'Hero_07';
 
 export default Hero_07;
