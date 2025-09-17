@@ -65,20 +65,42 @@ export const swiperData = async (values: SwiperRoundSummary) => {
 };
 
 export const swiperComponentData = async (values: SwiperComponent) => {
-
   const clientEmail = store.getState().auth.user.email!;
-  const designerEmail = store.getState().auth.user.designerEmail;
-  const projectId = store.getState().project.projectId;
+  const designerEmail = store.getState().auth.user.designerEmail!;
+  const projectId = store.getState().project.projectId!;
 
-  const payload = {
-    ...values,
-    client_email: clientEmail,
-    designer_email: designerEmail,
-    project_id: projectId
-  };
+  const formData = new FormData();
 
-  return await api.post("/swiper/components", payload);
-}
+  // Append all fields except thumbnail_url
+  for (const [key, value] of Object.entries(values)) {
+    if (key !== "thumbnail_url") {
+      if (Array.isArray(value)) {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value as string);
+      }
+    }
+  }
+
+  formData.append("client_email", clientEmail);
+  formData.append("designer_email", designerEmail);
+  formData.append("project_id", projectId);
+
+  // Convert thumbnail_url to File if it's a local path
+  if (values.thumbnail_url.startsWith("/")) {
+    const response = await fetch(values.thumbnail_url);
+    const blob = await response.blob();
+    const filename = values.thumbnail_url.split("/").pop() || "thumbnail.png";
+    const file = new File([blob], filename, { type: blob.type });
+    formData.append("thumbnail_url", file);
+  }
+
+  return await api.post("/swiper/components", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
 
 export const swiperKingOfHillSessionData = async (values: KingOfHillSession) => {
   const clientEmail = store.getState().auth.user.email!;

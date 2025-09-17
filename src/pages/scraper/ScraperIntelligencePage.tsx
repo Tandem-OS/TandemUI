@@ -25,6 +25,7 @@ import Toast from '@/comman-components/Toast';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { createScraper } from '@/lib/requests/ScraperRequest';
+import { useNavigate } from 'react-router-dom';
 
 // Custom hook for taste profile
 const useTasteProfile = () => {
@@ -77,6 +78,8 @@ const ScraperIntelligencePage = () => {
 
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
 
+    const navigate = useNavigate();
+
     // const clientEmail = useSelector((state: RootState) => state.auth.user.email)!;
     const email = useSelector((state: RootState) => state.auth.user.email);
     const userRole = useSelector((state: RootState) => state.auth.user.role);
@@ -101,39 +104,22 @@ const ScraperIntelligencePage = () => {
         setTimeout(() => setToastMessage(null), 3000);
     };
 
+
     const handleStartScraping = async (url: string) => {
         try {
             setCurrentStep("processing");
             setProcessingStep(0);
 
-            const scraperPromise = (async () => {
-                let payload;
+            const payload =
+                userRole === "Designer" && email && projectId
+                    ? { designer_email: email, client_email: null, project_id: projectId, role: "designer", url }
+                    : userRole === "Client" && designerEmail && projectId
+                        ? { designer_email: designerEmail, role: "client", project_id: projectId, client_email: email, url }
+                        : null;
 
-                if (userRole === "Designer" && email && projectId) {
-                    payload = {
-                        designer_email: email,
-                        client_email: null,
-                        project_id: projectId,
-                        role: "designer",
-                        url,
-                    };
-                } else if (userRole === 'Client' && designerEmail && projectId) {
-                    payload = {
-                        designer_email: designerEmail,
-                        role: "client",
-                        project_id: projectId,
-                        client_email: email,
-                        url,
-                    };
-                }
+            if (!payload) return;
 
-                if (!payload) {
-                    return null;
-                }
-
-                const response = await createScraper(payload);
-                return response.data;
-            })();
+            const scraperPromise = createScraper(payload);
 
             const processingPromise = (async () => {
                 for (let i = 0; i < processingSteps.length; i++) {
@@ -142,21 +128,34 @@ const ScraperIntelligencePage = () => {
                 }
             })();
 
-            const [scrapedData] = await Promise.all([scraperPromise, processingPromise]);
+            const [response] = await Promise.all([scraperPromise, processingPromise]);
 
-            setProcessingStep(processingSteps.length);
-            await new Promise((resolve) => setTimeout(resolve, 800));
-
-            const data = scrapedData
-                ? { ...scrapedData, url }
-                : { ...dummyScrapedData, url };
-
+            const data = response?.data ? { ...response.data, url } : { ...dummyScrapedData, url };
             const scoredSections = scoreSections(data.sections);
+
             setScrapedData({ ...data, sections: scoredSections });
             setCurrentStep("results");
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error during scraping:", error);
-            setCurrentStep("error");
+
+            if (error.response?.status === 429) {
+                setToastMessage({
+                    message: error.response.data.message || "Daily scraping limit reached.",
+                    type: "error",
+                });
+
+                setCurrentStep("error");
+
+                setTimeout(() => {
+                    navigate(-1);
+                }, 3000);
+            } else {
+                setToastMessage({
+                    message: "An unexpected error occurred. Please try again.",
+                    type: "error",
+                });
+                setCurrentStep("error");
+            }
         }
     };
 
