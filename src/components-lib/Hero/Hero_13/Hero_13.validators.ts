@@ -1,14 +1,14 @@
-// Hero_01.validators.ts
+// Hero_13.validators.ts
 import {
-    type Hero_01Props,
+    type Hero_13Props,
     type ImageAsset,
     type CTAConfig
-} from './Hero_01.types';
+} from './Hero_13.types';
 
 export interface ValidationError {
     field: string;
     message: string;
-    userMessage?: string; // Designer-friendly message
+    userMessage?: string;
 }
 
 export interface ValidationResult {
@@ -19,8 +19,8 @@ export interface ValidationResult {
 
 // === Constants ===
 const LIMITS = {
-    TITLE_MAX: 60,
-    DESCRIPTION_MAX: 220,
+    TITLE_MAX: 80, // Longer for dramatic hero
+    DESCRIPTION_MAX: 300, // More space for background hero
     CTA_TEXT_MAX: 24,
     ALT_TEXT_MAX: 125,
     CLASSNAME_MAX: 200,
@@ -28,9 +28,10 @@ const LIMITS = {
     WORD_LENGTH_WARNING_TITLE: 15,
     WORD_LENGTH_WARNING_DESCRIPTION: 20,
     WORD_LENGTH_WARNING_CTA: 12,
-    WORD_LENGTH_WARNING_DESCRIPTION_CHECK: 25,
+    OVERLAY_OPACITY_MIN: 0,
+    OVERLAY_OPACITY_MAX: 100,
     ASPECT_RATIO_MIN: 0.5,
-    ASPECT_RATIO_MAX: 3.0,
+    ASPECT_RATIO_MAX: 4.0,
     ASPECT_RATIO_THRESHOLD: 0.8
 } as const;
 
@@ -49,11 +50,13 @@ const DANGEROUS_PATTERNS = [
 ];
 
 const HEX_COLOR_PATTERN = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+const RGBA_COLOR_PATTERN = /^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(?:,\s*[01]?(?:\.\d+)?)?\s*\)$/;
 const SAFE_CLASS_PATTERN = /^[a-zA-Z0-9\s\-_:]+$/;
 
 const PATTERNS = {
     dangerous: DANGEROUS_PATTERNS,
     hexColor: HEX_COLOR_PATTERN,
+    rgbaColor: RGBA_COLOR_PATTERN,
     safeClass: SAFE_CLASS_PATTERN
 } as const;
 
@@ -80,6 +83,12 @@ export function isValidURL(url: string): boolean {
     }
 }
 
+export function isValidColor(color: string): boolean {
+    return PATTERNS.hexColor.test(color) || 
+           PATTERNS.rgbaColor.test(color) || 
+           color === 'transparent';
+}
+
 export function hasLongWords(text: string, maxWordLength: number = 20): boolean {
     const words = text.split(/\s+/);
     return words.some(word => word.length > maxWordLength);
@@ -91,7 +100,6 @@ export function sanitizeHTML(html: string): string {
         sanitized = sanitized.replace(pattern, '');
     });
 
-    // Allow only safe HTML tags
     const allowedTags = ['p', 'br', 'strong', 'em', 'u', 'span'];
     const tagPattern = /<\/?([a-zA-Z0-9]+)[^>]*>/g;
 
@@ -146,11 +154,11 @@ const validateStringField = (
 };
 
 // === Main Validation Function ===
-export function validateHero01Props(props: Hero_01Props): ValidationResult {
+export function validateHero13Props(props: Hero_13Props): ValidationResult {
     const errors: ValidationError[] = [];
     const warnings: string[] = [];
 
-    // 1. Title validation with XSS protection
+    // 1. Title validation
     if (props.title !== undefined) {
         const titleStr = validateStringField(props.title, 'title', 'Title', LIMITS.TITLE_MAX, errors);
         if (titleStr && hasLongWords(titleStr, LIMITS.WORD_LENGTH_WARNING_TITLE)) {
@@ -158,7 +166,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
         }
     }
 
-    // 2. Description validation with XSS protection
+    // 2. Description validation
     if (props.description !== undefined) {
         const descStr = validateStringField(props.description, 'description', 'Description', LIMITS.DESCRIPTION_MAX, errors);
         if (descStr && hasLongWords(descStr, LIMITS.WORD_LENGTH_WARNING_DESCRIPTION)) {
@@ -166,7 +174,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
         }
     }
 
-    // 3. Enhanced CTA validation helper
+    // 3. CTA validation helper
     const validateCTA = (cta: CTAConfig | undefined, fieldPrefix: string, displayName: string) => {
         if (!cta) return;
 
@@ -211,62 +219,78 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
     validateCTA(props.primaryCTA, 'primaryCTA', 'Primary');
     validateCTA(props.secondaryCTA, 'secondaryCTA', 'Secondary');
 
-    // 4. Image validation enhanced with alt text sanitization
-    if (props.image !== undefined) {
-        if (typeof props.image === 'string') {
-            if (!isValidURL(props.image) && !props.image.startsWith('/')) {
+    // 4. Background Image validation
+    if (props.backgroundImage !== undefined) {
+        if (typeof props.backgroundImage === 'string') {
+            if (!isValidURL(props.backgroundImage) && !props.backgroundImage.startsWith('/')) {
                 errors.push({
-                    field: 'image',
-                    message: 'Image URL must be a valid URL or path',
-                    userMessage: 'Please provide a valid image URL or file path'
+                    field: 'backgroundImage',
+                    message: 'Background image URL must be a valid URL or path',
+                    userMessage: 'Please provide a valid background image URL or file path'
                 });
             }
-        } else if (isImageAsset(props.image)) {
-            const img = props.image;
+        } else if (isImageAsset(props.backgroundImage)) {
+            const img = props.backgroundImage;
 
             if (!img.src || typeof img.src !== 'string') {
                 errors.push({
-                    field: 'image.src',
-                    message: 'Image src is required and must be a string',
-                    userMessage: 'Please provide an image source'
+                    field: 'backgroundImage.src',
+                    message: 'Background image src is required and must be a string',
+                    userMessage: 'Please provide a background image source'
                 });
             } else if (!isValidURL(img.src) && !img.src.startsWith('/')) {
                 errors.push({
-                    field: 'image.src',
-                    message: 'Image src must be a valid URL or path',
-                    userMessage: 'Please provide a valid image URL or file path'
+                    field: 'backgroundImage.src',
+                    message: 'Background image src must be a valid URL or path',
+                    userMessage: 'Please provide a valid background image URL or file path'
                 });
             }
 
-            // Sanitize alt text
             if (img.alt !== undefined) {
-                validateStringField(img.alt, 'image.alt', 'Image alt', Infinity, errors);
+                validateStringField(img.alt, 'backgroundImage.alt', 'Background image alt', LIMITS.ALT_TEXT_MAX, errors);
             }
 
             if (img.width !== undefined && img.height !== undefined) {
                 if (typeof img.width !== 'number' || typeof img.height !== 'number') {
                     errors.push({
-                        field: 'image',
-                        message: 'Image width and height must be numbers',
-                        userMessage: 'Image dimensions must be numeric values'
+                        field: 'backgroundImage',
+                        message: 'Background image width and height must be numbers',
+                        userMessage: 'Background image dimensions must be numeric values'
                     });
                 } else {
                     const aspectRatio = img.width / img.height;
                     if (aspectRatio < LIMITS.ASPECT_RATIO_MIN || aspectRatio > LIMITS.ASPECT_RATIO_MAX) {
-                        warnings.push(`Image proportions might look distorted (ideal range: ${LIMITS.ASPECT_RATIO_MIN}-${LIMITS.ASPECT_RATIO_MAX}, yours: ${aspectRatio.toFixed(2)})`);
+                        warnings.push(`Background image proportions might look distorted (ideal range: ${LIMITS.ASPECT_RATIO_MIN}-${LIMITS.ASPECT_RATIO_MAX}, yours: ${aspectRatio.toFixed(2)})`);
                     }
                 }
             }
         } else {
             errors.push({
-                field: 'image',
-                message: 'Image must be a string URL or ImageAsset object',
-                userMessage: 'Please provide a valid image'
+                field: 'backgroundImage',
+                message: 'Background image must be a string URL or ImageAsset object',
+                userMessage: 'Please provide a valid background image'
             });
         }
     }
 
-    // 5. Enhanced color validation with strict type checking
+    // 5. Overlay opacity validation
+    if (props.overlayOpacity !== undefined) {
+        if (typeof props.overlayOpacity !== 'number') {
+            errors.push({
+                field: 'overlayOpacity',
+                message: 'Overlay opacity must be a number',
+                userMessage: 'Overlay opacity must be a number between 0 and 100'
+            });
+        } else if (props.overlayOpacity < LIMITS.OVERLAY_OPACITY_MIN || props.overlayOpacity > LIMITS.OVERLAY_OPACITY_MAX) {
+            errors.push({
+                field: 'overlayOpacity',
+                message: `Overlay opacity must be between ${LIMITS.OVERLAY_OPACITY_MIN} and ${LIMITS.OVERLAY_OPACITY_MAX}`,
+                userMessage: `Overlay opacity must be between ${LIMITS.OVERLAY_OPACITY_MIN} and ${LIMITS.OVERLAY_OPACITY_MAX}`
+            });
+        }
+    }
+
+    // 6. Enhanced color validation
     if (props.colors !== undefined) {
         if (typeof props.colors !== 'object' || props.colors === null) {
             errors.push({
@@ -289,19 +313,19 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
 
                 const colorObj = color;
 
-                if (typeof colorObj.light !== 'string' || !PATTERNS.hexColor.test(colorObj.light as string)) {
+                if (typeof colorObj.light !== 'string' || !isValidColor(colorObj.light as string)) {
                     errors.push({
                         field: `${path}.light`,
-                        message: `Must be a valid hex color (got: "${colorObj.light}")`,
-                        userMessage: `${displayPath} light color must be a hex code (e.g., #FFFFFF)`
+                        message: `Must be a valid color (got: "${colorObj.light}")`,
+                        userMessage: `${displayPath} light color must be a hex code (e.g., #FFFFFF) or rgba value`
                     });
                 }
 
-                if (typeof colorObj.dark !== 'string' || !PATTERNS.hexColor.test(colorObj.dark as string)) {
+                if (typeof colorObj.dark !== 'string' || !isValidColor(colorObj.dark as string)) {
                     errors.push({
                         field: `${path}.dark`,
-                        message: `Must be a valid hex color (got: "${colorObj.dark}")`,
-                        userMessage: `${displayPath} dark color must be a hex code (e.g., #000000)`
+                        message: `Must be a valid color (got: "${colorObj.dark}")`,
+                        userMessage: `${displayPath} dark color must be a hex code (e.g., #000000) or rgba value`
                     });
                 }
             };
@@ -340,7 +364,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
                 }
             };
 
-            validateColor(props.colors.background, 'colors.background', 'Background');
+            validateColor(props.colors.overlay, 'colors.overlay', 'Overlay');
             validateColor(props.colors.title, 'colors.title', 'Title');
             validateColor(props.colors.description, 'colors.description', 'Description');
             validateButtonColors(props.colors.primaryButton, 'colors.primaryButton', 'Primary button');
@@ -348,7 +372,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
         }
     }
 
-    // 6. Animation validation
+    // 7. Animation validation
     if (props.animated !== undefined && typeof props.animated !== 'boolean') {
         errors.push({
             field: 'animated',
@@ -357,7 +381,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
         });
     }
 
-    // 7. ClassName validation
+    // 8. ClassName validation
     if (props.className !== undefined) {
         if (typeof props.className !== 'string') {
             errors.push({
@@ -392,7 +416,7 @@ export function validateHero01Props(props: Hero_01Props): ValidationResult {
 }
 
 // === Enhanced Sanitization ===
-export function sanitizeProps(props: Hero_01Props): Hero_01Props {
+export function sanitizeProps(props: Hero_13Props): Hero_13Props {
     const sanitized = { ...props };
 
     if (sanitized.title) {
@@ -411,15 +435,20 @@ export function sanitizeProps(props: Hero_01Props): Hero_01Props {
         sanitized.secondaryCTA.text = sanitizeHTML(sanitized.secondaryCTA.text).substring(0, LIMITS.CTA_TEXT_MAX);
     }
 
-    if (sanitized.image && isImageAsset(sanitized.image)) {
-        // Sanitize alt text
-        if (sanitized.image.alt) {
-            sanitized.image.alt = sanitizeHTML(sanitized.image.alt).substring(0, LIMITS.ALT_TEXT_MAX);
+    if (sanitized.backgroundImage && isImageAsset(sanitized.backgroundImage)) {
+        if (sanitized.backgroundImage.alt) {
+            sanitized.backgroundImage.alt = sanitizeHTML(sanitized.backgroundImage.alt).substring(0, LIMITS.ALT_TEXT_MAX);
         }
     }
 
+    if (sanitized.overlayOpacity !== undefined) {
+        sanitized.overlayOpacity = Math.max(
+            LIMITS.OVERLAY_OPACITY_MIN, 
+            Math.min(LIMITS.OVERLAY_OPACITY_MAX, sanitized.overlayOpacity)
+        );
+    }
+
     if (sanitized.className) {
-        // Remove dangerous patterns but keep valid CSS classes
         sanitized.className = sanitized.className
             .split(/\s+/)
             .filter(cls => isValidClassName(cls) && cls.length < LIMITS.CLASSNAME_PART_MAX)
@@ -434,7 +463,6 @@ export function sanitizeProps(props: Hero_01Props): Hero_01Props {
 export function truncateText(text: string, maxLength: number): string {
     if (text.length <= maxLength) return text;
 
-    // Try to break at a word boundary
     const truncated = text.substring(0, maxLength);
     const lastSpace = truncated.lastIndexOf(' ');
 
@@ -445,14 +473,14 @@ export function truncateText(text: string, maxLength: number): string {
     return truncated.trim();
 }
 
-export function validateLayoutSafety(props: Hero_01Props): { safe: boolean; warnings: string[] } {
+export function validateLayoutSafety(props: Hero_13Props): { safe: boolean; warnings: string[] } {
     const warnings: string[] = [];
 
     if (props.title && hasLongWords(props.title, LIMITS.WORD_LENGTH_WARNING_TITLE)) {
         warnings.push('Title contains words that might not wrap nicely on small screens');
     }
 
-    if (props.description && hasLongWords(props.description, LIMITS.WORD_LENGTH_WARNING_DESCRIPTION_CHECK)) {
+    if (props.description && hasLongWords(props.description, LIMITS.WORD_LENGTH_WARNING_DESCRIPTION)) {
         warnings.push('Description has very long words that could break the layout');
     }
 
@@ -467,7 +495,7 @@ export function validateLayoutSafety(props: Hero_01Props): { safe: boolean; warn
     return { safe: warnings.length === 0, warnings };
 }
 
-// === Export validation message formatter for better DX ===
+// === Export validation message formatter ===
 export function formatValidationMessage(result: ValidationResult): string {
     if (result.valid) {
         return result.warnings?.length
