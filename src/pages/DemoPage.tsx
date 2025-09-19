@@ -1,4 +1,4 @@
-import { Hero_01, Hero_09, Hero_10, Hero_11, Hero_12, Hero_13, Hero_14, Hero_15, Hero_16, Hero_17, Hero_18 } from '@/components-lib/Hero';
+import { Hero_01, Hero_02, Hero_03, Hero_05, Hero_09, Hero_10, Hero_11, Hero_12, Hero_13, Hero_14, Hero_15, Hero_16, Hero_17, Hero_18, Hero_19, Hero_20, Hero_21, Hero_22, Hero_23, Hero_24, Hero_25, Hero_26 } from '@/components-lib/Hero';
 import React from 'react';
 
 const DemoPage: React.FC = () => {
@@ -381,7 +381,7 @@ const DemoPage: React.FC = () => {
     return (
         <div>
 
-            <Hero_14 />
+            <Hero_26/>
             {/* {saasExample}
             {ecommerceExample}
             {healthcareExample}

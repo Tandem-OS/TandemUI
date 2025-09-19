@@ -384,19 +384,17 @@ const Hero_14: React.FC<Hero_14Props> = (props = {}) => {
                         {...(animated ? getAnimationProps(fadeInUp, 0, 0.3, true) : {})}
                         data-testid="hero-left-column"
                     >
-                        <div className="w-full">
-                            <MotionWrapper
-                                {...(animated ? getAnimationProps(fadeInUp, 0, 0, true) : {})}
-                                data-testid="hero-title"
+                        <MotionWrapper
+                            {...(animated ? getAnimationProps(fadeInUp, 0, 0, true) : {})}
+                            data-testid="hero-title"
+                        >
+                            <h1
+                                className={meta.tokens.typography.heading.complete}
+                                style={{ color: 'var(--hero-title)' }}
                             >
-                                <h1
-                                    className={meta.tokens.typography.heading.complete}
-                                    style={{ color: 'var(--hero-title)' }}
-                                >
-                                    {title}
-                                </h1>
-                            </MotionWrapper>
-                        </div>
+                                {title}
+                            </h1>
+                        </MotionWrapper>
                     </MotionWrapper>
 
                     {/* Right Column - Content at Bottom */}

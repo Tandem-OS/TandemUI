@@ -24,7 +24,7 @@ exports[`Hero_14 - Token Usage Validation > should render with consistent token-
         role="presentation"
       >
         <source
-          src="/test-video.mp4"
+          src="/images/component-lib-images/hero/placeholder-video.mp4"
           type="video/mp4"
         />
         Your browser does not support the video tag.
@@ -59,12 +59,20 @@ exports[`Hero_14 - Token Usage Validation > should render with consistent token-
           initial="[object Object]"
           transition="[object Object]"
         >
-          <div
+          <svg
             class="ml-1"
-            data-testid="play-icon"
+            fill="currentColor"
+            height="1em"
+            stroke="currentColor"
+            stroke-width="0"
+            viewBox="0 0 448 512"
+            width="1em"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            ▶
-          </div>
+            <path
+              d="M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z"
+            />
+          </svg>
         </div>
       </button>
     </div>
@@ -84,23 +92,19 @@ exports[`Hero_14 - Token Usage Validation > should render with consistent token-
           whileinview="show"
         >
           <div
-            class="w-full"
+            data-testid="hero-title"
+            initial="hidden"
+            transition="[object Object]"
+            variants="[object Object]"
+            viewport="[object Object]"
+            whileinview="show"
           >
-            <div
-              data-testid="hero-title"
-              initial="hidden"
-              transition="[object Object]"
-              variants="[object Object]"
-              viewport="[object Object]"
-              whileinview="show"
+            <h1
+              class="text-h2-sm lg:text-h1-md xl:text-h1-md font-bold break-words"
+              style="color: var(--hero-title);"
             >
-              <h1
-                class="text-h2-sm lg:text-h1-md xl:text-h1-md font-bold break-words"
-                style="color: var(--hero-title);"
-              >
-                Test Title
-              </h1>
-            </div>
+              Test Title
+            </h1>
           </div>
         </div>
         <div
