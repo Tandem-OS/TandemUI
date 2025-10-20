@@ -18,6 +18,7 @@ import Toast from '@/comman-components/Toast';
 interface OnboardingFormData {
     projectName: string;
     logo: string | null; // logo_url
+    logoPreview?: string;
     logo_metadata?: {
         name: string;
         size: number;
