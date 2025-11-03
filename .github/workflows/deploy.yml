@@ -27,7 +27,7 @@ jobs:
 
       - name: Create deployment package
         run: |
-          zip -r deploy.zip build/*
+          zip -r deploy.zip dist/*
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
