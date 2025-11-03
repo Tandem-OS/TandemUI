@@ -47,14 +47,14 @@ jobs:
           echo "📦 Creating new application version..."
           aws elasticbeanstalk create-application-version \
             --application-name "${{ secrets.EB_APP_NAME_FRONTEND }}" \
-            --version-label "v-${{ github.run_number }}" \
+            --version-label "v-${{ github.run_number }}-$(date +'%Y%m%d%H%M%S')" \
             --source-bundle S3Bucket="${{ secrets.S3_BUCKET_NAME }}",S3Key="frontend-deploy-${{ github.run_number }}.zip" \
             --region "${{ secrets.AWS_REGION }}"
 
           echo "🚀 Updating environment..."
           aws elasticbeanstalk update-environment \
             --environment-name "${{ secrets.EB_ENV_NAME_FRONTEND }}" \
-            --version-label "v-${{ github.run_number }}" \
+            --version-label "v-${{ github.run_number }}-$(date +'%Y%m%d%H%M%S')" \
             --region "${{ secrets.AWS_REGION }}"
 
           echo "🌍 Fetching environment URL..."
