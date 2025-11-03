@@ -28,7 +28,7 @@ jobs:
       # ✅ Include everything needed for EB: dist, package.json, Procfile, etc.
       - name: Create deployment package
         run: |
-          zip -r deploy.zip dist package.json package-lock.json Procfile
+          zip -r deploy.zip dist package.json package-lock.json Procfile .npmrc
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
