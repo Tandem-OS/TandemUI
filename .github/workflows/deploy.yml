@@ -42,28 +42,32 @@ jobs:
 
       - name: Deploy to Elastic Beanstalk
         id: deploy
+        shell: bash
         run: |
+          echo "📦 Creating new application version..."
           aws elasticbeanstalk create-application-version \
-            --application-name ${{ secrets.EB_APP_NAME_FRONTEND }} \
-            --version-label v-${{ github.run_number }} \
-            --source-bundle S3Bucket=${{ secrets.S3_BUCKET_NAME }},S3Key=frontend-deploy-${{ github.run_number }}.zip \
-            --region ${{ secrets.AWS_REGION }}
+            --application-name "${{ secrets.EB_APP_NAME_FRONTEND }}" \
+            --version-label "v-${{ github.run_number }}" \
+            --source-bundle S3Bucket="${{ secrets.S3_BUCKET_NAME }}",S3Key="frontend-deploy-${{ github.run_number }}.zip" \
+            --region "${{ secrets.AWS_REGION }}"
 
+          echo "🚀 Updating environment..."
           aws elasticbeanstalk update-environment \
-            --environment-name ${{ secrets.EB_ENV_NAME_FRONTEND }} \
-            --version-label v-${{ github.run_number }} \
-            --region ${{ secrets.AWS_REGION }}
+            --environment-name "${{ secrets.EB_ENV_NAME_FRONTEND }}" \
+            --version-label "v-${{ github.run_number }}" \
+            --region "${{ secrets.AWS_REGION }}"
 
-          # Fetch and display environment URL
+          echo "🌍 Fetching environment URL..."
           EB_URL=$(aws elasticbeanstalk describe-environments \
-            --environment-names ${{ secrets.EB_ENV_NAME_FRONTEND }} \
-            --region ${{ secrets.AWS_REGION }} \
+            --environment-names "${{ secrets.EB_ENV_NAME_FRONTEND }}" \
+            --region "${{ secrets.AWS_REGION }}" \
             --query "Environments[0].CNAME" \
             --output text)
 
           echo "Deployment completed successfully!"
           echo "Environment URL: http://$EB_URL"
           echo "::set-output name=env_url::http://$EB_URL"
+
 
       - name: Print deployment link
         run: echo "🚀 Frontend Live at ${{ steps.deploy.outputs.env_url }}"
