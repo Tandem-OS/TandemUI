@@ -25,9 +25,10 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      # ✅ Include everything needed for EB: dist, package.json, Procfile, etc.
       - name: Create deployment package
         run: |
-          zip -r deploy.zip dist
+          zip -r deploy.zip . -x "*.git*" "node_modules/*" ".github/*"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -69,7 +70,6 @@ jobs:
           echo "✅ Deployment completed successfully!"
           echo "Environment URL: http://$EB_URL"
           echo "::set-output name=env_url::http://$EB_URL"
-
 
       - name: Print deployment link
         run: echo "🚀 Frontend Live at ${{ steps.deploy.outputs.env_url }}"
