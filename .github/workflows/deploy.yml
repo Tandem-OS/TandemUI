@@ -54,7 +54,7 @@ jobs:
           echo "🚀 Updating environment..."
           aws elasticbeanstalk update-environment \
             --environment-name "${{ secrets.EB_ENV_NAME_FRONTEND }}" \
-            --version-label "v-${{ github.run_number }}-$(date +'%Y%m%d%H%M%S')" \
+            --version-label "v-${{ github.run_number }}" \
             --region "${{ secrets.AWS_REGION }}"
 
           echo "🌍 Fetching environment URL..."
