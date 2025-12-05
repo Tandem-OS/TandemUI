@@ -53,7 +53,9 @@ jobs:
           else
             EB_ENV="${{ secrets.EB_ENV_NAME_FRONTEND }}"
           fi
-
+          
+          EB_ENV=$(echo "$EB_ENV" | xargs)
+          
           VERSION_LABEL="v-${{ github.run_number }}-$(date +'%Y%m%d%H%M%S')"
           echo "📦 Creating new application version: $VERSION_LABEL"
 
