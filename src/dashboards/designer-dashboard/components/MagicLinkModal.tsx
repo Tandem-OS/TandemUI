@@ -16,6 +16,7 @@ const MagicLinkModal: React.FC<MagicLinkModalProps> = ({ isOpen, setIsOpen }) =>
   const [errors, setErrors] = React.useState<{ client_name?: string; client_email?: string }>({});
   const [loading, setLoading] = React.useState(false);
   const [successMessage, setSuccessMessage] = React.useState("");
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const validate = () => {
     const newErrors: { client_name?: string; client_email?: string } = {};
@@ -34,6 +35,7 @@ const MagicLinkModal: React.FC<MagicLinkModalProps> = ({ isOpen, setIsOpen }) =>
 
     setLoading(true);
     setSuccessMessage("");
+    setErrorMessage("");
 
     try {
       const result = await magicLinkData(form);
@@ -47,8 +49,29 @@ const MagicLinkModal: React.FC<MagicLinkModalProps> = ({ isOpen, setIsOpen }) =>
           setIsOpen(false);
         }, 1500);
       }
-    } catch (error) {
-      console.error("Error sending magic link:", error);
+    } catch (error: any) {
+      debugger;
+
+      // Try to extract backend error detail
+      let backendError = "Unknown error";
+
+      if (error?.response?.data) {
+        // If data is a JSON string, parse it
+        if (typeof error.response.data === "string") {
+          try {
+            const parsed = JSON.parse(error.response.data);
+            backendError = parsed.detail || JSON.stringify(parsed);
+          } catch {
+            backendError = error.response.data; // fallback to raw string
+          }
+        } else if (typeof error.response.data === "object") {
+          backendError = error.response.data.detail || JSON.stringify(error.response.data);
+        }
+      } else if (error?.message) {
+        backendError = error.message;
+      }
+
+      setErrorMessage(backendError);
     } finally {
       setLoading(false);
     }
@@ -111,6 +134,17 @@ const MagicLinkModal: React.FC<MagicLinkModalProps> = ({ isOpen, setIsOpen }) =>
               >
                 <FaCheckCircle className="text-green-500" />
                 {successMessage}
+              </motion.div>
+            )}
+
+            {errorMessage && (
+              <motion.div
+                className="flex items-center gap-2 mt-4 text-red-600 font-medium"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <FaCheckCircle className="text-red-500" />
+                {errorMessage}
               </motion.div>
             )}
 

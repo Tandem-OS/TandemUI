@@ -12,11 +12,13 @@ import { useNavigate } from 'react-router-dom';
 import { createProject, getProjectByClientEmail } from '@/lib/requests/ProjectRequest.tsx';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
+import Toast from '@/comman-components/Toast';
 
 // Types
 interface OnboardingFormData {
     projectName: string;
     logo: string | null; // logo_url
+    logoPreview?: string;
     logo_metadata?: {
         name: string;
         size: number;
@@ -165,6 +167,7 @@ const FileUpload = ({ file, onFile }: any) => {
 const OnboardingForm: React.FC = () => {
     const [currentScreen, setCurrentScreen] = useState(1);
     const [formData, setFormData] = useState<OnboardingFormData>(initialFormData);
+    const [toastMessage, setToastMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [loading, setLoading] = useState(false);
     const [buttonState, setButtonState] = useState<'default' | 'saving' | 'saved'>('default');
     const navigate = useNavigate();
@@ -173,42 +176,56 @@ const OnboardingForm: React.FC = () => {
     const designer_email = useSelector((state: RootState) => state.auth.user.designerEmail);
 
     const fetchForm = async (client_email: string) => {
-        setLoading(true);
-        try {
-            const response = await getProjectByClientEmail({ client_email });
+    setLoading(true);
+    try {
+        const response = await getProjectByClientEmail({ client_email });
+        const data = response?.data?.data;
 
-            const data = response?.data?.data;
-            if (data) {
-                const transformed = {
-                    projectName: data.project_name || '',
-                    logo: data.logo_metadata?.preview_base64 || null,
-                    logoMetadata: data.logo_metadata || null,
-                    projectType: data.project_type || '',
-                    businessDescription: data.business_description || '',
-                    budget: data.budget || '',
-                    notReadyToShare: data.not_ready_to_share || false,
-                    notes: data.notes || '',
-                };
+        let logoValue: string | null = null;
 
-                setFormData(transformed);
-                setLoading(false);
-            } else {
-                setFormData(initialFormData);
-                setLoading(false)
-            }
-        } catch (err) {
-            console.error("Error loading form data:", err);
-            setFormData(initialFormData);
-            setLoading(false);
+        if (data?.source_url) {
+            // Use source_url as "logo" for preview in FileUpload
+            logoValue = data.source_url;
+        } else if (data?.logo_metadata?.preview_base64) {
+            // fallback for old projects
+            logoValue = data.logo_metadata.preview_base64;
         }
-        setLoading(false)
+
+        const transformed = {
+            projectName: data?.project_name || '',
+            logo: logoValue,               // either URL or Base64
+            logo_metadata: data?.logo_metadata || null,
+            projectType: data?.project_type || '',
+            businessDescription: data?.business_description || '',
+            budget: data?.budget || '',
+            notReadyToShare: data?.not_ready_to_share || false,
+            notes: data?.notes || '',
+        };
+
+        setFormData(transformed);
+    } catch (err) {
+        console.error("Error loading form data:", err);
+        setFormData(initialFormData);
+    } finally {
+        setLoading(false);
     }
+};
 
     useEffect(() => {
         if (client_email) {
             fetchForm(client_email);
         }
     }, [client_email]);
+
+    useEffect(() => {
+        if (!toastMessage) return;
+
+        const timer = setTimeout(() => {
+            setToastMessage(null);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, [toastMessage]);
 
     const totalScreens = 4;
 
@@ -321,9 +338,24 @@ const OnboardingForm: React.FC = () => {
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
                         <FileUpload
-                            file={formData.logo}
-                            onFile={handleFile}
+                            file={formData.logo}                  // File object for new uploads
+                            previewUrl={formData.logoPreview}     // Pass Supabase URL here
+                            onFile={(file: File) => {
+                                const MAX_LOGO_SIZE = 25 * 1024 * 1024; // 25 MB
+                                if (file.size > MAX_LOGO_SIZE) {
+                                    setToastMessage({
+                                        message: "Logo exceeds 25 MB limit. Please choose a smaller file.",
+                                        type: "error",
+                                    });
+                                    return;
+                                }
+                                handleFile(file); // Make sure handleFile also updates formData.logoPreview
+                            }}
                         />
+
+                        <p className="text-para-sm text-gray-500 mt-2">
+                            Recommended: PNG or JPG, size ≤ 25MB. Ideal dimensions: 1024x1024 or 512x512 pixels.
+                        </p>
                     </motion.div>
                 </>
             )
@@ -407,6 +439,12 @@ const OnboardingForm: React.FC = () => {
     return (
 
         <>
+            <AnimatePresence>
+                {toastMessage && (
+                    <Toast message={toastMessage.message} type={toastMessage.type} />
+                )}
+            </AnimatePresence>
+
             {loading ? (
                 <div className="flex justify-center items-center min-h-[300px]">
                     Loading
