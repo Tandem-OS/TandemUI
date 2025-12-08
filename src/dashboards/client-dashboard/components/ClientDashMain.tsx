@@ -5,7 +5,7 @@ import Support from "../pages/support/Support";
 import ProjectOverview from "../pages/project-overview/ProjectOverview";
 import FinalTestimonial from "../pages/final-testimonial/FinalTestimonial";
 import DesignerTestimonial from "../pages/designer-testimonial/DesignerTestimonial";
-import ScrollToTop from "../../../comman-components/ScrollToTop";
+import ScrollToTop from "@/common-components/ScrollToTop";
 import Swiper from "../pages/swiper/Swiper";
 import IntakeForm from "@/components/intake-form/IntakeForm";
 import OnboardingForm from "@/components/intake-form/OnboardingForm";

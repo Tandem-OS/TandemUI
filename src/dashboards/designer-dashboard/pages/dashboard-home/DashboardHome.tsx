@@ -3,7 +3,6 @@ import { RiArrowRightLine } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
 import { mockDashboardData } from '../../../../mock-data/designer-dash-home.mock.';
 // import ProgressRing from '../../../../comman-components/ProgressRing';
-import ColorPicker from '../../../../comman-components/ColorPicker';
 import { type AccentColor } from '../../../../types/component.types';
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { BsTags } from "react-icons/bs";
@@ -11,6 +10,7 @@ import activeProjectChart from "@/assets/images/active-project-chart.svg"
 import linkChartIcon from "@/assets/images/link-chart.svg"
 import orangeLinkChart from "@/assets/images/orangeLinkChart.svg"
 import blueLineChart from "@/assets/images/blueLinkChart.svg"
+import ColorPicker from '@/common-components/ColorPicker';
 
 type PaddingSize = "sm" | "md" | "lg";
 
@@ -120,7 +120,7 @@ const StatusTag: React.FC<StatusTagProps> = ({ status, label, colors }) => {
 
   return (
     <div className="w-full flex justify-center">
-      <span className={`block w-full px-sm py-xs flex justify-center rounded-full text-para-xs font-medium border ${statusStyles[status]}`}>
+      <span className={`w-full px-sm py-xs flex justify-center rounded-full text-para-xs font-medium border ${statusStyles[status]}`}>
         {label}
       </span>
     </div>

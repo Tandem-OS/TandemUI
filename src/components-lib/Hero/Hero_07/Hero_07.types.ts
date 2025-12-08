@@ -1,138 +1,466 @@
-// src/components-lib/Hero/Hero_07/Hero_07.types.ts
+// Hero_07.types.ts
 
-/**
- * Color configuration for Hero_07 with Newsletter and Video support
- */
-export interface Hero_07Colors {
-  background?: {
-    light?: string;
-    dark?: string;
-  };
-  title?: {
-    light?: string;
-    dark?: string;
-  };
-  description?: {
-    light?: string;
-    dark?: string;
-  };
-  newsletter?: {
-    input?: {
-      background?: { light?: string; dark?: string };
-      text?: { light?: string; dark?: string };
-      border?: { light?: string; dark?: string };
-      focusBorder?: { light?: string; dark?: string };
-      placeholder?: { light?: string; dark?: string };
-    };
-    button?: {
-      background?: { light?: string; dark?: string };
-      text?: { light?: string; dark?: string };
-      border?: { light?: string; dark?: string };
-      hover?: {
-        background?: { light?: string; dark?: string };
-        text?: { light?: string; dark?: string };
-        border?: { light?: string; dark?: string };
-      };
-    };
-    message?: { light?: string; dark?: string };
-  };
-  video?: {
-    overlay?: { light?: string; dark?: string };
-    playButton?: {
-      background?: { light?: string; dark?: string };
-      backgroundHover?: { light?: string; dark?: string };
-      border?: { light?: string; dark?: string };
-      icon?: { light?: string; dark?: string };
-      iconHover?: { light?: string; dark?: string };
-    };
-  };
+// === Base Schema Types ===
+export interface MetaV1_1<P = Record<string, unknown>, T = Record<string, unknown>> {
+    version: string;
+    component_id: string;
+    category: string;
+    intent: string;
+    layout_structure: string;
+    tokens: T;
+    props: Record<string, PropDefinition>; // Changed from Record<keyof P, PropDefinition>
+    defaults: P;
+    slots?: SlotDefinition[];
+    variants?: Variant[];  // Simplified - no type params
+    fluffyTags?: string[];
+    layoutContract: LayoutContract;
+    accessibility: AccessibilityConfig;
+    performance: PerformanceConfig;
+    generation: GenerationConfig;
+    semanticProfile: SemanticProfile;
+    figma: FigmaExportConfig;
+    code: CodeTemplateConfig;
+    development: DevelopmentConfig;
+    tags?: string[];
 }
 
-/**
- * Hero_07 Component Props
- */
-export interface Hero_07Props {
-  /** Main headline text */
-  title?: string;
-
-  /** Supporting description text */
-  description?: string;
-
-  /** Newsletter email placeholder */
-  newsletterPlaceholder?: string;
-
-  /** Newsletter button text */
-  newsletterButtonText?: string;
-
-  /** Newsletter disclaimer message */
-  newsletterMessage?: string;
-
-  /** Video source URL */
-  videoSrc?: string;
-
-  /** Video thumbnail image */
-  videoThumbnailSrc?: string;
-
-  /** Enable framer motion animations */
-  animated?: boolean;
-
-  /** Auto play video on load */
-  videoAutoPlay?: boolean;
-
-  /** Loop video */
-  videoLoop?: boolean;
-
-  /** Additional CSS classes */
-  className?: string;
-
-  /** Custom color configuration */
-  colors?: Hero_07Colors;
+// Slot definition type
+export interface SlotDefinition {
+    id: string;
+    name: string;
+    type: string;
+    required?: boolean;
 }
 
-/**
- * Default color configuration for Hero_07
- */
-export const defaultColors: Hero_07Colors = {
-  background: {
-    light: '#ffffff',
-    dark: '#0f172a'
-  },
-  title: {
-    light: '#111827',
-    dark: '#f9fafb'
-  },
-  description: {
-    light: '#4b5563',
-    dark: '#d1d5db'
-  },
-  newsletter: {
+export type PropType = "text" | "richtext" | "url" | "image" | "select" | "boolean" | "number" | "object" | "color" | "video";
+
+export interface PropDefinition<T = unknown> {
+    type: PropType;
+    label: string;
+    required?: boolean;
+    max?: number;
+    min?: number;
+    default?: T;
+    options?: readonly string[];
+    placeholder?: string;
+    shape?: Record<string, PropDefinition>;
+}
+
+export interface RichText {
+    html: string;
+    text: string;
+}
+
+export interface ImageAsset {
+    src: string;
+    alt?: string;
+    width?: number;
+    height?: number;
+}
+
+export interface VideoAsset {
+    src: string;
+    thumbnail?: string;
+    duration?: number;
+    width?: number;
+    height?: number;
+}
+
+// === Color Types (Combined Newsletter + Video) ===
+export interface ColorValue {
+    light: string;
+    dark: string;
+}
+
+export interface NewsletterColorOverride {
     input: {
-      background: { light: 'transparent', dark: 'transparent' },
-      text: { light: '#111827', dark: '#f9fafb' },
-      border: { light: '#d1d5db', dark: '#374151' },
-      focusBorder: { light: '#3b82f6', dark: '#4f46e5' },
-      placeholder: { light: '#6b7280', dark: '#9ca3af' }
-    },
+        background: ColorValue;
+        text: ColorValue;
+        border: ColorValue;
+        focusBorder: ColorValue;
+        placeholder: ColorValue;
+    };
     button: {
-      background: { light: '#4f46e5', dark: '#6366f1' },
-      text: { light: '#ffffff', dark: '#ffffff' },
-      border: { light: '#4f46e5', dark: '#6366f1' },
-      hover: {
-        background: { light: '#3730a3', dark: '#4f46e5' },
-        text: { light: '#ffffff', dark: '#ffffff' },
-        border: { light: '#3730a3', dark: '#4f46e5' }
-      }
-    },
-    message: { light: '#6b7280', dark: '#9ca3af' }
-  },
-  video: {
-    overlay: { light: 'rgba(0, 0, 0, 0.3)', dark: 'rgba(0, 0, 0, 0.5)' },
+        background: ColorValue;
+        text: ColorValue;
+        border: ColorValue;
+        hover: {
+            background: ColorValue;
+            text: ColorValue;
+            border: ColorValue;
+        };
+    };
+    message: ColorValue;
+}
+
+export interface VideoColorOverride {
+    overlay: ColorValue;
     playButton: {
-      background: { light: 'rgba(255, 255, 255, 0.9)', dark: 'rgba(15, 23, 42, 0.9)' },
-      backgroundHover: { light: 'rgba(255, 255, 255, 0.95)', dark: 'rgba(15, 23, 42, 0.95)' },
-      border: { light: 'rgba(255, 255, 255, 0.3)', dark: 'rgba(148, 163, 184, 0.3)' },
-      icon: { light: '#111827', dark: '#f9fafb' },
-      iconHover: { light: '#4f46e5', dark: '#6366f1' }
-    }
-  }
+        background: ColorValue;
+        backgroundHover: ColorValue;
+        border: ColorValue;
+        icon: ColorValue;
+        iconHover: ColorValue;
+    };
+}
+
+export interface ColorOverrides {
+    background?: ColorValue;
+    title?: ColorValue;
+    description?: ColorValue;
+    newsletter?: NewsletterColorOverride;
+    video?: VideoColorOverride;
+}
+
+// === Deep Partial Helper ===
+export type DeepPartial<T> = {
+    [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
+
+export interface Variant<P = Record<string, unknown>, T = Record<string, unknown>> {
+    id: string;
+    label: string;
+    propsPatch?: Partial<P>;
+    tokensPatch?: DeepPartial<T>;
+}
+
+export interface LayoutContract {
+    grid: string;
+    maxWidth: string;
+    sectionPaddingY: string;
+    containerPaddingX: string;
+    supportsBleed: boolean;
+    topEdge?: string;
+    bottomEdge?: string;
+    breakpoints: {
+        mobile: string;
+        tablet: string;
+        desktop: string;
+    };
+}
+
+export interface AccessibilityConfig {
+    landmarks: string[];
+    ariaHints: string[];
+    colorContrastMin: number;
+    focusManagement: string;
+    keyboardNavigation: boolean;
+    screenReaderHints?: {
+        video?: string;
+        section?: string;
+    };
+}
+
+export interface PerformanceConfig {
+    lazyImages: boolean;
+    bundleKbBudget: number;
+    criticalCSS: boolean;
+    preloadHints: string[];
+}
+
+export interface GenerationConfig {
+    aiPromptHints: string[];
+    contentConstraints: {
+        title: ContentConstraint;
+        description: ContentConstraint;
+        ctaText: ContentConstraint;
+        newsletterText: ContentConstraint;
+        videoContent: ContentConstraint;
+    };
+    brandAdaptation: {
+        industry: string;
+        personality: string;
+        positioning: string;
+    };
+}
+
+export interface ContentConstraint {
+    tone: string[];
+    avoid?: string[];
+    maxSentences: number;
+    readingLevel?: string;
+}
+
+export interface SemanticProfile {
+    primaryConcepts: string[];
+    contentTypes: string[];
+    embeddingWeights: {
+        visual: number;
+        copy: number;
+        interaction: number;
+    };
+    contextualRelevance: string[];
+}
+
+export interface FigmaExportConfig {
+    autoLayout: boolean;
+    figmaComponentName: string;
+    componentSets: {
+        main: string;
+        variants?: string;
+    };
+    textStyleRefs: Record<string, string>;
+    colorStyleRefs?: Record<string, string>;
+    effectStyleRefs: Record<string, string>;
+    constraints: Record<string, string>;
+    spacing: Record<string, string>;
+    exportSettings: {
+        format: string;
+        scale: number;
+        includeVariants: boolean;
+    };
+}
+
+export interface CodeTemplateConfig {
+    language: string;
+    imports: string[];
+    template: string;
+}
+
+export interface DevelopmentConfig {
+    storybook: {
+        title: string;
+        category: string;
+    };
+    testing: {
+        testIds: string[];
+        accessibilityTests: boolean;
+    };
+    documentation: {
+        designNotes: string;
+        usageGuidelines: string;
+    };
+}
+
+// === Core Props (Newsletter + Video Combined) ===
+export interface Hero_07Props {
+    // Content
+    title?: string;
+    description?: string;
+
+    // Newsletter fields
+    newsletterPlaceholder?: string;
+    newsletterButtonText?: string;
+    newsletterMessage?: string;
+
+    // Video
+    videoSrc?: string;
+    videoThumbnail?: string;
+    videoAutoPlay?: boolean;
+    videoLoop?: boolean;
+
+    // Customization
+    animated?: boolean;
+    className?: string;
+
+    // Custom colors (enforced structure)
+    colors?: ColorOverrides;
+}
+
+// === Token Structure - Newsletter + Video Combined ===
+export interface Hero_07Tokens {
+    // Layout Structure - Newsletter+Content Left, Video Right
+    layout: {
+        section: string;
+        wrapper: string;
+        grid: string;
+        contentColumn: string;
+        videoColumn: string;
+        contentContainer: string;
+        videoContainer: string;
+    };
+
+    // Responsive Spacing
+    spacing: {
+        containerX: string;
+        containerY: string;
+        contentSpacing: string;
+    };
+
+    // Typography
+    typography: {
+        heading: {
+            desktop: string;
+            mobile: string;
+            weight: string;
+            complete: string;
+        };
+        body: {
+            desktop: string;
+            mobile: string;
+            leading: string;
+            complete: string;
+        };
+    };
+
+    // Newsletter System - Complete token structure
+    newsletter: {
+        container: string;
+        form: string;
+        inputGroup: string;
+        inputWrapper: string;
+        input: {
+            classes: string;
+            borderWidth: string;
+            borderStyle: string;
+        };
+        button: {
+            classes: string;
+            borderWidth: string;
+            borderStyle: string;
+        };
+        message: {
+            classes: string;
+        };
+    };
+
+    // Video System - Complete token structure
+    video: {
+        container: string;
+        element: string;
+        overlay: string;
+        controls: string;
+        playButton: {
+            classes: string;
+            iconContainer: string;
+            icon: string;
+            borderWidth: string;
+            borderStyle: string;
+        };
+    };
+
+    // Effects & Animations
+    effects: {
+        transition: string;
+        hover: string;
+        button: string;
+    };
+
+    // Additional tokens
+    radius: string;
+    animation: string;
+    colorScheme: string;
+    elevation: string;
+}
+
+// === Defaults (with strict types) ===
+export interface Hero_07Defaults {
+    title: string;
+    description: string;
+    newsletterPlaceholder: string;
+    newsletterButtonText: string;
+    newsletterMessage: string;
+    videoSrc: string;
+    videoThumbnail: string;
+    videoAutoPlay: boolean;
+    videoLoop: boolean;
+    animated: boolean;
+    className: string;
+    colors: {
+        background: ColorValue;
+        title: ColorValue;
+        description: ColorValue;
+        newsletter: NewsletterColorOverride;
+        video: VideoColorOverride;
+    };
+}
+
+// === Props Schema ===
+export type Hero_07PropsSchema = {
+    [K in keyof Required<Hero_07Props>]: PropDefinition<Hero_07Props[K]>;
+};
+
+// === Meta ===
+export interface Hero_07Meta extends MetaV1_1<Hero_07Defaults, Hero_07Tokens> {
+    component_id: "Hero_07";
+    category: "hero";
+    intent: "capture-leads";
+    layout_structure: "split-newsletter-video";
+    props: Hero_07PropsSchema;
+    defaults: Hero_07Defaults;
+    tokens: Hero_07Tokens;
+    variants: Variant<Partial<Hero_07Props>, DeepPartial<Hero_07Tokens>>[];
+}
+
+// === Runtime Type Guards (Enhanced) ===
+export function isColorValue(obj: unknown): obj is ColorValue {
+    if (!obj || typeof obj !== "object") return false;
+    const o = obj as Record<string, unknown>;
+    return typeof o.light === "string" && typeof o.dark === "string";
+}
+
+export function isHero_07Props(obj: unknown): obj is Hero_07Props {
+    if (!obj || typeof obj !== "object") return false;
+    const o = obj as Record<string, unknown>;
+
+    // Enhanced validations
+    const titleOk = o.title === undefined || typeof o.title === "string";
+    const descriptionOk = o.description === undefined || typeof o.description === "string";
+    
+    // Newsletter field validation
+    const newsletterPlaceholderOk = o.newsletterPlaceholder === undefined || typeof o.newsletterPlaceholder === "string";
+    const newsletterButtonTextOk = o.newsletterButtonText === undefined || typeof o.newsletterButtonText === "string";
+    const newsletterMessageOk = o.newsletterMessage === undefined || typeof o.newsletterMessage === "string";
+
+    // Video validation
+    const videoSrcOk = o.videoSrc === undefined || typeof o.videoSrc === "string";
+    const videoThumbnailOk = o.videoThumbnail === undefined || typeof o.videoThumbnail === "string";
+    const videoAutoPlayOk = o.videoAutoPlay === undefined || typeof o.videoAutoPlay === "boolean";
+    const videoLoopOk = o.videoLoop === undefined || typeof o.videoLoop === "boolean";
+
+    const animatedOk = o.animated === undefined || typeof o.animated === "boolean";
+    const classNameOk = o.className === undefined || typeof o.className === "string";
+
+    // Enhanced colors validation
+    const colorsOk = o.colors === undefined || (
+        typeof o.colors === "object" && o.colors !== null
+    );
+
+    return Boolean(
+        titleOk && descriptionOk && newsletterPlaceholderOk &&
+        newsletterButtonTextOk && newsletterMessageOk && 
+        videoSrcOk && videoThumbnailOk && videoAutoPlayOk && videoLoopOk &&
+        animatedOk && classNameOk && colorsOk
+    );
+}
+
+// === Utility Types for Better DX ===
+export type Hero_07PropsKeys = keyof Hero_07Props;
+export type Hero_07TokenKeys = keyof Hero_07Tokens;
+
+// For variant creation
+export type Hero_07PropsPatch = Partial<Hero_07Props>;
+export type Hero_07TokensPatch = DeepPartial<Hero_07Tokens>;
+
+// For validation results
+export interface ValidationResult<T = Hero_07Props> {
+    valid: boolean;
+    errors: string[];
+    data?: T;
+}
+
+// For sanitized props
+export type SanitizedHero_07Props = Required<Hero_07Props>;
+
+// Brand context for AI generation
+export interface Hero_07BrandContext {
+    industry: string;
+    personality: string;
+    positioning: string;
+    targetAudience?: string;
+    colorPalette?: {
+        primary: string;
+        secondary: string;
+        accent?: string;
+    };
+}
+
+// Generation context (enhanced)
+export interface Hero_07GenerationContext {
+    props: Partial<Hero_07Props>;
+    tokens: Partial<Hero_07Tokens>;
+    brand: Hero_07BrandContext;
+    layout?: "newsletter-left-video-right" | "newsletter-right-video-left" | "centered";
+    variant?: string;
+    customColors?: ColorOverrides;
+}

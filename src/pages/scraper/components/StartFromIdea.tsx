@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaLightbulb, FaTimes, FaMagic } from 'react-icons/fa';
 import { layoutGenerationTemplates } from '../constants';
 import Heading from '../../../components/demos/typography/Heading';
-import Para from '../../../comman-components/Para';
+import Para from '../../../common-components/Para';
 
 interface StartFromIdeaProps {
     onGenerateLayout: (sections: any[]) => void;

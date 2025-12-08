@@ -291,7 +291,8 @@ module.exports = {
         "2xl": "3rem",
         "3xl": "4rem",
         "4xl": "5rem",
-        "5xl": "6rem"
+        "5xl": "6rem",
+        "6xl": "7rem"
       },
       "fontSize": {
         "para-xs": "0.675rem",

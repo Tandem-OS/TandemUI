@@ -1,111 +1,23 @@
-import React, { type CSSProperties, useMemo, useCallback } from 'react';
+import React, { useMemo, useId } from 'react';
 import { motion, type Variants } from 'framer-motion';
+import styled from 'styled-components';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
-import Heading from '../../../components/demos/typography/Heading';
-import SimpleButton from '../../../components/demos/buttons/SimpleButton';
-import Para from '../../../comman-components/Para';
-import { type Hero_02Props, defaultColors } from './Hero_02.types';
+import {
+    type Hero_02Props,
+    type ColorOverrides,
+    type ColorValue,
+    type ButtonColorOverride
+} from './Hero_02.types';
+import {
+    validateHero02Props,
+    sanitizeProps,
+    formatValidationMessage
+} from './Hero_02.validators';
+import meta from './Hero_02.meta';
 
-// Types (No changes here)
-type ColorValue = { light?: string; dark?: string };
-type ButtonHoverConfig = {
-    background?: ColorValue;
-    text?: ColorValue;
-    border?: ColorValue;
-};
-
-// Centralized hook for all style calculations (No changes here)
-const useComponentStyles = (colors: Hero_02Props['colors'], theme: 'light' | 'dark') => {
-    return useMemo(() => {
-        const getColor = (config: ColorValue | undefined, fallback: string): string => {
-            if (!config) return fallback;
-            return (theme === 'dark' ? config.dark : config.light) ?? config.light ?? fallback;
-        };
-
-        const mergedColors = {
-            background: { ...defaultColors.background, ...colors?.background },
-            title: { ...defaultColors.title, ...colors?.title },
-            description: { ...defaultColors.description, ...colors?.description },
-            primaryButton: {
-                ...(defaultColors.primaryButton ?? {}),
-                ...(colors?.primaryButton ?? {}),
-                hover: {
-                    ...(defaultColors.primaryButton?.hover ?? {}),
-                    ...(colors?.primaryButton?.hover ?? {}),
-                },
-            },
-            secondaryButton: {
-                ...(defaultColors.secondaryButton ?? {}),
-                ...(colors?.secondaryButton ?? {}),
-                hover: {
-                    ...(defaultColors.secondaryButton?.hover ?? {}),
-                    ...(colors?.secondaryButton?.hover ?? {}),
-                },
-            },
-        };
-
-        const createButtonStyles = (config: typeof mergedColors.primaryButton): CSSProperties => ({
-            background: getColor(config.background, 'transparent'),
-            color: getColor(config.text, '#000000'),
-            borderColor: getColor(config.border, '#000000'),
-            borderWidth: '2px',
-            borderStyle: 'solid',
-        });
-
-        return {
-            background: { background: getColor(mergedColors.background, '#ffffff') },
-            title: { color: getColor(mergedColors.title, '#111827') },
-            description: { color: getColor(mergedColors.description, '#4b5563') },
-            primaryButton: createButtonStyles(mergedColors.primaryButton),
-            secondaryButton: createButtonStyles(mergedColors.secondaryButton),
-            primaryButtonHover: mergedColors.primaryButton.hover || {},
-            secondaryButtonHover: mergedColors.secondaryButton.hover || {},
-            getColor,
-        };
-    }, [colors, theme]);
-};
-
-// Action Button Component (No changes here)
-const ActionButton: React.FC<{
-    cta: string;
-    baseStyles: CSSProperties;
-    hoverConfig: ButtonHoverConfig;
-    getColor: (config: ColorValue | undefined, fallback: string) => string;
-}> = ({ cta, baseStyles, hoverConfig, getColor }) => {
-    const handleHover = useCallback((e: React.MouseEvent<HTMLButtonElement>, isHovering: boolean) => {
-        const target = e.currentTarget.style;
-
-        if (isHovering && hoverConfig) {
-            target.background = getColor(hoverConfig.background, baseStyles.background as string);
-            target.color = getColor(hoverConfig.text, baseStyles.color as string);
-            target.borderColor = getColor(hoverConfig.border, baseStyles.borderColor as string);
-        } else {
-            target.background = baseStyles.background as string;
-            target.color = baseStyles.color as string;
-            target.borderColor = baseStyles.borderColor as string;
-        }
-    }, [baseStyles, hoverConfig, getColor]);
-
-    return (
-        <div className="w-full md:w-auto">
-            <SimpleButton
-                variant="basic"
-                size="lg"
-                fullWidth
-                className="md:w-auto transition-all duration-200 hover:shadow-lg"
-                style={baseStyles}
-                onMouseEnter={(e) => handleHover(e, true)}
-                onMouseLeave={(e) => handleHover(e, false)}
-            >
-                {cta}
-            </SimpleButton>
-        </div>
-    );
-};
-
-// Animation props helper (No changes here)
-const getAnimationProps = (variant: Variants, delay: number = 0, amount: number = 0, animated: boolean = true) => {
+// Animation helper function
+const getAnimationProps = (variant: Variants, delay = 0, amount = 0, animated = true) => {
     if (!animated) return {};
     return {
         initial: "hidden",
@@ -116,101 +28,269 @@ const getAnimationProps = (variant: Variants, delay: number = 0, amount: number 
     };
 };
 
-/**
- * Hero_02 Component
- * Split layout hero section with content on right, image on left
- * Features dual CTAs and viewport-triggered animations
- */
-const Hero_02: React.FC<Hero_02Props> = ({
-    title = "Medium length hero heading goes here",
-    description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse varius enim in eros elementum tristique. Duis cursus, mi quis viverra ornare, eros dolor interdum nulla, ut commodo diam libero vitae erat.",
-    primaryCta = "Button",
-    secondaryCta = "Button",
-    imageSrc = "/images/component-lib-images/hero/placeholder-img.png",
-    imageAlt = "Hero section image",
+// Component styles hook
+const useComponentStyles = (
+    userColors: ColorOverrides | undefined,
+    theme: 'light' | 'dark'
+): Record<string, string> => {
+    return useMemo(() => {
+        const defaults = meta.defaults.colors;
+        const getColor = (userValue: ColorValue | undefined, defaultValue: ColorValue): string => {
+            const value = userValue || defaultValue;
+            return theme === 'dark' ? value.dark : value.light;
+        };
+        const getButtonVars = (
+            userButton: ButtonColorOverride | undefined,
+            defaultButton: ButtonColorOverride,
+            prefix: string
+        ) => {
+            const button = userButton || defaultButton;
+            return {
+                [`--btn-${prefix}-bg`]: getColor(button.background, defaultButton.background),
+                [`--btn-${prefix}-text`]: getColor(button.text, defaultButton.text),
+                [`--btn-${prefix}-border`]: getColor(button.border, defaultButton.border),
+                [`--btn-${prefix}-hover-bg`]: getColor(button.hover?.background, defaultButton.hover.background),
+                [`--btn-${prefix}-hover-text`]: getColor(button.hover?.text, defaultButton.hover.text),
+                [`--btn-${prefix}-hover-border`]: getColor(button.hover?.border, defaultButton.hover.border),
+            };
+        };
+        return {
+            '--hero-bg': getColor(userColors?.background, defaults.background),
+            '--hero-title': getColor(userColors?.title, defaults.title),
+            '--hero-desc': getColor(userColors?.description, defaults.description),
+            ...getButtonVars(userColors?.primaryButton, defaults.primaryButton, 'primary'),
+            ...getButtonVars(userColors?.secondaryButton, defaults.secondaryButton, 'secondary'),
+        };
+    }, [userColors, theme]);
+};
+
+// Styled components - ONLY for hover states
+const HoverButton = styled.button<{ $buttonType: 'primary' | 'secondary' }>`
+    &:hover:not(:disabled) {
+        background-color: var(--btn-${props => props.$buttonType}-hover-bg) !important;
+        color: var(--btn-${props => props.$buttonType}-hover-text) !important;
+        border-color: var(--btn-${props => props.$buttonType}-hover-border) !important;
+    }
+`;
+
+const HoverLink = styled.a<{ $buttonType: 'primary' | 'secondary' }>`
+    &:hover:not(:disabled) {
+        background-color: var(--btn-${props => props.$buttonType}-hover-bg) !important;
+        color: var(--btn-${props => props.$buttonType}-hover-text) !important;
+        border-color: var(--btn-${props => props.$buttonType}-hover-border) !important;
+    }
+`;
+
+// ActionButton component
+interface ActionButtonProps {
+    text: string;
+    href: string;
+    size?: "sm" | "md" | "lg";
+    icon?: React.ReactNode;
+    animated?: boolean;
+    ariaLabel?: string;
+    buttonType: 'primary' | 'secondary';
+}
+
+const ActionButton: React.FC<ActionButtonProps> = ({
+    text,
+    href,
+    size = 'lg',
+    icon,
     animated = true,
-    className = "",
-    colors
+    ariaLabel,
+    buttonType
 }) => {
+    const buttonClasses = [
+        meta.tokens.button.base,
+        meta.tokens.button.sizes[size],
+        meta.tokens.responsive.width,
+        animated ? meta.tokens.effects.button : 'transition-none'
+    ].join(' ');
+
+    const buttonStyle: React.CSSProperties = {
+        backgroundColor: `var(--btn-${buttonType}-bg)`,
+        color: `var(--btn-${buttonType}-text)`,
+        borderColor: `var(--btn-${buttonType}-border)`,
+        borderWidth: meta.tokens.button.borderWidth,
+        borderStyle: meta.tokens.button.borderStyle,
+    };
+
+    const buttonContent = (
+        <>
+            {text}
+            {icon && <span className={meta.tokens.button.iconSpacing}>{icon}</span>}
+        </>
+    );
+
+    if (href.startsWith('http') || href.startsWith('/') || href.startsWith('#')) {
+        return (
+            <HoverLink
+                href={href}
+                className={buttonClasses}
+                style={buttonStyle}
+                aria-label={ariaLabel || text}
+                $buttonType={buttonType}
+            >
+                {buttonContent}
+            </HoverLink>
+        );
+    }
+
+    return (
+        <HoverButton
+            className={buttonClasses}
+            style={buttonStyle}
+            onClick={() => window.location.href = href}
+            aria-label={ariaLabel || text}
+            type='button'
+            $buttonType={buttonType}
+        >
+            {buttonContent}
+        </HoverButton>
+    );
+};
+
+// Main Hero_02 component
+const Hero_02: React.FC<Hero_02Props> = (props = {}) => {
     const { theme } = useTheme();
-    const styles = useComponentStyles(colors, theme);
+    const uniqueId = useId();
+
+    const validation = validateHero02Props(props);
+    const sanitized = sanitizeProps(props);
+
+    if (process.env.NODE_ENV === 'development') {
+        if (!validation.valid || validation.warnings) {
+            console.group('Hero_02 Validation');
+            console.log(formatValidationMessage(validation));
+            console.groupEnd();
+        }
+    }
+
+    const title = sanitized.title || meta.defaults.title;
+    const description = sanitized.description || meta.defaults.description;
+    const animated = sanitized.animated !== undefined ? sanitized.animated : meta.defaults.animated;
+    const className = sanitized.className || meta.defaults.className;
+
+    const primaryCTA = {
+        text: sanitized.primaryCTA?.text || meta.defaults.primaryCTA.text,
+        href: sanitized.primaryCTA?.href || meta.defaults.primaryCTA.href,
+        size: sanitized.primaryCTA?.size || meta.defaults.primaryCTA.size,
+        icon: sanitized.primaryCTA?.icon
+    };
+
+    const hasSecondaryCTA = sanitized.secondaryCTA !== undefined || !('secondaryCTA' in sanitized);
+    const secondaryCTA = hasSecondaryCTA ? {
+        text: sanitized.secondaryCTA?.text || meta.defaults.secondaryCTA.text,
+        href: sanitized.secondaryCTA?.href || meta.defaults.secondaryCTA.href,
+        size: sanitized.secondaryCTA?.size || meta.defaults.secondaryCTA.size,
+        icon: sanitized.secondaryCTA?.icon
+    } : undefined;
+
+    const image = sanitized.image || meta.defaults.image;
+    const imageSrc = typeof image === 'string' ? image : image.src;
+    const imageAlt = typeof image === 'object' ? (image.alt || meta.defaults.imageAlt) : meta.defaults.imageAlt;
+
+    const styles = useComponentStyles(sanitized.colors, theme);
+    const MotionWrapper = animated ? motion.div : 'div';
 
     return (
         <section
-            className={`relative w-full lg:h-screen lg:overflow-hidden ${className}`}
-            style={styles.background}
+            style={styles as React.CSSProperties}
+            className={`${meta.tokens.layout.section} ${className}`}
+            data-testid="hero-section"
+            role="banner"
+            aria-label={meta.accessibility.screenReaderHints?.section || "Main hero content"}
+            id={uniqueId}
         >
-            <div className="grid grid-cols-1 lg:grid-cols-2 lg:h-screen">
-
-                {/* Image Column */}
-                {/* CHANGE HERE: Updated order for mobile and large screens */}
-                <div className="relative h-96 lg:h-screen order-2 lg:order-1">
-                    <motion.div
-                        className="w-full h-full"
-                        {...getAnimationProps(fadeIn, 0, 0.3, animated)}
+            <div
+                className={meta.tokens.layout.grid}
+                style={{ backgroundColor: 'var(--hero-bg)' }}
+            >
+                {/* Image Column - LEFT SIDE */}
+                <div className={meta.tokens.layout.imageColumn}>
+                    <MotionWrapper
+                        className={meta.tokens.layout.imageContainer}
+                        {...(animated ? getAnimationProps(fadeIn, 0, 0.3, true) : {})}
+                        data-testid="hero-image-container"
                     >
                         <img
                             src={imageSrc}
-                            alt={imageAlt}
-                            className="w-full h-full lg:h-screen object-cover object-bottom"
-                            loading="lazy"
+                            alt={imageAlt || meta.accessibility.screenReaderHints?.image || "decorative"}
+                            className={meta.tokens.image.classes}
+                            loading={meta.tokens.image.loading as "lazy" | "eager"}
+                            data-testid="hero-image"
+                            role="presentation"
+                            aria-hidden={!imageAlt}
                         />
-                    </motion.div>
+                    </MotionWrapper>
                 </div>
 
-                {/* Content Column */}
-                {/* CHANGE HERE: Updated order for mobile and large screens */}
-                <motion.div
-                    className="flex flex-col justify-center px-lg py-xl lg:px-2xl xl:px-5xl 2xl:px-6xl order-1 lg:order-2 min-h-[50vh] lg:min-h-0"
-                    {...getAnimationProps(fadeInUp, 0, 0.3, animated)}
+                {/* Content Column - RIGHT SIDE */}
+                <MotionWrapper
+                    className={`${meta.tokens.layout.contentColumn} ${meta.tokens.spacing.containerX} ${meta.tokens.spacing.containerY}`}
+                    {...(animated ? getAnimationProps(fadeInUp, 0, 0.3, true) : {})}
                 >
-                    <div className="xl:max-w-lg space-y-md lg:space-y-lg">
-                        {/* Title */}
-                        <motion.div {...getAnimationProps(fadeInUp, 0, 0, animated)}>
-                            <Heading
-                                level="h1"
-                                weight="bold"
-                                className="text-h2-sm lg:text-h1-md"
-                                style={styles.title}
+                    <div className={`${meta.tokens.layout.contentContainer} ${meta.tokens.spacing.contentSpacing}`}>
+                        <MotionWrapper
+                            {...(animated ? getAnimationProps(fadeInUp, 0, 0, true) : {})}
+                            data-testid="hero-title"
+                        >
+                            <h1
+                                className={meta.tokens.typography.heading.complete}
+                                style={{ color: 'var(--hero-title)' }}
                             >
                                 {title}
-                            </Heading>
-                        </motion.div>
+                            </h1>
+                        </MotionWrapper>
 
-                        {/* Description */}
-                        <motion.div {...getAnimationProps(fadeInUp, 0.1, 0, animated)}>
-                            <Para
-                                size="md"
-                                className="lg:text-para-lg leading-relaxed"
-                                style={styles.description}
+                        <MotionWrapper
+                            {...(animated ? getAnimationProps(fadeInUp, 0.1, 0, true) : {})}
+                            data-testid="hero-description"
+                        >
+                            <p
+                                className={meta.tokens.typography.body.complete}
+                                style={{ color: 'var(--hero-desc)' }}
                             >
                                 {description}
-                            </Para>
-                        </motion.div>
+                            </p>
+                        </MotionWrapper>
 
-                        {/* Buttons */}
-                        <motion.div
-                            className="flex flex-col md:flex-row gap-md"
-                            {...getAnimationProps(fadeInUp, 0.2, 0, animated)}
+                        <MotionWrapper
+                            className={`${meta.tokens.responsive.flexDirection} ${meta.tokens.spacing.buttonSpacing}`}
+                            {...(animated ? getAnimationProps(fadeInUp, 0.2, 0, true) : {})}
+                            data-testid="hero-buttons"
+                            role="group"
+                            aria-label="Call to action buttons"
                         >
                             <ActionButton
-                                cta={primaryCta}
-                                baseStyles={styles.primaryButton}
-                                hoverConfig={styles.primaryButtonHover}
-                                getColor={styles.getColor}
+                                text={primaryCTA.text}
+                                href={primaryCTA.href}
+                                size={primaryCTA.size}
+                                icon={primaryCTA.icon}
+                                animated={animated}
+                                ariaLabel={`Primary action: ${primaryCTA.text}`}
+                                buttonType="primary"
                             />
-                            <ActionButton
-                                cta={secondaryCta}
-                                baseStyles={styles.secondaryButton}
-                                hoverConfig={styles.secondaryButtonHover}
-                                getColor={styles.getColor}
-                            />
-                        </motion.div>
+                            {secondaryCTA && (
+                                <ActionButton
+                                    text={secondaryCTA.text}
+                                    href={secondaryCTA.href}
+                                    size={secondaryCTA.size}
+                                    icon={secondaryCTA.icon}
+                                    animated={animated}
+                                    ariaLabel={`Secondary action: ${secondaryCTA.text}`}
+                                    buttonType="secondary"
+                                />
+                            )}
+                        </MotionWrapper>
                     </div>
-                </motion.div>
+                </MotionWrapper>
             </div>
         </section>
     );
 };
+
+Hero_02.displayName = 'Hero_02';
 
 export default Hero_02;

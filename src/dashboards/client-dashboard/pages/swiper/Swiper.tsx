@@ -6,7 +6,6 @@ import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
-import Modal from '@/comman-components/Modal';
 import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
 import {
@@ -43,6 +42,7 @@ import {
 import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
 import { fetchRoundCompleted, fetchRoundCompletedData, saveRoundCompleted, swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData } from '@/lib/requests/SwiperRequest';
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
+import Modal from '@/common-components/Modal';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
