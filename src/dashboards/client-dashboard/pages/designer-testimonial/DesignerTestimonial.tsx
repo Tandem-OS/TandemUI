@@ -4,8 +4,8 @@ import FormButton from '../../../../components/auth/form/components/FormButton';
 import SimpleButton from '../../../../components/demos/buttons/SimpleButton';
 import { motion, useInView } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { mockDesignerFeedbackQuestions } from '../../../../mock-data/testimonial-questions-mock';
+import { designerTestimonialSubmission } from '@/lib/requests/TestimonialRequest';
 
 // --- TYPE DEFINITIONS ---
 interface RatingBoxProps {
@@ -264,13 +264,14 @@ const DesignerTestimonial: FC = () => {
         setStep(2);
         try {
             const submissionData = {
-                designerName: mockDesignerFeedbackQuestions.name,
+                // designerName: mockDesignerFeedbackQuestions.name,
                 rating,
-                answers,
+                standout: answers.unique,
+                recommend: answers.recommend,
                 submittedAt: new Date().toISOString()
             };
             console.log("Submitting designer feedback:", submissionData);
-            await axios.post('/api/designer-testimonials', submissionData);
+               designerTestimonialSubmission(submissionData)
         } catch (error) {
             console.error("Submission failed:", error);
         } finally {

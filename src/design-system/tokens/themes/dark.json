@@ -7,13 +7,15 @@
             "secondary-2": "{colors.slate.900}",
             "primary-3": "21 35 78",
             "muted": "{colors.slate.950}",
+            "muted-low": "{colors.slate.900}",
             "accent": "{colors.gray.800}",
             "success": "{colors.emerald.900}",
             "error": "{colors.red.900}",
             "warning": "{colors.amber.900}",
             "info": "{colors.sky.900}",
             "dark": "{colors.gray.950}",
-            "pastel-green": "{colors.emerald.800}"
+            "pastel-green": "{colors.emerald.800}",
+            "red": "{colors.red.500}"
         },
         "text": {
             "primary": "{colors.gray.50}",

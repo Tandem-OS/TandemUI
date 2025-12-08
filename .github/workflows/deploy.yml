@@ -1,0 +1,86 @@
+name: Deploy Frontend to Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'Deployment' || 'Staging' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      # ✅ Include everything needed for EB: dist, package.json, Procfile, etc.
+      - name: Create deployment package
+        run: |
+          zip -r deploy.zip dist package.json package-lock.json Procfile .npmrc
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload to S3
+        run: |
+          S3_KEY="frontend-deploy-${{ github.run_number }}.zip"
+          aws s3 cp deploy.zip s3://${{ secrets.S3_BUCKET_NAME }}/$S3_KEY --region ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to Elastic Beanstalk
+        id: deploy
+        shell: bash
+        run: |
+          # Determine environment
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            EB_ENV="${{ secrets.EB_ENV_NAME_FRONTEND }}"
+          else
+            EB_ENV="${{ secrets.EB_ENV_NAME_FRONTEND }}"
+          fi
+          
+          EB_ENV=$(echo "$EB_ENV" | xargs)
+          
+          VERSION_LABEL="v-${{ github.run_number }}-$(date +'%Y%m%d%H%M%S')"
+          echo "📦 Creating new application version: $VERSION_LABEL"
+
+          aws elasticbeanstalk create-application-version \
+            --application-name "${{ secrets.EB_APP_NAME_FRONTEND }}" \
+            --version-label "$VERSION_LABEL" \
+            --source-bundle S3Bucket="${{ secrets.S3_BUCKET_NAME }}",S3Key="frontend-deploy-${{ github.run_number }}.zip" \
+            --region "${{ secrets.AWS_REGION }}"
+
+          echo "🚀 Updating environment: $EB_ENV to version $VERSION_LABEL"
+          aws elasticbeanstalk update-environment \
+            --environment-name "$EB_ENV" \
+            --version-label "$VERSION_LABEL" \
+            --region "${{ secrets.AWS_REGION }}"
+
+          echo "🌍 Fetching environment URL..."
+          EB_URL=$(aws elasticbeanstalk describe-environments \
+            --environment-names "$EB_ENV" \
+            --region "${{ secrets.AWS_REGION }}" \
+            --query "Environments[0].CNAME" \
+            --output text)
+
+          echo "✅ Deployment completed successfully!"
+          echo "Environment URL: http://$EB_URL"
+          echo "::set-output name=env_url::http://$EB_URL"
+
+      - name: Print deployment link
+        run: echo "🚀 Frontend Live at ${{ steps.deploy.outputs.env_url }}"

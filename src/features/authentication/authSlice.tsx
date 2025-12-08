@@ -10,6 +10,9 @@ interface User {
   id: string | null;
   email: string | null;
   name: string | null;
+  role: string | null;
+  designerId: string | null;
+  designerEmail: string | null;
 }
 
 interface AuthState {
@@ -27,7 +30,10 @@ const initialState: AuthState = {
   user: {
     id: null,
     email: null,
-    name: null
+    name: null,
+    role: null,
+    designerId: null,
+    designerEmail: null,
   },
   loginTime: null,
   isAuthenticated: false,
@@ -47,6 +53,9 @@ const authSlice = createSlice({
           id?: string;
           email?: string;
           name?: string
+          role?: string;
+          designerId?: string| null;
+          designerEmail?: string | null;
         };
       }>
     ) => {
@@ -55,13 +64,26 @@ const authSlice = createSlice({
       state.user.id = action.payload.user?.id ?? null;
       state.user.email = action.payload.user?.email ?? null;
       state.user.name = action.payload.user?.name ?? null;
+      state.user.role = action.payload.user?.role ?? null;
+
+      // Only for clients with linked designers
+      state.user.designerId = action.payload.user?.designerId ?? null;
+      state.user.designerEmail = action.payload.user?.designerEmail ?? null;
+
       state.loginTime = action.payload.login_time ?? null;
       state.isAuthenticated = true;
     },
+
     logout: (state) => {
       state.tokens = { access: null, refresh: null };
-      state.user = { id: null, email: null, name: null };
-      state
+      state.user = {
+        id: null,
+        email: null,
+        name: null,
+        role: null,
+        designerId: null,
+        designerEmail: null,
+      };
       state.loginTime = null;
       state.isAuthenticated = false;
     },

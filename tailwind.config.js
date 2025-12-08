@@ -206,13 +206,15 @@ module.exports = {
           "secondary-2": "rgb(var(--background-secondary-2) / <alpha-value>)",
           "primary-3": "rgb(var(--background-primary-3) / <alpha-value>)",
           "muted": "rgb(var(--background-muted) / <alpha-value>)",
+          "muted-low": "rgb(var(--background-muted-low) / <alpha-value>)",
           "accent": "rgb(var(--background-accent) / <alpha-value>)",
           "success": "rgb(var(--background-success) / <alpha-value>)",
           "error": "rgb(var(--background-error) / <alpha-value>)",
           "warning": "rgb(var(--background-warning) / <alpha-value>)",
           "info": "rgb(var(--background-info) / <alpha-value>)",
           "dark": "rgb(var(--background-dark) / <alpha-value>)",
-          "pastel-green": "rgb(var(--background-pastel-green) / <alpha-value>)"
+          "pastel-green": "rgb(var(--background-pastel-green) / <alpha-value>)",
+          "red": "rgb(var(--background-red) / <alpha-value>)"
         },
         "text": {
           "primary": "rgb(var(--text-primary) / <alpha-value>)",

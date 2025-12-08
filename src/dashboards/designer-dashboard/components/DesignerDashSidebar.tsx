@@ -239,11 +239,13 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
     }, [externalCollapsed]);
 
     const isItemActive = useCallback((item: MenuItem): boolean => {
-        const matchBasePath = location.pathname.startsWith(item.path ?? '');
-        const matchChild = item.children?.some(child =>
-            location.pathname.startsWith(child.path ?? '')
+        const matchBasePath = location.pathname === (item.path ?? '');
+
+        const matchDirectChild = item.children?.some(child =>
+            location.pathname === (child.path ?? '')
         );
-        return matchBasePath || !!matchChild;
+
+        return matchBasePath || !!matchDirectChild;
     }, [location.pathname]);
 
     const toggleExpanded = useCallback((itemId: string): void => {

@@ -8,6 +8,7 @@
   --background-secondary-2: 248 250 252;
   --background-primary-3: 21 35 78;
   --background-muted: 243 244 246;
+  --background-muted-low: 243 244 246;
   --background-accent: 239 246 255;
   --background-success: 236 253 245;
   --background-error: 254 242 242;
@@ -15,6 +16,7 @@
   --background-info: 240 249 255;
   --background-dark: 17 24 39;
   --background-pastel-green: 209 250 229;
+  --background-red: 239 68 68;
   --text-primary: 17 24 39;
   --text-secondary: 75 85 99;
   --text-tertiary: 156 163 175;
@@ -46,6 +48,7 @@
   --background-secondary-2: 15 23 42;
   --background-primary-3: 21 35 78;
   --background-muted: 2 6 23;
+  --background-muted-low: 15 23 42;
   --background-accent: 31 41 55;
   --background-success: 6 78 59;
   --background-error: 127 29 29;
@@ -53,6 +56,7 @@
   --background-info: 12 74 110;
   --background-dark: 3 7 18;
   --background-pastel-green: 6 95 70;
+  --background-red: 239 68 68;
   --text-primary: 249 250 251;
   --text-secondary: 209 213 219;
   --text-tertiary: 107 114 128;

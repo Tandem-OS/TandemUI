@@ -110,10 +110,10 @@ const IntakeForm: React.FC = () => {
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
 
-    const fetchForm = async (client_email: string) => {
+    const fetchForm = async (clientEmail: string) => {
         setLoading(true);
         try {
-            const response = await getIntakeByClientEmail({ client_email });
+            const response = await getIntakeByClientEmail({ client_email: clientEmail });
 
             const data = response?.data?.data;
             if (data) {
@@ -143,17 +143,15 @@ const IntakeForm: React.FC = () => {
         setLoading(false)
     }
 
-    const client_email = "client@gmail.com";
+    const clientEmail = useSelector((state: RootState) => state.auth.user.email)!;
+    const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
 
     useEffect(() => {
 
-        if (client_email) {
-            fetchForm(client_email);
+        if (clientEmail) {
+            fetchForm(clientEmail);
         }
-    }, [client_email]);
-
-
-    const designerEmail = useSelector((state: RootState) => state.auth.user.email)!;
+    }, [clientEmail]);
 
     const totalScreens = 5;
     const canSkip = currentScreen > 1; // First screen cannot be skipped
@@ -213,7 +211,15 @@ const IntakeForm: React.FC = () => {
                 const payload = {
                     ...rest,
                     designer_email: designerEmail,
-                    client_email: 'client@gmail.com'
+                    client_email: clientEmail,
+                    key_features: formData.keyFeatures,
+                    inspiration_urls: formData.inspirationUrls,
+                    color_strategy: formData.colorStrategy,
+                    custom_colors: formData.customColors,
+                    current_site_url: formData.currentSiteUrl,
+                    additional_details: formData.additionalDetails,
+                    dead_line:formData.deadline,
+                    not_sure_deadline: formData.notSureDeadline,
                 };
 
                 await submitIntakeStep(payload);
@@ -245,7 +251,7 @@ const IntakeForm: React.FC = () => {
 
             const payload = {
                 designer_email: designerEmail,
-                client_email: "client@gmail.com",
+                client_email: clientEmail,
                 tones,
                 key_features: keyFeatures,
                 inspiration_urls: inspirationUrls,

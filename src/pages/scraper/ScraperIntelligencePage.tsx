@@ -21,6 +21,10 @@ import Heading from '../../components/demos/typography/Heading';
 import Para from '../../common-components/Para';
 // Import constants
 import { dummyScrapedData, quickSuggestions, processingSteps } from './constants';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store';
+import { createScraper } from '@/lib/requests/ScraperRequest';
+import { useNavigate } from 'react-router-dom';
 import Toast from '@/common-components/Toast';
 
 // Custom hook for taste profile
@@ -74,33 +78,87 @@ const ScraperIntelligencePage = () => {
 
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
 
+    const navigate = useNavigate();
+
+    // const clientEmail = useSelector((state: RootState) => state.auth.user.email)!;
+    const email = useSelector((state: RootState) => state.auth.user.email);
+    const userRole = useSelector((state: RootState) => state.auth.user.role);
+    const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
+    const projectId = useSelector((state: RootState) => state.project.projectId);
+
     // Save layout plan to localStorage whenever it changes
     useEffect(() => {
         localStorage.setItem('layoutPlan', JSON.stringify(layoutPlan));
     }, [layoutPlan]);
+
+    useEffect(() => {
+        if (userRole === 'Designer') {
+            handleModeToggle(true);
+        } else {
+            handleModeToggle(false);
+        }
+    }, [userRole]);
 
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);
     };
 
+
     const handleStartScraping = async (url: string) => {
-        setCurrentStep('processing');
-        setProcessingStep(0);
+        try {
+            setCurrentStep("processing");
+            setProcessingStep(0);
 
-        for (let i = 0; i < processingSteps.length; i++) {
-            await new Promise(resolve => setTimeout(resolve, 800));
-            setProcessingStep(i);
-        }
+            const payload =
+                userRole === "Designer" && email && projectId
+                    ? { designer_email: email, client_email: null, project_id: projectId, role: "designer", url }
+                    : userRole === "Client" && designerEmail && projectId
+                        ? { designer_email: designerEmail, role: "client", project_id: projectId, client_email: email, url }
+                        : null;
 
-        setTimeout(() => {
-            const data = { ...dummyScrapedData, url };
-            // Apply taste scoring to sections
+            if (!payload) return;
+
+            const scraperPromise = createScraper(payload);
+
+            const processingPromise = (async () => {
+                for (let i = 0; i < processingSteps.length; i++) {
+                    setProcessingStep(i);
+                    await new Promise((resolve) => setTimeout(resolve, 800));
+                }
+            })();
+
+            const [response] = await Promise.all([scraperPromise, processingPromise]);
+
+            const data = response?.data ? { ...response.data, url } : { ...dummyScrapedData, url };
             const scoredSections = scoreSections(data.sections);
+
             setScrapedData({ ...data, sections: scoredSections });
-            setCurrentStep('results');
-        }, 1000);
+            setCurrentStep("results");
+        } catch (error: any) {
+            console.error("Error during scraping:", error);
+
+            if (error.response?.status === 429) {
+                setToastMessage({
+                    message: error.response.data.message || "Daily scraping limit reached.",
+                    type: "error",
+                });
+
+                setCurrentStep("error");
+
+                setTimeout(() => {
+                    navigate(-1);
+                }, 3000);
+            } else {
+                setToastMessage({
+                    message: "An unexpected error occurred. Please try again.",
+                    type: "error",
+                });
+                setCurrentStep("error");
+            }
+        }
     };
+
 
     const handleSectionFeedback = (sectionId: string, feedback: 'like' | 'dislike') => {
         setUserFeedback(prev => ({ ...prev, [sectionId]: feedback }));
@@ -130,6 +188,7 @@ const ScraperIntelligencePage = () => {
     };
 
     // ✅ UPDATED: Handle mode toggle with fade transition
+
     const handleModeToggle = async (mode: boolean) => {
         setIsTransitioning(true);
         await new Promise(resolve => setTimeout(resolve, 150));
@@ -258,7 +317,7 @@ const ScraperIntelligencePage = () => {
                                     <div className="flex items-center justify-center">
                                         <div className="bg-background-secondary rounded-full p-1 flex">
                                             <button
-                                                onClick={() => handleModeToggle(false)}
+                                                // onClick={() => handleModeToggle(false)}
                                                 className={`flex items-center justify-center gap-xs sm:gap-sm px-md sm:px-lg py-xs sm:py-sm rounded-full text-para-sm sm:text-para-md font-medium transition-all ${!isDesignerMode
                                                     ? 'bg-accent-default text-accent-foreground shadow-lg'
                                                     : 'text-text-secondary hover:text-text-primary'
@@ -269,7 +328,7 @@ const ScraperIntelligencePage = () => {
                                                 <span className="sm:hidden">Client</span>
                                             </button>
                                             <button
-                                                onClick={() => handleModeToggle(true)}
+                                                // onClick={() => handleModeToggle(true)}
                                                 className={`flex items-center justify-center gap-xs sm:gap-sm px-md sm:px-lg py-xs sm:py-sm rounded-full text-para-sm sm:text-para-md font-medium transition-all ${isDesignerMode
                                                     ? 'bg-accent-default text-accent-foreground shadow-lg'
                                                     : 'text-text-secondary hover:text-text-primary'
@@ -515,14 +574,14 @@ const ScraperIntelligencePage = () => {
                                         <StartFromIdea onGenerateLayout={handleGenerateLayout} />
                                         <div className="bg-background-secondary rounded-full p-0.5 sm:p-1 flex">
                                             <button
-                                                onClick={() => handleModeToggle(false)}
+                                                // onClick={() => handleModeToggle(false)}
                                                 className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${!isDesignerMode ? 'bg-accent-default text-accent-foreground' : 'text-text-secondary hover:text-text-primary'}`}
                                             >
                                                 <FaUser className="inline mr-xs text-icon-sm" />
                                                 <span className="hidden sm:inline">Client</span>
                                             </button>
                                             <button
-                                                onClick={() => handleModeToggle(true)}
+                                                // onClick={() => handleModeToggle(true)}
                                                 className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${isDesignerMode ? 'bg-accent-default text-accent-foreground' : 'text-text-secondary hover:text-text-primary'}`}
                                             >
                                                 <FaPalette className="inline mr-xs text-icon-sm" />

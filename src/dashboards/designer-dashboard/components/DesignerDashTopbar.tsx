@@ -20,15 +20,19 @@ interface DesignerDashTopbarProps {
     onToggleSidebar?: () => void;
 }
 
-const logout = async () => {
-    await handleLogout();
-}
 
 const DesignerDashTopbar: React.FC<DesignerDashTopbarProps> = ({
     onMenuClick,
 }) => {
 
     const navigate = useNavigate();
+
+    const logout = async () => {
+        const result = await handleLogout();
+        if (result?.data.success) {
+            navigate('/auth')
+        }
+    }
 
     const handleProfile = () => {
         navigate('/dashboard/designer/profile-view')
