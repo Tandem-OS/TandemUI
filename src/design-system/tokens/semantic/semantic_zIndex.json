@@ -1,0 +1,84 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/semantic/zIndex.json",
+  "$description": "Semantic z-index - Layer stacking referencing primitives.",
+  "$version": "1.0.0",
+  "$hierarchy": "primitives/zIndex.json → THIS FILE → components/*.json",
+  "$rule": "MUST reference {primitives.zIndex.*}",
+
+  "content": {
+    "value": "{primitives.zIndex.base}",
+    "level": 0,
+    "usage": ["default-content", "page-elements"],
+    "rationale": "Base layer - everything starts here"
+  },
+  "dropdown": {
+    "value": "{primitives.zIndex.dropdown}",
+    "level": 50,
+    "usage": ["dropdowns", "select-menus", "autocomplete"],
+    "rationale": "Above content but below major UI"
+  },
+  "sticky": {
+    "value": "{primitives.zIndex.sticky}",
+    "level": 100,
+    "usage": ["sticky-headers", "floating-action-buttons"],
+    "rationale": "Stays visible while scrolling"
+  },
+  "header": {
+    "value": "{primitives.zIndex.header}",
+    "level": 200,
+    "usage": ["site-header", "navigation", "fixed-nav"],
+    "rationale": "Header should be above sticky elements"
+  },
+  "overlay": {
+    "value": "{primitives.zIndex.overlay}",
+    "level": 300,
+    "usage": ["modal-backdrop", "drawer-overlay"],
+    "rationale": "Dims content below modals"
+  },
+  "modal": {
+    "value": "{primitives.zIndex.modal}",
+    "level": 400,
+    "usage": ["modals", "dialogs", "lightboxes"],
+    "rationale": "Above overlay, below popover"
+  },
+  "popover": {
+    "value": "{primitives.zIndex.popover}",
+    "level": 500,
+    "usage": ["popovers", "tooltips", "context-menus"],
+    "rationale": "Can appear over modals"
+  },
+  "toast": {
+    "value": "{primitives.zIndex.toast}",
+    "level": 600,
+    "usage": ["notifications", "alerts", "snackbars"],
+    "rationale": "Above everything except tooltips"
+  },
+  "tooltip": {
+    "value": "{primitives.zIndex.tooltip}",
+    "level": 700,
+    "usage": ["tooltips", "hints"],
+    "rationale": "Highest priority - always visible"
+  },
+
+  "$stackingRules": {
+    "principle": "Each level is 100 apart to allow intermediate values",
+    "doNot": [
+      "Never use arbitrary z-index values like 999 or 9999",
+      "Never stack more than one element at the same z-index level in the same container",
+      "Never create new z-index values without adding to token system"
+    ],
+    "debugging": "If z-index isn't working, check parent positioning (must be relative/absolute/fixed)"
+  },
+
+  "$hierarchy": {
+    "base": "z-0: Content",
+    "elevated": "z-50: Dropdowns",
+    "sticky": "z-100: Sticky elements",
+    "navigation": "z-200: Headers",
+    "overlay": "z-300: Modal backdrops",
+    "dialog": "z-400: Modals",
+    "popover": "z-500: Popovers",
+    "notification": "z-600: Toasts",
+    "tooltip": "z-700: Tooltips (highest)"
+  }
+}

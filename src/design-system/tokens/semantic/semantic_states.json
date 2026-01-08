@@ -1,0 +1,154 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/semantic/states.json",
+  "$description": "UI state definitions - hover, focus, active, disabled, validation states referencing primitives.",
+  "$version": "1.0.0",
+  "$hierarchy": "primitives → THIS FILE → components/*.json",
+  "$rule": "MUST reference primitive tokens",
+
+  "interactive": {
+    "default": {
+      "opacity": "{primitives.opacity.100}",
+      "scale": 1,
+      "description": "Base state for interactive elements"
+    },
+    "hover": {
+      "backgroundLift": "1px",
+      "brightnessDelta": "5%",
+      "opacity": "{primitives.opacity.100}",
+      "scale": 1.02,
+      "shadow": "{primitives.shadows.sm}",
+      "duration": "{primitives.motion.duration.150}",
+      "description": "Hover feedback - subtle lift and brightness increase",
+      "usage": ["buttons", "cards", "links"]
+    },
+    "active": {
+      "backgroundLift": "0",
+      "brightnessDelta": "-5%",
+      "opacity": "{primitives.opacity.100}",
+      "scale": 0.98,
+      "shadow": "{primitives.shadows.none}",
+      "duration": "{primitives.motion.duration.150}",
+      "description": "Pressed/active state - element pushes down",
+      "usage": ["button:active", "pressed-state"]
+    },
+    "focus": {
+      "ringWidth": "2px",
+      "ringOffset": "2px",
+      "ringColor": "{primitives.colors.primary.400}",
+      "ringOpacity": "{primitives.opacity.50}",
+      "duration": "{primitives.motion.duration.100}",
+      "description": "Focus ring for keyboard navigation",
+      "wcagRequirement": "3:1 contrast with adjacent colors",
+      "usage": ["focus-visible"]
+    },
+    "disabled": {
+      "opacity": "{primitives.opacity.40}",
+      "cursor": "not-allowed",
+      "pointerEvents": "none",
+      "description": "Disabled state - reduced opacity, no interaction",
+      "usage": ["disabled-buttons", "disabled-inputs"]
+    }
+  },
+
+  "loading": {
+    "skeleton": {
+      "baseColor": "{primitives.colors.neutral.200}",
+      "shimmerColor": "{primitives.colors.neutral.300}",
+      "animationDuration": "2s",
+      "animationEasing": "ease-in-out",
+      "animationIteration": "infinite",
+      "description": "Skeleton loading shimmer effect"
+    },
+    "spinner": {
+      "duration": "1s",
+      "easing": "linear",
+      "iteration": "infinite",
+      "description": "Rotating spinner animation"
+    },
+    "pulse": {
+      "duration": "{primitives.motion.duration.1000}",
+      "easing": "{primitives.motion.easing.standard}",
+      "iteration": "infinite",
+      "opacityRange": [0.6, 1],
+      "description": "Pulsing opacity animation"
+    }
+  },
+
+  "validation": {
+    "success": {
+      "borderColor": "{primitives.colors.success.500}",
+      "backgroundColor": "{primitives.colors.success.50}",
+      "textColor": "{primitives.colors.success.700}",
+      "iconColor": "{primitives.colors.success.500}",
+      "description": "Success validation state",
+      "usage": ["valid-inputs", "success-messages"],
+      "wcagContrast": "7:1 (AAA)"
+    },
+    "error": {
+      "borderColor": "{primitives.colors.error.500}",
+      "backgroundColor": "{primitives.colors.error.50}",
+      "textColor": "{primitives.colors.error.700}",
+      "iconColor": "{primitives.colors.error.500}",
+      "description": "Error validation state",
+      "usage": ["invalid-inputs", "error-messages"],
+      "wcagContrast": "7:1 (AAA)"
+    },
+    "warning": {
+      "borderColor": "{primitives.colors.warning.600}",
+      "backgroundColor": "{primitives.colors.warning.50}",
+      "textColor": "{primitives.colors.warning.900}",
+      "iconColor": "{primitives.colors.warning.600}",
+      "description": "Warning validation state",
+      "usage": ["warning-inputs", "caution-messages"],
+      "wcagContrast": "7:1 (AAA)"
+    },
+    "info": {
+      "borderColor": "{primitives.colors.info.500}",
+      "backgroundColor": "{primitives.colors.info.50}",
+      "textColor": "{primitives.colors.info.700}",
+      "iconColor": "{primitives.colors.info.500}",
+      "description": "Info validation state",
+      "usage": ["info-inputs", "helper-messages"],
+      "wcagContrast": "7:1 (AAA)"
+    }
+  },
+
+  "$stateTransitionMatrix": {
+    "default→hover": {
+      "duration": "{primitives.motion.duration.150}",
+      "easing": "{primitives.motion.easing.standard}"
+    },
+    "hover→active": {
+      "duration": "{primitives.motion.duration.100}",
+      "easing": "{primitives.motion.easing.standard}"
+    },
+    "active→default": {
+      "duration": "{primitives.motion.duration.150}",
+      "easing": "{primitives.motion.easing.standard}"
+    },
+    "default→focus": {
+      "duration": "{primitives.motion.duration.100}",
+      "easing": "{primitives.motion.easing.standard}"
+    },
+    "any→disabled": {
+      "duration": "{primitives.motion.duration.200}",
+      "easing": "{primitives.motion.easing.standard}"
+    }
+  },
+
+  "$accessibilityRequirements": {
+    "focusVisible": {
+      "requirement": "Focus indicators must be visible for keyboard navigation",
+      "implementation": "Use :focus-visible pseudo-class, not :focus",
+      "wcagReference": "WCAG 2.1 SC 2.4.7"
+    },
+    "hoverVsFocus": {
+      "rule": "Never rely on hover alone - always provide focus states",
+      "rationale": "Keyboard users cannot trigger hover"
+    },
+    "disabledInteraction": {
+      "rule": "Disabled elements should not be focusable",
+      "implementation": "Use pointer-events: none and tabindex=\"-1\""
+    }
+  }
+}

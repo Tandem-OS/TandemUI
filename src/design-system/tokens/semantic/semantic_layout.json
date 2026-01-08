@@ -1,0 +1,279 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/semantic/layout.json",
+  "$description": "Semantic layout - Sizing and positioning patterns referencing primitives.",
+  "$version": "1.0.0",
+  "$hierarchy": "primitives/layout.json → THIS FILE → components/*.json",
+  "$rule": "MUST reference {primitives.layout.*}",
+
+  "container": {
+    "page": {
+      "maxWidth": "{primitives.layout.maxWidth.7xl}",
+      "paddingX": "1rem",
+      "usage": ["main-page-wrapper", "site-container"],
+      "rationale": "1280px max-width provides optimal reading width"
+    },
+    "content": {
+      "maxWidth": "{primitives.layout.maxWidth.5xl}",
+      "paddingX": "1rem",
+      "usage": ["article-container", "centered-content"],
+      "rationale": "1024px max-width for comfortable content reading"
+    },
+    "prose": {
+      "maxWidth": "{primitives.layout.maxWidth.prose}",
+      "paddingX": "1.5rem",
+      "usage": ["blog-posts", "documentation", "long-form-text"],
+      "rationale": "65ch provides optimal line length for reading (45-75 chars)"
+    },
+    "narrow": {
+      "maxWidth": "{primitives.layout.maxWidth.2xl}",
+      "paddingX": "1rem",
+      "usage": ["forms", "sign-in-pages", "narrow-content"],
+      "rationale": "672px for focused single-column layouts"
+    },
+    "wide": {
+      "maxWidth": "{primitives.layout.maxWidth.screen-2xl}",
+      "paddingX": "2rem",
+      "usage": ["dashboards", "data-tables", "wide-layouts"],
+      "rationale": "1536px for data-heavy interfaces"
+    },
+    "full": {
+      "maxWidth": "{primitives.layout.maxWidth.full}",
+      "paddingX": "0",
+      "usage": ["hero-sections", "full-bleed-images", "background-sections"],
+      "rationale": "No max-width restriction for full viewport usage"
+    },
+    "fluid": {
+      "maxWidth": "{primitives.layout.maxWidth.full}",
+      "paddingX": "clamp(1rem, 5vw, 3rem)",
+      "usage": ["fluid-responsive-padding"],
+      "rationale": "Responsive padding that scales with viewport"
+    }
+  },
+
+  "section": {
+    "hero": {
+      "minHeight": "{primitives.layout.minHeight.screen}",
+      "paddingY": "4rem",
+      "usage": ["hero-sections", "landing-page-header"],
+      "rationale": "Full viewport height for maximum impact"
+    },
+    "standard": {
+      "paddingY": "clamp(3rem, 8vw, 6rem)",
+      "usage": ["feature-sections", "content-blocks"],
+      "rationale": "Fluid vertical spacing that scales with viewport"
+    },
+    "compact": {
+      "paddingY": "2rem",
+      "usage": ["tight-sections", "newsletter-signup"],
+      "rationale": "Minimal vertical spacing for compact content"
+    },
+    "spacious": {
+      "paddingY": "clamp(6rem, 12vw, 10rem)",
+      "usage": ["showcase-sections", "testimonials"],
+      "rationale": "Generous vertical spacing for emphasis"
+    }
+  },
+
+  "card": {
+    "compact": {
+      "padding": "1rem",
+      "aspectRatio": "{primitives.layout.aspectRatio.square}",
+      "usage": ["small-cards", "icon-cards", "stat-cards"]
+    },
+    "standard": {
+      "padding": "1.5rem",
+      "aspectRatio": "{primitives.layout.aspectRatio.card}",
+      "usage": ["content-cards", "blog-previews", "product-cards"]
+    },
+    "spacious": {
+      "padding": "2rem",
+      "aspectRatio": "{primitives.layout.aspectRatio.landscape}",
+      "usage": ["feature-cards", "testimonial-cards", "pricing-cards"]
+    }
+  },
+
+  "image": {
+    "hero": {
+      "aspectRatio": "{primitives.layout.aspectRatio.video}",
+      "objectFit": "{primitives.layout.objectFit.cover}",
+      "objectPosition": "{primitives.layout.objectPosition.center}",
+      "usage": ["hero-images", "banner-images"]
+    },
+    "thumbnail": {
+      "aspectRatio": "{primitives.layout.aspectRatio.square}",
+      "objectFit": "{primitives.layout.objectFit.cover}",
+      "objectPosition": "{primitives.layout.objectPosition.center}",
+      "usage": ["product-thumbnails", "avatar-images"]
+    },
+    "coverPhoto": {
+      "aspectRatio": "{primitives.layout.aspectRatio.landscape}",
+      "objectFit": "{primitives.layout.objectFit.cover}",
+      "objectPosition": "{primitives.layout.objectPosition.center}",
+      "usage": ["blog-covers", "profile-covers"]
+    },
+    "portrait": {
+      "aspectRatio": "{primitives.layout.aspectRatio.portrait}",
+      "objectFit": "{primitives.layout.objectFit.cover}",
+      "objectPosition": "{primitives.layout.objectPosition.top}",
+      "usage": ["team-photos", "headshots"]
+    },
+    "cinema": {
+      "aspectRatio": "{primitives.layout.aspectRatio.cinema}",
+      "objectFit": "{primitives.layout.objectFit.cover}",
+      "objectPosition": "{primitives.layout.objectPosition.center}",
+      "usage": ["wide-banners", "cinematic-headers"]
+    },
+    "product": {
+      "aspectRatio": "{primitives.layout.aspectRatio.square}",
+      "objectFit": "{primitives.layout.objectFit.contain}",
+      "objectPosition": "{primitives.layout.objectPosition.center}",
+      "usage": ["ecommerce-products", "logo-display"],
+      "rationale": "Contain preserves full product visibility"
+    }
+  },
+
+  "modal": {
+    "small": {
+      "maxWidth": "{primitives.layout.maxWidth.md}",
+      "maxHeight": "90vh",
+      "usage": ["confirmation-dialogs", "alerts"]
+    },
+    "medium": {
+      "maxWidth": "{primitives.layout.maxWidth.2xl}",
+      "maxHeight": "90vh",
+      "usage": ["forms", "content-modals"]
+    },
+    "large": {
+      "maxWidth": "{primitives.layout.maxWidth.5xl}",
+      "maxHeight": "90vh",
+      "usage": ["image-viewers", "video-modals", "complex-forms"]
+    },
+    "fullscreen": {
+      "maxWidth": "{primitives.layout.maxWidth.full}",
+      "maxHeight": "{primitives.layout.maxHeight.screen}",
+      "usage": ["immersive-experiences", "mobile-modals"]
+    }
+  },
+
+  "sidebar": {
+    "narrow": {
+      "width": "250px",
+      "minWidth": "250px",
+      "usage": ["collapsed-navigation", "icon-sidebar"]
+    },
+    "standard": {
+      "width": "280px",
+      "minWidth": "280px",
+      "usage": ["app-navigation", "settings-sidebar"]
+    },
+    "wide": {
+      "width": "320px",
+      "minWidth": "320px",
+      "usage": ["content-sidebar", "detailed-navigation"]
+    }
+  },
+
+  "header": {
+    "compact": {
+      "height": "56px",
+      "minHeight": "56px",
+      "usage": ["mobile-header", "app-header"]
+    },
+    "standard": {
+      "height": "64px",
+      "minHeight": "64px",
+      "usage": ["site-header", "navigation-bar"]
+    },
+    "tall": {
+      "height": "80px",
+      "minHeight": "80px",
+      "usage": ["brand-header", "marketing-header"]
+    }
+  },
+
+  "footer": {
+    "compact": {
+      "paddingY": "2rem",
+      "usage": ["simple-footer", "copyright-only"]
+    },
+    "standard": {
+      "paddingY": "4rem",
+      "usage": ["multi-column-footer", "site-footer"]
+    },
+    "expanded": {
+      "paddingY": "6rem",
+      "usage": ["detailed-footer", "marketing-footer"]
+    }
+  },
+
+  "spacing": {
+    "section": {
+      "mobile": "3rem",
+      "tablet": "4rem",
+      "desktop": "6rem",
+      "usage": ["between-page-sections"]
+    },
+    "component": {
+      "mobile": "1.5rem",
+      "tablet": "2rem",
+      "desktop": "3rem",
+      "usage": ["between-component-elements"]
+    },
+    "tight": {
+      "mobile": "1rem",
+      "tablet": "1.5rem",
+      "desktop": "2rem",
+      "usage": ["closely-related-items"]
+    }
+  },
+
+  "$layoutTypes": {
+    "singleColumn": {
+      "description": "Centered content with max-width constraint",
+      "container": "{semantic.layout.container.content}",
+      "usage": ["blogs", "documentation", "simple-pages"]
+    },
+    "twoColumn": {
+      "description": "Main content with sidebar",
+      "mainContent": "flex-1 or fr-3",
+      "sidebar": "{semantic.layout.sidebar.standard}",
+      "usage": ["apps", "dashboards", "settings"]
+    },
+    "threeColumn": {
+      "description": "Left sidebar + main + right sidebar",
+      "leftSidebar": "{semantic.layout.sidebar.narrow}",
+      "mainContent": "flex-1",
+      "rightSidebar": "{semantic.layout.sidebar.narrow}",
+      "usage": ["complex-apps", "email-clients"]
+    },
+    "holyGrail": {
+      "description": "Header + sidebar + main + sidebar + footer",
+      "header": "{semantic.layout.header.standard}",
+      "footer": "{semantic.layout.footer.standard}",
+      "usage": ["traditional-web-apps"]
+    },
+    "fullBleed": {
+      "description": "Content extends to viewport edges",
+      "container": "{semantic.layout.container.full}",
+      "usage": ["landing-pages", "hero-sections"]
+    }
+  },
+
+  "$responsiveGuidelines": {
+    "mobile": {
+      "container": "Use full width with 1rem padding",
+      "sections": "2-3rem vertical spacing",
+      "cards": "Full width, stacked"
+    },
+    "tablet": {
+      "container": "Introduce max-width constraints",
+      "sections": "4rem vertical spacing",
+      "cards": "Consider 2-column layouts"
+    },
+    "desktop": {
+      "container": "Full max-width constraints (1280px+)",
+      "sections": "6rem+ vertical spacing",
+      "cards": "3-4 column layouts optimal"
+    }
+  }
+}
