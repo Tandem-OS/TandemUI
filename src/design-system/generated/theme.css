@@ -3,7 +3,7 @@
   --background-primary-2: #ffffff;
   --background-secondary: #f1f5f9;
   --background-secondary-2: #f8fafc;
-  --background-primary-3: 21 35 78;
+  --background-primary-3: rgb(21 35 78);
   --background-muted: #f3f4f6;
   --background-muted-low: #f3f4f6;
   --background-accent: #eff6ff;
@@ -256,7 +256,7 @@
   --background-primary-2: #020617;
   --background-secondary: #020617;
   --background-secondary-2: #0f172a;
-  --background-primary-3: 21 35 78;
+  --background-primary-3: rgb(21 35 78);
   --background-muted: #020617;
   --background-muted-low: #0f172a;
   --background-accent: #1f2937;

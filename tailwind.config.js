@@ -83,7 +83,6 @@ export default {
             "lg": "8px",
             "xl": "12px"
       },
-      // NEW: Added Typography
       fontSize: {
             "para-xs": "0.675rem",
             "para-sm": "0.875rem",

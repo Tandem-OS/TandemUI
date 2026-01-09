@@ -15,7 +15,6 @@ const { normalizeOpacity } = require('../normalizers/opacity.cjs');
 const { normalizeSpacing } = require('../normalizers/spacing.cjs');
 const { normalizeStates } = require('../normalizers/states.cjs');
 const { normalizeMotion } = require('../normalizers/motion.cjs');
-// NEW: Import Typography Normalizer
 const { normalizeTypography } = require('../normalizers/typography.cjs');
 
 const TOKENS_DIR = path.resolve(__dirname, '../tokens');
@@ -52,6 +51,16 @@ function resolveReferences(target, source) {
   return resolved;
 }
 
+function formatColorValue(value) {
+  if (typeof value === 'string') {
+    const rawRgbPattern = /^\d{1,3}[\s,]+\d{1,3}[\s,]+\d{1,3}$/;
+    if (rawRgbPattern.test(value)) {
+      return `rgb(${value.replace(/,/g, ' ')})`; 
+    }
+  }
+  return value;
+}
+
 function generateCSS(light, dark, primitiveGradients, lightGradients, darkGradients, lightShadows, darkShadows, spacingPrimitives, semanticSpacing, motionPrimitives) {
   let css = ':root {\n';
 
@@ -61,7 +70,8 @@ function generateCSS(light, dark, primitiveGradients, lightGradients, darkGradie
       if (typeof value === 'object' && value !== null) {
         writeVars(value, varName);
       } else {
-        css += `  --${varName}: ${value};\n`;
+        const formattedValue = formatColorValue(value);
+        css += `  --${varName}: ${formattedValue};\n`;
       }
     });
   }
@@ -360,10 +370,8 @@ function generate() {
   const layoutRaw = read('primitives/primitives_layout.json');
   const shadowsPrimitivesRaw = read('primitives/primitives_shadows.json');
   
-  // NEW: Read Typography Files
   const fontSizeRaw = read('primitives/primitives_fontSize.json');
   const lineHeightRaw = read('primitives/primitives_lineHeight.json');
-  // FIX: Added FontFamily Read
   const fontFamilyRaw = read('primitives/primitives_fontFamily.json');
 
   const lightThemeRaw = read('themes/light.json');
@@ -404,11 +412,8 @@ function generate() {
   const container = normalizeContainer(containerRaw);
   const grid = normalizeGrid(gridRaw);
   const layout = normalizeLayout(layoutRaw);
-  
-  // NEW: Normalize Typography using Generic Normalizer
   const fontSize = normalizeTypography(fontSizeRaw || {});
   const lineHeight = normalizeTypography(lineHeightRaw || {});
-  // FIX: Normalize FontFamily
   const fontFamily = normalizeTypography(fontFamilyRaw || {});
   
   const shadowsPrimitives = normalizeShadows(shadowsPrimitivesRaw, { colors: colorPrimitivesRaw });
@@ -437,7 +442,7 @@ function generate() {
       breakpoints: breakpoints,
       fontSize: fontSize,
       lineHeight: lineHeight,
-      fontFamily: fontFamily // Added to master source
+      fontFamily: fontFamily
     },
     semantic: {
         layout: semanticLayoutNormalized,
@@ -507,7 +512,6 @@ export default {
       colors: ${json(colors)},
       borderRadius: ${json(borderRadius)},
       borderWidth: ${json(borderWidth)},
-      // NEW: Added Typography
       fontSize: ${json(fontSize)},
       lineHeight: ${json(lineHeight)},
       fontFamily: ${json(fontFamily)},
@@ -571,7 +575,6 @@ export default {
   const tokensTS = `export const colors = ${JSON.stringify(colors, null, 2)};
 export const borderRadius = ${JSON.stringify(borderRadius, null, 2)};
 export const borderWidth = ${JSON.stringify(borderWidth, null, 2)};
-// NEW: Typography Exports
 export const fontSize = ${JSON.stringify(fontSize, null, 2)};
 export const lineHeight = ${JSON.stringify(lineHeight, null, 2)};
 export const fontFamily = ${JSON.stringify(fontFamily, null, 2)};

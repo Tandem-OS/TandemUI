@@ -72,7 +72,6 @@ export const borderWidth = {
   "lg": "8px",
   "xl": "12px"
 };
-// NEW: Typography Exports
 export const fontSize = {
   "para-xs": "0.675rem",
   "para-sm": "0.875rem",
