@@ -17,7 +17,7 @@
       "opacity": "{primitives.opacity.100}",
       "scale": 1.02,
       "shadow": "{primitives.shadows.sm}",
-      "duration": "{primitives.motion.duration.150}",
+      "duration": "{primitives.motion.duration.swift}",
       "description": "Hover feedback - subtle lift and brightness increase",
       "usage": ["buttons", "cards", "links"]
     },
@@ -27,7 +27,7 @@
       "opacity": "{primitives.opacity.100}",
       "scale": 0.98,
       "shadow": "{primitives.shadows.none}",
-      "duration": "{primitives.motion.duration.150}",
+      "duration": "{primitives.motion.duration.swift}",
       "description": "Pressed/active state - element pushes down",
       "usage": ["button:active", "pressed-state"]
     },
@@ -36,7 +36,7 @@
       "ringOffset": "2px",
       "ringColor": "{primitives.colors.primary.400}",
       "ringOpacity": "{primitives.opacity.50}",
-      "duration": "{primitives.motion.duration.100}",
+      "duration": "{primitives.motion.duration.immediate}",
       "description": "Focus ring for keyboard navigation",
       "wcagRequirement": "3:1 contrast with adjacent colors",
       "usage": ["focus-visible"]
@@ -66,8 +66,8 @@
       "description": "Rotating spinner animation"
     },
     "pulse": {
-      "duration": "{primitives.motion.duration.1000}",
-      "easing": "{primitives.motion.easing.standard}",
+      "duration": "{primitives.motion.duration.cinematic}",
+      "easing": "{primitives.motion.easing.productive.standard}",
       "iteration": "infinite",
       "opacityRange": [0.6, 1],
       "description": "Pulsing opacity animation"
@@ -115,24 +115,24 @@
 
   "$stateTransitionMatrix": {
     "default→hover": {
-      "duration": "{primitives.motion.duration.150}",
-      "easing": "{primitives.motion.easing.standard}"
+      "duration": "{primitives.motion.duration.swift}",
+      "easing": "{primitives.motion.easing.productive.standard}"
     },
     "hover→active": {
-      "duration": "{primitives.motion.duration.100}",
-      "easing": "{primitives.motion.easing.standard}"
+      "duration": "{primitives.motion.duration.immediate}",
+      "easing": "{primitives.motion.easing.productive.standard}"
     },
     "active→default": {
-      "duration": "{primitives.motion.duration.150}",
-      "easing": "{primitives.motion.easing.standard}"
+      "duration": "{primitives.motion.duration.swift}",
+      "easing": "{primitives.motion.easing.productive.standard}"
     },
     "default→focus": {
-      "duration": "{primitives.motion.duration.100}",
-      "easing": "{primitives.motion.easing.standard}"
+      "duration": "{primitives.motion.duration.immediate}",
+      "easing": "{primitives.motion.easing.productive.standard}"
     },
     "any→disabled": {
-      "duration": "{primitives.motion.duration.200}",
-      "easing": "{primitives.motion.easing.standard}"
+      "duration": "{primitives.motion.duration.quick}",
+      "easing": "{primitives.motion.easing.productive.standard}"
     }
   },
 

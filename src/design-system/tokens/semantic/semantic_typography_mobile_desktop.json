@@ -1,0 +1,1702 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/semantic/typography.json",
+  "$description": "Complete semantic typography system with mobile/desktop separation for all text components and 16 personality profiles",
+  "$version": "3.0.0",
+  "$hierarchy": "primitives/* → THIS FILE → components/*.json",
+  "$rule": "MUST reference {primitives.*} - NO raw values",
+  "heading": {
+    "h1": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.5xl}",
+        "lineHeight": "{primitives.lineHeight.mobile.tight}",
+        "fontWeight": "{primitives.fontWeight.700}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.tighter}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "text-[2.25rem] font-bold tracking-[-0.015em] leading-[1.3]",
+        "usage": [
+          "h1-mobile",
+          "hero-mobile"
+        ],
+        "rem": "2.25rem"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.6xl}",
+        "lineHeight": "{primitives.lineHeight.desktop.tight}",
+        "fontWeight": "{primitives.fontWeight.700}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.tighter}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "lg:text-6xl lg:font-bold lg:tracking-tighter lg:leading-tight",
+        "usage": [
+          "h1-desktop",
+          "hero-desktop"
+        ],
+        "rem": "3.75rem"
+      },
+      "responsive": {
+        "tailwind": "text-[2.25rem] leading-[1.3] tracking-[-0.015em] lg:text-6xl lg:leading-tight lg:tracking-tighter font-bold",
+        "default": true
+      }
+    },
+    "h2": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.4xl}",
+        "lineHeight": "{primitives.lineHeight.mobile.tight}",
+        "fontWeight": "{primitives.fontWeight.700}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.tight}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "text-[1.875rem] font-bold tracking-[-0.005em] leading-[1.3]",
+        "rem": "1.875rem"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.5xl}",
+        "lineHeight": "{primitives.lineHeight.desktop.tight}",
+        "fontWeight": "{primitives.fontWeight.700}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.tight}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "lg:text-4xl lg:font-bold lg:tracking-tight lg:leading-tight",
+        "rem": "2.25rem"
+      },
+      "responsive": {
+        "tailwind": "text-[1.875rem] leading-[1.3] tracking-[-0.005em] lg:text-4xl lg:leading-tight lg:tracking-tight font-bold",
+        "default": true
+      }
+    },
+    "h3": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.3xl}",
+        "lineHeight": "{primitives.lineHeight.mobile.snug}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.tight}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "text-[1.625rem] font-semibold tracking-[-0.005em] leading-[1.4]",
+        "rem": "1.625rem"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.3xl}",
+        "lineHeight": "{primitives.lineHeight.desktop.snug}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.tight}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "lg:text-3xl lg:font-semibold lg:tracking-tight lg:leading-snug",
+        "rem": "1.875rem"
+      },
+      "responsive": {
+        "tailwind": "text-[1.625rem] leading-[1.4] tracking-[-0.005em] lg:text-3xl lg:leading-snug lg:tracking-tight font-semibold",
+        "default": true
+      }
+    },
+    "h4": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.2xl}",
+        "lineHeight": "{primitives.lineHeight.mobile.snug}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "text-[1.375rem] font-semibold tracking-normal leading-[1.4]",
+        "rem": "1.375rem"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.2xl}",
+        "lineHeight": "{primitives.lineHeight.desktop.normal}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "lg:text-2xl lg:font-semibold lg:tracking-normal lg:leading-normal",
+        "rem": "1.5rem"
+      },
+      "responsive": {
+        "tailwind": "text-[1.375rem] leading-[1.4] lg:text-2xl lg:leading-normal font-semibold tracking-normal",
+        "default": true
+      }
+    },
+    "h5": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.xl}",
+        "lineHeight": "{primitives.lineHeight.mobile.normal}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "text-[1.1875rem] font-semibold tracking-normal leading-normal",
+        "rem": "1.1875rem"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.xl}",
+        "lineHeight": "{primitives.lineHeight.desktop.normal}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "lg:text-xl lg:font-semibold lg:tracking-normal lg:leading-normal",
+        "rem": "1.25rem"
+      },
+      "responsive": {
+        "tailwind": "text-[1.1875rem] lg:text-xl font-semibold tracking-normal leading-normal",
+        "default": true
+      }
+    },
+    "h6": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.base}",
+        "lineHeight": "{primitives.lineHeight.mobile.normal}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.wider}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "text-base font-semibold tracking-[0.025em] leading-normal uppercase",
+        "transform": "uppercase"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.base}",
+        "lineHeight": "{primitives.lineHeight.desktop.normal}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.wider}",
+        "fontFamily": "{primitives.fontFamilies.display}",
+        "tailwind": "lg:text-base lg:font-semibold lg:tracking-wider lg:leading-normal uppercase",
+        "transform": "uppercase"
+      },
+      "responsive": {
+        "tailwind": "text-base lg:text-base font-semibold tracking-[0.025em] lg:tracking-wider leading-normal uppercase",
+        "default": true
+      }
+    }
+  },
+  "body": {
+    "xs": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.xs}",
+        "lineHeight": "{primitives.lineHeight.mobile.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[0.6875rem] font-normal tracking-normal leading-[1.8]",
+        "usage": [
+          "fine-print-mobile",
+          "footnotes-mobile"
+        ]
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.xs}",
+        "lineHeight": "{primitives.lineHeight.desktop.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-xs lg:font-normal lg:tracking-normal lg:leading-relaxed",
+        "usage": [
+          "fine-print-desktop",
+          "footnotes-desktop"
+        ]
+      },
+      "responsive": {
+        "tailwind": "text-[0.6875rem] leading-[1.8] lg:text-xs lg:leading-relaxed font-normal tracking-normal"
+      }
+    },
+    "sm": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.sm}",
+        "lineHeight": "{primitives.lineHeight.mobile.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[0.8125rem] font-normal tracking-normal leading-[1.8]",
+        "usage": [
+          "small-text-mobile",
+          "captions-mobile"
+        ]
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.sm}",
+        "lineHeight": "{primitives.lineHeight.desktop.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-sm lg:font-normal lg:tracking-normal lg:leading-relaxed",
+        "usage": [
+          "small-text-desktop",
+          "captions-desktop"
+        ]
+      },
+      "responsive": {
+        "tailwind": "text-[0.8125rem] leading-[1.8] lg:text-sm lg:leading-relaxed font-normal tracking-normal"
+      }
+    },
+    "sm-alt": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.sm}",
+        "lineHeight": "{primitives.lineHeight.mobile.tight}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[0.8125rem] font-normal tracking-normal leading-[1.8]",
+        "usage": [
+          "small-text-mobile",
+          "captions-mobile"
+        ]
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.sm}",
+        "lineHeight": "{primitives.lineHeight.desktop.tight}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-sm lg:font-normal lg:tracking-normal lg:leading-relaxed",
+        "usage": [
+          "small-text-desktop",
+          "captions-desktop"
+        ]
+      },
+      "responsive": {
+        "tailwind": "text-[0.8125rem] leading-[1.8] lg:text-sm lg:leading-relaxed font-normal tracking-normal"
+      }
+    },
+    "md": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.base}",
+        "lineHeight": "{primitives.lineHeight.mobile.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-base font-normal tracking-normal leading-[1.8]",
+        "usage": [
+          "body-mobile",
+          "paragraphs-mobile"
+        ]
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.base}",
+        "lineHeight": "{primitives.lineHeight.desktop.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-base lg:font-normal lg:tracking-normal lg:leading-relaxed",
+        "usage": [
+          "body-desktop",
+          "paragraphs-desktop"
+        ]
+      },
+      "responsive": {
+        "tailwind": "text-base leading-[1.8] lg:text-base lg:leading-relaxed font-normal tracking-normal",
+        "default": true
+      }
+    },
+    "lg": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.lg}",
+        "lineHeight": "{primitives.lineHeight.mobile.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[1.0625rem] font-normal tracking-normal leading-[1.8]",
+        "usage": [
+          "large-body-mobile",
+          "lead-mobile"
+        ]
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.lg}",
+        "lineHeight": "{primitives.lineHeight.desktop.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-lg lg:font-normal lg:tracking-normal lg:leading-relaxed",
+        "usage": [
+          "large-body-desktop",
+          "lead-desktop"
+        ]
+      },
+      "responsive": {
+        "tailwind": "text-[1.0625rem] leading-[1.8] lg:text-lg lg:leading-relaxed font-normal tracking-normal"
+      }
+    },
+    "lg-alt": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.lg}",
+        "lineHeight": "{primitives.lineHeight.mobile.normal}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[1.0625rem] font-normal tracking-normal leading-[1.8]",
+        "usage": [
+          "large-body-mobile",
+          "lead-mobile"
+        ]
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.lg}",
+        "lineHeight": "{primitives.lineHeight.desktop.normal}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-lg lg:font-normal lg:tracking-normal lg:leading-relaxed",
+        "usage": [
+          "large-body-desktop",
+          "lead-desktop"
+        ]
+      },
+      "responsive": {
+        "tailwind": "text-[1.0625rem] leading-[1.8] lg:text-lg lg:leading-relaxed font-normal tracking-normal"
+      }
+    },
+    "xl": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.xl}",
+        "lineHeight": "{primitives.lineHeight.mobile.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[1.1875rem] font-normal tracking-normal leading-[1.8]",
+        "usage": [
+          "hero-body-mobile",
+          "intro-mobile"
+        ]
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.xl}",
+        "lineHeight": "{primitives.lineHeight.desktop.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-xl lg:font-normal lg:tracking-normal lg:leading-relaxed",
+        "usage": [
+          "hero-body-desktop",
+          "intro-desktop"
+        ]
+      },
+      "responsive": {
+        "tailwind": "text-[1.1875rem] leading-[1.8] lg:text-xl lg:leading-relaxed font-normal tracking-normal"
+      }
+    }
+  },
+  "label": {
+    "xs": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.xs}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[0.6875rem] font-medium tracking-[0.025em] leading-none uppercase"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.xs}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-xs lg:font-medium lg:tracking-wider lg:leading-none uppercase"
+      },
+      "responsive": {
+        "tailwind": "text-[0.6875rem] lg:text-xs font-medium tracking-[0.025em] lg:tracking-wider leading-none uppercase"
+      }
+    },
+    "sm-alt": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.sm}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[0.8125rem] font-medium tracking-[0.025em] leading-none uppercase"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.sm}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-sm lg:font-medium lg:tracking-wider lg:leading-none uppercase"
+      },
+      "responsive": {
+        "tailwind": "text-[0.8125rem] lg:text-sm font-medium tracking-[0.025em] lg:tracking-wider leading-none uppercase"
+      }
+    },
+    "md": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.base}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-base font-medium tracking-[0.025em] leading-none uppercase"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.base}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-base lg:font-medium lg:tracking-wider lg:leading-none uppercase"
+      },
+      "responsive": {
+        "tailwind": "text-base lg:text-base font-medium tracking-[0.025em] lg:tracking-wider leading-none uppercase",
+        "default": true
+      }
+    },
+    "md-alt": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.base}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-base font-medium tracking-[0.025em] leading-none uppercase"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.base}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-base lg:font-medium lg:tracking-wider lg:leading-none uppercase"
+      },
+      "responsive": {
+        "tailwind": "text-base lg:text-base font-medium tracking-[0.025em] lg:tracking-wider leading-none uppercase",
+        "default": true
+      }
+    },
+    "lg": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.lg}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-base font-medium tracking-[0.025em] leading-none uppercase"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.lg}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-base lg:font-medium lg:tracking-wider lg:leading-none uppercase"
+      },
+      "responsive": {
+        "tailwind": "text-base lg:text-base font-medium tracking-[0.025em] lg:tracking-wider leading-none uppercase",
+        "default": true
+      }
+    },
+    "lg-alt": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.lg}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-base font-medium tracking-[0.025em] leading-none uppercase"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.lg}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.wider}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-base lg:font-medium lg:tracking-wider lg:leading-none uppercase"
+      },
+      "responsive": {
+        "tailwind": "text-base lg:text-base font-medium tracking-[0.025em] lg:tracking-wider leading-none uppercase",
+        "default": true
+      }
+    }
+  },
+  "link": {
+    "sm": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.sm}",
+        "lineHeight": "{primitives.lineHeight.mobile.normal}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[0.8125rem] font-medium tracking-normal leading-normal underline"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.sm}",
+        "lineHeight": "{primitives.lineHeight.desktop.normal}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-sm lg:font-medium lg:tracking-normal lg:leading-normal underline"
+      },
+      "responsive": {
+        "tailwind": "text-[0.8125rem] lg:text-sm font-medium tracking-normal leading-normal underline"
+      }
+    },
+    "md": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.base}",
+        "lineHeight": "{primitives.lineHeight.mobile.normal}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-base font-medium tracking-normal leading-normal underline"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.base}",
+        "lineHeight": "{primitives.lineHeight.desktop.normal}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-base lg:font-medium lg:tracking-normal lg:leading-normal underline"
+      },
+      "responsive": {
+        "tailwind": "text-base lg:text-base font-medium tracking-normal leading-normal underline",
+        "default": true
+      }
+    },
+    "lg": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.lg}",
+        "lineHeight": "{primitives.lineHeight.mobile.normal}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[1.0625rem] font-medium tracking-normal leading-normal underline"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.lg}",
+        "lineHeight": "{primitives.lineHeight.desktop.normal}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-lg lg:font-medium lg:tracking-normal lg:leading-normal underline"
+      },
+      "responsive": {
+        "tailwind": "text-[1.0625rem] lg:text-lg font-medium tracking-normal leading-normal underline"
+      }
+    }
+  },
+  "overline": {
+    "sm": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.xs}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.widest}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[0.6875rem] font-semibold tracking-[0.1em] leading-none uppercase"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.xs}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.widest}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-xs lg:font-semibold lg:tracking-widest lg:leading-none uppercase"
+      },
+      "responsive": {
+        "tailwind": "text-[0.6875rem] lg:text-xs font-semibold tracking-[0.1em] lg:tracking-widest leading-none uppercase"
+      }
+    },
+    "md": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.sm}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.widest}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[0.8125rem] font-semibold tracking-[0.1em] leading-none uppercase"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.sm}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.widest}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-sm lg:font-semibold lg:tracking-widest lg:leading-none uppercase"
+      },
+      "responsive": {
+        "tailwind": "text-[0.8125rem] lg:text-sm font-semibold tracking-[0.1em] lg:tracking-widest leading-none uppercase",
+        "default": true
+      }
+    },
+    "lg": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.base}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.widest}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-base font-semibold tracking-[0.1em] leading-none uppercase"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.base}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.widest}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-base lg:font-semibold lg:tracking-widest lg:leading-none uppercase"
+      },
+      "responsive": {
+        "tailwind": "text-base lg:text-base font-semibold tracking-[0.1em] lg:tracking-widest leading-none uppercase"
+      }
+    }
+  },
+  "quote": {
+    "body": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.xl}",
+        "lineHeight": "{primitives.lineHeight.mobile.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.tight}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[1.1875rem] font-normal tracking-[-0.005em] leading-[1.8] italic",
+        "fontStyle": "italic"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.2xl}",
+        "lineHeight": "{primitives.lineHeight.desktop.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.tight}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-2xl lg:font-normal lg:tracking-tight lg:leading-relaxed italic",
+        "fontStyle": "italic"
+      },
+      "responsive": {
+        "tailwind": "text-[1.1875rem] leading-[1.8] tracking-[-0.005em] lg:text-2xl lg:leading-relaxed lg:tracking-tight font-normal italic",
+        "default": true
+      }
+    },
+    "lg": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.2xl}",
+        "lineHeight": "{primitives.lineHeight.mobile.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.tight}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[1.375rem] font-normal tracking-[-0.005em] leading-[1.8] italic",
+        "fontStyle": "italic"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.3xl}",
+        "lineHeight": "{primitives.lineHeight.desktop.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.tight}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-3xl lg:font-normal lg:tracking-tight lg:leading-relaxed italic",
+        "fontStyle": "italic"
+      },
+      "responsive": {
+        "tailwind": "text-[1.375rem] leading-[1.8] tracking-[-0.005em] lg:text-3xl lg:leading-relaxed lg:tracking-tight font-normal italic"
+      }
+    },
+    "xl": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.3xl}",
+        "lineHeight": "{primitives.lineHeight.mobile.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.tight}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[1.625rem] font-normal tracking-[-0.005em] leading-[1.8] italic",
+        "fontStyle": "italic"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.4xl}",
+        "lineHeight": "{primitives.lineHeight.desktop.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.tight}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-4xl lg:font-normal lg:tracking-tight lg:leading-relaxed italic",
+        "fontStyle": "italic"
+      },
+      "responsive": {
+        "tailwind": "text-[1.625rem] leading-[1.8] tracking-[-0.005em] lg:text-4xl lg:leading-relaxed lg:tracking-tight font-normal italic"
+      }
+    },
+    "2xl": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.4xl}",
+        "lineHeight": "{primitives.lineHeight.mobile.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.tight}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[1.875rem] font-normal tracking-[-0.005em] leading-[1.8] italic",
+        "fontStyle": "italic"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.5xl}",
+        "lineHeight": "{primitives.lineHeight.desktop.relaxed}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.tight}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-5xl lg:font-normal lg:tracking-tight lg:leading-relaxed italic",
+        "fontStyle": "italic"
+      },
+      "responsive": {
+        "tailwind": "text-[1.875rem] leading-[1.8] tracking-[-0.005em] lg:text-5xl lg:leading-relaxed lg:tracking-tight font-normal italic"
+      }
+    },
+    "attribution": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.base}",
+        "lineHeight": "{primitives.lineHeight.mobile.normal}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-base font-semibold tracking-normal leading-normal",
+        "usage": [
+          "author-names-mobile"
+        ]
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.base}",
+        "lineHeight": "{primitives.lineHeight.desktop.normal}",
+        "fontWeight": "{primitives.fontWeight.600}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-base lg:font-semibold lg:tracking-normal lg:leading-normal",
+        "usage": [
+          "author-names-desktop"
+        ]
+      },
+      "responsive": {
+        "tailwind": "text-base lg:text-base font-semibold tracking-normal leading-normal",
+        "default": true
+      }
+    },
+    "detail": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.sm}",
+        "lineHeight": "{primitives.lineHeight.mobile.normal}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[0.8125rem] font-normal tracking-normal leading-normal",
+        "usage": [
+          "author-titles-mobile"
+        ]
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.sm}",
+        "lineHeight": "{primitives.lineHeight.desktop.normal}",
+        "fontWeight": "{primitives.fontWeight.400}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-sm lg:font-normal lg:tracking-normal lg:leading-normal",
+        "usage": [
+          "author-titles-desktop"
+        ]
+      },
+      "responsive": {
+        "tailwind": "text-[0.8125rem] lg:text-sm font-normal tracking-normal leading-normal",
+        "default": true
+      }
+    }
+  },
+  "button": {
+    "sm": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.sm}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[0.8125rem] font-medium leading-none"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.sm}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-sm lg:font-medium lg:leading-none"
+      },
+      "responsive": {
+        "tailwind": "text-[0.8125rem] lg:text-sm font-medium leading-none"
+      }
+    },
+    "md": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.base}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-base font-medium leading-none"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.base}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-base lg:font-medium lg:leading-none"
+      },
+      "responsive": {
+        "tailwind": "text-base lg:text-base font-medium leading-none",
+        "default": true
+      }
+    },
+    "lg": {
+      "mobile": {
+        "fontSize": "{primitives.fontSize.mobile.lg}",
+        "lineHeight": "{primitives.lineHeight.mobile.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.mobile.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "text-[1.0625rem] font-medium leading-none"
+      },
+      "desktop": {
+        "fontSize": "{primitives.fontSize.desktop.lg}",
+        "lineHeight": "{primitives.lineHeight.desktop.none}",
+        "fontWeight": "{primitives.fontWeight.500}",
+        "letterSpacing": "{primitives.letterSpacing.desktop.normal}",
+        "fontFamily": "{primitives.fontFamilies.sans}",
+        "tailwind": "lg:text-lg lg:font-medium lg:leading-none"
+      },
+      "responsive": {
+        "tailwind": "text-[1.0625rem] lg:text-lg font-medium leading-none"
+      }
+    }
+  },
+  "$personalityProfiles": {
+    "modern": {
+      "name": "Modern / Tech-Forward",
+      "description": "Clean, minimal, contemporary, innovative, forward-thinking",
+      "voice": [
+        "clean",
+        "minimal",
+        "innovative"
+      ],
+      "tone": [
+        "contemporary",
+        "technical",
+        "progressive",
+        "efficient"
+      ],
+      "psychologicalEffect": "Trustworthy, cutting-edge, professional, modern efficiency",
+      "bestFor": [
+        "saas",
+        "tech-startups",
+        "fintech",
+        "developer-tools",
+        "b2b-software"
+      ],
+      "references": [
+        "Linear",
+        "Vercel",
+        "Stripe",
+        "Notion",
+        "Figma"
+      ],
+      "conversionImpact": {
+        "technical": "+20-30%",
+        "consumer": "+5-10%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "letterSpacing": "{primitives.letterSpacing.tight}",
+            "fontWeight": "{primitives.fontWeight.600}",
+            "tailwindOverride": "tracking-tight font-semibold"
+          }
+        },
+        "body": {
+          "md": {
+            "lineHeight": "{primitives.lineHeight.normal}",
+            "tailwindOverride": "leading-normal"
+          }
+        }
+      }
+    },
+    "friendly": {
+      "name": "Friendly / Approachable-Warm",
+      "description": "Welcoming, conversational, human, accessible, supportive",
+      "voice": [
+        "friendly",
+        "conversational",
+        "approachable"
+      ],
+      "tone": [
+        "warm",
+        "supportive",
+        "human",
+        "casual"
+      ],
+      "psychologicalEffect": "Connection, trust, comfort, belonging, warmth",
+      "bestFor": [
+        "community-platforms",
+        "education",
+        "wellness",
+        "consumer-apps",
+        "social"
+      ],
+      "references": [
+        "Slack",
+        "Airbnb",
+        "Duolingo",
+        "Headspace",
+        "Notion"
+      ],
+      "conversionImpact": {
+        "consumer": "+15-25%",
+        "enterprise": "-10%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontWeight": "{primitives.fontWeight.600}",
+            "letterSpacing": "{primitives.letterSpacing.normal}",
+            "tailwindOverride": "font-semibold tracking-normal"
+          }
+        },
+        "body": {
+          "md": {
+            "fontSize": "{primitives.fontSize.lg}",
+            "lineHeight": "{primitives.lineHeight.relaxed}",
+            "tailwindOverride": "text-lg leading-relaxed"
+          }
+        }
+      }
+    },
+    "bold": {
+      "name": "Bold / Confident-Assertive",
+      "description": "Strong, impactful, decisive, powerful, commanding",
+      "voice": [
+        "bold",
+        "confident",
+        "powerful"
+      ],
+      "tone": [
+        "assertive",
+        "direct",
+        "impactful",
+        "commanding"
+      ],
+      "psychologicalEffect": "Energy, urgency, action, confidence, decisiveness",
+      "bestFor": [
+        "marketing",
+        "agencies",
+        "sports",
+        "entertainment",
+        "consumer-brands"
+      ],
+      "references": [
+        "Nike",
+        "Apple (events)",
+        "Spotify",
+        "Netflix",
+        "Coinbase"
+      ],
+      "conversionImpact": {
+        "consumer": "+25-40%",
+        "conservative": "-15%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontWeight": "{primitives.fontWeight.800}",
+            "letterSpacing": "{primitives.letterSpacing.tighter}",
+            "tailwindOverride": "font-extrabold tracking-tighter"
+          },
+          "h2": {
+            "fontWeight": "{primitives.fontWeight.700}",
+            "letterSpacing": "{primitives.letterSpacing.tight}"
+          }
+        },
+        "body": {
+          "md": {
+            "fontWeight": "{primitives.fontWeight.500}",
+            "tailwindOverride": "font-medium"
+          }
+        }
+      }
+    },
+    "elegant": {
+      "name": "Elegant / Refined-Sophisticated",
+      "description": "Graceful, refined, sophisticated, polished, tasteful",
+      "voice": [
+        "elegant",
+        "refined",
+        "sophisticated"
+      ],
+      "tone": [
+        "graceful",
+        "polished",
+        "tasteful",
+        "curated"
+      ],
+      "psychologicalEffect": "Quality, refinement, sophistication, attention to detail",
+      "bestFor": [
+        "design-agencies",
+        "fashion",
+        "lifestyle",
+        "creative-services",
+        "portfolios"
+      ],
+      "references": [
+        "Awwwards sites",
+        "Dribbble",
+        "Behance",
+        "Medium",
+        "Squarespace"
+      ],
+      "conversionImpact": {
+        "creative": "+15-25%",
+        "technical": "-5%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontFamily": "{primitives.fontFamilies.serif}",
+            "letterSpacing": "{primitives.letterSpacing.normal}",
+            "fontWeight": "{primitives.fontWeight.500}",
+            "tailwindOverride": "font-serif tracking-normal font-medium"
+          }
+        },
+        "body": {
+          "md": {
+            "fontSize": "{primitives.fontSize.lg}",
+            "lineHeight": "{primitives.lineHeight.loose}",
+            "tailwindOverride": "text-lg leading-loose"
+          }
+        }
+      }
+    },
+    "playful": {
+      "name": "Playful / Fun-Creative",
+      "description": "Energetic, whimsical, creative, expressive, joyful",
+      "voice": [
+        "playful",
+        "creative",
+        "fun"
+      ],
+      "tone": [
+        "energetic",
+        "whimsical",
+        "expressive",
+        "joyful"
+      ],
+      "psychologicalEffect": "Joy, creativity, freedom, imagination, delight",
+      "bestFor": [
+        "children",
+        "entertainment",
+        "creative-tools",
+        "gaming",
+        "consumer-apps"
+      ],
+      "references": [
+        "Duolingo",
+        "Mailchimp",
+        "Dropbox (older)",
+        "Figma (playful moments)"
+      ],
+      "conversionImpact": {
+        "children": "+30-50%",
+        "enterprise": "-30%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontWeight": "{primitives.fontWeight.700}",
+            "letterSpacing": "{primitives.letterSpacing.normal}",
+            "tailwindOverride": "font-bold tracking-normal"
+          }
+        },
+        "body": {
+          "md": {
+            "fontSize": "{primitives.fontSize.lg}",
+            "lineHeight": "{primitives.lineHeight.relaxed}",
+            "fontWeight": "{primitives.fontWeight.500}",
+            "tailwindOverride": "text-lg leading-relaxed font-medium"
+          }
+        }
+      }
+    },
+    "minimal": {
+      "name": "Minimal / Pure-Essential",
+      "description": "Simple, clear, focused, essential, uncluttered",
+      "voice": [
+        "minimal",
+        "simple",
+        "clear"
+      ],
+      "tone": [
+        "essential",
+        "focused",
+        "pure",
+        "uncluttered"
+      ],
+      "psychologicalEffect": "Clarity, focus, calm, intentionality, sophistication",
+      "bestFor": [
+        "design-tools",
+        "productivity",
+        "zen-apps",
+        "portfolios",
+        "editorial"
+      ],
+      "references": [
+        "Apple",
+        "Basecamp",
+        "Muji",
+        "Arc Browser",
+        "Things"
+      ],
+      "conversionImpact": {
+        "design-conscious": "+15-20%",
+        "information-dense": "-10%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontWeight": "{primitives.fontWeight.400}",
+            "letterSpacing": "{primitives.letterSpacing.tight}",
+            "tailwindOverride": "font-normal tracking-tight"
+          }
+        },
+        "body": {
+          "md": {
+            "lineHeight": "{primitives.lineHeight.loose}",
+            "letterSpacing": "{primitives.letterSpacing.wide}",
+            "tailwindOverride": "leading-loose tracking-wide"
+          }
+        }
+      }
+    },
+    "editorial": {
+      "name": "Editorial / Content-First",
+      "description": "Readable, informative, authoritative, journalistic, structured",
+      "voice": [
+        "editorial",
+        "informative",
+        "authoritative"
+      ],
+      "tone": [
+        "journalistic",
+        "clear",
+        "structured",
+        "professional"
+      ],
+      "psychologicalEffect": "Trust, authority, credibility, professionalism, clarity",
+      "bestFor": [
+        "news",
+        "blogs",
+        "magazines",
+        "content-platforms",
+        "publishing"
+      ],
+      "references": [
+        "Medium",
+        "Substack",
+        "The New York Times",
+        "The Guardian",
+        "Vox"
+      ],
+      "conversionImpact": {
+        "readers": "+10-20%",
+        "skimmers": "-5%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontFamily": "{primitives.fontFamilies.serif}",
+            "fontWeight": "{primitives.fontWeight.700}",
+            "letterSpacing": "{primitives.letterSpacing.tight}",
+            "tailwindOverride": "font-serif font-bold tracking-tight"
+          }
+        },
+        "body": {
+          "md": {
+            "fontFamily": "{primitives.fontFamilies.serif}",
+            "fontSize": "{primitives.fontSize.lg}",
+            "lineHeight": "{primitives.lineHeight.loose}",
+            "tailwindOverride": "font-serif text-lg leading-loose"
+          }
+        }
+      }
+    },
+    "technical": {
+      "name": "Technical / Developer-Focused",
+      "description": "Precise, efficient, functional, systematic, no-nonsense",
+      "voice": [
+        "technical",
+        "precise",
+        "systematic"
+      ],
+      "tone": [
+        "functional",
+        "efficient",
+        "direct",
+        "factual"
+      ],
+      "psychologicalEffect": "Trust, competence, efficiency, professionalism, clarity",
+      "bestFor": [
+        "developer-tools",
+        "apis",
+        "documentation",
+        "technical-saas",
+        "infrastructure"
+      ],
+      "references": [
+        "GitHub",
+        "Vercel",
+        "Railway",
+        "Supabase",
+        "Cloudflare"
+      ],
+      "conversionImpact": {
+        "developers": "+25-35%",
+        "non-technical": "-15%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontFamily": "{primitives.fontFamilies.mono}",
+            "fontWeight": "{primitives.fontWeight.600}",
+            "letterSpacing": "{primitives.letterSpacing.tight}",
+            "tailwindOverride": "font-mono font-semibold tracking-tight"
+          }
+        },
+        "body": {
+          "md": {
+            "lineHeight": "{primitives.lineHeight.normal}",
+            "fontSize": "{primitives.fontSize.sm}",
+            "tailwindOverride": "text-sm leading-normal"
+          }
+        }
+      }
+    },
+    "wellness": {
+      "name": "Wellness / Calming-Serene",
+      "description": "Peaceful, balanced, nurturing, gentle, restorative",
+      "voice": [
+        "calming",
+        "nurturing",
+        "gentle"
+      ],
+      "tone": [
+        "peaceful",
+        "serene",
+        "balanced",
+        "restorative"
+      ],
+      "psychologicalEffect": "Calm, peace, wellbeing, trust, restoration",
+      "bestFor": [
+        "wellness",
+        "meditation",
+        "healthcare",
+        "therapy",
+        "mindfulness"
+      ],
+      "references": [
+        "Headspace",
+        "Calm",
+        "Oura",
+        "Peloton",
+        "Hims & Hers"
+      ],
+      "conversionImpact": {
+        "wellness": "+20-30%",
+        "high-energy": "-20%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontWeight": "{primitives.fontWeight.400}",
+            "letterSpacing": "{primitives.letterSpacing.wide}",
+            "tailwindOverride": "font-normal tracking-wide"
+          }
+        },
+        "body": {
+          "md": {
+            "fontSize": "{primitives.fontSize.lg}",
+            "lineHeight": "{primitives.lineHeight.loose}",
+            "letterSpacing": "{primitives.letterSpacing.wide}",
+            "tailwindOverride": "text-lg leading-loose tracking-wide"
+          }
+        }
+      }
+    },
+    "startup": {
+      "name": "Startup / Disruptive-Innovative",
+      "description": "Disruptive, ambitious, fast, bold, visionary",
+      "voice": [
+        "bold",
+        "disruptive",
+        "ambitious"
+      ],
+      "tone": [
+        "innovative",
+        "fast-paced",
+        "visionary",
+        "confident"
+      ],
+      "psychologicalEffect": "Excitement, urgency, innovation, momentum, possibility",
+      "bestFor": [
+        "startups",
+        "vc-backed",
+        "disruptive-tech",
+        "early-stage"
+      ],
+      "references": [
+        "Y Combinator startups",
+        "Product Hunt",
+        "AngelList",
+        "Uber",
+        "Airbnb"
+      ],
+      "conversionImpact": {
+        "investors": "+20-30%",
+        "conservative": "-25%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontWeight": "{primitives.fontWeight.700}",
+            "letterSpacing": "{primitives.letterSpacing.tight}",
+            "tailwindOverride": "font-bold tracking-tight"
+          }
+        },
+        "body": {
+          "md": {
+            "fontWeight": "{primitives.fontWeight.500}",
+            "lineHeight": "{primitives.lineHeight.normal}",
+            "tailwindOverride": "font-medium leading-normal"
+          }
+        }
+      }
+    },
+    "academic": {
+      "name": "Academic / Scholarly-Authoritative",
+      "description": "Rigorous, authoritative, scholarly, detailed, systematic",
+      "voice": [
+        "scholarly",
+        "authoritative",
+        "rigorous"
+      ],
+      "tone": [
+        "academic",
+        "detailed",
+        "formal",
+        "systematic"
+      ],
+      "psychologicalEffect": "Authority, credibility, trust, expertise, depth",
+      "bestFor": [
+        "education",
+        "research",
+        "universities",
+        "journals",
+        "institutes"
+      ],
+      "references": [
+        "MIT",
+        "Stanford",
+        "Nature",
+        "IEEE",
+        "arXiv"
+      ],
+      "conversionImpact": {
+        "academics": "+15-25%",
+        "general": "-10%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontFamily": "{primitives.fontFamilies.serif}",
+            "fontWeight": "{primitives.fontWeight.700}",
+            "letterSpacing": "{primitives.letterSpacing.normal}",
+            "tailwindOverride": "font-serif font-bold tracking-normal"
+          }
+        },
+        "body": {
+          "md": {
+            "fontFamily": "{primitives.fontFamilies.serif}",
+            "fontSize": "{primitives.fontSize.base}",
+            "lineHeight": "{primitives.lineHeight.loose}",
+            "tailwindOverride": "font-serif text-base leading-loose"
+          }
+        }
+      }
+    },
+    "youthful": {
+      "name": "Youthful / Energetic-Dynamic",
+      "description": "Vibrant, energetic, trendy, dynamic, expressive",
+      "voice": [
+        "energetic",
+        "vibrant",
+        "trendy"
+      ],
+      "tone": [
+        "dynamic",
+        "youthful",
+        "expressive",
+        "fresh"
+      ],
+      "psychologicalEffect": "Energy, excitement, relevance, freshness, connection",
+      "bestFor": [
+        "youth-brands",
+        "social-apps",
+        "fashion",
+        "music",
+        "gen-z"
+      ],
+      "references": [
+        "TikTok",
+        "Snapchat",
+        "Instagram",
+        "VSCO",
+        "BeReal"
+      ],
+      "conversionImpact": {
+        "youth": "+30-45%",
+        "adults": "N/A"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "letterSpacing": "{primitives.letterSpacing.wider}",
+            "fontWeight": "{primitives.fontWeight.800}",
+            "tailwindOverride": "tracking-wider font-extrabold"
+          }
+        },
+        "body": {
+          "md": {
+            "fontSize": "{primitives.fontSize.xl}",
+            "lineHeight": "{primitives.lineHeight.loose}",
+            "fontWeight": "{primitives.fontWeight.500}",
+            "tailwindOverride": "text-xl leading-loose font-medium"
+          }
+        }
+      }
+    },
+    "luxury": {
+      "name": "Luxury / Premium-Sophisticated",
+      "description": "Sophisticated, refined, exclusive, elegant, prestigious",
+      "voice": [
+        "sophisticated",
+        "refined",
+        "exclusive"
+      ],
+      "tone": [
+        "elegant",
+        "prestigious",
+        "luxurious",
+        "timeless"
+      ],
+      "psychologicalEffect": "Prestige, exclusivity, refinement, aspiration, quality",
+      "bestFor": [
+        "luxury-brands",
+        "high-end-saas",
+        "premium-services",
+        "real-estate"
+      ],
+      "references": [
+        "Apple",
+        "Tesla",
+        "Stripe (premium)",
+        "Webflow"
+      ],
+      "conversionImpact": {
+        "premium": "+15-25%",
+        "budget": "-30%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontFamily": "{primitives.fontFamilies.serif}",
+            "letterSpacing": "{primitives.letterSpacing.tight}",
+            "fontWeight": "{primitives.fontWeight.400}",
+            "tailwindOverride": "font-serif tracking-tight font-normal"
+          },
+          "h2": {
+            "fontFamily": "{primitives.fontFamilies.serif}",
+            "letterSpacing": "{primitives.letterSpacing.normal}",
+            "fontWeight": "{primitives.fontWeight.400}"
+          }
+        },
+        "body": {
+          "md": {
+            "fontSize": "{primitives.fontSize.lg}",
+            "lineHeight": "{primitives.lineHeight.loose}",
+            "letterSpacing": "{primitives.letterSpacing.wide}",
+            "tailwindOverride": "text-lg leading-loose tracking-wide"
+          }
+        }
+      }
+    },
+    "corporate": {
+      "name": "Corporate / Enterprise-Professional",
+      "description": "Professional, authoritative, trustworthy, reliable, established",
+      "voice": [
+        "professional",
+        "authoritative",
+        "reliable"
+      ],
+      "tone": [
+        "corporate",
+        "formal",
+        "trustworthy",
+        "established"
+      ],
+      "psychologicalEffect": "Trust, stability, authority, credibility, professionalism",
+      "bestFor": [
+        "enterprise-saas",
+        "financial-services",
+        "legal",
+        "consulting"
+      ],
+      "references": [
+        "Salesforce",
+        "Oracle",
+        "IBM",
+        "SAP",
+        "Microsoft"
+      ],
+      "conversionImpact": {
+        "enterprise": "+15-25%",
+        "startups": "-20%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "letterSpacing": "{primitives.letterSpacing.tight}",
+            "fontWeight": "{primitives.fontWeight.700}"
+          }
+        },
+        "body": {
+          "md": {
+            "lineHeight": "{primitives.lineHeight.normal}",
+            "letterSpacing": "{primitives.letterSpacing.normal}"
+          }
+        }
+      }
+    },
+    "heritage": {
+      "name": "Heritage / Traditional-Premium",
+      "description": "Traditional, established, prestigious, timeless, classic",
+      "voice": [
+        "traditional",
+        "established",
+        "prestigious"
+      ],
+      "tone": [
+        "classic",
+        "timeless",
+        "authoritative",
+        "refined"
+      ],
+      "psychologicalEffect": "Legacy, trust, tradition, prestige, established excellence",
+      "bestFor": [
+        "legal",
+        "finance-banking",
+        "luxury-heritage",
+        "higher-education"
+      ],
+      "references": [
+        "Harvard",
+        "Goldman Sachs",
+        "The New York Times",
+        "Christie's"
+      ],
+      "conversionImpact": {
+        "established": "+10-20%",
+        "modern": "-15%"
+      },
+      "typographyOverrides": {
+        "heading": {
+          "h1": {
+            "fontFamily": "{primitives.fontFamilies.serif}",
+            "letterSpacing": "{primitives.letterSpacing.normal}",
+            "fontWeight": "{primitives.fontWeight.600}",
+            "tailwindOverride": "font-serif tracking-normal font-semibold"
+          },
+          "h2": {
+            "fontFamily": "{primitives.fontFamilies.serif}",
+            "letterSpacing": "{primitives.letterSpacing.normal}",
+            "fontWeight": "{primitives.fontWeight.600}"
+          }
+        },
+        "body": {
+          "md": {
+            "fontFamily": "{primitives.fontFamilies.serif}",
+            "fontSize": "{primitives.fontSize.lg}",
+            "lineHeight": "{primitives.lineHeight.loose}",
+            "tailwindOverride": "font-serif text-lg leading-loose"
+          }
+        }
+      }
+    }
+  },
+  "$personalityDecisionFramework": {
+    "step1": "Identify your primary audience (technical, business, consumer, wellness, creative, luxury)",
+    "step2": "Map 3-5 brand voice adjectives (see $personalityProfiles)",
+    "step3": "Consider industry norms and price point",
+    "step4": "Prototype 2-3 candidate personalities",
+    "step5": "User test with 5+ target users",
+    "step6": "A/B test finalists (2 weeks, 1000+ conversions)",
+    "step7": "Document choice and rationale"
+  },
+  "$mobileFirstPrinciple": {
+    "description": "All components default to mobile sizes, with desktop overrides at lg: breakpoint (1024px)",
+    "pattern": "text-[mobile] lg:text-[desktop]",
+    "example": "text-base leading-[1.8] lg:text-lg lg:leading-relaxed",
+    "critical": "NEVER use font sizes below 16px for body text on mobile (prevents iOS Safari zoom)"
+  },
+  "$accessibilityRequirements": {
+    "textSpacing": {
+      "lineHeight": "≥ 1.5× font size (WCAG 1.4.12)",
+      "paragraphSpacing": "≥ 2× font size",
+      "letterSpacing": "≥ 0.12× font size",
+      "wordSpacing": "≥ 0.16× font size"
+    },
+    "contrast": {
+      "smallText": "4.5:1 minimum (AA) for text under 18px",
+      "largeText": "3:1 minimum (AA) for 18px+ or 14px bold+",
+      "AAA": "7:1 for enhanced accessibility"
+    },
+    "fontSizeMinimum": {
+      "mobile": "16px absolute minimum for body text - CRITICAL for iOS Safari",
+      "desktop": "16px minimum for comfortable reading",
+      "smallText": "12px absolute minimum - use sparingly"
+    },
+    "touchTargets": {
+      "mobile": "44×44px minimum (WCAG 2.5.5)",
+      "desktop": "24×24px minimum"
+    },
+    "linkAccessibility": {
+      "underlineDefault": "Underline by default or provide 3:1 contrast difference",
+      "hoverState": "Clear visual change on hover/focus",
+      "focusVisible": "2px outline with 3:1 contrast for keyboard navigation"
+    }
+  },
+  "$hero01Mapping": {
+    "heading": {
+      "mobile": "{semantic.typography.heading.h1.mobile}",
+      "desktop": "{semantic.typography.heading.h1.desktop}",
+      "responsive": "{semantic.typography.heading.h1.responsive}"
+    },
+    "body": {
+      "mobile": "{semantic.typography.body.lg.mobile}",
+      "desktop": "{semantic.typography.body.lg.desktop}",
+      "responsive": "{semantic.typography.body.lg.responsive}"
+    },
+    "overline": {
+      "mobile": "{semantic.typography.overline.md.mobile}",
+      "desktop": "{semantic.typography.overline.md.desktop}",
+      "responsive": "{semantic.typography.overline.md.responsive}"
+    },
+    "button": {
+      "mobile": "{semantic.typography.button.lg.mobile}",
+      "desktop": "{semantic.typography.button.lg.desktop}",
+      "responsive": "{semantic.typography.button.lg.responsive}"
+    }
+  },
+  "$responsiveTypography": {
+    "mobile": "Use smaller sizes (sm/md) - preserve readability on small screens",
+    "tablet": "Use medium sizes (md/lg) - comfortable reading",
+    "desktop": "Use larger sizes (lg/xl) - take advantage of screen space",
+    "fluidScaling": "Consider clamp() for smooth scaling between breakpoints"
+  },
+  "$semanticMarkup": {
+    "headings": "Always use proper heading hierarchy (h1→h2→h3, never skip levels)",
+    "emphasis": "Use <strong> for semantic importance, not just bold styling",
+    "links": "Must be understandable out of context (avoid 'click here')",
+    "lists": "Use <ul>/<ol> for lists, never just styled <div> elements",
+    "quotes": "Use <blockquote> for quotes with <cite> for attribution"
+  },
+  "$usageGuidelines": {
+    "heading": "Page/section titles with proper hierarchy (h1→h2→h3→h4→h5→h6)",
+    "body": "Primary text content - paragraphs, descriptions, explanations",
+    "label": "Form labels, tags, badges, metadata, identifiers (often uppercase)",
+    "link": "Clickable navigation - inline (underlined), standalone (CTA), navigation (no decoration)",
+    "overline": "Eyebrows/kickers above headings for context/category (always uppercase)",
+    "quote": "Testimonials, blockquotes with attribution and detail text",
+    "button": "Text inside interactive buttons - always use leading-none"
+  }
+}

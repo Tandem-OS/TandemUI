@@ -1,0 +1,295 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/semantic/motion.json",
+  "$description": "Semantic motion - Contextual animation tokens with productive/expressive modes",
+  "$version": "2.0.0",
+  "$hierarchy": "primitives/motion.json → THIS FILE (context) → components/*.json",
+  "$rule": "MUST reference {primitives.motion.*} - NO raw values",
+
+  "productive": {
+    "description": "Efficient, task-focused motion for dashboards, forms, and repeated interactions",
+    "transition": {
+      "instant": {
+        "duration": "{primitives.motion.duration.immediate}",
+        "easing": "{primitives.motion.easing.productive.standard}",
+        "usage": ["hover-states", "focus-rings", "color-swaps"],
+        "personality": "immediate-response, zero-latency-feel"
+      },
+      "quick": {
+        "duration": "{primitives.motion.duration.swift}",
+        "easing": "{primitives.motion.easing.productive.standard}",
+        "usage": ["button-press", "checkbox-toggle", "tab-switch"],
+        "default": true,
+        "personality": "snappy, efficient, no-nonsense"
+      },
+      "base": {
+        "duration": "{primitives.motion.duration.quick}",
+        "easing": "{primitives.motion.easing.productive.standard}",
+        "usage": ["dropdown-open", "tooltip-show", "panel-slide"],
+        "personality": "functional, predictable, controlled"
+      }
+    },
+    "entrance": {
+      "duration": "{primitives.motion.duration.swift}",
+      "easing": "{primitives.motion.easing.productive.entrance}",
+      "delay": "{primitives.motion.delay.none}",
+      "usage": ["notification-appear", "modal-show", "menu-open"],
+      "rationale": "Minimal delay - information arrives when needed"
+    },
+    "exit": {
+      "duration": "{primitives.motion.duration.immediate}",
+      "easing": "{primitives.motion.easing.productive.exit}",
+      "delay": "{primitives.motion.delay.none}",
+      "usage": ["notification-dismiss", "modal-close", "menu-hide"],
+      "rationale": "Quick removal - gets out of the way fast"
+    },
+    "stagger": {
+      "tight": {
+        "staggerChildren": "{primitives.motion.stagger.tight}",
+        "delayChildren": "{primitives.motion.delay.micro}",
+        "usage": ["table-rows", "list-items", "menu-items"],
+        "rationale": "Minimal cascade - functional rhythm without ceremony"
+      }
+    }
+  },
+
+  "expressive": {
+    "description": "Engaging, moment-focused motion for marketing, heroes, and storytelling",
+    "transition": {
+      "gentle": {
+        "duration": "{primitives.motion.duration.moderate}",
+        "easing": "{primitives.motion.easing.expressive.standard}",
+        "usage": ["hero-fade", "section-reveal", "image-zoom"],
+        "personality": "natural, flowing, humanistic"
+      },
+      "theatrical": {
+        "duration": "{primitives.motion.duration.deliberate}",
+        "easing": "{primitives.motion.easing.expressive.standard}",
+        "usage": ["page-transition", "modal-takeover", "onboarding-step"],
+        "personality": "intentional, confident, brand-forward"
+      },
+      "cinematic": {
+        "duration": "{primitives.motion.duration.patient}",
+        "easing": "{primitives.motion.easing.expressive.standard}",
+        "usage": ["hero-entrance", "splash-screen", "feature-spotlight"],
+        "personality": "luxurious, storytelling, memorable"
+      }
+    },
+    "entrance": {
+      "duration": "{primitives.motion.duration.deliberate}",
+      "easing": "{primitives.motion.easing.expressive.entrance}",
+      "delay": "{primitives.motion.delay.short}",
+      "usage": ["hero-elements", "feature-cards", "testimonials"],
+      "rationale": "Intentional delay creates anticipation - feels choreographed"
+    },
+    "exit": {
+      "duration": "{primitives.motion.duration.moderate}",
+      "easing": "{primitives.motion.easing.expressive.exit}",
+      "delay": "{primitives.motion.delay.none}",
+      "usage": ["modal-dismiss", "section-leave", "page-exit"],
+      "rationale": "Exit faster than entrance but with grace"
+    },
+    "stagger": {
+      "comfortable": {
+        "staggerChildren": "{primitives.motion.stagger.comfortable}",
+        "delayChildren": "{primitives.motion.delay.brief}",
+        "usage": ["feature-grid", "team-members", "pricing-cards"],
+        "rationale": "Clear rhythm - each element gets attention"
+      },
+      "theatrical": {
+        "staggerChildren": "{primitives.motion.stagger.spacious}",
+        "delayChildren": "{primitives.motion.delay.medium}",
+        "usage": ["hero-headlines", "sequential-reveals", "story-beats"],
+        "rationale": "Dramatic cascade - creates narrative flow"
+      }
+    }
+  },
+
+  "utility": {
+    "description": "Context-agnostic motion patterns that adapt based on use",
+    "hover": {
+      "duration": "{primitives.motion.duration.immediate}",
+      "easing": "{primitives.motion.easing.productive.standard}",
+      "usage": ["all-interactive-elements"],
+      "accessibility": "Must feel instant - 100ms max"
+    },
+    "focus": {
+      "duration": "{primitives.motion.duration.instant}",
+      "easing": "{primitives.motion.easing.utility.linear}",
+      "usage": ["keyboard-navigation", "focus-indicators"],
+      "accessibility": "Zero delay for accessibility - users need immediate feedback",
+      "wcagNote": "WCAG 2.1 SC 2.4.7 - Focus must be immediately visible"
+    },
+    "collapse": {
+      "duration": "{primitives.motion.duration.quick}",
+      "easing": "{primitives.motion.easing.utility.emphasized}",
+      "usage": ["accordion-close", "section-collapse"]
+    },
+    "expand": {
+      "duration": "{primitives.motion.duration.moderate}",
+      "easing": "{primitives.motion.easing.utility.emphasized}",
+      "usage": ["accordion-open", "section-expand"],
+      "rationale": "Expansion slightly slower - gives content time to be noticed"
+    }
+  },
+
+  "$selectionGuidance": {
+    "useProductive": [
+      "Component appears more than 3 times per session",
+      "User is focused on completing a task",
+      "Interface is data-heavy or tool-like",
+      "Speed and efficiency are paramount",
+      "Examples: dashboards, forms, tables, filters, settings"
+    ],
+    "useExpressive": [
+      "First impression moments (landing pages, heroes)",
+      "Brand storytelling or marketing content",
+      "Onboarding or education flows",
+      "Celebration or delight moments",
+      "Examples: hero sections, feature showcases, testimonials, CTAs"
+    ],
+    "mixing": {
+      "rule": "Within a single view, pick ONE mode and stick with it",
+      "exception": "Marketing site nav can use productive (frequent) while hero uses expressive (spotlight)",
+      "antiPattern": "Don't mix theatrical dashboard tables with instant marketing buttons - feels schizophrenic"
+    }
+  },
+
+  "$accessibilityRequirements": {
+    "reducedMotion": {
+      "rule": "ALWAYS check prefers-reduced-motion media query",
+      "implementation": "Set all durations to 0.01ms when user prefers reduced motion",
+      "cssExample": "@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } }",
+      "wcagReference": "WCAG 2.1 SC 2.3.3 - Animation from Interactions",
+      "criticalNote": "Some users experience vestibular disorders, migraines, or seizures from motion"
+    },
+    "maxDuration": {
+      "productive": "200ms max - anything longer frustrates task-focused users",
+      "expressive": "500ms max - even theatrical motion should respect user time",
+      "exception": "Page transitions and loading states can exceed 500ms if showing progress"
+    },
+    "essentialInformation": {
+      "rule": "Never rely solely on motion to convey critical information",
+      "example": "Don't just animate a success state - also show icon + color + text confirmation"
+    }
+  },
+
+  "$framerMotionIntegration": {
+    "productive": {
+      "instant": {
+        "duration": 0.1,
+        "ease": [0.2, 0, 0.38, 0.9],
+        "usage": "transition={{ duration: 0.1, ease: [0.2, 0, 0.38, 0.9] }}"
+      },
+      "quick": {
+        "duration": 0.15,
+        "ease": [0.2, 0, 0.38, 0.9],
+        "usage": "transition={{ duration: 0.15, ease: [0.2, 0, 0.38, 0.9] }}"
+      },
+      "base": {
+        "duration": 0.2,
+        "ease": [0.2, 0, 0.38, 0.9],
+        "usage": "transition={{ duration: 0.2, ease: [0.2, 0, 0.38, 0.9] }}"
+      }
+    },
+    "expressive": {
+      "gentle": {
+        "duration": 0.3,
+        "ease": [0.4, 0.14, 0.3, 1],
+        "usage": "transition={{ duration: 0.3, ease: [0.4, 0.14, 0.3, 1] }}"
+      },
+      "theatrical": {
+        "duration": 0.4,
+        "ease": [0.4, 0.14, 0.3, 1],
+        "usage": "transition={{ duration: 0.4, ease: [0.4, 0.14, 0.3, 1] }}"
+      },
+      "cinematic": {
+        "duration": 0.5,
+        "ease": [0.4, 0.14, 0.3, 1],
+        "usage": "transition={{ duration: 0.5, ease: [0.4, 0.14, 0.3, 1] }}"
+      }
+    },
+    "variants": {
+      "productiveEntrance": "const variants = { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.15, ease: [0.2, 0, 0.38, 0.9] } } }",
+      "expressiveEntrance": "const variants = { hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.4, 0.14, 0.3, 1], delay: 0.2 } } }"
+    }
+  },
+
+  "$microInteractions": {
+    "productive": {
+      "buttonPress": {
+        "scale": { "hover": 1.01, "active": 0.99 },
+        "duration": "{primitives.motion.duration.immediate}",
+        "easing": "{primitives.motion.easing.productive.standard}",
+        "usage": "Minimal scale - functional feedback only"
+      },
+      "cardHover": {
+        "lift": "2px",
+        "shadow": "md",
+        "duration": "{primitives.motion.duration.swift}",
+        "easing": "{primitives.motion.easing.productive.standard}",
+        "usage": "Subtle lift - indicates interactivity without distraction"
+      },
+      "inputFocus": {
+        "ringWidth": "2px",
+        "ringOpacity": 0.5,
+        "duration": "{primitives.motion.duration.instant}",
+        "easing": "{primitives.motion.easing.utility.linear}",
+        "usage": "Instant ring - critical for keyboard accessibility"
+      }
+    },
+    "expressive": {
+      "buttonPress": {
+        "scale": { "hover": 1.05, "active": 0.91 },
+        "duration": "{primitives.motion.duration.quick}",
+        "easing": "{primitives.motion.easing.expressive.standard}",
+        "usage": "Noticeable scale - feels tactile and responsive"
+      },
+      "cardHover": {
+        "lift": "8px",
+        "shadow": "xl",
+        "duration": "{primitives.motion.duration.moderate}",
+        "easing": "{primitives.motion.easing.expressive.standard}",
+        "usage": "Significant lift - dramatic hover state for marketing"
+      },
+      "ctaHover": {
+        "scale": 1.02,
+        "glow": "0 0 20px rgba(59, 130, 246, 0.5)",
+        "duration": "{primitives.motion.duration.moderate}",
+        "easing": "{primitives.motion.easing.expressive.standard}",
+        "usage": "Glowing CTA - attention-grabbing for conversions"
+      }
+    }
+  },
+
+  "$designPrinciples": {
+    "duality": "Motion serves two masters - efficiency (machine) and emotion (human). Choose deliberately.",
+    "purposeful": "Every animation must justify its existence - guide attention, provide feedback, or establish hierarchy",
+    "contextual": "Dashboard button hover ≠ hero CTA hover. Same element, different contexts, different motion.",
+    "performant": "Animate only transform and opacity - avoid layout shifts at all costs",
+    "respectful": "Always provide reduced-motion alternatives - motion can cause physical discomfort",
+    "consistent": "Within a mode (productive/expressive), all similar interactions use the same timing"
+  },
+
+  "$performanceOptimization": {
+    "gpuAccelerated": {
+      "properties": ["transform", "opacity"],
+      "avoid": ["width", "height", "top", "left", "margin", "padding", "background-position"],
+      "rationale": "Transform and opacity bypass layout/paint - 60fps guaranteed"
+    },
+    "willChange": {
+      "usage": "Add will-change: transform, opacity; for elements that WILL animate",
+      "warning": "Creates compositing layer - uses GPU memory. Don't overuse.",
+      "remove": "Remove will-change after animation completes to free resources"
+    },
+    "concurrentAnimations": {
+      "productive": "Max 5 simultaneous animations - more causes jank",
+      "expressive": "Max 8 simultaneous animations - storytelling requires more",
+      "rule": "Stagger instead of simultaneous when possible"
+    },
+    "budgets": {
+      "productive": "Total animation time per interaction: <500ms",
+      "expressive": "Total animation time per interaction: <1500ms",
+      "rationale": "Users tolerate longer sequences when expecting a show"
+    }
+  }
+}

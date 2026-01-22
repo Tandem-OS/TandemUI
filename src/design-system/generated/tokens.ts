@@ -73,14 +73,39 @@ export const borderWidth = {
   "xl": "12px"
 };
 export const fontSize = {
-  "para-xs": "0.675rem",
+  "desktop-xs": "0.75rem",
+  "desktop-sm": "0.875rem",
+  "desktop-base": "1rem",
+  "desktop-lg": "1.125rem",
+  "desktop-xl": "1.25rem",
+  "desktop-2xl": "1.5rem",
+  "desktop-3xl": "1.875rem",
+  "desktop-4xl": "2.25rem",
+  "desktop-5xl": "3rem",
+  "desktop-6xl": "3.75rem",
+  "desktop-7xl": "4.5rem",
+  "desktop-8xl": "6rem",
+  "desktop-9xl": "8rem",
+  "mobile-xs": "0.6875rem",
+  "mobile-sm": "0.8125rem",
+  "mobile-base": "1rem",
+  "mobile-lg": "1.0625rem",
+  "mobile-xl": "1.1875rem",
+  "mobile-2xl": "1.375rem",
+  "mobile-3xl": "1.625rem",
+  "mobile-4xl": "1.875rem",
+  "mobile-5xl": "2.25rem",
+  "mobile-6xl": "2.625rem",
+  "mobile-7xl": "3rem",
+  "mobile-8xl": "3.5rem",
+  "para-xs": "0.75rem",
   "para-sm": "0.875rem",
   "para-md": "1rem",
   "para-lg": "1.125rem",
   "para-xl": "1.25rem",
   "h1-sm": "2.25rem",
   "h1-md": "3rem",
-  "h1-lg": "4rem",
+  "h1-lg": "3.75rem",
   "h2-sm": "1.875rem",
   "h2-md": "2.25rem",
   "h2-lg": "3rem",
@@ -96,25 +121,29 @@ export const fontSize = {
   "h6-sm": "1rem",
   "h6-md": "1.125rem",
   "h6-lg": "1.25rem",
-  "h7-sm": "0.875rem",
-  "h7-md": "1rem",
-  "h7-lg": "1.125rem",
-  "btn-sm": "1rem",
-  "btn-md": "1.125rem",
-  "btn-lg": "1.25rem",
+  "btn-sm": "0.875rem",
+  "btn-md": "1rem",
+  "btn-lg": "1.125rem",
   "icon-sm": "1rem",
   "icon-md": "1.25rem",
   "icon-lg": "1.5rem",
-  "icon-xl": "2rem",
-  "icon-2xl": "3rem"
+  "icon-xl": "2.25rem",
+  "caption": "0.75rem",
+  "overline": "0.75rem"
 };
 export const lineHeight = {
-  "none": "1",
-  "tight": "1.25",
-  "snug": "1.375",
-  "normal": "1.5",
-  "relaxed": "1.625",
-  "loose": "2"
+  "desktop-none": 1,
+  "desktop-tight": 1.25,
+  "desktop-snug": 1.375,
+  "desktop-normal": 1.5,
+  "desktop-relaxed": 1.75,
+  "desktop-loose": 2,
+  "mobile-none": 1,
+  "mobile-tight": 1.3,
+  "mobile-snug": 1.4,
+  "mobile-normal": 1.5,
+  "mobile-relaxed": 1.8,
+  "mobile-loose": 2.1
 };
 export const fontFamily = {
   "sans": "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
@@ -1030,7 +1059,7 @@ export const opacity = {
 };
 export const spacing = {
   primitives: {
-  "0": "0px",
+  "0": "0rem",
   "1": "0.25rem",
   "2": "0.5rem",
   "3": "0.75rem",
@@ -1060,24 +1089,62 @@ export const spacing = {
   "72": "18rem",
   "80": "20rem",
   "96": "24rem",
-  "px": "1px",
   "0.5": "0.125rem",
   "1.5": "0.375rem",
   "2.5": "0.625rem",
   "3.5": "0.875rem"
 },
   semantic: {
-  "none": "0",
-  "hairline": "1px",
-  "xs": "0.25rem",
-  "sm": "0.5rem",
-  "md": "1rem",
-  "lg": "1.5rem",
-  "xl": "2rem",
-  "2xl": "3rem",
-  "3xl": "4rem",
-  "4xl": "5rem",
-  "5xl": "6rem"
+  "component": {
+    "xs": "0.25rem",
+    "sm": "0.5rem",
+    "md": "1rem",
+    "lg": "1.5rem",
+    "xl": "2rem"
+  },
+  "stack": {
+    "xs": "0.25rem",
+    "sm": "0.5rem",
+    "md": "1rem",
+    "lg": "1.5rem",
+    "xl": "3rem"
+  },
+  "inline": {
+    "xs": "0.25rem",
+    "sm": "0.5rem",
+    "md": "1rem",
+    "lg": "1.5rem"
+  },
+  "inset": {
+    "xs": "0.25rem",
+    "sm": "0.5rem",
+    "md": "0.75rem",
+    "lg": "1rem",
+    "xl": "1.5rem",
+    "2xl": "2rem"
+  },
+  "layout": {
+    "container": {
+      "xs": "1rem",
+      "sm": "1.5rem",
+      "md": "2rem",
+      "lg": "3rem",
+      "xl": "4rem"
+    },
+    "section": {
+      "sm": "3rem",
+      "md": "4rem",
+      "lg": "6rem",
+      "xl": "8rem"
+    }
+  },
+  "grid": {
+    "xs": "0.5rem",
+    "sm": "1rem",
+    "md": "1.5rem",
+    "lg": "2rem",
+    "xl": "3rem"
+  }
 }
 };
 export const motion = {

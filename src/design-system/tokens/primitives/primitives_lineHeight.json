@@ -1,10 +1,122 @@
 {
   "$schema": "https://tandem.design/schemas/tokens/primitives/lineHeight.json",
-  "$description": "Line height primitives",
-  "none": "1",
-  "tight": "1.25",
-  "snug": "1.375",
-  "normal": "1.5",
-  "relaxed": "1.625",
-  "loose": "2"
+  "$description": "Line height primitives - Raw unitless ratios. Mobile often needs looser leading for comfortable reading.",
+  "$version": "2.0.0",
+  "$hierarchy": "THIS FILE (raw ratios) → semantic/typography.json → components/*.json",
+
+  "desktop": {
+    "none": {
+      "value": 1,
+      "usage": "No line height (buttons, single-line text)"
+    },
+    "tight": {
+      "value": 1.25,
+      "usage": "Tight leading for headings"
+    },
+    "snug": {
+      "value": 1.375,
+      "usage": "Snug leading for subheadings"
+    },
+    "normal": {
+      "value": 1.5,
+      "default": true,
+      "usage": "Standard body text (WCAG minimum)"
+    },
+    "relaxed": {
+      "value": 1.75,
+      "usage": "Comfortable reading for longer content"
+    },
+    "loose": {
+      "value": 2,
+      "usage": "Very loose for emphasis or large text"
+    }
+  },
+
+  "mobile": {
+    "none": {
+      "value": 1,
+      "usage": "No line height (buttons, single-line)"
+    },
+    "tight": {
+      "value": 1.3,
+      "usage": "Tight leading (mobile) - slightly looser than desktop"
+    },
+    "snug": {
+      "value": 1.4,
+      "usage": "Snug leading (mobile)"
+    },
+    "normal": {
+      "value": 1.5,
+      "default": true,
+      "usage": "Standard body (mobile) - matches desktop"
+    },
+    "relaxed": {
+      "value": 1.8,
+      "usage": "Comfortable reading (mobile) - more generous"
+    },
+    "loose": {
+      "value": 2.1,
+      "usage": "Very loose (mobile)"
+    }
+  },
+
+  "$mobileOptimization": {
+    "principle": "Mobile benefits from slightly taller line height for thumb-scroll readability",
+    "recommendation": "+0.05 to +0.1 to desktop values for mobile body text",
+    "reasoning": "Longer line height reduces accidental line skipping during scroll"
+  },
+
+  "$accessibilityMinimums": {
+    "bodyText": "1.5 minimum (WCAG 1.4.12)",
+    "headings": "1.2-1.4 acceptable",
+    "buttons": "1 acceptable (single line)",
+    "recommendation": "Never go below 1.5 for multi-line body content"
+  },
+
+  "$tailwindMapping": {
+    "desktop": {
+      "none": "leading-none",
+      "tight": "leading-tight",
+      "snug": "leading-snug",
+      "normal": "leading-normal",
+      "relaxed": "leading-relaxed",
+      "loose": "leading-loose"
+    },
+    "customValues": {
+      "1.3": "leading-[1.3]",
+      "1.4": "leading-[1.4]",
+      "1.8": "leading-[1.8]",
+      "2.1": "leading-[2.1]"
+    }
+  },
+
+  "$usageByTextType": {
+    "headings": {
+      "desktop": "tight (1.25)",
+      "mobile": "tight (1.3)"
+    },
+    "subheadings": {
+      "desktop": "snug (1.375)",
+      "mobile": "snug (1.4)"
+    },
+    "body": {
+      "desktop": "normal to relaxed (1.5-1.75)",
+      "mobile": "normal to relaxed (1.5-1.8)"
+    },
+    "buttons": {
+      "desktop": "none (1)",
+      "mobile": "none (1)"
+    },
+    "quotes": {
+      "desktop": "relaxed (1.75)",
+      "mobile": "relaxed (1.8)"
+    }
+  },
+
+  "$personalityMapping": {
+    "technical": ["tight", "snug"],
+    "editorial": ["normal", "relaxed"],
+    "friendly": ["relaxed"],
+    "luxury": ["loose", "relaxed"]
+  }
 }
