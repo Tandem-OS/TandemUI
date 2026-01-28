@@ -1,0 +1,7 @@
+{
+  "fontFamily": {
+    "sans": "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    "serif": "Georgia, Cambria, 'Times New Roman', Times, serif",
+    "mono": "'Roboto Mono', Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
+  }
+}
