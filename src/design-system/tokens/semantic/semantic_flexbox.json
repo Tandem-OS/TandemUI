@@ -1,0 +1,317 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/semantic/flexbox.json",
+  "$description": "Semantic flexbox - Flex patterns referencing primitives.",
+  "$version": "1.0.0",
+  "$hierarchy": "primitives/flexbox.json → THIS FILE → components/*.json",
+  "$rule": "MUST reference {primitives.flexbox.*}",
+
+  "layouts": {
+    "row": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "wrap": "{primitives.flexbox.flexWrap.nowrap}",
+      "usage": ["horizontal-navigation", "button-groups", "inline-elements"]
+    },
+
+    "rowReverse": {
+      "direction": "{primitives.flexbox.flexDirection.rowReverse}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "wrap": "{primitives.flexbox.flexWrap.nowrap}",
+      "usage": ["rtl-layouts", "reversed-order"]
+    },
+
+    "column": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.stretch}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "wrap": "{primitives.flexbox.flexWrap.nowrap}",
+      "usage": ["vertical-stacking", "forms", "card-content"]
+    },
+
+    "columnReverse": {
+      "direction": "{primitives.flexbox.flexDirection.colReverse}",
+      "align": "{primitives.flexbox.alignItems.stretch}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "wrap": "{primitives.flexbox.flexWrap.nowrap}",
+      "usage": ["footer-first-mobile", "inverted-order"]
+    },
+
+    "center": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.center}",
+      "usage": ["centered-content", "modals", "hero-text", "loading-states"]
+    },
+
+    "centerColumn": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.center}",
+      "usage": ["vertical-center", "empty-states", "404-pages"]
+    },
+
+    "spaceBetween": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.between}",
+      "usage": ["headers", "split-buttons", "card-headers"]
+    },
+
+    "spaceBetweenColumn": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.stretch}",
+      "justify": "{primitives.flexbox.justifyContent.between}",
+      "usage": ["full-height-cards", "sticky-footer"]
+    },
+
+    "spaceAround": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.around}",
+      "usage": ["evenly-distributed", "icon-bars"]
+    },
+
+    "spaceEvenly": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.evenly}",
+      "usage": ["perfectly-distributed", "navigation-items"]
+    },
+
+    "wrap": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.start}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "wrap": "{primitives.flexbox.flexWrap.wrap}",
+      "usage": ["tags", "chips", "responsive-buttons", "filter-pills"]
+    },
+
+    "wrapCenter": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.center}",
+      "wrap": "{primitives.flexbox.flexWrap.wrap}",
+      "usage": ["centered-tags", "logo-clouds"]
+    },
+
+    "baseline": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.baseline}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "usage": ["text-alignment", "mixed-font-sizes", "pricing"]
+    },
+
+    "stretch": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.stretch}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "usage": ["equal-height-children", "cards", "panels"]
+    }
+  },
+
+  "componentPatterns": {
+    "navbar": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.between}",
+      "wrap": "{primitives.flexbox.flexWrap.nowrap}",
+      "usage": ["header-navigation"]
+    },
+
+    "navMenu": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "wrap": "{primitives.flexbox.flexWrap.wrap}",
+      "gap": "1rem",
+      "usage": ["navigation-links"]
+    },
+
+    "buttonGroup": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "wrap": "{primitives.flexbox.flexWrap.wrap}",
+      "gap": "0.5rem",
+      "usage": ["action-buttons", "cta-groups"]
+    },
+
+    "cardHeader": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.between}",
+      "usage": ["card-title-actions"]
+    },
+
+    "cardContent": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.stretch}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "gap": "1rem",
+      "usage": ["card-body"]
+    },
+
+    "cardFooter": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.end}",
+      "gap": "0.5rem",
+      "usage": ["card-actions"]
+    },
+
+    "form": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.stretch}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "gap": "1.5rem",
+      "usage": ["form-layout"]
+    },
+
+    "formRow": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.end}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "wrap": "{primitives.flexbox.flexWrap.wrap}",
+      "gap": "1rem",
+      "usage": ["inline-form-fields"]
+    },
+
+    "inputGroup": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.stretch}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "gap": "0.5rem",
+      "usage": ["label-input-error"]
+    },
+
+    "modal": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.center}",
+      "usage": ["modal-overlay-centering"]
+    },
+
+    "modalContent": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.stretch}",
+      "justify": "{primitives.flexbox.justifyContent.between}",
+      "usage": ["modal-header-body-footer"]
+    },
+
+    "toast": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.start}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "gap": "0.75rem",
+      "usage": ["notification-layout"]
+    },
+
+    "avatar": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "gap": "0.75rem",
+      "usage": ["user-profile-inline"]
+    },
+
+    "badge": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.center}",
+      "gap": "0.25rem",
+      "usage": ["status-badges"]
+    },
+
+    "dropdown": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.stretch}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "usage": ["menu-items"]
+    },
+
+    "breadcrumbs": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "wrap": "{primitives.flexbox.flexWrap.wrap}",
+      "gap": "0.5rem",
+      "usage": ["navigation-breadcrumbs"]
+    },
+
+    "tabs": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.start}",
+      "wrap": "{primitives.flexbox.flexWrap.nowrap}",
+      "gap": "0",
+      "usage": ["tab-navigation"]
+    },
+
+    "statCard": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.start}",
+      "justify": "{primitives.flexbox.justifyContent.between}",
+      "gap": "0.5rem",
+      "usage": ["dashboard-metrics"]
+    },
+
+    "hero": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.center}",
+      "gap": "2rem",
+      "usage": ["hero-section-centered"]
+    },
+
+    "heroSplit": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.center}",
+      "justify": "{primitives.flexbox.justifyContent.between}",
+      "wrap": "{primitives.flexbox.flexWrap.wrap}",
+      "gap": "3rem",
+      "usage": ["hero-text-image-split"]
+    },
+
+    "footer": {
+      "direction": "{primitives.flexbox.flexDirection.row}",
+      "align": "{primitives.flexbox.alignItems.start}",
+      "justify": "{primitives.flexbox.justifyContent.between}",
+      "wrap": "{primitives.flexbox.flexWrap.wrap}",
+      "gap": "2rem",
+      "usage": ["footer-columns"]
+    },
+
+    "stickyFooter": {
+      "direction": "{primitives.flexbox.flexDirection.col}",
+      "align": "{primitives.flexbox.alignItems.stretch}",
+      "justify": "{primitives.flexbox.justifyContent.between}",
+      "minHeight": "100vh",
+      "usage": ["page-layout-with-sticky-footer"]
+    }
+  },
+
+  "$responsivePatterns": {
+    "mobile": {
+      "default": "flex-col - Stack everything vertically",
+      "exception": "Small inline elements (badges, chips) can use flex-row wrap"
+    },
+    "tablet": {
+      "default": "flex-row wrap - Allow horizontal layout with wrapping",
+      "cards": "Consider flex-row with 2 items per row"
+    },
+    "desktop": {
+      "default": "flex-row nowrap - Full horizontal layouts",
+      "complex": "Combine with gap utilities for spacing"
+    }
+  },
+
+  "$usageGuidelines": {
+    "alignment": "Use alignItems for cross-axis, justifyContent for main-axis",
+    "gaps": "Prefer gap utility over margin for flex children spacing",
+    "wrap": "Always consider mobile - use wrap for responsive layouts",
+    "direction": "Column for mobile, row for desktop is the most common pattern",
+    "stretch": "Use for equal-height cards and panels"
+  }
+}

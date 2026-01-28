@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { RiMenuLine, RiSettings4Line, RiLogoutBoxLine, RiArrowDownSLine } from 'react-icons/ri';
 import { clsx } from 'clsx';
-import Drawer from '../../../comman-components/Drawer';
-import Dropdown from '../../../comman-components/Dropdown';
+import Drawer from '../../../common-components/Drawer';
+import Dropdown from '../../../common-components/Dropdown';
 import ThemeToggle from '../../../components/theme-toggle/ThemeToggle';
 import { menuItems } from '../config/menuItems';
 

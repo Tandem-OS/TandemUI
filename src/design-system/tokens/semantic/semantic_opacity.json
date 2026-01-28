@@ -1,0 +1,86 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/semantic/opacity.json",
+  "$description": "Semantic opacity - Contextual transparency referencing primitives.",
+  "$version": "1.0.0",
+  "$hierarchy": "primitives/opacity.json → THIS FILE → components/*.json",
+  "$rule": "MUST reference {primitives.opacity.*}",
+
+  "disabled": {
+    "value": "{primitives.opacity.40}",
+    "decimal": 0.4,
+    "usage": ["disabled-buttons", "inactive-elements", "non-interactive"],
+    "rationale": "40% opacity signals non-interactive state"
+  },
+  "muted": {
+    "value": "{primitives.opacity.60}",
+    "decimal": 0.6,
+    "usage": ["secondary-text", "placeholder-text", "helper-text"],
+    "rationale": "Visible but de-emphasized"
+  },
+  "subtle": {
+    "value": "{primitives.opacity.80}",
+    "decimal": 0.8,
+    "usage": ["hover-overlays", "light-backgrounds"],
+    "rationale": "Subtle transparency"
+  },
+  "overlay": {
+    "light": {
+      "value": "{primitives.opacity.50}",
+      "decimal": 0.5,
+      "usage": ["modal-backdrop-light", "loading-overlay"],
+      "rationale": "Half-transparent - balances visibility and dimming"
+    },
+    "medium": {
+      "value": "{primitives.opacity.70}",
+      "decimal": 0.7,
+      "usage": ["modal-backdrop", "drawer-overlay"],
+      "rationale": "Standard overlay - clearly dims content"
+    },
+    "heavy": {
+      "value": "{primitives.opacity.90}",
+      "decimal": 0.9,
+      "usage": ["fullscreen-overlay", "focus-mode"],
+      "rationale": "Almost opaque - strong dimming"
+    }
+  },
+  "hover": {
+    "value": "{primitives.opacity.10}",
+    "decimal": 0.1,
+    "usage": ["hover-overlay", "button-hover-tint"],
+    "rationale": "Subtle overlay for hover states"
+  },
+  "skeleton": {
+    "value": "{primitives.opacity.20}",
+    "decimal": 0.2,
+    "usage": ["skeleton-loading", "placeholder-shimmer"],
+    "rationale": "Light enough to show shimmer animation"
+  },
+
+  "$accessibilityConsiderations": {
+    "minimumOpacity": {
+      "interactiveElements": "60% minimum for clickable elements",
+      "text": "70% minimum for readable text",
+      "rationale": "Below these thresholds, elements become hard to perceive"
+    },
+    "contrastImpact": {
+      "note": "Opacity reduces effective contrast ratio",
+      "example": "Black text at 50% opacity = #808080 = lower contrast",
+      "recommendation": "Calculate final contrast after opacity applied"
+    }
+  },
+
+  "$usageGuidelines": {
+    "doUse": [
+      "Disabled states (40%)",
+      "Overlay backgrounds (50-90%)",
+      "Hover effects (10-20%)",
+      "Loading states (20-30%)"
+    ],
+    "doNotUse": [
+      "Primary text (use semantic color tokens instead)",
+      "Interactive elements that need full visibility",
+      "As replacement for proper color tokens"
+    ],
+    "performance": "Opacity can trigger repaints - use sparingly on animated elements"
+  }
+}

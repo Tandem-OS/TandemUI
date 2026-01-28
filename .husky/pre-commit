@@ -1,0 +1,20 @@
+# #!/usr/bin/env sh
+# . "$(dirname -- "$0")/_/husky.sh"
+
+# echo "🔍 Checking component library..."
+
+# # Run ESLint on components
+# npm run lint:components
+# if [ $? -ne 0 ]; then
+#   echo "❌ ESLint failed! Fix errors before committing."
+#   exit 1
+# fi
+
+# # Run tests on components
+# npm run test:components
+# if [ $? -ne 0 ]; then
+#   echo "❌ Tests failed! No hardcoded classes allowed."
+#   exit 1
+# fi
+
+# echo "✅ All checks passed!"

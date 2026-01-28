@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { createProject, getProjectByClientEmail } from '@/lib/requests/ProjectRequest.tsx';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
-import Toast from '@/comman-components/Toast';
+import Toast from '@/common-components/Toast';
 
 // Types
 interface OnboardingFormData {

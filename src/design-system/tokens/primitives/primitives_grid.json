@@ -1,0 +1,229 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/primitives/grid.json",
+  "$description": "Grid primitives - Raw grid values only. No usage guidance.",
+  "$version": "1.0.0",
+  "$hierarchy": "THIS FILE (raw values) → semantic (context) → components/*.json",
+
+  "columns": {
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "11": 11,
+    "12": 12,
+    "auto": "auto",
+    "full": "1fr",
+    "min": "min-content",
+    "max": "max-content",
+    "fit": "fit-content"
+  },
+
+  "rows": {
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "auto": "auto",
+    "full": "1fr",
+    "min": "min-content",
+    "max": "max-content",
+    "fit": "fit-content"
+  },
+
+  "gap": {
+    "0": "0px",
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px",
+    "20": "80px",
+    "24": "96px",
+    "32": "128px"
+  },
+
+  "gapX": {
+    "0": "0px",
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px",
+    "20": "80px",
+    "24": "96px",
+    "32": "128px"
+  },
+
+  "gapY": {
+    "0": "0px",
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px",
+    "20": "80px",
+    "24": "96px",
+    "32": "128px"
+  },
+
+  "autoFlow": {
+    "row": "row",
+    "col": "column",
+    "rowDense": "row dense",
+    "colDense": "column dense"
+  },
+
+  "templateColumns": {
+    "none": "none",
+    "subgrid": "subgrid",
+    "1fr": "1fr",
+    "2fr": "repeat(2, 1fr)",
+    "3fr": "repeat(3, 1fr)",
+    "4fr": "repeat(4, 1fr)",
+    "5fr": "repeat(5, 1fr)",
+    "6fr": "repeat(6, 1fr)",
+    "7fr": "repeat(7, 1fr)",
+    "8fr": "repeat(8, 1fr)",
+    "9fr": "repeat(9, 1fr)",
+    "10fr": "repeat(10, 1fr)",
+    "11fr": "repeat(11, 1fr)",
+    "12fr": "repeat(12, 1fr)",
+    "sidebar": "250px 1fr",
+    "sidebarReverse": "1fr 250px",
+    "twoColumn": "1fr 1fr",
+    "threeColumn": "1fr 1fr 1fr",
+    "fourColumn": "1fr 1fr 1fr 1fr",
+    "goldenRatio": "1.618fr 1fr",
+    "60-40": "3fr 2fr",
+    "70-30": "7fr 3fr",
+    "2-1": "2fr 1fr",
+    "1-2": "1fr 2fr",
+    "autoFit200": "repeat(auto-fit, minmax(200px, 1fr))",
+    "autoFit250": "repeat(auto-fit, minmax(250px, 1fr))",
+    "autoFit300": "repeat(auto-fit, minmax(300px, 1fr))",
+    "autoFill200": "repeat(auto-fill, minmax(200px, 1fr))",
+    "autoFill250": "repeat(auto-fill, minmax(250px, 1fr))",
+    "autoFill300": "repeat(auto-fill, minmax(300px, 1fr))"
+  },
+
+  "templateRows": {
+    "none": "none",
+    "subgrid": "subgrid",
+    "1fr": "1fr",
+    "2fr": "repeat(2, 1fr)",
+    "3fr": "repeat(3, 1fr)",
+    "4fr": "repeat(4, 1fr)",
+    "5fr": "repeat(5, 1fr)",
+    "6fr": "repeat(6, 1fr)",
+    "header-content-footer": "auto 1fr auto",
+    "nav-content": "auto 1fr",
+    "hero-content": "minmax(500px, 1fr) auto"
+  },
+
+  "columnSpan": {
+    "auto": "auto",
+    "1": "span 1 / span 1",
+    "2": "span 2 / span 2",
+    "3": "span 3 / span 3",
+    "4": "span 4 / span 4",
+    "5": "span 5 / span 5",
+    "6": "span 6 / span 6",
+    "7": "span 7 / span 7",
+    "8": "span 8 / span 8",
+    "9": "span 9 / span 9",
+    "10": "span 10 / span 10",
+    "11": "span 11 / span 11",
+    "12": "span 12 / span 12",
+    "full": "1 / -1"
+  },
+
+  "rowSpan": {
+    "auto": "auto",
+    "1": "span 1 / span 1",
+    "2": "span 2 / span 2",
+    "3": "span 3 / span 3",
+    "4": "span 4 / span 4",
+    "5": "span 5 / span 5",
+    "6": "span 6 / span 6",
+    "full": "1 / -1"
+  },
+
+  "columnStart": {
+    "auto": "auto",
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "11": 11,
+    "12": 12,
+    "13": 13
+  },
+
+  "columnEnd": {
+    "auto": "auto",
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "11": 11,
+    "12": 12,
+    "13": 13
+  },
+
+  "rowStart": {
+    "auto": "auto",
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7
+  },
+
+  "rowEnd": {
+    "auto": "auto",
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7
+  }
+}

@@ -5,8 +5,7 @@ import { type SwipeCardProps, type BehavioralSignal, type ActionSource } from '.
 import { AskAiModal } from './AskAiModal';
 import swipeAudio from "@/assets/audio/swipeAudio.mp3";
 import clickAudio from "@/assets/audio/clickAudio.mp3";
-import Drawer from '@/comman-components/Drawer';
-
+import Drawer from '@/common-components/Drawer';
 // Constants
 const SWIPE_POWER = 500;
 const X_THRESHOLD = 120;

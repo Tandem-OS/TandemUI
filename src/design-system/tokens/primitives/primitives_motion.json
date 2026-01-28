@@ -1,0 +1,30 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/primitives/motion.json",
+  "$description": "Motion primitives - Duration and Easing values.",
+  "$version": "1.0.0",
+  
+  "duration": {
+    "0": "0ms",
+    "50": "50ms",
+    "75": "75ms",
+    "100": "100ms",
+    "150": "150ms",
+    "200": "200ms",
+    "300": "300ms",
+    "400": "400ms",
+    "500": "500ms",
+    "700": "700ms",
+    "1000": "1000ms"
+  },
+
+  "easing": {
+    "linear": "linear",
+    "in": "cubic-bezier(0.4, 0, 1, 1)",
+    "out": "cubic-bezier(0, 0, 0.2, 1)",
+    "inOut": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "standard": "cubic-bezier(0.4, 0.0, 0.2, 1)",
+    "emphasized": "cubic-bezier(0.2, 0.0, 0.0, 1.0)",
+    "decelerate": "cubic-bezier(0.0, 0.0, 0.2, 1.0)",
+    "accelerate": "cubic-bezier(0.4, 0.0, 1.0, 1.0)"
+  }
+}

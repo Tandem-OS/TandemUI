@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiMaximize2, FiMinimize2, FiSmartphone, FiTablet, FiMonitor, FiArrowRight } from 'react-icons/fi';
 import { Navbar, Hero, Features, About, Blog, Pricing, CTA, Footer } from './PreviewComponents';
 import PreviewFrame from './PreviewFrame';
-import Preloader from '@/comman-components/Preloader';
+import Preloader from '@/common-components/Preloader';
 
 interface PreviewModalProps {
     isOpen: boolean;

@@ -25,7 +25,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Heading from '../../../components/demos/typography/Heading';
-import Para from '../../../comman-components/Para';
+import Para from '../../../common-components/Para';
 
 interface LayoutSection {
     id: string;

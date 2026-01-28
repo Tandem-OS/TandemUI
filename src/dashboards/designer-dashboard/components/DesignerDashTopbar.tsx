@@ -6,7 +6,7 @@ import {
     RiLogoutBoxLine,
     RiUser3Line,
 } from 'react-icons/ri';
-import Dropdown from '../../../comman-components/Dropdown';
+import Dropdown from '../../../common-components/Dropdown';
 import ThemeToggle from '../../../components/theme-toggle/ThemeToggle';
 import { handleLogout } from '../../../lib/requests/AuthRequest';
 import { useNavigate } from 'react-router-dom';

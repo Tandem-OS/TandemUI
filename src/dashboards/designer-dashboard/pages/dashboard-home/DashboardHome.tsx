@@ -3,7 +3,6 @@ import { RiArrowRightLine } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
 import { mockDashboardData } from '../../../../mock-data/designer-dash-home.mock.';
 // import ProgressRing from '../../../../comman-components/ProgressRing';
-import ColorPicker from '../../../../comman-components/ColorPicker';
 import { type AccentColor } from '../../../../types/component.types';
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { BsTags } from "react-icons/bs";
@@ -11,6 +10,7 @@ import activeProjectChart from "@/assets/images/active-project-chart.svg"
 import linkChartIcon from "@/assets/images/link-chart.svg"
 import orangeLinkChart from "@/assets/images/orangeLinkChart.svg"
 import blueLineChart from "@/assets/images/blueLinkChart.svg"
+import ColorPicker from '@/common-components/ColorPicker';
 
 type PaddingSize = "sm" | "md" | "lg";
 
@@ -120,7 +120,7 @@ const StatusTag: React.FC<StatusTagProps> = ({ status, label, colors }) => {
 
   return (
     <div className="w-full flex justify-center">
-      <span className={`block w-full px-sm py-xs flex justify-center rounded-full text-para-xs font-medium border ${statusStyles[status]}`}>
+      <span className={`w-full px-sm py-xs flex justify-center rounded-full text-para-xs font-medium border ${statusStyles[status]}`}>
         {label}
       </span>
     </div>
@@ -321,19 +321,19 @@ const DashboardHome: React.FC = () => {
             whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
             className="h-full"
           >
-            <div className="relative bg-card-gradient text-white rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px] bg-[linear-gradient(180deg,_#4D43E4_26.44%,_rgba(132,_125,_236,_0.689189)_99.99%,_rgba(255,_255,_255,_0)_100%)]">
+            <div className="relative bg-card-gradient rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px] bg-[linear-gradient(180deg,_#4D43E4_26.44%,_rgba(132,_125,_236,_0.689189)_99.99%,_rgba(255,_255,_255,_0)_100%)]">
               <div className="absolute top-4 left-4 flex gap-2">
-                <div className="bg-background-secondary-2 text-blue-violet p-2 rounded-full flex items-center justify-center">
+                <div className="bg-background-secondary-2 text-accent-default p-2 rounded-full flex items-center justify-center">
                   <BsTags />
                 </div>
-                <div className="bg-background-secondary-2 text-blue-violet text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2">
+                <div className="bg-background-secondary-2 text-accent-default text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2">
                   <FaArrowTrendUp />
                   23% faster this month
                 </div>
               </div>
 
               <div className="mt-12">
-                <h3 className="text-4xl font-bold">71%</h3>
+                <h3 className="text-4xl text-white font-bold">71%</h3>
                 <p className="text-white/80 text-sm mt-1">Conversion Rate</p>
               </div>
 

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/primitives/container.json",
+  "$description": "Container width primitives - Raw pixel values only. No usage guidance.",
+  "$version": "1.0.0",
+  "$hierarchy": "THIS FILE (raw px) → semantic (context) → components/*.json",
+
+  "sm": "640px",
+  "md": "768px",
+  "lg": "1024px",
+  "xl": "1280px",
+  "2xl": "1536px",
+  "full": "100%"
+}

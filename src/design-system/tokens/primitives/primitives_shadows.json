@@ -1,0 +1,199 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/primitives/shadows.json",
+  "$description": "Shadow primitives - Formula-based shadows referencing color primitives. No raw values.",
+  "$version": "2.0.0",
+  "$hierarchy": "primitives/colors.json → THIS FILE → semantic/shadows.json → themes/[light|dark].json → components",
+  "$rule": "ALL shadow colors MUST reference {primitives.colors.*} with opacity formulas",
+  
+  "$formula": {
+    "light": "Uses neutral.900 at varying opacities (8%, 12%, 16%, 20%, 25%)",
+    "dark": "Uses neutral.975 at varying opacities (16%, 24%, 32%, 40%, 50%)",
+    "colored": "Uses the base color at reduced opacity for branded shadows"
+  },
+
+  "none": "none",
+  
+  "xs": {
+    "offsetX": 0,
+    "offsetY": 1,
+    "blur": 2,
+    "spread": 0,
+    "color": "{primitives.colors.neutral.900}",
+    "opacity": 0.05,
+    "css": "0 1px 2px 0 {color}/{opacity}"
+  },
+  
+  "sm": {
+    "layers": [
+      {
+        "offsetX": 0,
+        "offsetY": 1,
+        "blur": 3,
+        "spread": 0,
+        "color": "{primitives.colors.neutral.900}",
+        "opacity": 0.1
+      },
+      {
+        "offsetX": 0,
+        "offsetY": 1,
+        "blur": 2,
+        "spread": -1,
+        "color": "{primitives.colors.neutral.900}",
+        "opacity": 0.1
+      }
+    ],
+    "css": "0 1px 3px 0 {color}/{opacity}, 0 1px 2px -1px {color}/{opacity}"
+  },
+  
+  "md": {
+    "layers": [
+      {
+        "offsetX": 0,
+        "offsetY": 4,
+        "blur": 6,
+        "spread": -1,
+        "color": "{primitives.colors.neutral.900}",
+        "opacity": 0.1
+      },
+      {
+        "offsetX": 0,
+        "offsetY": 2,
+        "blur": 4,
+        "spread": -2,
+        "color": "{primitives.colors.neutral.900}",
+        "opacity": 0.1
+      }
+    ],
+    "css": "0 4px 6px -1px {color}/{opacity}, 0 2px 4px -2px {color}/{opacity}"
+  },
+  
+  "lg": {
+    "layers": [
+      {
+        "offsetX": 0,
+        "offsetY": 10,
+        "blur": 15,
+        "spread": -3,
+        "color": "{primitives.colors.neutral.900}",
+        "opacity": 0.1
+      },
+      {
+        "offsetX": 0,
+        "offsetY": 4,
+        "blur": 6,
+        "spread": -4,
+        "color": "{primitives.colors.neutral.900}",
+        "opacity": 0.1
+      }
+    ],
+    "css": "0 10px 15px -3px {color}/{opacity}, 0 4px 6px -4px {color}/{opacity}"
+  },
+  
+  "xl": {
+    "layers": [
+      {
+        "offsetX": 0,
+        "offsetY": 20,
+        "blur": 25,
+        "spread": -5,
+        "color": "{primitives.colors.neutral.900}",
+        "opacity": 0.1
+      },
+      {
+        "offsetX": 0,
+        "offsetY": 8,
+        "blur": 10,
+        "spread": -6,
+        "color": "{primitives.colors.neutral.900}",
+        "opacity": 0.1
+      }
+    ],
+    "css": "0 20px 25px -5px {color}/{opacity}, 0 8px 10px -6px {color}/{opacity}"
+  },
+  
+  "2xl": {
+    "offsetX": 0,
+    "offsetY": 25,
+    "blur": 50,
+    "spread": -12,
+    "color": "{primitives.colors.neutral.900}",
+    "opacity": 0.25,
+    "css": "0 25px 50px -12px {color}/{opacity}"
+  },
+  
+  "inner": {
+    "type": "inset",
+    "offsetX": 0,
+    "offsetY": 2,
+    "blur": 4,
+    "spread": 0,
+    "color": "{primitives.colors.neutral.900}",
+    "opacity": 0.05,
+    "css": "inset 0 2px 4px 0 {color}/{opacity}"
+  },
+
+  "$coloredShadows": {
+    "description": "Branded shadows for focus states and emphasis",
+    "formula": "Uses brand colors at 24-32% opacity",
+    
+    "indigo": {
+      "offsetX": 0,
+      "offsetY": 0,
+      "blur": 0,
+      "spread": 4,
+      "color": "{primitives.colors.indigo.500}",
+      "opacity": 0.24,
+      "css": "0 0 0 4px {color}/{opacity}"
+    },
+    
+    "orange": {
+      "offsetX": 0,
+      "offsetY": 0,
+      "blur": 0,
+      "spread": 4,
+      "color": "{primitives.colors.orange.500}",
+      "opacity": 0.24,
+      "css": "0 0 0 4px {color}/{opacity}"
+    },
+    
+    "emerald": {
+      "offsetX": 0,
+      "offsetY": 0,
+      "blur": 0,
+      "spread": 4,
+      "color": "{primitives.colors.emerald.500}",
+      "opacity": 0.24,
+      "css": "0 0 0 4px {color}/{opacity}"
+    },
+    
+    "red": {
+      "offsetX": 0,
+      "offsetY": 0,
+      "blur": 0,
+      "spread": 4,
+      "color": "{primitives.colors.red.500}",
+      "opacity": 0.24,
+      "css": "0 0 0 4px {color}/{opacity}"
+    },
+    
+    "green": {
+      "offsetX": 0,
+      "offsetY": 0,
+      "blur": 0,
+      "spread": 4,
+      "color": "{primitives.colors.green.500}",
+      "opacity": 0.24,
+      "css": "0 0 0 4px {color}/{opacity}"
+    },
+    
+    "amber": {
+      "offsetX": 0,
+      "offsetY": 0,
+      "blur": 0,
+      "spread": 4,
+      "color": "{primitives.colors.amber.500}",
+      "opacity": 0.24,
+      "css": "0 0 0 4px {color}/{opacity}"
+    }
+  }
+}
