@@ -1,0 +1,97 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/primitives/motion.json",
+  "$description": "Motion primitives - Raw duration and easing values reflecting the duality of precision and expression",
+  "$version": "2.0.0",
+  "$hierarchy": "THIS FILE (raw ms/curves) → semantic/motion.json (context) → components/*.json",
+  "$philosophy": "Tandem motion reflects two modes: EFFICIENT (task-focused, minimal) and EXPRESSIVE (moment-focused, theatrical)",
+
+  "duration": {
+    "instant": 0,
+    "immediate": 100,
+    "swift": 150,
+    "quick": 200,
+    "moderate": 300,
+    "deliberate": 400,
+    "patient": 500,
+    "theatrical": 750,
+    "cinematic": 1000
+  },
+
+  "easing": {
+    "productive": {
+      "standard": "cubic-bezier(0.2, 0, 0.38, 0.9)",
+      "entrance": "cubic-bezier(0, 0, 0.38, 0.9)",
+      "exit": "cubic-bezier(0.2, 0, 1, 0.9)",
+      "description": "Precise, mechanical, task-oriented - feels efficient and purposeful"
+    },
+    "expressive": {
+      "standard": "cubic-bezier(0.4, 0.14, 0.3, 1)",
+      "entrance": "cubic-bezier(0, 0, 0.3, 1)",
+      "exit": "cubic-bezier(0.4, 0.14, 1, 1)",
+      "description": "Natural, humanistic, moment-oriented - feels warm and engaging"
+    },
+    "utility": {
+      "linear": "linear",
+      "emphasized": "cubic-bezier(0.4, 0, 0.6, 1)",
+      "bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+      "description": "Special-purpose curves for specific use cases"
+    }
+  },
+
+  "delay": {
+    "none": 0,
+    "micro": 50,
+    "brief": 100,
+    "short": 200,
+    "medium": 300,
+    "long": 500
+  },
+
+  "stagger": {
+    "tight": 30,
+    "compact": 50,
+    "comfortable": 80,
+    "relaxed": 120,
+    "spacious": 160,
+    "theatrical": 200
+  },
+
+  "$motionModes": {
+    "productive": {
+      "philosophy": "Machine precision - efficient, predictable, minimal distraction",
+      "whenToUse": [
+        "Data-heavy interfaces",
+        "Dashboard interactions",
+        "Form inputs and validation",
+        "Bulk operations",
+        "Productivity tools",
+        "Repeated interactions"
+      ],
+      "characteristics": [
+        "Shorter durations (100-200ms)",
+        "Tighter curves (less overshoot)",
+        "Minimal delay",
+        "Functional over decorative",
+        "Feels precise and controlled"
+      ]
+    },
+    "expressive": {
+      "philosophy": "Human warmth - engaging, memorable, brand-forward",
+      "whenToUse": [
+        "Marketing pages",
+        "Hero sections",
+        "Onboarding flows",
+        "Empty states",
+        "First-time experiences",
+        "Storytelling moments"
+      ],
+      "characteristics": [
+        "Longer durations (300-500ms)",
+        "More natural curves (gentle deceleration)",
+        "Intentional delay and stagger",
+        "Creates emotional resonance",
+        "Feels alive and intentional"
+      ]
+    }
+  }
+}

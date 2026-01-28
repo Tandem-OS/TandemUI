@@ -1,0 +1,76 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/semantic/breakpoints.json",
+  "$description": "Semantic breakpoints - Responsive contexts referencing primitives.",
+  "$version": "1.0.0",
+  "$hierarchy": "primitives/breakpoints.json → THIS FILE → components/*.json",
+  "$rule": "MUST reference {primitives.breakpoints.*}",
+
+  "mobile": {
+    "max": "{primitives.breakpoints.sm}",
+    "range": "0-640px",
+    "usage": ["phone-portrait", "small-devices"],
+    "strategy": "Stack vertically, minimize spacing, full-width buttons"
+  },
+  "tablet": {
+    "min": "{primitives.breakpoints.sm}",
+    "max": "{primitives.breakpoints.lg}",
+    "range": "640px-1024px",
+    "usage": ["tablet", "large-phones"],
+    "strategy": "2-column layouts, comfortable spacing"
+  },
+  "desktop": {
+    "min": "{primitives.breakpoints.lg}",
+    "range": "1024px+",
+    "usage": ["laptop", "desktop"],
+    "strategy": "Multi-column layouts, generous spacing, hover states",
+    "default": true
+  },
+  "wide": {
+    "min": "{primitives.breakpoints.xl}",
+    "range": "1280px+",
+    "usage": ["large-desktop", "wide-screens"],
+    "strategy": "Container max-width, centered content"
+  },
+  "ultrawide": {
+    "min": "{primitives.breakpoints.2xl}",
+    "range": "1536px+",
+    "usage": ["4K-monitors", "ultra-wide"],
+    "strategy": "Limit content width, add more whitespace"
+  },
+
+  "$responsiveBehavior": {
+    "typography": {
+      "mobile": "Use smaller sizes (sm/md)",
+      "tablet": "Use medium sizes (md/lg)",
+      "desktop": "Use larger sizes (lg/xl)"
+    },
+    "spacing": {
+      "mobile": "Compact spacing (0.75× multiplier)",
+      "tablet": "Standard spacing (1× multiplier)",
+      "desktop": "Generous spacing (1.25× multiplier)"
+    },
+    "layout": {
+      "mobile": "1 column, stack everything",
+      "tablet": "2 columns for most content",
+      "desktop": "3-4 columns, grid layouts"
+    },
+    "navigation": {
+      "mobile": "Hamburger menu, full-screen overlay",
+      "tablet": "Horizontal menu or visible sidebar",
+      "desktop": "Full navigation, all items visible"
+    }
+  },
+
+  "$hero01Mapping": {
+    "containerPadding": {
+      "mobile": "px-4 (16px)",
+      "tablet": "sm:px-6 (24px)",
+      "desktop": "lg:px-12 (48px)",
+      "wide": "xl:px-16 (64px)"
+    },
+    "grid": {
+      "mobile": "grid-cols-1",
+      "desktop": "lg:grid-cols-2"
+    }
+  }
+}

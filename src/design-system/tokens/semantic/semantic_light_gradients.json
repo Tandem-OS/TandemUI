@@ -1,0 +1,122 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/semantic/light/gradients.json",
+  "$description": "Semantic gradients for light theme - Values reference color primitives with formulas",
+  "$version": "2.0.0",
+  "$mode": "light",
+  "$references": ["primitives/colors.json"],
+  "$hierarchy": "primitives/colors.json → THIS FILE → components",
+  "$rule": "ALL gradients use formula notation: linear-gradient(..., {primitives.colors.X.Y}, ...)",
+
+  "$formula": {
+    "primary": "{primitives.colors.indigo.500} → {primitives.colors.indigo.600}",
+    "secondary": "{primitives.colors.orange.500} → {primitives.colors.orange.600}",
+    "tertiary": "{primitives.colors.emerald.500} → {primitives.colors.emerald.600}"
+  },
+
+  "hero": {
+    "primary": "linear-gradient(135deg, {primitives.colors.indigo.500} 0%, {primitives.colors.indigo.600} 100%)",
+    "primaryAccent": "linear-gradient(135deg, {primitives.colors.indigo.500} 0%, {primitives.colors.orange.500} 100%)",
+    "primaryTertiary": "linear-gradient(135deg, {primitives.colors.indigo.500} 0%, {primitives.colors.emerald.500} 100%)",
+    "secondaryTertiary": "linear-gradient(135deg, {primitives.colors.orange.400} 0%, {primitives.colors.emerald.500} 100%)",
+    "rainbow": "linear-gradient(90deg, {primitives.colors.red.500} 0%, {primitives.colors.orange.400} 16.6%, {primitives.colors.yellow.400} 33.3%, {primitives.colors.green.500} 50%, {primitives.colors.blue.500} 66.6%, {primitives.colors.purple.500} 83.3%, {primitives.colors.pink.500} 100%)",
+    "mesh": "radial-gradient(at 20% 30%, {primitives.colors.indigo.500}/0.3 0%, transparent 50%), radial-gradient(at 80% 20%, {primitives.colors.orange.500}/0.2 0%, transparent 50%), radial-gradient(at 40% 80%, {primitives.colors.emerald.500}/0.2 0%, transparent 50%), radial-gradient(at 90% 70%, {primitives.colors.purple.500}/0.15 0%, transparent 50%)"
+  },
+
+  "background": {
+    "subtle": "linear-gradient(180deg, {primitives.colors.indigo.50} 0%, {primitives.colors.neutral.50} 100%)",
+    "neutral": "linear-gradient(180deg, {primitives.colors.neutral.50} 0%, {primitives.colors.neutral.0} 100%)",
+    "primaryTint": "linear-gradient(135deg, {primitives.colors.indigo.50}/0.6 0%, {primitives.colors.orange.25}/0.4 100%)",
+    "secondaryTint": "linear-gradient(135deg, {primitives.colors.orange.25}/0.6 0%, {primitives.colors.indigo.50}/0.4 100%)",
+    "tertiaryTint": "linear-gradient(135deg, {primitives.colors.emerald.25}/0.6 0%, {primitives.colors.indigo.50}/0.4 100%)",
+    "mesh": "radial-gradient(at 20% 20%, {primitives.colors.indigo.50} 0%, transparent 50%), radial-gradient(at 80% 80%, {primitives.colors.orange.25} 0%, transparent 50%)"
+  },
+
+  "card": {
+    "glass": "linear-gradient(180deg, {primitives.colors.neutral.0}/0.9 0%, {primitives.colors.neutral.0}/0.6 100%)",
+    "glassBorder": "linear-gradient(135deg, {primitives.colors.neutral.0}/0.8 0%, {primitives.colors.neutral.0}/0.2 100%)",
+    "hover": "linear-gradient(135deg, {primitives.colors.indigo.50} 0%, {primitives.colors.neutral.0} 100%)",
+    "active": "linear-gradient(135deg, {primitives.colors.indigo.100} 0%, {primitives.colors.neutral.50} 100%)",
+    "selected": "linear-gradient(135deg, {primitives.colors.indigo.50}/0.8 0%, {primitives.colors.neutral.50}/0.8 100%)"
+  },
+
+  "button": {
+    "primary": "linear-gradient(180deg, {primitives.colors.indigo.500} 0%, {primitives.colors.indigo.600} 100%)",
+    "primaryHover": "linear-gradient(180deg, {primitives.colors.indigo.600} 0%, {primitives.colors.indigo.700} 100%)",
+    "primaryActive": "linear-gradient(180deg, {primitives.colors.indigo.700} 0%, {primitives.colors.indigo.800} 100%)",
+    "secondary": "linear-gradient(180deg, {primitives.colors.orange.500} 0%, {primitives.colors.orange.600} 100%)",
+    "secondaryHover": "linear-gradient(180deg, {primitives.colors.orange.600} 0%, {primitives.colors.orange.700} 100%)",
+    "secondaryActive": "linear-gradient(180deg, {primitives.colors.orange.700} 0%, {primitives.colors.orange.800} 100%)",
+    "accent": "linear-gradient(180deg, {primitives.colors.emerald.500} 0%, {primitives.colors.emerald.600} 100%)",
+    "accentHover": "linear-gradient(180deg, {primitives.colors.emerald.600} 0%, {primitives.colors.emerald.700} 100%)",
+    "accentActive": "linear-gradient(180deg, {primitives.colors.emerald.700} 0%, {primitives.colors.emerald.800} 100%)",
+    "ghost": "linear-gradient(180deg, transparent 0%, {primitives.colors.neutral.50}/0.5 100%)",
+    "ghostHover": "linear-gradient(180deg, {primitives.colors.neutral.50}/0.5 0%, {primitives.colors.indigo.50}/0.8 100%)",
+    "shine": "linear-gradient(45deg, transparent 0%, {primitives.colors.neutral.0}/0.4 50%, transparent 100%)"
+  },
+
+  "text": {
+    "gradient": "linear-gradient(135deg, {primitives.colors.indigo.500} 0%, {primitives.colors.orange.500} 100%)",
+    "gradientAlt": "linear-gradient(135deg, {primitives.colors.indigo.500} 0%, {primitives.colors.emerald.500} 100%)",
+    "gradientAccent": "linear-gradient(135deg, {primitives.colors.orange.500} 0%, {primitives.colors.emerald.500} 100%)",
+    "brand": "linear-gradient(135deg, {primitives.colors.indigo.500} 0%, {primitives.colors.indigo.600} 100%)"
+  },
+
+  "overlay": {
+    "scrim": "linear-gradient(180deg, transparent 0%, {primitives.colors.neutral.900}/0.6 100%)",
+    "scrimTop": "linear-gradient(0deg, transparent 0%, {primitives.colors.neutral.900}/0.4 100%)",
+    "scrimBottom": "linear-gradient(180deg, transparent 0%, {primitives.colors.neutral.900}/0.6 100%)",
+    "scrimLeft": "linear-gradient(90deg, {primitives.colors.neutral.900}/0.6 0%, transparent 100%)",
+    "scrimRight": "linear-gradient(270deg, {primitives.colors.neutral.900}/0.6 0%, transparent 100%)",
+    "vignette": "radial-gradient(ellipse at center, transparent 0%, {primitives.colors.neutral.900}/0.5 100%)",
+    "spotlight": "radial-gradient(circle at center, {primitives.colors.neutral.0}/0.6 0%, transparent 60%)",
+    "fade": "linear-gradient(180deg, {primitives.colors.neutral.0} 0%, transparent 100%)"
+  },
+
+  "status": {
+    "success": "linear-gradient(135deg, {primitives.colors.green.500} 0%, {primitives.colors.green.600} 100%)",
+    "successSubtle": "linear-gradient(135deg, {primitives.colors.green.500}/0.1 0%, {primitives.colors.green.600}/0.05 100%)",
+    "error": "linear-gradient(135deg, {primitives.colors.red.500} 0%, {primitives.colors.red.600} 100%)",
+    "errorSubtle": "linear-gradient(135deg, {primitives.colors.red.500}/0.1 0%, {primitives.colors.red.600}/0.05 100%)",
+    "warning": "linear-gradient(135deg, {primitives.colors.amber.500} 0%, {primitives.colors.amber.600} 100%)",
+    "warningSubtle": "linear-gradient(135deg, {primitives.colors.amber.500}/0.1 0%, {primitives.colors.amber.600}/0.05 100%)",
+    "info": "linear-gradient(135deg, {primitives.colors.blue.500} 0%, {primitives.colors.blue.600} 100%)",
+    "infoSubtle": "linear-gradient(135deg, {primitives.colors.blue.500}/0.1 0%, {primitives.colors.blue.600}/0.05 100%)"
+  },
+
+  "decorative": {
+    "glow": {
+      "primary": "radial-gradient(circle at center, {primitives.colors.indigo.500}/0.3 0%, transparent 70%)",
+      "secondary": "radial-gradient(circle at center, {primitives.colors.orange.500}/0.3 0%, transparent 70%)",
+      "tertiary": "radial-gradient(circle at center, {primitives.colors.emerald.500}/0.3 0%, transparent 70%)",
+      "success": "radial-gradient(circle at center, {primitives.colors.green.500}/0.3 0%, transparent 70%)",
+      "error": "radial-gradient(circle at center, {primitives.colors.red.500}/0.3 0%, transparent 70%)",
+      "warning": "radial-gradient(circle at center, {primitives.colors.amber.500}/0.3 0%, transparent 70%)",
+      "info": "radial-gradient(circle at center, {primitives.colors.blue.500}/0.3 0%, transparent 70%)"
+    },
+    "shimmer": "linear-gradient(90deg, transparent 0%, {primitives.colors.neutral.0}/0.6 50%, transparent 100%)",
+    "shine": "linear-gradient(45deg, transparent 0%, {primitives.colors.neutral.0}/0.4 50%, transparent 100%)",
+    "noise": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")",
+    "aurora": "linear-gradient(135deg, {primitives.colors.indigo.500}/0.2 0%, {primitives.colors.orange.500}/0.2 33%, {primitives.colors.emerald.500}/0.2 66%, {primitives.colors.purple.500}/0.2 100%)"
+  },
+
+  "navigation": {
+    "header": "linear-gradient(180deg, {primitives.colors.neutral.0}/0.95 0%, {primitives.colors.neutral.0}/0.9 100%)",
+    "headerGlass": "linear-gradient(180deg, {primitives.colors.neutral.0}/0.8 0%, {primitives.colors.neutral.0}/0.6 100%)",
+    "sidebar": "linear-gradient(90deg, {primitives.colors.neutral.50} 0%, {primitives.colors.neutral.0} 100%)",
+    "footer": "linear-gradient(0deg, {primitives.colors.neutral.50} 0%, {primitives.colors.neutral.0} 100%)"
+  },
+
+  "input": {
+    "default": "linear-gradient(180deg, {primitives.colors.neutral.0} 0%, {primitives.colors.neutral.50} 100%)",
+    "focus": "linear-gradient(180deg, {primitives.colors.neutral.0} 0%, {primitives.colors.indigo.50} 100%)",
+    "error": "linear-gradient(180deg, {primitives.colors.neutral.0} 0%, {primitives.colors.red.50} 100%)",
+    "success": "linear-gradient(180deg, {primitives.colors.neutral.0} 0%, {primitives.colors.green.50} 100%)"
+  },
+
+  "chart": {
+    "area": "linear-gradient(180deg, {primitives.colors.indigo.500}/0.3 0%, {primitives.colors.indigo.500}/0.05 100%)",
+    "line": "linear-gradient(90deg, {primitives.colors.indigo.500} 0%, {primitives.colors.orange.500} 100%)",
+    "bar": "linear-gradient(180deg, {primitives.colors.indigo.500} 0%, {primitives.colors.indigo.600} 100%)",
+    "pie": "conic-gradient(from 0deg at 50% 50%, {primitives.colors.indigo.500} 0deg, {primitives.colors.orange.500} 120deg, {primitives.colors.emerald.500} 240deg, {primitives.colors.purple.500} 360deg)"
+  }
+}

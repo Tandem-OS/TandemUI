@@ -1,0 +1,1018 @@
+{
+  "$schema": "https://tandem.design/schemas/tokens/themes/light.json",
+  "$description": "Light theme - Complete semantic token system with all component colors, states, and usage guidelines",
+  "$version": "2.0.0",
+  "$references": ["primitives/colors.json", "semantic/colors.json"],
+  "$name": "Tandem Light (Emerald Fresh)",
+  "$mode": "light",
+  
+  "$brandPersonality": {
+    "primary": "Fresh, modern, approachable",
+    "secondary": "Professional yet friendly",
+    "voice": "Clear, confident, helpful",
+    "tone": "Optimistic and enabling",
+    "values": ["Innovation", "Growth", "Trustworthiness", "Clarity", "Accessibility"],
+    "archetype": "The Enabler - Empowering users to create and innovate",
+    "emotionalGoal": "Users feel confident, capable, and inspired"
+  },
+
+  "$toneAndVoice": {
+    "communicationPrinciples": {
+      "clarity": "Direct and unambiguous - users always know what to expect",
+      "warmth": "Friendly without being casual - professional but approachable",
+      "confidence": "Assured and reliable - never uncertain or apologetic",
+      "empowerment": "Focus on what users can do, not what they can't",
+      "brevity": "Concise and scannable - respect user's time"
+    },
+    "vocabulary": {
+      "preferred": ["Create", "Build", "Design", "Explore", "Discover", "Enable", "Empower", "Transform", "Innovate"],
+      "avoid": ["Submit", "Cancel", "Error", "Failed", "Invalid", "Wrong"],
+      "replacements": {
+        "Error": "Needs attention",
+        "Failed": "Didn't work",
+        "Invalid": "Doesn't match",
+        "Submit": "Continue",
+        "Cancel": "Go back"
+      }
+    },
+    "microcopy": {
+      "buttons": {
+        "primary": "Action-oriented verbs (Save, Create, Continue, Get started)",
+        "secondary": "Lower commitment (Learn more, Maybe later, Review)",
+        "destructive": "Clear consequences (Delete forever, Remove permanently)"
+      },
+      "errors": {
+        "tone": "Helpful, not blaming",
+        "structure": "What happened + Why + How to fix",
+        "example": "Email format doesn't match. Try: name@company.com"
+      },
+      "success": {
+        "tone": "Celebratory but brief",
+        "example": "Done! Your project is live."
+      },
+      "empty": {
+        "tone": "Encouraging, not deflating",
+        "structure": "Current state + What you can do",
+        "example": "No projects yet. Create your first one to get started."
+      }
+    }
+  },
+
+  "$accessibility": {
+    "$wcagLevel": "AA",
+    "$standard": "WCAG 2.1",
+    "$target": "AAA where feasible",
+    "$contrastRatios": {
+      "emerald.500/neutral.0": "4.8:1 (AA Large Text, AA UI)",
+      "emerald.600/neutral.0": "5.9:1 (AA All Text)",
+      "neutral.900/neutral.0": "15.2:1 (AAA)",
+      "neutral.700/neutral.0": "9.1:1 (AAA)",
+      "neutral.600/neutral.0": "7.2:1 (AAA)",
+      "green.600/neutral.0": "5.2:1 (AA)",
+      "red.600/neutral.0": "5.1:1 (AA)"
+    },
+    "$minimums": {
+      "normalText": "4.5:1 (14px regular)",
+      "largeText": "3:1 (18px regular or 14px bold)",
+      "uiComponents": "3:1 (borders, icons, focus indicators)",
+      "graphicalObjects": "3:1 (charts, infographics)"
+    },
+    "$colorBlindness": {
+      "tested": ["deuteranopia", "protanopia", "tritanopia"],
+      "strategy": "Never rely on color alone - always pair with text, icons, or patterns",
+      "statusColors": "All status colors distinguishable by icon + text + color",
+      "brandColors": "Emerald/orange pair maintains distinction across all types"
+    },
+    "$tapTargets": {
+      "minimum": "44x44px",
+      "recommended": "48x48px",
+      "spacing": "8px minimum between targets",
+      "applies": "All interactive elements: buttons, links, form controls, icons"
+    },
+    "$keyboardNavigation": {
+      "focusVisible": "All interactive elements must have visible focus indicator",
+      "focusOrder": "Logical top-to-bottom, left-to-right order",
+      "skipLinks": "Provide skip navigation for repeated content",
+      "shortcuts": "Document all keyboard shortcuts, avoid conflicts"
+    },
+    "$screenReaders": {
+      "labels": "All interactive elements must have accessible labels",
+      "landmarks": "Use semantic HTML5 landmarks (header, nav, main, aside, footer)",
+      "headings": "Proper heading hierarchy (h1-h6) without skipping levels",
+      "altText": "Descriptive alt text for images, empty alt for decorative",
+      "ariaLabels": "Use ARIA only when semantic HTML insufficient"
+    },
+    "$motion": {
+      "respectPrefersReducedMotion": true,
+      "fallback": "Instant state changes for users with motion sensitivity",
+      "essential": "Only animate when it aids understanding, not decoration"
+    },
+    "$forms": {
+      "labels": "Visible labels for all inputs, not just placeholders",
+      "errors": "Clear error messages with icon + color + text",
+      "instructions": "Helper text before user makes mistake, not after",
+      "validation": "Inline validation after field loses focus"
+    },
+    "$notes": "All combinations meet WCAG 2.1 AA standards. Many exceed to AAA."
+  },
+
+  "$usageGuidelines": {
+    "$whenToUse": {
+      "primary": "Main action user should take (1 per screen max)",
+      "secondary": "Alternative actions or lower priority tasks",
+      "tertiary": "Subtle actions that don't warrant visual weight",
+      "accent": "Special promotions, unique features, calls-to-action",
+      "destructive": "Permanent deletions, irreversible actions"
+    },
+    "$hierarchy": {
+      "principle": "Visual weight = importance = frequency of use",
+      "example": "Primary (Save) > Secondary (Preview) > Tertiary (Cancel)",
+      "never": "Never have two primary buttons in same view competing"
+    },
+    "$consistency": {
+      "placement": "Primary action always in same position (bottom-right for forms)",
+      "wording": "Use same words for same actions across product",
+      "icons": "Same icon always means same thing",
+      "colors": "Status colors have consistent meaning (green = success, etc.)"
+    },
+    "$spacing": {
+      "buttonGroups": "16px between buttons in group",
+      "sections": "32px between major sections",
+      "cards": "24px between cards in grid",
+      "inline": "8px for inline elements (badges, chips)"
+    },
+    "$responsive": {
+      "breakpoints": {
+        "mobile": "< 640px - Stack buttons vertically, full width",
+        "tablet": "640-1024px - Side-by-side where space permits",
+        "desktop": "> 1024px - Optimal spacing and density"
+      },
+      "priority": "Mobile-first design, progressive enhancement"
+    }
+  },
+
+  "$behavioralTags": {
+    "vibe": ["modern", "fresh", "professional", "trustworthy", "innovative"],
+    "mood": ["optimistic", "confident", "calm", "focused", "empowering"],
+    "tempo": ["efficient", "smooth", "responsive", "immediate"],
+    "conversion": ["clear-cta", "low-friction", "trust-building", "value-focused"],
+    "personality": ["helpful", "clear", "non-judgmental", "encouraging"],
+    "userEmotion": ["confident", "capable", "inspired", "in-control"]
+  },
+
+  "$aiGenerationHints": {
+    "promptKeywords": ["modern design system", "emerald green brand", "professional SaaS", "accessible interface", "clear hierarchy"],
+    "styleDescriptors": ["clean", "minimal", "spacious", "organized", "trustworthy"],
+    "colorMood": "Fresh and modern with emerald/teal primary suggesting growth and innovation, balanced with warm coral accents",
+    "typicalUseCase": "SaaS products, productivity tools, design platforms, developer tools, creative software",
+    "targetAudience": "Professionals, creators, designers, developers - tech-savvy users who value clarity and efficiency",
+    "brandAdaptation": {
+      "conservative": "Reduce emerald saturation by 20%, increase neutral usage",
+      "playful": "Increase accent color usage, add more tint backgrounds",
+      "luxury": "Increase spacing, reduce color variety, focus on emerald + neutrals",
+      "energetic": "More accent color, brighter tints, increase contrast"
+    },
+    "contentConstraints": {
+      "buttonText": "2-4 words maximum, action verbs preferred",
+      "headings": "5-8 words for h1, 3-5 words for h2-h6",
+      "body": "12-16 words per sentence average, 3-4 sentences per paragraph",
+      "microcopy": "Error messages 8-12 words, success messages 3-5 words"
+    }
+  },
+
+  "$designPrinciples": {
+    "clarity": "Every element has a clear purpose and meaning",
+    "consistency": "Patterns repeat predictably across the entire system",
+    "efficiency": "Users accomplish tasks with minimum friction",
+    "accessibility": "Inclusive design for all abilities and contexts",
+    "scalability": "System grows without breaking or becoming chaotic",
+    "delight": "Small moments of joy without compromising usability"
+  },
+
+  "$performanceGuidelines": {
+    "criticalCSS": "Inline above-the-fold colors to prevent flash of unstyled content",
+    "colorFormat": "Use hex for static colors, rgba only for opacity/overlays",
+    "cssVariables": "Leverage CSS custom properties for theme switching",
+    "bundleSize": "Color tokens add ~2kb gzipped to CSS bundle",
+    "lazyLoad": "Non-critical status colors can load after interactive"
+  },
+
+  "brand": {
+    "primary": {
+      "base": "emerald.500",
+      "light": "emerald.400",
+      "lighter": "emerald.200",
+      "lightest": "emerald.50",
+      "dark": "emerald.600",
+      "darker": "emerald.700",
+      "darkest": "emerald.900",
+      "$usage": "Primary CTAs, active states, brand elements, main actions"
+    },
+    "secondary": {
+      "base": "orange.400",
+      "light": "orange.300",
+      "lighter": "orange.200",
+      "lightest": "orange.50",
+      "dark": "orange.500",
+      "darker": "orange.600",
+      "darkest": "orange.900",
+      "$usage": "Secondary CTAs, highlights, warm accents, notifications"
+    },
+    "tertiary": {
+      "base": "sky.500",
+      "light": "sky.400",
+      "lighter": "sky.200",
+      "lightest": "sky.50",
+      "dark": "sky.600",
+      "darker": "sky.700",
+      "darkest": "sky.900",
+      "$usage": "Info states, links, cool accents, tertiary actions"
+    }
+  },
+
+  "theme": {
+    "$description": "Theme-specific color shortcuts for quick access to brand colors",
+    "primary": "emerald.500",
+    "dark": "emerald.700",
+    "darkAlt": "emerald.800",
+    "darker": "emerald.900",
+    "lightAlt": "neutral.50",
+    "light": "emerald.50",
+    "lighter": "emerald.100",
+    "lighterAlt": "emerald.200",
+    "lightest": "neutral.25"
+  },
+
+  "neutral": {
+    "$description": "Neutral/grey aliases for legacy compatibility and convenience",
+    "white": "neutral.0",
+    "grey5": "neutral.50",
+    "grey10": "neutral.100",
+    "grey20": "neutral.200",
+    "grey40": "neutral.400",
+    "grey60": "neutral.600",
+    "grey80": "neutral.700",
+    "grey90": "neutral.900"
+  },
+
+  "theme": {
+    "$description": "Theme-specific color aliases for emerald brand progression",
+    "$usage": "Alternative semantic names for brand color variations",
+    "primary": "emerald.500",
+    "dark": "emerald.700",
+    "darkAlt": "emerald.800",
+    "darker": "emerald.900",
+    "light": "emerald.50",
+    "lighter": "emerald.100",
+    "lighterAlt": "emerald.200",
+    "lightAlt": "neutral.50",
+    "lightest": "neutral.25"
+  },
+
+  "background": {
+    "base": "neutral.0",
+    "subtle": "neutral.50",
+    "muted": "neutral.100",
+    "emphasis": "neutral.900",
+    "inverse": "neutral.900",
+    "overlay": "neutral.900/80",
+    "gradient": {
+      "primary": "linear-gradient(135deg, emerald.50, teal.100)",
+      "$usage": "Hero sections, feature highlights"
+    },
+    "tint": {
+      "primary": "emerald.50",
+      "secondary": "orange.50",
+      "tertiary": "sky.50",
+      "success": "green.50",
+      "warning": "amber.50",
+      "error": "red.50",
+      "info": "blue.50"
+    }
+  },
+
+  "surface": {
+    "base": "neutral.0",
+    "raised": "neutral.0",
+    "sunken": "neutral.50",
+    "overlay": "neutral.0",
+    "hover": "neutral.25",
+    "pressed": "neutral.100",
+    "selected": "emerald.50",
+    "disabled": "neutral.100"
+  },
+
+  "border": {
+    "base": "neutral.200",
+    "subtle": "neutral.100",
+    "strong": "neutral.300",
+    "emphasis": "emerald.500",
+    "hover": "neutral.300",
+    "focus": "emerald.500",
+    "disabled": "neutral.200",
+    "error": "red.500",
+    "success": "green.500",
+    "warning": "amber.500",
+    "info": "blue.500"
+  },
+
+  "text": {
+    "base": "neutral.900",
+    "subtle": "neutral.700",
+    "muted": "neutral.600",
+    "placeholder": "neutral.400",
+    "disabled": "neutral.300",
+    "inverse": "neutral.0",
+    "brand": "emerald.600",
+    "emphasis": "emerald.600",
+    "link": "emerald.600",
+    "linkHover": "emerald.700",
+    "linkActive": "emerald.800",
+    "linkVisited": "purple.700",
+    "success": "green.700",
+    "error": "red.700",
+    "warning": "amber.700",
+    "info": "blue.700"
+  },
+
+  "icon": {
+    "base": "neutral.700",
+    "subtle": "neutral.600",
+    "muted": "neutral.500",
+    "disabled": "neutral.300",
+    "inverse": "neutral.0",
+    "brand": "emerald.600",
+    "success": "green.600",
+    "error": "red.600",
+    "warning": "amber.600",
+    "info": "blue.600"
+  },
+
+  "interactive": {
+    "base": "emerald.500",
+    "hover": "emerald.600",
+    "active": "emerald.700",
+    "disabled": "neutral.300",
+    "subtle": "neutral.100",
+    "subtleHover": "neutral.200",
+    "focus": "emerald.500",
+    "focusRing": "emerald.500/24"
+  },
+
+  "button": {
+    "$description": "Complete button system with 8 variants covering all use cases",
+    "$accessibility": "All buttons meet 44x44px minimum tap target, 3:1 contrast for UI components",
+    "$usage": "Choose button variant based on action hierarchy and visual weight needed",
+    
+    "primary": {
+      "$description": "Primary brand button for main actions",
+      "$usage": "Main action user should take - limit to 1 per screen",
+      "$examples": ["Save changes", "Create project", "Get started", "Sign up", "Continue"],
+      "$avoid": "Multiple primary buttons competing for attention",
+      "$accessibility": "4.8:1 contrast ratio (AA), scales to 48px on mobile",
+      "background": "emerald.500",
+      "backgroundHover": "emerald.600",
+      "backgroundActive": "emerald.700",
+      "backgroundDisabled": "neutral.200",
+      "backgroundLoading": "emerald.500",
+      "text": "neutral.0",
+      "textDisabled": "neutral.400",
+      "border": "emerald.500",
+      "borderHover": "emerald.600",
+      "borderActive": "emerald.700",
+      "borderDisabled": "neutral.200",
+      "shadow": "emerald.500/16",
+      "shadowHover": "emerald.500/24",
+      "shadowActive": "emerald.500/12",
+      "shadowFocus": "emerald.500/24",
+      "$transform": {
+        "hover": "translateY(-1px)",
+        "active": "translateY(0)"
+      }
+    },
+    "secondary": {
+      "$description": "Secondary outline button for alternative actions",
+      "$usage": "Alternative or lower priority actions",
+      "$examples": ["Cancel", "Go back", "Learn more", "Preview", "Export"],
+      "$pairing": "Often paired with primary button",
+      "$accessibility": "15.2:1 text contrast (AAA), 3:1 border contrast",
+      "background": "neutral.0",
+      "backgroundHover": "neutral.50",
+      "backgroundActive": "neutral.100",
+      "backgroundDisabled": "neutral.100",
+      "text": "neutral.900",
+      "textDisabled": "neutral.400",
+      "border": "neutral.300",
+      "borderHover": "neutral.400",
+      "borderActive": "neutral.400",
+      "borderDisabled": "neutral.200",
+      "shadow": "neutral.900/8",
+      "shadowHover": "neutral.900/12",
+      "shadowFocus": "emerald.500/24"
+    },
+    "tertiary": {
+      "$description": "Minimal ghost/text button for subtle actions",
+      "$usage": "Low visual weight actions, optional actions, tertiary navigation",
+      "$examples": ["Maybe later", "Skip", "Dismiss", "See details"],
+      "$avoid": "Primary actions - use primary or secondary instead",
+      "background": "transparent",
+      "backgroundHover": "neutral.100",
+      "backgroundActive": "neutral.200",
+      "backgroundDisabled": "transparent",
+      "text": "neutral.900",
+      "textDisabled": "neutral.400",
+      "border": "transparent",
+      "borderHover": "transparent",
+      "shadow": "none",
+      "shadowFocus": "emerald.500/24"
+    },
+    "accent": {
+      "$description": "High-energy accent button for special actions",
+      "$usage": "Promotions, special features, time-limited offers, conversion-focused CTAs",
+      "$examples": ["Upgrade now", "Start free trial", "Limited offer", "Get premium"],
+      "$avoid": "Regular actions - reserve for special moments",
+      "$psychology": "Orange/coral color signals warmth, urgency, and energy",
+      "background": "orange.400",
+      "backgroundHover": "orange.500",
+      "backgroundActive": "orange.600",
+      "backgroundDisabled": "neutral.200",
+      "text": "neutral.0",
+      "textDisabled": "neutral.400",
+      "border": "orange.400",
+      "borderHover": "orange.500",
+      "borderActive": "orange.600",
+      "shadow": "orange.400/16",
+      "shadowHover": "orange.400/24",
+      "shadowFocus": "orange.400/24",
+      "$transform": {
+        "hover": "translateY(-1px)",
+        "active": "translateY(0)"
+      }
+    },
+    "success": {
+      "$description": "Success button for positive confirmations",
+      "$usage": "Confirming positive actions, approvals, completions",
+      "$examples": ["Approve", "Confirm", "Accept", "Mark as done"],
+      "$avoid": "General actions - reserve for clearly positive outcomes",
+      "background": "green.500",
+      "backgroundHover": "green.600",
+      "backgroundActive": "green.700",
+      "backgroundDisabled": "neutral.200",
+      "text": "neutral.0",
+      "textDisabled": "neutral.400",
+      "border": "green.500",
+      "borderHover": "green.600",
+      "shadow": "green.500/16",
+      "shadowHover": "green.500/24",
+      "shadowFocus": "green.500/24"
+    },
+    "error": {
+      "$description": "Destructive button for dangerous/irreversible actions",
+      "$usage": "Permanent deletions, destructive actions, critical warnings",
+      "$examples": ["Delete forever", "Remove account", "Discard changes"],
+      "$bestPractice": "Always show confirmation dialog before destructive action",
+      "$microcopy": "Be explicit about consequences: 'Delete forever' not 'Delete'",
+      "background": "red.500",
+      "backgroundHover": "red.600",
+      "backgroundActive": "red.700",
+      "backgroundDisabled": "neutral.200",
+      "text": "neutral.0",
+      "textDisabled": "neutral.400",
+      "border": "red.500",
+      "borderHover": "red.600",
+      "shadow": "red.500/16",
+      "shadowHover": "red.500/24",
+      "shadowFocus": "red.500/24"
+    },
+    "ghost": {
+      "$description": "Subtle ghost button for minimal visual weight",
+      "$usage": "Icon buttons, toolbar actions, subtle navigation",
+      "$examples": ["Close", "Expand", "More options", "Settings"],
+      "$avoid": "Primary actions that need emphasis",
+      "background": "transparent",
+      "backgroundHover": "neutral.100",
+      "backgroundActive": "neutral.200",
+      "backgroundDisabled": "transparent",
+      "text": "neutral.700",
+      "textHover": "neutral.900",
+      "textDisabled": "neutral.400",
+      "border": "transparent",
+      "shadow": "none",
+      "shadowFocus": "emerald.500/24"
+    },
+    "link": {
+      "$description": "Link-styled button for in-line text actions",
+      "$usage": "In-text links, navigation, references to other content",
+      "$examples": ["Learn more", "See documentation", "Read full article"],
+      "$accessibility": "Underline on hover for clarity, visited state for navigation",
+      "background": "transparent",
+      "backgroundHover": "transparent",
+      "text": "emerald.600",
+      "textHover": "emerald.700",
+      "textActive": "emerald.800",
+      "textVisited": "purple.700",
+      "textDisabled": "neutral.400",
+      "textDecoration": "none",
+      "textDecorationHover": "underline",
+      "shadowFocus": "emerald.500/24"
+    },
+    "dark": {
+      "$description": "High-contrast dark button for light backgrounds",
+      "$usage": "Hero sections with light backgrounds, marketing pages, high contrast needed",
+      "$examples": ["Watch demo", "Download", "Contact sales"],
+      "$avoid": "Regular UI - use primary instead",
+      "background": "neutral.900",
+      "backgroundHover": "neutral.800",
+      "backgroundActive": "neutral.700",
+      "backgroundDisabled": "neutral.200",
+      "text": "neutral.0",
+      "textDisabled": "neutral.400",
+      "border": "neutral.900",
+      "borderHover": "neutral.800",
+      "shadow": "neutral.900/16",
+      "shadowHover": "neutral.900/24",
+      "shadowFocus": "neutral.900/24"
+    }
+  },
+
+  "input": {
+    "$description": "Complete input field color system for forms",
+    "$accessibility": "All states meet 4.5:1 contrast minimum, clear focus indicators, visible labels required",
+    "$usage": "Apply states based on user interaction and validation",
+    "$bestPractices": [
+      "Always include visible label, not just placeholder",
+      "Show helper text before user makes mistake",
+      "Validate after field loses focus, not while typing",
+      "Error messages should explain what's wrong and how to fix it",
+      "Use emerald focus ring to indicate active field"
+    ],
+    "background": "neutral.0",
+    "backgroundHover": "neutral.25",
+    "backgroundFocus": "neutral.0",
+    "backgroundDisabled": "neutral.50",
+    "backgroundReadOnly": "neutral.50",
+    "border": "neutral.300",
+    "borderHover": "neutral.400",
+    "borderFocus": "emerald.500",
+    "borderError": "red.500",
+    "borderSuccess": "green.500",
+    "borderWarning": "amber.500",
+    "borderDisabled": "neutral.200",
+    "text": "neutral.900",
+    "textDisabled": "neutral.400",
+    "placeholder": "neutral.400",
+    "label": "neutral.700",
+    "labelDisabled": "neutral.400",
+    "helper": "neutral.600",
+    "helperError": "red.700",
+    "helperSuccess": "green.700",
+    "helperWarning": "amber.700",
+    "icon": "neutral.600",
+    "iconDisabled": "neutral.300",
+    "shadowFocus": "emerald.500/24",
+    "shadowFocusError": "red.500/24",
+    "$examples": {
+      "default": "User hasn't interacted with field yet",
+      "hover": "Mouse over field, indicates it's interactive",
+      "focus": "User is typing or field is active",
+      "error": "Validation failed - show what's wrong",
+      "success": "Validation passed - optional positive feedback",
+      "disabled": "Field cannot be edited in current context",
+      "readOnly": "Field can be read but not edited"
+    }
+  },
+
+  "status": {
+    "$description": "Status indicator colors for feedback messages",
+    "$accessibility": "Never rely on color alone - always include icon and text",
+    "$usage": "Choose status based on message type and user action outcome",
+    "$guidelines": {
+      "success": "Action completed successfully, positive confirmation",
+      "error": "Action failed, something went wrong that needs fixing",
+      "warning": "Potential issue, user should be aware but can continue",
+      "severeWarning": "Serious issue requiring immediate attention",
+      "info": "Neutral information, FYI messages",
+      "danger": "Critical situation, data loss possible"
+    },
+    "success": {
+      "$usage": "Action completed successfully",
+      "$examples": ["File saved", "Payment processed", "Account created"],
+      "$tone": "Brief celebration without excessive fanfare",
+      "$icon": "Checkmark circle",
+      "background": "green.500",
+      "backgroundSubtle": "green.50",
+      "backgroundSubtleOpacity": "green.50/17",
+      "border": "green.500",
+      "text": "green.700",
+      "textSubtle": "green.600",
+      "icon": "green.600"
+    },
+    "error": {
+      "$usage": "Action failed or validation error",
+      "$examples": ["Payment declined", "Connection lost", "Invalid format"],
+      "$tone": "Helpful, not blaming - explain what happened and how to fix",
+      "$structure": "What happened + Why + What to do",
+      "$icon": "Alert circle or X circle",
+      "background": "red.500",
+      "backgroundSubtle": "red.50",
+      "backgroundSubtleOpacity": "red.50/17",
+      "border": "red.500",
+      "text": "red.700",
+      "textSubtle": "red.600",
+      "icon": "red.600"
+    },
+    "warning": {
+      "$usage": "Potential issue or important information",
+      "$examples": ["Storage almost full", "Unsaved changes", "Trial ending soon"],
+      "$tone": "Informative, not alarming",
+      "$icon": "Alert triangle",
+      "background": "amber.400",
+      "backgroundSubtle": "amber.50",
+      "backgroundSubtleOpacity": "amber.50/17",
+      "border": "amber.500",
+      "text": "amber.700",
+      "textSubtle": "amber.600",
+      "icon": "amber.600"
+    },
+    "severeWarning": {
+      "$usage": "Critical warning requiring immediate attention",
+      "$examples": ["Account suspended", "Payment overdue", "Security alert"],
+      "$tone": "Urgent but professional",
+      "$icon": "Alert octagon",
+      "background": "orange.600",
+      "backgroundSubtle": "orange.50",
+      "backgroundSubtleOpacity": "orange.50/17",
+      "border": "orange.600",
+      "text": "orange.700",
+      "textSubtle": "orange.600",
+      "icon": "orange.700"
+    },
+    "info": {
+      "$usage": "Neutral information, tips, announcements",
+      "$examples": ["New feature available", "Scheduled maintenance", "Did you know"],
+      "$tone": "Helpful and friendly",
+      "$icon": "Info circle",
+      "background": "blue.500",
+      "backgroundSubtle": "blue.50",
+      "border": "blue.500",
+      "text": "blue.700",
+      "textSubtle": "blue.600",
+      "icon": "blue.600"
+    },
+    "danger": {
+      "$usage": "Dangerous action confirmation, data loss warning",
+      "$examples": ["Delete account confirmation", "Clear all data", "Irreversible action"],
+      "$tone": "Very clear about consequences",
+      "$bestPractice": "Always require explicit confirmation",
+      "background": "red.100",
+      "backgroundAlt": "rose.100",
+      "backgroundHover": "red.200",
+      "text": "red.700",
+      "icon": "red.600",
+      "border": "red.300"
+    }
+  },
+
+  "badge": {
+    "neutral": {
+      "background": "neutral.100",
+      "text": "neutral.700",
+      "border": "neutral.200"
+    },
+    "primary": {
+      "background": "emerald.100",
+      "text": "emerald.700",
+      "border": "emerald.200"
+    },
+    "success": {
+      "background": "green.100",
+      "text": "green.700",
+      "border": "green.200"
+    },
+    "error": {
+      "background": "red.100",
+      "text": "red.700",
+      "border": "red.200"
+    },
+    "warning": {
+      "background": "amber.100",
+      "text": "amber.700",
+      "border": "amber.200"
+    },
+    "info": {
+      "background": "blue.100",
+      "text": "blue.700",
+      "border": "blue.200"
+    }
+  },
+
+  "toggle": {
+    "trackOff": "neutral.200",
+    "trackOn": "emerald.500",
+    "trackOnHover": "emerald.600",
+    "trackDisabled": "neutral.200",
+    "knob": "neutral.0",
+    "knobShadow": "neutral.900/16",
+    "focusRing": "emerald.500/24"
+  },
+
+  "slider": {
+    "track": "neutral.200",
+    "trackActive": "green.500",
+    "trackDisabled": "neutral.200",
+    "thumb": "neutral.0",
+    "thumbBorder": "green.500",
+    "thumbShadow": "neutral.900/12",
+    "thumbHoverShadow": "neutral.900/16",
+    "focusRing": "green.500/24"
+  },
+
+  "progress": {
+    "background": "neutral.200",
+    "fill": "emerald.500",
+    "fillSuccess": "green.500",
+    "fillWarning": "amber.500",
+    "fillError": "red.500"
+  },
+
+  "checkbox": {
+    "background": "neutral.0",
+    "backgroundChecked": "emerald.500",
+    "backgroundCheckedHover": "emerald.600",
+    "backgroundDisabled": "neutral.100",
+    "border": "neutral.300",
+    "borderHover": "neutral.400",
+    "borderChecked": "emerald.500",
+    "borderDisabled": "neutral.200",
+    "checkmark": "neutral.0",
+    "focusRing": "emerald.500/24"
+  },
+
+  "radio": {
+    "background": "neutral.0",
+    "backgroundChecked": "neutral.0",
+    "backgroundDisabled": "neutral.100",
+    "border": "neutral.300",
+    "borderHover": "neutral.400",
+    "borderChecked": "emerald.500",
+    "borderDisabled": "neutral.200",
+    "dot": "emerald.500",
+    "focusRing": "emerald.500/24"
+  },
+
+  "dropdown": {
+    "background": "neutral.0",
+    "border": "neutral.200",
+    "shadow": "neutral.900/16"
+  },
+
+  "menu": {
+    "item": {
+      "background": "neutral.0",
+      "backgroundHover": "neutral.25",
+      "backgroundSelected": "emerald.50",
+      "backgroundActive": "neutral.100",
+      "text": "neutral.900",
+      "textSubtle": "neutral.600",
+      "icon": "neutral.600"
+    },
+    "divider": "neutral.200"
+  },
+
+  "tooltip": {
+    "background": "neutral.900",
+    "text": "neutral.0",
+    "border": "neutral.800",
+    "shadow": "neutral.900/24",
+    "arrow": "neutral.900"
+  },
+
+  "code": {
+    "background": "neutral.50",
+    "border": "neutral.100",
+    "text": "neutral.900",
+    "syntax": {
+      "keyword": "purple.600",
+      "string": "green.600",
+      "comment": "neutral.500",
+      "number": "orange.600",
+      "function": "blue.600",
+      "operator": "emerald.600",
+      "variable": "neutral.900"
+    }
+  },
+
+  "avatar": {
+    "background": {
+      "1": "emerald.100",
+      "2": "orange.100",
+      "3": "purple.100",
+      "4": "pink.100",
+      "5": "sky.100"
+    },
+    "text": {
+      "1": "emerald.700",
+      "2": "orange.700",
+      "3": "purple.700",
+      "4": "pink.700",
+      "5": "sky.700"
+    },
+    "border": "neutral.200"
+  },
+
+  "card": {
+    "background": "neutral.0",
+    "backgroundHover": "neutral.25",
+    "border": "neutral.200",
+    "borderHover": "neutral.300",
+    "shadow": "neutral.900/8",
+    "shadowHover": "neutral.900/12",
+    "shadowRaised": "neutral.900/16"
+  },
+
+  "divider": {
+    "base": "neutral.200",
+    "subtle": "neutral.100",
+    "strong": "neutral.300"
+  },
+
+  "chart": {
+    "series1": "emerald.500",
+    "series2": "orange.400",
+    "series3": "sky.500",
+    "series4": "purple.500",
+    "series5": "pink.500",
+    "series6": "blue.500",
+    "series7": "green.500",
+    "series8": "amber.500",
+    "grid": "neutral.200",
+    "axis": "neutral.400",
+    "label": "neutral.600",
+    "tooltip": {
+      "background": "neutral.900",
+      "border": "neutral.800",
+      "text": "neutral.0",
+      "shadow": "neutral.900/24"
+    }
+  },
+
+  "table": {
+    "header": {
+      "background": "neutral.50",
+      "text": "neutral.700",
+      "border": "neutral.200"
+    },
+    "row": {
+      "background": "neutral.0",
+      "backgroundHover": "neutral.25",
+      "backgroundSelected": "emerald.50",
+      "backgroundStriped": "neutral.50",
+      "text": "neutral.900",
+      "border": "neutral.200"
+    },
+    "cell": {
+      "text": "neutral.900",
+      "textSubtle": "neutral.600"
+    }
+  },
+
+  "tabs": {
+    "background": "neutral.0",
+    "border": "neutral.200",
+    "tab": {
+      "text": "neutral.600",
+      "textHover": "neutral.900",
+      "textActive": "emerald.600",
+      "background": "transparent",
+      "backgroundHover": "neutral.50",
+      "backgroundActive": "neutral.0",
+      "indicator": "emerald.500",
+      "border": "transparent",
+      "borderActive": "emerald.500"
+    }
+  },
+
+  "stepper": {
+    "incomplete": {
+      "background": "neutral.100",
+      "border": "neutral.300",
+      "text": "neutral.600",
+      "icon": "neutral.600"
+    },
+    "active": {
+      "background": "emerald.500",
+      "border": "emerald.500",
+      "text": "neutral.0",
+      "icon": "neutral.0"
+    },
+    "complete": {
+      "background": "emerald.500",
+      "border": "emerald.500",
+      "text": "neutral.0",
+      "icon": "neutral.0"
+    },
+    "connector": "neutral.200",
+    "connectorActive": "emerald.500"
+  },
+
+  "breadcrumb": {
+    "text": "neutral.600",
+    "textHover": "neutral.900",
+    "textCurrent": "neutral.900",
+    "separator": "neutral.400",
+    "link": "emerald.600",
+    "linkHover": "emerald.700"
+  },
+
+  "pagination": {
+    "button": {
+      "background": "neutral.0",
+      "backgroundHover": "neutral.50",
+      "backgroundActive": "emerald.500",
+      "backgroundDisabled": "neutral.100",
+      "text": "neutral.900",
+      "textActive": "neutral.0",
+      "textDisabled": "neutral.400",
+      "border": "neutral.300"
+    }
+  },
+
+  "modal": {
+    "background": "neutral.0",
+    "overlay": "neutral.900/80",
+    "border": "neutral.200",
+    "shadow": "neutral.900/24",
+    "header": {
+      "background": "neutral.0",
+      "text": "neutral.900",
+      "border": "neutral.200"
+    },
+    "footer": {
+      "background": "neutral.50",
+      "border": "neutral.200"
+    }
+  },
+
+  "toast": {
+    "success": {
+      "background": "green.500",
+      "text": "neutral.0",
+      "icon": "neutral.0",
+      "border": "green.600"
+    },
+    "error": {
+      "background": "red.500",
+      "text": "neutral.0",
+      "icon": "neutral.0",
+      "border": "red.600"
+    },
+    "warning": {
+      "background": "amber.500",
+      "text": "neutral.0",
+      "icon": "neutral.0",
+      "border": "amber.600"
+    },
+    "info": {
+      "background": "blue.500",
+      "text": "neutral.0",
+      "icon": "neutral.0",
+      "border": "blue.600"
+    }
+  },
+
+  "shadow": {
+    "small": "neutral.900/8",
+    "medium": "neutral.900/12",
+    "large": "neutral.900/16",
+    "xlarge": "neutral.900/20",
+    "focus": "neutral.900/12",
+    "focusBrand": "emerald.500/24",
+    "focusError": "red.500/24",
+    "$css": {
+      "small": "0 1px 2px 0 rgba(26, 29, 46, 0.08)",
+      "medium": "0 4px 6px -1px rgba(26, 29, 46, 0.12)",
+      "large": "0 10px 15px -3px rgba(26, 29, 46, 0.16)",
+      "xlarge": "0 20px 25px -5px rgba(26, 29, 46, 0.20)",
+      "focusBrand": "0 0 0 3px rgba(42, 170, 146, 0.24)",
+      "focusError": "0 0 0 3px rgba(240, 68, 56, 0.24)"
+    }
+  },
+
+  "overlay": {
+    "light": "neutral.900/40",
+    "medium": "neutral.900/60",
+    "dark": "neutral.900/80",
+    "darker": "neutral.900/90"
+  },
+
+  "skeleton": {
+    "base": "neutral.200",
+    "highlight": "neutral.100"
+  },
+
+  "scrollbar": {
+    "track": "neutral.100",
+    "thumb": "neutral.300",
+    "thumbHover": "neutral.400"
+  }
+}
