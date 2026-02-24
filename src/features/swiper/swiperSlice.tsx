@@ -6,7 +6,6 @@ import {
     type KingOfHillMatch,
     type ComponentPreview
 } from '@/dashboards/client-dashboard/pages/swiper/swiper.types';
-import { categories, getCurrentRoundComponents, getTotalRounds } from '@/dashboards/client-dashboard/pages/swiper/mockData';
 
 interface SwiperState {
     // Round Management
@@ -49,7 +48,7 @@ const initialKingOfHillState: KingOfHillState = {
 const initialState: SwiperState = {
     currentRound: 0,
     roundsData: [],
-    totalRounds: getTotalRounds(),
+    totalRounds: 0,
     userChoices: [],
     roundStartTime: Date.now(),
     isAnimating: false,
@@ -69,16 +68,36 @@ const swiperSlice = createSlice({
     initialState,
     reducers: {
         // Data Loading
-        loadDataSuccess: (state) => {
-            const data = categories.map((category, index) => ({
-                roundNumber: index + 1,
-                category,
-                components: getCurrentRoundComponents(index),
-                currentStep: 0,
-                completed: false
-            }));
+        loadDataSuccess: (state, action: PayloadAction<ComponentPreview[]>) => {
+            const components = Array.isArray(action.payload) ? action.payload : [];
 
-            state.roundsData = data;
+            const normCategory = (c: ComponentPreview) =>
+                String((c as any).category ?? "uncategorized").trim().toLowerCase() || "uncategorized";
+
+            // Deterministic category list
+            const categories = Array.from(new Set(components.map(normCategory))).sort((a, b) =>
+                a.localeCompare(b)
+            );
+
+            // Build rounds dynamically from categories
+            const rounds: RoundData[] = categories.map((cat, idx) => {
+                const comps = components
+                    .filter(c => normCategory(c) === cat)
+                    .slice()
+                    .sort((a, b) => String(a.component_id).localeCompare(String(b.component_id)));
+
+                return {
+                    roundNumber: idx + 1,
+                    category: cat,       // keep normalized value; or change to Title Case if you want
+                    components: comps as any, // if RoundData.components expects ComponentPreview[], remove `as any`
+                    currentStep: 0,
+                    completed: false,
+                };
+            });
+
+            state.roundsData = rounds;
+            state.totalRounds = rounds.length;
+            state.currentRound = 0;
             state.isInitialLoading = false;
             state.loadingError = null;
         },

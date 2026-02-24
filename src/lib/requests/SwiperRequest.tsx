@@ -158,3 +158,11 @@ export const fetchRoundCompletedData = async () => {
 
   return await api.get(`/rounds/completed/summary/${project_id}`)
 }
+export const fetchSwiperComponentsGrouped = async () => {
+  const project_id = store.getState().project.projectId;
+
+  // backend returns: { hero, nav, features }
+  return await api.get("/swiper/components", {
+    params: { project_id },
+  });
+};

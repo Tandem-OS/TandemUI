@@ -7,7 +7,6 @@ import SwipeProgress from './components/SwipeProgress';
 import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
 import PreviewModal from './components/PreviewModal';
-import { roundMessages } from './mockData';
 import {
   type SwipeAction,
   type ComponentPreview,
@@ -40,22 +39,23 @@ import {
   unlockTransition,
 } from '@/features/swiper/swiperSlice';
 import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
-import { fetchRoundCompleted, fetchRoundCompletedData, saveRoundCompleted, swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData } from '@/lib/requests/SwiperRequest';
+import { fetchRoundCompleted, fetchRoundCompletedData, saveRoundCompleted, swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData, fetchSwiperComponentsGrouped, } from '@/lib/requests/SwiperRequest';
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import Modal from '@/common-components/Modal';
 
 // Constants
-const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
+const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
 
-// Mock backend check function
-const checkRoundWithBackend = async (roundSummary: RoundSummary): Promise<{ useKingOfHill: boolean }> => {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  // Never use King of Hill for round 10 or after
-  if (roundSummary.round_number >= 10) {
-    return { useKingOfHill: false };
-  }
-  return { useKingOfHill: roundSummary.round_number % 2 === 0 };
+const getRoundMessage = (category: string) => {
+  const c = (category || "").toLowerCase();
+  if (c.includes("hero")) return "Choose the hero design that resonates with you.";
+  if (c.includes("nav")) return "Choose the navigation that fits your style.";
+  if (c.includes("feature")) return "Choose the features layout you prefer.";
+  return `Choose the ${category} design that resonates with you.`;
+};
+const checkRoundWithBackend = async (): Promise<{ useKingOfHill: boolean }> => {
+  return { useKingOfHill: false };
 };
 
 // Animation variants
@@ -207,8 +207,23 @@ const Swiper: React.FC = () => {
   const loadData = useCallback(async () => {
     try {
       dispatch(startLoading());
-      await new Promise(resolve => setTimeout(resolve, TIMINGS.LOADING_SIMULATION));
-      dispatch(loadDataSuccess());
+
+      const res = await fetchSwiperComponentsGrouped();
+
+      const grouped = res.data as Record<string, unknown>;
+
+      const flat = Object.entries(grouped ?? {})
+        .sort(([a], [b]) => a.localeCompare(b))
+        .flatMap(([key, value]) => {
+          const arr = Array.isArray(value) ? value : value ? [value] : [];
+          return arr.map((item: any) => ({
+            ...item,
+            category: item?.category ?? key,
+          }));
+        });
+
+      dispatch(loadDataSuccess(flat));
+
     } catch (error) {
       dispatch(loadDataFailure(error instanceof Error ? error.message : 'Failed to load content'));
     }
@@ -244,7 +259,7 @@ const Swiper: React.FC = () => {
           const sessionMatches = king_of_hill_matches
             .filter((m: any) => m.session_id === session.id)
             .map((m: any, matchIndex: number) => ({
-              id: `${session.id}-match-${matchIndex}-${Math.random()}`,
+              id: `${session.id}-match-${matchIndex}`,
               challenger_id: m.challenger_id,
               defender_id: m.defender_id,
               winner_id: m.winner_id,
@@ -260,12 +275,12 @@ const Swiper: React.FC = () => {
           const sessionComponents = sessionComponentIds
             .map((id: any, compIndex) => ({
               ...componentsMap[id],
-              key: `${session.id}-component-${id}-${compIndex}-${Math.random()}`
+              key: `${session.id}-component-${id}-${compIndex}`
             }))
             .filter(Boolean);
 
           return {
-            key: `round-${session.id}-${sessionIndex}-${Math.random()}`,
+            key: `round-${session.id}-${sessionIndex}`,
             round_number: session.round_number,
             category: session.category,
             components: sessionComponents,
@@ -279,9 +294,12 @@ const Swiper: React.FC = () => {
 
         const swipesWithComponents = swipes.map((s: any, swipeIndex: number) => ({
           ...s,
-          key: `swipe-${s.id || swipeIndex}-${Math.random()}`,
+          key: `swipe-${s.id ?? swipeIndex}`,
           component: componentsMap[s.component_id]
-            ? { ...componentsMap[s.component_id], key: `swipe-${s.id || swipeIndex}-${s.component_id}-${Math.random()}` }
+            ? {
+              ...componentsMap[s.component_id],
+              key: `swipe-${s.id ?? swipeIndex}-${s.component_id}`
+            }
             : null
         }));
 
@@ -370,7 +388,7 @@ const Swiper: React.FC = () => {
 
   const handleKingOfHillSelect = useCallback(async (winner: ComponentPreview, loser: ComponentPreview, signals: KingOfHillBehavioralSignal) => {
     dispatch(recordKingOfHillMatch({ winner, loser, signals }));
-    
+
     if (kingOfHill.remainingComponents.length === 0) {
       // Generate King of the Hill session summary
       const sessionSummary: KingOfHillSession = {
@@ -406,9 +424,9 @@ const Swiper: React.FC = () => {
         started_at: sessionSummary.started_at,
         completed_at: sessionSummary.completed_at
       }
-      
+
       let saveSuccess = false;
-      
+
       try {
         setLoading(true);
         const response = await swiperKingOfHillSessionData(payload);
@@ -509,7 +527,7 @@ const Swiper: React.FC = () => {
             throw new Error("swiperData response not OK");
           }
 
-          const backendResponse = await checkRoundWithBackend(roundSummary);
+          const backendResponse = await checkRoundWithBackend();
           if (isLastRound) {
             try {
               console.log("✅ Marking project round as completed...");
@@ -679,7 +697,10 @@ const Swiper: React.FC = () => {
   }
 
   // Final completion screen using SwiperSummary component
-  if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive || roundCompleted) {
+  if (
+    (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive) ||
+    roundCompleted
+  ) {
     return (
       <SwiperSummary
         userChoices={userChoices}
@@ -695,8 +716,7 @@ const Swiper: React.FC = () => {
   const currentCategory = currentRoundData?.category || 'Design';
   const roundMessage = kingOfHill.isActive
     ? 'Select your favorite. It helps refine your taste.'
-    : roundMessages[currentCategory] || 'Choose the design that resonates with you.';
-
+    : getRoundMessage(currentCategory);
   return (
     <>
       {loading ? (<GlobalSpinner />) :
