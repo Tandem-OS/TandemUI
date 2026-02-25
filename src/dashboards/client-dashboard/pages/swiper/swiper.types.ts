@@ -125,3 +125,15 @@ export interface RoundBackendResponse {
     useKingOfHill: boolean;
     message?: string;
 }
+// ===============================
+// Swiper Grouped Payload (API)
+// ===============================
+
+export interface SwiperCategoryGroup {
+  category: string;
+  components: ComponentPreview[];
+}
+
+export interface SwiperGroupedPayload {
+  groups: Record<string, ComponentPreview[]>;
+}

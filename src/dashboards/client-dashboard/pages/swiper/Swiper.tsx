@@ -2,7 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { FiX, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiWifi, FiEye } from 'react-icons/fi';
+import { fetchSwiperPayload } from '@/features/swiper/swiperSlice';
+import { useParams } from 'react-router-dom';
 import SwiperStack from './components/SwiperStack';
+import { selectSwiperView } from '@/features/swiper/swiper.selectors';
 import SwipeProgress from './components/SwipeProgress';
 import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
@@ -17,9 +20,6 @@ import {
 } from './swiper.types';
 import { type RootState, type AppDispatch } from '@/store';
 import {
-  loadDataSuccess,
-  loadDataFailure,
-  setRetrying,
   addUserChoice,
   completeCurrentRound,
   moveToNextRound,
@@ -32,14 +32,13 @@ import {
   handleSkipPreview,
   resetSwiper,
   updateRoundStartTime,
-  startLoading,
   startKingOfHill,
   recordKingOfHillMatch,
   endKingOfHill,
   unlockTransition,
 } from '@/features/swiper/swiperSlice';
 import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
-import { fetchRoundCompleted, fetchRoundCompletedData, saveRoundCompleted, swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData, fetchSwiperComponentsGrouped, } from '@/lib/requests/SwiperRequest';
+import { fetchRoundCompleted, fetchRoundCompletedData, saveRoundCompleted, swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData, } from '@/lib/requests/SwiperRequest';
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import Modal from '@/common-components/Modal';
 
@@ -172,14 +171,17 @@ const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetr
 
 const Swiper: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const { id } = useParams<{ id: string }>();
+  const projectId = id;
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
   const [roundCompleted, setRoundCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
 
   const {
+     roundsData,
     currentRound,
-    roundsData,
+    currentRoundData,
     totalRounds,
     userChoices,
     roundStartTime,
@@ -188,14 +190,13 @@ const Swiper: React.FC = () => {
     showExitModal,
     showPreviewModal,
     shouldAskForPreview,
-    isInitialLoading,
-    loadingError,
-    kingOfHill
-  } = useSelector((state: RootState) => state.swiper);
+    status,
+    error,
+    kingOfHill,
+    allRoundsComplete,
+    isLastRound,
+  } = useSelector(selectSwiperView);
 
-  const currentRoundData = roundsData[currentRound];
-  const allRoundsComplete = !currentRoundData || currentRoundData.completed;
-  const isLastRound = currentRound === totalRounds - 1;
 
   // Fix: Calculate percentage based on completed rounds (currentRound starts at 0)
   const completedRounds = currentRound;  // currentRound is already 0-indexed
@@ -203,36 +204,12 @@ const Swiper: React.FC = () => {
 
   const isAnyModalOpen = showExitModal || showPreviewModal || shouldAskForPreview;
 
-  // Load data on mount
-  const loadData = useCallback(async () => {
-    try {
-      dispatch(startLoading());
-
-      const res = await fetchSwiperComponentsGrouped();
-
-      const grouped = res.data as Record<string, unknown>;
-
-      const flat = Object.entries(grouped ?? {})
-        .sort(([a], [b]) => a.localeCompare(b))
-        .flatMap(([key, value]) => {
-          const arr = Array.isArray(value) ? value : value ? [value] : [];
-          return arr.map((item: any) => ({
-            ...item,
-            category: item?.category ?? key,
-          }));
-        });
-
-      dispatch(loadDataSuccess(flat));
-
-    } catch (error) {
-      dispatch(loadDataFailure(error instanceof Error ? error.message : 'Failed to load content'));
-    }
-  }, [dispatch]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
-
+    if (status === 'idle' && projectId) {
+      dispatch(fetchSwiperPayload({ projectId }));
+    }
+  }, [status, projectId, dispatch]);
   useEffect(() => {
     dispatch(updateRoundStartTime());
   }, [currentRound, dispatch]);
@@ -325,16 +302,13 @@ const Swiper: React.FC = () => {
         console.error("Failed to prepopulate swiper data:", err);
       }
     };
-
     prepopulateFromBackend();
   }, [dispatch]);
 
-
   const handleRetry = useCallback(async () => {
-    dispatch(setRetrying(true));
-    await loadData();
-    dispatch(setRetrying(false));
-  }, [dispatch, loadData]);
+    if (!projectId) return;
+    await dispatch(fetchSwiperPayload({ projectId })).unwrap();
+  }, [dispatch, projectId]);
 
   const handleSwipe = useCallback((action: SwipeAction, component: ComponentPreview, signals: BehavioralSignal) => {
     dispatch(addUserChoice({
@@ -563,8 +537,9 @@ const Swiper: React.FC = () => {
         } catch (error) {
           console.error("❌ Backend save/check failed:", error);
           alert("Failed to save round. Please try again.");
-          await loadData();
-          dispatch(setShowRoundCompletion(false));
+          if (projectId) {
+            dispatch(fetchSwiperPayload({ projectId }));
+          } dispatch(setShowRoundCompletion(false));
         }
       };
 
@@ -637,7 +612,7 @@ const Swiper: React.FC = () => {
   }, [userChoices, roundsData, totalRounds, kingOfHillSessions]);
 
   // Loading state
-  if (isInitialLoading) {
+  if (status === 'loading') {
     return (
       <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
         <div className="w-full flex-shrink-0 relative z-10">
@@ -688,10 +663,10 @@ const Swiper: React.FC = () => {
   }
 
   // Error state
-  if (loadingError) {
+  if (status === 'failed' && error) {
     return (
       <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
-        <ErrorState onRetry={handleRetry} message={loadingError} />
+        <ErrorState onRetry={handleRetry} message={error || 'Failed'} />
       </div>
     );
   }

@@ -1,12 +1,13 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import {
     type UserChoice,
     type RoundData,
     type KingOfHillState,
     type KingOfHillMatch,
-    type ComponentPreview
+    type ComponentPreview,
 } from '@/dashboards/client-dashboard/pages/swiper/swiper.types';
 
+type SwiperStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 interface SwiperState {
     // Round Management
     currentRound: number;
@@ -24,10 +25,11 @@ interface SwiperState {
     showPreviewModal: boolean;
     shouldAskForPreview: boolean;
 
-    // Loading States
-    isInitialLoading: boolean;
-    loadingError: string | null;
-    isRetrying: boolean;
+
+    // Redux State Machine (new)
+    status: SwiperStatus;
+    error: string | null;
+    data: ComponentPreview[] | null;
 
     // King of the Hill
     kingOfHill: KingOfHillState;
@@ -46,6 +48,11 @@ const initialKingOfHillState: KingOfHillState = {
 };
 
 const initialState: SwiperState = {
+
+    status: 'idle',
+    error: null,
+    data: null,
+
     currentRound: 0,
     roundsData: [],
     totalRounds: 0,
@@ -56,63 +63,55 @@ const initialState: SwiperState = {
     showExitModal: false,
     showPreviewModal: false,
     shouldAskForPreview: false,
-    isInitialLoading: true,
-    loadingError: null,
-    isRetrying: false,
     kingOfHill: initialKingOfHillState,
     isTransitioning: false,
 };
+export const fetchSwiperPayload = createAsyncThunk<
+    ComponentPreview[],
+    { projectId: string },
+    { rejectValue: string }
+>('swiper/fetchSwiperPayload', async ({ projectId }, { rejectWithValue }) => {
+    try {
+        const res = await fetch(`/swiper/components?project_id=${projectId}`);
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(text || `Request failed: ${res.status}`);
+        }
 
+        return (await res.json()) as ComponentPreview[];
+    } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Unknown error';
+        return rejectWithValue(msg);
+    }
+});
+const buildRoundsFromComponents = (components: ComponentPreview[]): RoundData[] => {
+    const normCategory = (c: ComponentPreview) =>
+        String((c as any).category ?? 'uncategorized').trim().toLowerCase() || 'uncategorized';
+
+    const categories = Array.from(new Set(components.map(normCategory))).sort((a, b) =>
+        a.localeCompare(b)
+    );
+
+    return categories.map((cat, idx) => {
+        const comps = components
+            .filter(c => normCategory(c) === cat)
+            .slice()
+            .sort((a, b) => String(a.component_id).localeCompare(String(b.component_id)));
+
+        return {
+            roundNumber: idx + 1,
+            category: cat,
+            components: comps as any, // remove `as any` if RoundData.components is ComponentPreview[]
+            currentStep: 0,
+            completed: false,
+        };
+    });
+};
 const swiperSlice = createSlice({
     name: 'swiper',
     initialState,
     reducers: {
-        // Data Loading
-        loadDataSuccess: (state, action: PayloadAction<ComponentPreview[]>) => {
-            const components = Array.isArray(action.payload) ? action.payload : [];
 
-            const normCategory = (c: ComponentPreview) =>
-                String((c as any).category ?? "uncategorized").trim().toLowerCase() || "uncategorized";
-
-            // Deterministic category list
-            const categories = Array.from(new Set(components.map(normCategory))).sort((a, b) =>
-                a.localeCompare(b)
-            );
-
-            // Build rounds dynamically from categories
-            const rounds: RoundData[] = categories.map((cat, idx) => {
-                const comps = components
-                    .filter(c => normCategory(c) === cat)
-                    .slice()
-                    .sort((a, b) => String(a.component_id).localeCompare(String(b.component_id)));
-
-                return {
-                    roundNumber: idx + 1,
-                    category: cat,       // keep normalized value; or change to Title Case if you want
-                    components: comps as any, // if RoundData.components expects ComponentPreview[], remove `as any`
-                    currentStep: 0,
-                    completed: false,
-                };
-            });
-
-            state.roundsData = rounds;
-            state.totalRounds = rounds.length;
-            state.currentRound = 0;
-            state.isInitialLoading = false;
-            state.loadingError = null;
-        },
-
-        loadDataFailure: (state, action: PayloadAction<string>) => {
-            state.loadingError = action.payload;
-            state.isInitialLoading = false;
-        },
-
-        setRetrying: (state, action: PayloadAction<boolean>) => {
-            state.isRetrying = action.payload;
-            if (action.payload) {
-                state.isInitialLoading = true;
-            }
-        },
 
         // Swipe Actions
         addUserChoice: (state, action: PayloadAction<{
@@ -263,17 +262,41 @@ const swiperSlice = createSlice({
             state.roundStartTime = Date.now();
         },
 
-        startLoading: (state) => {
-            state.isInitialLoading = true;
-            state.loadingError = null;
-        },
+
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchSwiperPayload.pending, (state) => {
+                state.status = 'loading';
+                state.error = null;
+            })
+            .addCase(fetchSwiperPayload.rejected, (state, action) => {
+                state.status = 'failed';
+                state.error = action.payload ?? action.error.message ?? 'Failed';
+            })
+            .addCase(fetchSwiperPayload.fulfilled, (state, action) => {
+                state.status = 'succeeded';
+                state.error = null;
+                state.data = action.payload;
+
+
+                const nextData = Array.isArray(action.payload) ? action.payload : [];
+                state.data = nextData;
+                const rounds = buildRoundsFromComponents(nextData);
+                state.roundsData = rounds;
+                state.totalRounds = rounds.length;
+                state.currentRound = 0;
+
+                // reset UI state that should not persist across fresh loads
+                state.showRoundCompletion = false;
+                state.shouldAskForPreview = false;
+                state.showPreviewModal = false;
+                state.isTransitioning = false;
+            })
     },
 });
 
 export const {
-    loadDataSuccess,
-    loadDataFailure,
-    setRetrying,
     addUserChoice,
     completeCurrentRound,
     moveToNextRound,
@@ -286,7 +309,6 @@ export const {
     handleSkipPreview,
     resetSwiper,
     updateRoundStartTime,
-    startLoading,
     startKingOfHill,
     recordKingOfHillMatch,
     endKingOfHill,
