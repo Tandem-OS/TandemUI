@@ -40,7 +40,18 @@ import {
   unlockTransition,
 } from '@/features/swiper/swiperSlice';
 import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
-import { fetchRoundCompleted, fetchRoundCompletedData, saveRoundCompleted, swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData } from '@/lib/requests/SwiperRequest';
+import {
+  fetchRoundCompleted,
+  fetchRoundCompletedData,
+  saveRoundCompleted,
+  swiperComponentData,
+  swiperData,
+  swiperKingOfHillMatchesData,
+  swiperKingOfHillSessionData,
+  getCanonicalComponents,           // NEW
+  TANDEM_CANONICAL_PROJECT_ID,      // NEW
+  type CanonicalComponent,          // NEW
+} from '@/lib/requests/SwiperRequest';
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import Modal from '@/common-components/Modal';
 
@@ -51,7 +62,6 @@ const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
 // Mock backend check function
 const checkRoundWithBackend = async (roundSummary: RoundSummary): Promise<{ useKingOfHill: boolean }> => {
   await new Promise(resolve => setTimeout(resolve, 500));
-  // Never use King of Hill for round 10 or after
   if (roundSummary.round_number >= 10) {
     return { useKingOfHill: false };
   }
@@ -80,45 +90,51 @@ const animations: { [key: string]: Variants | any } = {
   button: { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 } }
 };
 
+// NEW: Maps canonical backend shape → ComponentPreview shape the swiper expects
+const mapCanonicalToPreview = (component: CanonicalComponent): ComponentPreview => ({
+  component_id: component.component_id,
+  thumbnail_url: component.thumbnail_url ?? "",
+  vibe: component.vibe ?? component.category,
+  tone: component.tone ?? [],
+  layout_structure: component.layout_structure ?? "default",
+  intent: component.intent ?? [],
+  tags: component.tags ?? [component.category],
+  title: component.title,
+  description: component.description,
+  category: component.category.charAt(0).toUpperCase() + component.category.slice(1),
+  project_id: component.project_id,
+  is_canonical: component.is_canonical,
+});
+
 // Skeleton Card Component
 const SkeletonCard: React.FC = () => (
   <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden animate-pulse">
-    {/* Mobile Layout Skeleton */}
     <div className="block lg:!hidden">
       <div className="bg-background-secondary-2 h-48 sm:h-56" />
-
       <div className="bg-background-primary-2 p-md sm:p-lg">
         <div className="space-y-md">
           <div className="flex justify-between gap-xs">
             <div className="h-6 bg-background-secondary-2 rounded w-20" />
             <div className="h-6 bg-background-secondary-2 rounded w-16" />
           </div>
-
           <div className="h-8 bg-background-secondary-2 rounded w-3/4" />
-
           <div className="space-y-2">
             <div className="h-4 bg-background-secondary-2 rounded w-full" />
             <div className="h-4 bg-background-secondary-2 rounded w-4/5" />
             <div className="h-4 bg-background-secondary-2 rounded w-3/5" />
           </div>
-
           <div className="flex gap-sm">
             <div className="h-6 bg-background-secondary-2 rounded w-12" />
             <div className="h-6 bg-background-secondary-2 rounded w-12" />
             <div className="h-6 bg-background-secondary-2 rounded w-12" />
           </div>
-
           <div className="h-4 bg-background-secondary-2 rounded w-1/2" />
         </div>
       </div>
     </div>
-
-    {/* Desktop Layout Skeleton */}
     <div className="!hidden lg:!block relative h-[370px] 2xl:h-[470px]">
       <div className="absolute inset-0 bg-background-secondary-2" />
-
       <div className="absolute top-lg left-lg w-12 h-12 bg-background-primary-2 rounded-full" />
-
       <div className="absolute bottom-0 left-0 right-0 bg-background-primary-2 px-lg py-md">
         <div className="flex justify-between gap-md">
           <div className="space-y-sm flex-1">
@@ -136,8 +152,6 @@ const SkeletonCard: React.FC = () => (
         </div>
       </div>
     </div>
-
-    {/* Action Buttons */}
     <div className="px-md py-md">
       <div className="flex justify-center gap-md">
         <div className="w-16 h-16 bg-background-secondary-2 rounded-full" />
@@ -196,19 +210,30 @@ const Swiper: React.FC = () => {
   const currentRoundData = roundsData[currentRound];
   const allRoundsComplete = !currentRoundData || currentRoundData.completed;
   const isLastRound = currentRound === totalRounds - 1;
-
-  // Fix: Calculate percentage based on completed rounds (currentRound starts at 0)
-  const completedRounds = currentRound;  // currentRound is already 0-indexed
+  const completedRounds = currentRound;
   const percentage = totalRounds > 0 ? Math.round((completedRounds / totalRounds) * 100) : 0;
-
   const isAnyModalOpen = showExitModal || showPreviewModal || shouldAskForPreview;
 
-  // Load data on mount
+  // CHANGED: loadData now fetches real canonical data from backend
   const loadData = useCallback(async () => {
     try {
       dispatch(startLoading());
-      await new Promise(resolve => setTimeout(resolve, TIMINGS.LOADING_SIMULATION));
-      dispatch(loadDataSuccess());
+
+      const data = await getCanonicalComponents();
+      console.log("canonical response:", JSON.stringify(data)); // remove after confirming shape
+
+      const componentsMap = data?.components ?? data ?? {};
+      const flatComponents: ComponentPreview[] = Object.values(componentsMap)
+        .flat()
+        .map(c => mapCanonicalToPreview(c as CanonicalComponent));
+
+      if (!flatComponents.length) {
+        dispatch(loadDataFailure('No canonical components found. Check seeding.'));
+        return;
+      }
+
+      dispatch(loadDataSuccess(flatComponents));
+
     } catch (error) {
       dispatch(loadDataFailure(error instanceof Error ? error.message : 'Failed to load content'));
     }
@@ -311,7 +336,6 @@ const Swiper: React.FC = () => {
     prepopulateFromBackend();
   }, [dispatch]);
 
-
   const handleRetry = useCallback(async () => {
     dispatch(setRetrying(true));
     await loadData();
@@ -337,14 +361,12 @@ const Swiper: React.FC = () => {
       choice.action === 'like' || choice.action === 'super-like'
     );
     const rejectedChoices = roundChoices.filter(choice => choice.action === 'dislike');
-
     const totalHesitation = roundChoices.reduce((sum, choice) =>
       sum + choice.behavioral_signals.hesitation_ms, 0
     );
     const avgViewDuration = roundChoices.length > 0
       ? roundChoices.reduce((sum, choice) => sum + choice.behavioral_signals.view_duration_ms, 0) / roundChoices.length
       : 0;
-
     const gestureCount = roundChoices.filter(choice =>
       choice.behavioral_signals.action_source === 'gesture'
     ).length;
@@ -370,9 +392,8 @@ const Swiper: React.FC = () => {
 
   const handleKingOfHillSelect = useCallback(async (winner: ComponentPreview, loser: ComponentPreview, signals: KingOfHillBehavioralSignal) => {
     dispatch(recordKingOfHillMatch({ winner, loser, signals }));
-    
+
     if (kingOfHill.remainingComponents.length === 0) {
-      // Generate King of the Hill session summary
       const sessionSummary: KingOfHillSession = {
         round_number: currentRound + 1,
         category: currentRoundData?.category || '',
@@ -394,10 +415,6 @@ const Swiper: React.FC = () => {
         completed_at: Date.now(),
       };
 
-      console.log('='.repeat(60));
-      console.log(`[KING OF THE HILL COMPLETE - Round ${currentRound + 1}]`);
-      console.log('🏆 King of the Hill Summary:', JSON.stringify(sessionSummary));
-
       const payload = {
         round_number: sessionSummary.round_number,
         category: sessionSummary.category,
@@ -405,10 +422,10 @@ const Swiper: React.FC = () => {
         session_duration_ms: sessionSummary.session_duration_ms,
         started_at: sessionSummary.started_at,
         completed_at: sessionSummary.completed_at
-      }
-      
+      };
+
       let saveSuccess = false;
-      
+
       try {
         setLoading(true);
         const response = await swiperKingOfHillSessionData(payload);
@@ -419,31 +436,24 @@ const Swiper: React.FC = () => {
           await swiperKingOfHillMatchesData(payload);
         }
 
-        // Wait for all component saves to finish
         for (const component of sessionSummary.components) {
           const payload = { ...component, session_id: sessionId };
           await swiperComponentData(payload);
         }
-        console.log('✅ All components saved');
-        saveSuccess = true;
 
-        console.log('👑 Final Winner:', winner.title);
-        console.log('='.repeat(60));
+        saveSuccess = true;
         setLoading(false);
-        // Store locally
         setKingOfHillSessions(prev => [...prev, sessionSummary]);
       } catch (error) {
         console.error('❌ Error saving components', error);
-        alert("Try again Save unsuccssfull")
+        alert("Try again Save unsuccssfull");
         setLoading(false);
         dispatch(endKingOfHill());
 
-        // Explicitly reload the current round’s components
         if (currentRoundData?.components) {
           dispatch(startKingOfHill(currentRoundData.components));
         }
         saveSuccess = false;
-        setLoading(false);
       }
 
       if (saveSuccess) {
@@ -462,7 +472,6 @@ const Swiper: React.FC = () => {
     }
   }, [dispatch, kingOfHill, currentRound, currentRoundData, isLastRound]);
 
-  // UseEffect to handle round completion logic after state update
   useEffect(() => {
     if (showRoundCompletion && !kingOfHill.isActive) {
       const saveRoundData = async () => {
@@ -474,17 +483,6 @@ const Swiper: React.FC = () => {
           if (!roundChoices.length) return;
 
           const roundSummary = generateRoundSummary(roundChoices);
-
-          console.log('='.repeat(60));
-          console.log(`[ROUND ${currentRound + 1} COMPLETE - ${currentRoundData?.category}]`);
-          console.log('📊 Round Summary:', JSON.stringify(roundSummary));
-          console.log('📈 Breakdown:', {
-            total_swipes: roundChoices.length,
-            liked: roundSummary.choices.length,
-            rejected: roundSummary.rejected.length,
-            super_liked: roundSummary.superlike_count
-          });
-          console.log('='.repeat(60));
 
           const payload = {
             choices: roundSummary.choices || [],
@@ -512,14 +510,13 @@ const Swiper: React.FC = () => {
           const backendResponse = await checkRoundWithBackend(roundSummary);
           if (isLastRound) {
             try {
-              console.log("✅ Marking project round as completed...");
               await saveRoundCompleted();
             } catch (err) {
               console.error("❌ Failed to mark round completed:", err);
             }
           }
+
           if (backendResponse.useKingOfHill && currentRoundData) {
-            console.log("🏆 Backend requested King of the Hill for this round!");
             setTimeout(() => {
               dispatch(setShowRoundCompletion(false));
               dispatch(startKingOfHill(currentRoundData.components));
@@ -528,8 +525,7 @@ const Swiper: React.FC = () => {
             setTimeout(() => {
               dispatch(setShowRoundCompletion(false));
               const completedRoundNumber = currentRound + 1;
-              const shouldShowPreview =
-                completedRoundNumber % 2 === 0 && !isLastRound;
+              const shouldShowPreview = completedRoundNumber % 2 === 0 && !isLastRound;
 
               if (shouldShowPreview) {
                 dispatch(setShouldAskForPreview(true));
@@ -554,34 +550,26 @@ const Swiper: React.FC = () => {
     }
   }, [showRoundCompletion, userChoices, currentRound, generateRoundSummary, currentRoundData, kingOfHill.isActive, dispatch, isLastRound, totalRounds]);
 
-  // Reset kingOfHillSessions when component unmounts or resets
   useEffect(() => {
     return () => {
       setKingOfHillSessions([]);
     };
   }, []);
 
-
   const handleAnimationStart = useCallback(() => dispatch(setAnimating(true)), [dispatch]);
   const handleAnimationComplete = useCallback(() => dispatch(setAnimating(false)), [dispatch]);
   const handleExit = useCallback(() => {
     dispatch(setShowExitModal(false));
-    console.log('Exiting swiper...');
   }, [dispatch]);
 
   const RoundCompletionCelebration = () => (
     <motion.div {...animations.completion} className="flex flex-col items-center justify-center text-center px-md">
       <div className="relative">
-        <SuccessAnimation
-          showConfetti={true}
-          confettiCount={80}
-          confettiDuration={4000}
-        />
+        <SuccessAnimation showConfetti={true} confettiCount={80} confettiDuration={4000} />
         <motion.div {...animations.icon} className="mb-sm sm:mb-md md:mb-lg">
           <FiCheckCircle className="text-icon-2xl sm:text-[2.5rem] md:text-[3rem] text-accent-default" />
         </motion.div>
       </div>
-
       <motion.h2
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -598,9 +586,6 @@ const Swiper: React.FC = () => {
   }, [dispatch]);
 
   const handleGenerateLayout = useCallback(() => {
-    console.log('Generating layout with selected preferences...');
-
-    // Create detailed session summary
     const sessionSummary = {
       session_id: `session_${Date.now()}`,
       total_rounds: totalRounds,
@@ -610,15 +595,9 @@ const Swiper: React.FC = () => {
       rounds_data: roundsData,
       king_of_hill_sessions: kingOfHillSessions
     };
-
-    // Store session data in localStorage
     localStorage.setItem('design_session', JSON.stringify(sessionSummary));
-
-    // Add your navigation or action logic here
-    // For example: navigate('/generate-layout') or dispatch an action
   }, [userChoices, roundsData, totalRounds, kingOfHillSessions]);
 
-  // Loading state
   if (isInitialLoading) {
     return (
       <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
@@ -652,12 +631,7 @@ const Swiper: React.FC = () => {
                 <motion.div
                   key={i}
                   className="absolute inset-0"
-                  style={{
-                    zIndex: 30 - i * 10,
-                    scale: 1 - i * 0.08,
-                    y: i * 25,
-                    opacity: 1 - i * 0.3
-                  }}
+                  style={{ zIndex: 30 - i * 10, scale: 1 - i * 0.08, y: i * 25, opacity: 1 - i * 0.3 }}
                 >
                   <SkeletonCard />
                 </motion.div>
@@ -669,7 +643,6 @@ const Swiper: React.FC = () => {
     );
   }
 
-  // Error state
   if (loadingError) {
     return (
       <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
@@ -678,7 +651,6 @@ const Swiper: React.FC = () => {
     );
   }
 
-  // Final completion screen using SwiperSummary component
   if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive || roundCompleted) {
     return (
       <SwiperSummary
@@ -737,10 +709,7 @@ const Swiper: React.FC = () => {
                   <div className="flex-1 h-2 bg-background-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-accent-default rounded-full transition-transform duration-700 ease-out"
-                      style={{
-                        transform: `scaleX(${percentage / 100})`,
-                        transformOrigin: 'left',
-                      }}
+                      style={{ transform: `scaleX(${percentage / 100})`, transformOrigin: 'left' }}
                     />
                   </div>
                   <span className="text-text-secondary text-para-xs font-medium whitespace-nowrap">{percentage}%</span>
@@ -779,19 +748,14 @@ const Swiper: React.FC = () => {
                 ) : null}
               </AnimatePresence>
             </div>
-
           </div>
 
-          {/* Preview Ask Modal */}
           <Modal
             isOpen={shouldAskForPreview}
             onClose={() => {
               dispatch(handleSkipPreview());
               dispatch(moveToNextRound());
-              // Unlock after 1 second to prevent rapid clicks
-              setTimeout(() => {
-                dispatch(unlockTransition());
-              }, 1000);
+              setTimeout(() => { dispatch(unlockTransition()); }, 1000);
             }}
             title="Preview Your Design?"
             size="sm"
@@ -801,10 +765,7 @@ const Swiper: React.FC = () => {
                   onClick={() => {
                     dispatch(handleSkipPreview());
                     dispatch(moveToNextRound());
-
-                    setTimeout(() => {
-                      dispatch(unlockTransition());
-                    }, 1000);
+                    setTimeout(() => { dispatch(unlockTransition()); }, 1000);
                   }}
                   className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
                   {...animations.button}
@@ -844,22 +805,17 @@ const Swiper: React.FC = () => {
             </div>
           </Modal>
 
-          {/* Preview Modal */}
           <PreviewModal
             isOpen={showPreviewModal}
             onClose={() => dispatch(setShowPreviewModal(false))}
             onContinue={() => {
               dispatch(handlePreviewContinue());
               dispatch(moveToNextRound());
-
-              setTimeout(() => {
-                dispatch(unlockTransition());
-              }, 1000);
+              setTimeout(() => { dispatch(unlockTransition()); }, 1000);
             }}
             roundsCompleted={currentRound + 1}
           />
 
-          {/* Exit Modal */}
           <Modal
             isOpen={showExitModal}
             onClose={() => dispatch(setShowExitModal(false))}
@@ -901,4 +857,4 @@ const Swiper: React.FC = () => {
   );
 };
 
-export default Swiper;
+export default Swiper;e

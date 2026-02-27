@@ -6,7 +6,8 @@ import {
     type KingOfHillMatch,
     type ComponentPreview
 } from '@/dashboards/client-dashboard/pages/swiper/swiper.types';
-import { categories, getCurrentRoundComponents, getTotalRounds } from '@/dashboards/client-dashboard/pages/swiper/mockData';
+import { getTotalRounds } from '@/dashboards/client-dashboard/pages/swiper/mockData';
+// REMOVED: categories, getCurrentRoundComponents — no longer needed, data comes from API
 
 interface SwiperState {
     // Round Management
@@ -68,17 +69,25 @@ const swiperSlice = createSlice({
     name: 'swiper',
     initialState,
     reducers: {
-        // Data Loading
-        loadDataSuccess: (state) => {
-            const data = categories.map((category, index) => ({
+        // CHANGED: now accepts real ComponentPreview[] from API instead of building from mock
+        loadDataSuccess: (state, action: PayloadAction<ComponentPreview[]>) => {
+            const categoryGroups: Record<string, ComponentPreview[]> = {};
+
+            action.payload.forEach(comp => {
+                const cat = comp.category;
+                if (!categoryGroups[cat]) categoryGroups[cat] = [];
+                categoryGroups[cat].push(comp);
+            });
+
+            state.roundsData = Object.entries(categoryGroups).map(([category, comps], index) => ({
                 roundNumber: index + 1,
                 category,
-                components: getCurrentRoundComponents(index),
+                components: comps,
                 currentStep: 0,
-                completed: false
+                completed: false,
             }));
 
-            state.roundsData = data;
+            state.totalRounds = state.roundsData.length;
             state.isInitialLoading = false;
             state.loadingError = null;
         },
