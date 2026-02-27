@@ -1,3 +1,4 @@
+import type{ CanonicalComponentsResponse } from '@/dashboards/client-dashboard/pages/swiper/swiper.types';
 import api from "@/lib/requests/Axios";
 import { store } from "@/store";
 
@@ -48,11 +49,10 @@ interface KingOfMatches {
   behavioral_signals: {}
 }
 
-export const swiperData = async (values: SwiperRoundSummary) => {
-
+export const swiperData = async (values: SwiperRoundSummary, projectIdOverride?: string) => {
   const clientEmail = store.getState().auth.user.email!;
   const designerEmail = store.getState().auth.user.designerEmail;
-  const projectId = store.getState().project.projectId;
+  const projectId = projectIdOverride || store.getState().project.projectId;
 
   const payload = {
     ...values,
@@ -147,9 +147,9 @@ export const saveRoundCompleted = async () => {
   return await api.post("/rounds/completed", payload)
 }
 
-export const fetchRoundCompleted = async () => {
-  const project_id = store.getState().project.projectId;
-
+export const fetchRoundCompleted = async (projectId?: string) => {
+  const project_id = projectId || store.getState().project.projectId;
+  if (!project_id) throw new Error('No project_id');
   return await api.get(`/rounds/completed/${project_id}`)
 }
 
@@ -165,4 +165,8 @@ export const fetchSwiperComponentsGrouped = async () => {
   return await api.get("/swiper/components", {
     params: { project_id },
   });
+};
+export const getCanonicalComponents = async (): Promise<CanonicalComponentsResponse> => {
+  const response = await api.get('/swiper/canonical');
+  return response.data;
 };

@@ -5,10 +5,11 @@ import {
     type KingOfHillState,
     type KingOfHillMatch,
     type ComponentPreview,
+    type SwiperComponentCard,
 } from '@/dashboards/client-dashboard/pages/swiper/swiper.types';
 
 type SwiperStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
-interface SwiperState {
+export interface SwiperState {
     // Round Management
     currentRound: number;
     roundsData: RoundData[];
@@ -34,6 +35,13 @@ interface SwiperState {
     // King of the Hill
     kingOfHill: KingOfHillState;
     isTransitioning: boolean;
+
+    // Canonical Queue (new milestone)
+    queue: SwiperComponentCard[];
+    mode: 'flat' | 'ranked' | 'king_of_hill';
+    swipeCount: number;
+    canonicalLoading: boolean;
+    canonicalError: string | null;
 }
 
 const initialKingOfHillState: KingOfHillState = {
@@ -65,6 +73,11 @@ const initialState: SwiperState = {
     shouldAskForPreview: false,
     kingOfHill: initialKingOfHillState,
     isTransitioning: false,
+    queue: [],
+    mode: 'flat',
+    swipeCount: 0,
+    canonicalLoading: false,
+    canonicalError: null,
 };
 export const fetchSwiperPayload = createAsyncThunk<
     ComponentPreview[],
@@ -261,7 +274,30 @@ const swiperSlice = createSlice({
         updateRoundStartTime: (state) => {
             state.roundStartTime = Date.now();
         },
+        // Canonical Queue Reducers (new milestone)
+        loadDataStart: (state) => {
+            state.canonicalLoading = true;
+            state.canonicalError = null;
+        },
 
+        loadDataSuccess: (state, action: PayloadAction<SwiperComponentCard[]>) => {
+            state.queue = action.payload;
+            state.canonicalLoading = false;
+            state.canonicalError = null;
+        },
+
+        loadDataFailure: (state) => {
+            state.canonicalLoading = false;
+            state.canonicalError = 'Failed to load components';
+        },
+
+        setMode: (state, action: PayloadAction<'flat' | 'ranked' | 'king_of_hill'>) => {
+            state.mode = action.payload;
+        },
+
+        incrementSwipeCount: (state) => {
+            state.swipeCount += 1;
+        },
 
     },
     extraReducers: (builder) => {
@@ -313,6 +349,11 @@ export const {
     recordKingOfHillMatch,
     endKingOfHill,
     unlockTransition,
+    loadDataStart,
+    loadDataSuccess,
+    loadDataFailure,
+    setMode,
+    incrementSwipeCount,
 } = swiperSlice.actions;
 
 export default swiperSlice.reducer;

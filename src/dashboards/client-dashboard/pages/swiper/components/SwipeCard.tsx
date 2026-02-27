@@ -579,8 +579,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                     {isActive && (
                                         <AskAiModal
                                             isOpen={isAiModalOpen}
-                                            description={`This ${component.vibe.toLowerCase()} ${component.category.toLowerCase()} design focuses on ${component.tone.join(', ')} aesthetics with ${component.layout_structure} layout structure to achieve ${component.intent.join(' and ')} goals.`}
-                                            onClose={() => setIsAiModalOpen(false)}
+                                            description={`This ${(component.vibe || 'modern').toLowerCase()} ${(component.category || 'design').toLowerCase()} design focuses on ${(component.tone || ['clean']).join(', ')} aesthetics with ${component.layout_structure || 'standard'} layout structure to achieve ${(component.intent || ['engage']).join(' and ')} goals.`} onClose={() => setIsAiModalOpen(false)}
                                         />
                                     )}
                                 </div>

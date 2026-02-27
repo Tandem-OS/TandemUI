@@ -36,11 +36,18 @@ import {
   recordKingOfHillMatch,
   endKingOfHill,
   unlockTransition,
+  loadDataStart,
+  loadDataSuccess,
+  loadDataFailure,
+  setMode,
+  incrementSwipeCount,
 } from '@/features/swiper/swiperSlice';
 import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
-import { fetchRoundCompleted, fetchRoundCompletedData, saveRoundCompleted, swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData, } from '@/lib/requests/SwiperRequest';
+import { fetchRoundCompleted, fetchRoundCompletedData, saveRoundCompleted, swiperComponentData, swiperData, swiperKingOfHillMatchesData, swiperKingOfHillSessionData, getCanonicalComponents } from '@/lib/requests/SwiperRequest';
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import Modal from '@/common-components/Modal';
+import { TANDEM_CANONICAL_PROJECT_ID } from './constants';
+import type { SwiperComponentCard } from './swiper.types';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500 };
@@ -177,9 +184,27 @@ const Swiper: React.FC = () => {
   const [roundCompleted, setRoundCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
+  const loadData = async () => {
+    dispatch(loadDataStart());
+    try {
+      const data = await getCanonicalComponents();
+      console.log('Canonical response:', data);
+      const components = (data as any).components ?? data;
+      const flatQueue = Object.values(components).flat() as SwiperComponentCard[];
+      if (flatQueue.length === 0) {
+        dispatch(loadDataFailure());
+        return;
+      }
+      dispatch(loadDataSuccess(flatQueue));
+      dispatch(setMode('flat'));
+    } catch (error) {
+      console.error('Failed to load canonical components:', error);
+      dispatch(loadDataFailure());
+    }
+  };
 
   const {
-     roundsData,
+    roundsData,
     currentRound,
     currentRoundData,
     totalRounds,
@@ -195,8 +220,27 @@ const Swiper: React.FC = () => {
     kingOfHill,
     allRoundsComplete,
     isLastRound,
+    swipeCount,
   } = useSelector(selectSwiperView);
+  // Map canonical queue to ComponentPreview shape for SwiperStack
+  const queue = useSelector((state: RootState) => state.swiper.queue);
+  const mode = useSelector((state: RootState) => state.swiper.mode);
 
+  const canonicalComponents: ComponentPreview[] = queue.map(card => ({
+    component_id: card.id,
+    thumbnail_url: card.thumbnail_url ?? '',
+    vibe: 'modern',
+    tone: ['clean'],
+    layout_structure: 'standard',
+    intent: ['engage'],
+    tags: [],
+    title: card.component_type,
+    description: '',
+    category: card.component_type,
+  }));
+  // Empty state — canonical returned no components
+  const canonicalError = useSelector((state: RootState) => state.swiper.canonicalError);
+  const canonicalLoading = useSelector((state: RootState) => state.swiper.canonicalLoading);
 
   // Fix: Calculate percentage based on completed rounds (currentRound starts at 0)
   const completedRounds = currentRound;  // currentRound is already 0-indexed
@@ -204,7 +248,9 @@ const Swiper: React.FC = () => {
 
   const isAnyModalOpen = showExitModal || showPreviewModal || shouldAskForPreview;
 
-
+  useEffect(() => {
+    loadData();
+  }, []);
   useEffect(() => {
     if (status === 'idle' && projectId) {
       dispatch(fetchSwiperPayload({ projectId }));
@@ -322,7 +368,49 @@ const Swiper: React.FC = () => {
       },
       isAnyModalOpen
     }));
-  }, [dispatch, isAnyModalOpen]);
+
+    dispatch(incrementSwipeCount());
+    const newCount = swipeCount + 1;
+    if (newCount === 3) {
+      triggerRankedQuery();
+    }
+  }, [dispatch, isAnyModalOpen, swipeCount]);
+  const triggerRankedQuery = async () => {
+    try {
+      // Fire and forget — never block the UI on this
+      console.log('[Swiper] Triggering ranked query...');
+      // TODO: replace with real RAG call e.g. await postRagQuery(tasteVector)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Swiper] Transitioned to ranked mode ✅');
+      }
+      dispatch(setMode('ranked'));
+    } catch (error) {
+      // Fail silently — user stays on flat mode, no crash
+      console.error('[Swiper] Ranked query failed, staying on flat:', error);
+    }
+  };
+
+  const onSwipe = useCallback((component: SwiperComponentCard, direction: string) => {
+    // GUARDRAIL — canonical UUID must NEVER appear in telemetry
+    if (component.project_id === TANDEM_CANONICAL_PROJECT_ID) {
+      swiperData({
+        choices: [],
+        rejected: [],
+        round_number: 0,
+        category: component.component_type,
+        superlike_count: 0,
+        breakdown: { direction: direction === 'right' ? 1 : 0 },
+      });
+    }
+
+    dispatch(incrementSwipeCount());
+    const newCount = swipeCount + 1;
+
+    // After 3rd swipe — fire ranked query silently in background
+    if (newCount === 3) {
+      triggerRankedQuery();
+    }
+  }, [dispatch, swipeCount]);
 
   const generateRoundSummary = useCallback((roundChoices: any[]): RoundSummary => {
     const likedChoices = roundChoices.filter(choice =>
@@ -581,7 +669,7 @@ const Swiper: React.FC = () => {
         transition={{ delay: 0.2, duration: 0.3 }}
         className="text-h4-sm sm:text-h3-sm md:text-h3-md lg:text-h3-lg font-bold text-text-primary"
       >
-        {isLastRound ? 'All Done!' : `${currentRoundData?.category} Round Completed`}
+        {isLastRound ? 'All Done!' : mode === 'flat' || mode === 'ranked' ? 'Round Completed' : `${currentRoundData?.category} Round Completed`}
       </motion.h2>
     </motion.div>
   );
@@ -671,6 +759,23 @@ const Swiper: React.FC = () => {
     );
   }
 
+  if (!canonicalLoading && canonicalError && queue.length === 0) {
+    return (
+      <div className="w-full flex items-center justify-center px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
+        <div className="flex flex-col items-center justify-center text-center space-y-md">
+          <p className="text-text-primary text-para-lg font-medium">No components available</p>
+          <motion.button
+            onClick={loadData}
+            className="flex items-center gap-sm px-lg py-md bg-accent-subtle text-accent-default hover:bg-accent-default hover:text-accent-foreground rounded-lg border border-border-default transition-all"
+            {...animations.button}
+          >
+            <FiRefreshCw className="text-icon-sm" />
+            <span className="text-para-md font-medium">Try Again</span>
+          </motion.button>
+        </div>
+      </div>
+    );
+  }
   // Final completion screen using SwiperSummary component
   if (
     (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive) ||
@@ -715,8 +820,7 @@ const Swiper: React.FC = () => {
                         <span className="px-xs py-px sm:px-sm sm:py-xs md:px-sm md:py-xs bg-accent-subtle text-text-primary text-para-xs font-medium rounded-sm sm:rounded-md whitespace-nowrap">
                           {kingOfHill.isActive
                             ? `Match ${kingOfHill.currentMatchNumber} of ${kingOfHill.matches.length + kingOfHill.remainingComponents.length + 1}`
-                            : `Round ${currentRound + 1} of ${totalRounds}`
-                          }
+                            : mode === 'flat' || mode === 'ranked' ? `Swipe ${swipeCount + 1}` : `Round ${currentRound + 1} of ${totalRounds}`}
                         </span>
                       </div>
                       <p className="text-text-secondary text-para-xs sm:text-para-sm 2xl:text-para-lg max-w-md hidden sm:block truncate">
@@ -758,11 +862,11 @@ const Swiper: React.FC = () => {
                       onAnimationComplete={handleAnimationComplete}
                     />
                   </motion.div>
-                ) : currentRoundData && !currentRoundData.completed ? (
+                ) : (currentRoundData && !currentRoundData.completed) || (mode === 'flat' || mode === 'ranked') ? (
                   <motion.div key={`round-${currentRound}`} {...animations.page} className="w-full h-full flex items-center justify-center">
                     <SwiperStack
                       key={currentRound}
-                      components={currentRoundData.components}
+                      components={mode === 'flat' || mode === 'ranked' ? canonicalComponents : currentRoundData.components}
                       onSwipe={handleSwipe}
                       onComplete={handleRoundComplete}
                       isAnimating={isAnimating}

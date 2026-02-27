@@ -137,3 +137,16 @@ export interface SwiperCategoryGroup {
 export interface SwiperGroupedPayload {
   groups: Record<string, ComponentPreview[]>;
 }
+export interface SwiperComponentCard {
+  id: string;
+  project_id: string;
+  component_type: string;
+  thumbnail_url: string | null;
+  content_slots: Record<string, any>;
+  tokens: Record<string, any>;
+  is_canonical: boolean;
+}
+
+export interface CanonicalComponentsResponse {
+  components: Record<string, SwiperComponentCard[]>;
+}

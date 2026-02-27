@@ -1,8 +1,8 @@
 import { createSelector } from "@reduxjs/toolkit";
 import type { RootState } from "@/store";
 import type { ComponentPreview, RoundData } from "@/dashboards/client-dashboard/pages/swiper/swiper.types";
+import type { SwiperState } from "@/features/swiper/swiperSlice";
 
-// --- your existing builder ---
 const buildRoundsFromComponents = (components: ComponentPreview[]): RoundData[] => {
   const normCategory = (c: ComponentPreview) =>
     String((c as any).category ?? "uncategorized").trim().toLowerCase() || "uncategorized";
@@ -27,7 +27,7 @@ const buildRoundsFromComponents = (components: ComponentPreview[]): RoundData[] 
   });
 };
 
-export const selectSwiperSlice = (state: RootState) => state.swiper;
+export const selectSwiperSlice = (state: RootState): SwiperState => state.swiper;
 export const selectSwiperData = (state: RootState) => state.swiper.data;
 
 export const selectDerivedRounds = createSelector([selectSwiperData], (data) => {
@@ -35,17 +35,14 @@ export const selectDerivedRounds = createSelector([selectSwiperData], (data) => 
   return buildRoundsFromComponents(data);
 });
 
-// make a view selector that includes roundsData
 export const selectSwiperView = createSelector(
   [selectSwiperSlice, selectDerivedRounds],
   (swiper, roundsData) => {
     const currentRound = swiper.currentRound ?? 0;
     const totalRounds = roundsData.length;
     const currentRoundData = roundsData[currentRound] ?? null;
-
     const isLastRound = totalRounds > 0 ? currentRound === totalRounds - 1 : false;
 
-    // If your slice already has allRoundsComplete, keep it; otherwise derive it safely.
     const allRoundsComplete =
       typeof (swiper as any).allRoundsComplete === "boolean"
         ? (swiper as any).allRoundsComplete
@@ -55,11 +52,15 @@ export const selectSwiperView = createSelector(
 
     return {
       ...swiper,
-      roundsData,        
-      totalRounds,       
-      currentRoundData,  
+      roundsData,
+      totalRounds,
+      currentRoundData,
       isLastRound,
       allRoundsComplete,
+      mode: swiper.mode,
+      queue: swiper.queue,
+      canonicalLoading: swiper.canonicalLoading,
+      canonicalError: swiper.canonicalError,
     };
   }
 );
