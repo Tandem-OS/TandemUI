@@ -857,4 +857,4 @@ const Swiper: React.FC = () => {
   );
 };
 
-export default Swiper;e
+export default Swiper;
