@@ -1,7 +1,10 @@
 // TypeScript interfaces for Swiper system with Behavioral Signals
 
 export interface ComponentPreview {
+    id: string;
     component_id: string;
+    client_email: string;
+    designer_email: string;
     thumbnail_url: string;
     vibe: string;
     tone: string[];
@@ -11,6 +14,10 @@ export interface ComponentPreview {
     title: string;
     description: string;
     category: string;
+    project_id: string;
+    is_canonical: boolean;
+    content_slots: Record<string, any>;
+    tokens: Record<string, any>;
 }
 
 export type SwipeAction = 'like' | 'dislike' | 'super-like' | 'ask-ai';

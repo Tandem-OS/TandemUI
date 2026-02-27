@@ -49,7 +49,7 @@ import {
   swiperKingOfHillMatchesData,
   swiperKingOfHillSessionData,
   getCanonicalComponents,           // NEW
-  TANDEM_CANONICAL_PROJECT_ID,      // NEW
+  // TANDEM_CANONICAL_PROJECT_ID,      // NEW
   type CanonicalComponent,          // NEW
 } from '@/lib/requests/SwiperRequest';
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
@@ -60,13 +60,13 @@ const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, L
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
 
 // Mock backend check function
-const checkRoundWithBackend = async (roundSummary: RoundSummary): Promise<{ useKingOfHill: boolean }> => {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  if (roundSummary.round_number >= 10) {
-    return { useKingOfHill: false };
-  }
-  return { useKingOfHill: roundSummary.round_number % 2 === 0 };
-};
+// const checkRoundWithBackend = async (roundSummary: RoundSummary): Promise<{ useKingOfHill: boolean }> => {
+//   await new Promise(resolve => setTimeout(resolve, 500));
+//   if (roundSummary.round_number >= 10) {
+//     return { useKingOfHill: false };
+//   }
+//   return { useKingOfHill: roundSummary.round_number % 2 === 0 };
+// };
 
 // Animation variants
 const animations: { [key: string]: Variants | any } = {
@@ -92,7 +92,10 @@ const animations: { [key: string]: Variants | any } = {
 
 // NEW: Maps canonical backend shape → ComponentPreview shape the swiper expects
 const mapCanonicalToPreview = (component: CanonicalComponent): ComponentPreview => ({
+  id: component.id,                                                         // ADD
   component_id: component.component_id,
+  client_email: component.client_email,                                     // ADD
+  designer_email: component.designer_email,                                 // ADD
   thumbnail_url: component.thumbnail_url ?? "",
   vibe: component.vibe ?? component.category,
   tone: component.tone ?? [],
@@ -104,7 +107,25 @@ const mapCanonicalToPreview = (component: CanonicalComponent): ComponentPreview 
   category: component.category.charAt(0).toUpperCase() + component.category.slice(1),
   project_id: component.project_id,
   is_canonical: component.is_canonical,
+  content_slots: component.content_slots ?? {},                             // ADD
+  tokens: component.tokens ?? {},                                           // ADD
 });
+
+const normalizeLayout = (category: string, layout: string): string => {
+  const fallbacks: Record<string, string> = {
+    hero: 'stacked',
+    nav: 'split_nav',
+    features: 'grid',
+  };
+  const known: Record<string, string[]> = {
+    hero: ['stacked', 'centered', 'split', 'immersive', 'minimal', 'video_bg'],
+    nav: ['split_nav', 'centered', 'minimal', 'wide', 'sidebar', 'mega_menu'],
+    features: ['grid', 'list', 'split'],
+  };
+  const cat = category.toLowerCase();
+  const knownLayouts = known[cat] ?? [];
+  return knownLayouts.includes(layout) ? layout : (fallbacks[cat] ?? 'default');
+};
 
 // Skeleton Card Component
 const SkeletonCard: React.FC = () => (
@@ -204,7 +225,8 @@ const Swiper: React.FC = () => {
     shouldAskForPreview,
     isInitialLoading,
     loadingError,
-    kingOfHill
+    kingOfHill,
+    // isKingOfHillPending
   } = useSelector((state: RootState) => state.swiper);
 
   const currentRoundData = roundsData[currentRound];
@@ -222,7 +244,7 @@ const Swiper: React.FC = () => {
       const data = await getCanonicalComponents();
       console.log("canonical response:", JSON.stringify(data)); // remove after confirming shape
 
-      const componentsMap = data?.components ?? data ?? {};
+      const componentsMap = data ?? {};
       const flatComponents: ComponentPreview[] = Object.values(componentsMap)
         .flat()
         .map(c => mapCanonicalToPreview(c as CanonicalComponent));
@@ -437,7 +459,32 @@ const Swiper: React.FC = () => {
         }
 
         for (const component of sessionSummary.components) {
-          const payload = { ...component, session_id: sessionId };
+          const payload = {
+            // Required — backend 422s if any of these are missing
+            component_id: component.component_id,
+            project_id: component.project_id,
+            client_email: component.client_email,       // now available from mapper fix above
+            designer_email: component.designer_email,   // now available from mapper fix above
+            session_id: sessionId,
+            thumbnail_url: component.thumbnail_url || null,
+
+            // Optional
+            id: component.id,
+            title: component.title,
+            description: component.description,
+            category: component.category?.toLowerCase(), // backend stores lowercase
+            layout_structure: normalizeLayout(
+              component.category ?? '',
+              component.layout_structure ?? ''
+            ),
+            content_slots: component.content_slots,
+            tokens: component.tokens,
+            tone: component.tone,
+            intent: component.intent,
+            tags: component.tags,
+            vibe: component.vibe,
+            is_canonical: component.is_canonical ?? false,
+          };
           await swiperComponentData(payload);
         }
 
@@ -466,11 +513,13 @@ const Swiper: React.FC = () => {
             dispatch(setShouldAskForPreview(true));
           } else if (!isLastRound) {
             dispatch(moveToNextRound());
+            setTimeout(() => dispatch(unlockTransition()), 1000);
           }
         }, 1000);
       }
     }
   }, [dispatch, kingOfHill, currentRound, currentRoundData, isLastRound]);
+
 
   useEffect(() => {
     if (showRoundCompletion && !kingOfHill.isActive) {
@@ -507,7 +556,7 @@ const Swiper: React.FC = () => {
             throw new Error("swiperData response not OK");
           }
 
-          const backendResponse = await checkRoundWithBackend(roundSummary);
+          // Mark last round completed
           if (isLastRound) {
             try {
               await saveRoundCompleted();
@@ -516,26 +565,38 @@ const Swiper: React.FC = () => {
             }
           }
 
-          if (backendResponse.useKingOfHill && currentRoundData) {
-            setTimeout(() => {
-              dispatch(setShowRoundCompletion(false));
-              dispatch(startKingOfHill(currentRoundData.components));
-            }, TIMINGS.CELEBRATION);
-          } else {
-            setTimeout(() => {
-              dispatch(setShowRoundCompletion(false));
-              const completedRoundNumber = currentRound + 1;
-              const shouldShowPreview = completedRoundNumber % 2 === 0 && !isLastRound;
+          // CHANGED: Always start KOH after every section — no backend check
+          if (currentRoundData) {
+            const likedComponents = currentRoundData.components.filter(comp => {
+              return roundChoices.some(
+                choice =>
+                  choice.component_id === comp.component_id &&
+                  (choice.action === 'like' || choice.action === 'super-like')
+              );
+            });
 
-              if (shouldShowPreview) {
-                dispatch(setShouldAskForPreview(true));
-              } else if (!isLastRound) {
-                dispatch(moveToNextRound());
-                setTimeout(() => {
-                  dispatch(unlockTransition());
-                }, 1000);
-              }
-            }, TIMINGS.CELEBRATION);
+            // Need at least 2 liked components to run KOH
+            // If less than 2, skip KOH and move to next round directly
+            if (likedComponents.length >= 2) {
+              setTimeout(() => {
+                dispatch(setShowRoundCompletion(false));
+                dispatch(startKingOfHill(likedComponents));  // Only liked components enter KOH
+              }, TIMINGS.CELEBRATION);
+            } else {
+              // Not enough liked — skip KOH, release gate, move on
+              setTimeout(() => {
+                dispatch(setShowRoundCompletion(false));
+                // Manually release the KOH pending gate since we're skipping KOH
+                dispatch(endKingOfHill());
+
+                if (!isLastRound) {
+                  dispatch(moveToNextRound());
+                  setTimeout(() => {
+                    dispatch(unlockTransition());
+                  }, 1000);
+                }
+              }, TIMINGS.CELEBRATION);
+            }
           }
 
         } catch (error) {
