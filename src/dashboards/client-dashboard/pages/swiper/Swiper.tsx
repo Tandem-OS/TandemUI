@@ -59,15 +59,6 @@ import Modal from '@/common-components/Modal';
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
 
-// Mock backend check function
-// const checkRoundWithBackend = async (roundSummary: RoundSummary): Promise<{ useKingOfHill: boolean }> => {
-//   await new Promise(resolve => setTimeout(resolve, 500));
-//   if (roundSummary.round_number >= 10) {
-//     return { useKingOfHill: false };
-//   }
-//   return { useKingOfHill: roundSummary.round_number % 2 === 0 };
-// };
-
 // Animation variants
 const animations: { [key: string]: Variants | any } = {
   page: {
@@ -104,7 +95,7 @@ const mapCanonicalToPreview = (component: CanonicalComponent): ComponentPreview 
   tags: component.tags ?? [component.category],
   title: component.title,
   description: component.description,
-  category: component.category.charAt(0).toUpperCase() + component.category.slice(1),
+  category: component.category.toLowerCase(),
   project_id: component.project_id,
   is_canonical: component.is_canonical,
   content_slots: component.content_slots ?? {},                             // ADD
@@ -232,8 +223,7 @@ const Swiper: React.FC = () => {
   const currentRoundData = roundsData[currentRound];
   const allRoundsComplete = !currentRoundData || currentRoundData.completed;
   const isLastRound = currentRound === totalRounds - 1;
-  const completedRounds = currentRound;
-  const percentage = totalRounds > 0 ? Math.round((completedRounds / totalRounds) * 100) : 0;
+  const percentage = totalRounds > 0 ? Math.round((currentRound / totalRounds) * 100) : 0;
   const isAnyModalOpen = showExitModal || showPreviewModal || shouldAskForPreview;
 
   // CHANGED: loadData now fetches real canonical data from backend
@@ -242,12 +232,13 @@ const Swiper: React.FC = () => {
       dispatch(startLoading());
 
       const data = await getCanonicalComponents();
-      console.log("canonical response:", JSON.stringify(data)); // remove after confirming shape
 
       const componentsMap = data ?? {};
-      const flatComponents: ComponentPreview[] = Object.values(componentsMap)
-        .flat()
-        .map(c => mapCanonicalToPreview(c as CanonicalComponent));
+      const flatComponents: ComponentPreview[] = [
+        ...(componentsMap['hero'] ?? []),
+        ...(componentsMap['nav'] ?? []),
+        ...(componentsMap['features'] ?? []),
+      ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
 
       if (!flatComponents.length) {
         dispatch(loadDataFailure('No canonical components found. Check seeding.'));
@@ -454,12 +445,12 @@ const Swiper: React.FC = () => {
         const sessionId = response.data.id;
 
         for (const match of sessionSummary.matches) {
-          const payload = { ...match, session_id: sessionId };
-          await swiperKingOfHillMatchesData(payload);
+          const matchPayload = { ...match, session_id: sessionId };
+          await swiperKingOfHillMatchesData(matchPayload);
         }
 
         for (const component of sessionSummary.components) {
-          const payload = {
+          const componentPayload = {
             // Required — backend 422s if any of these are missing
             component_id: component.component_id,
             project_id: component.project_id,
@@ -485,7 +476,7 @@ const Swiper: React.FC = () => {
             vibe: component.vibe,
             is_canonical: component.is_canonical ?? false,
           };
-          await swiperComponentData(payload);
+          await swiperComponentData(componentPayload);
         }
 
         saveSuccess = true;
@@ -566,356 +557,334 @@ const Swiper: React.FC = () => {
           }
 
           // CHANGED: Always start KOH after every section — no backend check
-          if (currentRoundData) {
-            const likedComponents = currentRoundData.components.filter(comp => {
-              return roundChoices.some(
-                choice =>
-                  choice.component_id === comp.component_id &&
-                  (choice.action === 'like' || choice.action === 'super-like')
-              );
-            });
 
-            // Need at least 2 liked components to run KOH
-            // If less than 2, skip KOH and move to next round directly
-            if (likedComponents.length >= 2) {
-              setTimeout(() => {
-                dispatch(setShowRoundCompletion(false));
-                dispatch(startKingOfHill(likedComponents));  // Only liked components enter KOH
-              }, TIMINGS.CELEBRATION);
-            } else {
-              // Not enough liked — skip KOH, release gate, move on
-              setTimeout(() => {
-                dispatch(setShowRoundCompletion(false));
-                // Manually release the KOH pending gate since we're skipping KOH
-                dispatch(endKingOfHill());
+          // KOH always fires after every section — no gate
+          setTimeout(() => {
+            dispatch(setShowRoundCompletion(false));
+            dispatch(startKingOfHill(currentRoundData.components));
+          }, TIMINGS.CELEBRATION);
 
-                if (!isLastRound) {
-                  dispatch(moveToNextRound());
-                  setTimeout(() => {
-                    dispatch(unlockTransition());
-                  }, 1000);
-                }
-              }, TIMINGS.CELEBRATION);
-            }
-          }
-
-        } catch (error) {
-          console.error("❌ Backend save/check failed:", error);
-          alert("Failed to save round. Please try again.");
-          await loadData();
-          dispatch(setShowRoundCompletion(false));
         }
-      };
 
-      saveRoundData();
-    }
+         catch (error) {
+        console.error("❌ Backend save/check failed:", error);
+        alert("Failed to save round. Please try again.");
+        await loadData();
+        dispatch(setShowRoundCompletion(false));
+      }
+    };
+
+    saveRoundData();
+  }
   }, [showRoundCompletion, userChoices, currentRound, generateRoundSummary, currentRoundData, kingOfHill.isActive, dispatch, isLastRound, totalRounds]);
 
-  useEffect(() => {
-    return () => {
-      setKingOfHillSessions([]);
-    };
-  }, []);
+useEffect(() => {
+  return () => {
+    setKingOfHillSessions([]);
+  };
+}, []);
 
-  const handleAnimationStart = useCallback(() => dispatch(setAnimating(true)), [dispatch]);
-  const handleAnimationComplete = useCallback(() => dispatch(setAnimating(false)), [dispatch]);
-  const handleExit = useCallback(() => {
-    dispatch(setShowExitModal(false));
-  }, [dispatch]);
+const handleAnimationStart = useCallback(() => dispatch(setAnimating(true)), [dispatch]);
+const handleAnimationComplete = useCallback(() => dispatch(setAnimating(false)), [dispatch]);
+const handleExit = useCallback(() => {
+  dispatch(setShowExitModal(false));
+}, [dispatch]);
 
-  const RoundCompletionCelebration = () => (
-    <motion.div {...animations.completion} className="flex flex-col items-center justify-center text-center px-md">
-      <div className="relative">
-        <SuccessAnimation showConfetti={true} confettiCount={80} confettiDuration={4000} />
-        <motion.div {...animations.icon} className="mb-sm sm:mb-md md:mb-lg">
-          <FiCheckCircle className="text-icon-2xl sm:text-[2.5rem] md:text-[3rem] text-accent-default" />
-        </motion.div>
-      </div>
-      <motion.h2
-        initial={{ y: 10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.3 }}
-        className="text-h4-sm sm:text-h3-sm md:text-h3-md lg:text-h3-lg font-bold text-text-primary"
-      >
-        {isLastRound ? 'All Done!' : `${currentRoundData?.category} Round Completed`}
-      </motion.h2>
-    </motion.div>
-  );
+const RoundCompletionCelebration = () => (
+  <motion.div {...animations.completion} className="flex flex-col items-center justify-center text-center px-md">
+    <div className="relative">
+      <SuccessAnimation showConfetti={true} confettiCount={80} confettiDuration={4000} />
+      <motion.div {...animations.icon} className="mb-sm sm:mb-md md:mb-lg">
+        <FiCheckCircle className="text-icon-2xl sm:text-[2.5rem] md:text-[3rem] text-accent-default" />
+      </motion.div>
+    </div>
+    <motion.h2
+      initial={{ y: 10, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: 0.2, duration: 0.3 }}
+      className="text-h4-sm sm:text-h3-sm md:text-h3-md lg:text-h3-lg font-bold text-text-primary"
+    >
+      {isLastRound ? 'All Done!' : `${currentRoundData?.category.charAt(0).toUpperCase() + currentRoundData?.category.slice(1)} Round Completed`}
+    </motion.h2>
+  </motion.div>
+);
 
-  const handleStartOver = useCallback(() => {
-    dispatch(resetSwiper());
-  }, [dispatch]);
+const handleStartOver = useCallback(() => {
+  dispatch(resetSwiper());
+}, [dispatch]);
 
-  const handleGenerateLayout = useCallback(() => {
-    const sessionSummary = {
-      session_id: `session_${Date.now()}`,
-      total_rounds: totalRounds,
-      completed_at: new Date().toISOString(),
-      total_choices: userChoices.length,
-      user_choices: userChoices,
-      rounds_data: roundsData,
-      king_of_hill_sessions: kingOfHillSessions
-    };
-    localStorage.setItem('design_session', JSON.stringify(sessionSummary));
-  }, [userChoices, roundsData, totalRounds, kingOfHillSessions]);
+const handleGenerateLayout = useCallback(() => {
+  const sessionSummary = {
+    session_id: `session_${Date.now()}`,
+    total_rounds: totalRounds,
+    completed_at: new Date().toISOString(),
+    total_choices: userChoices.length,
+    user_choices: userChoices,
+    rounds_data: roundsData,
+    king_of_hill_sessions: kingOfHillSessions
+  };
+  localStorage.setItem('design_session', JSON.stringify(sessionSummary));
+}, [userChoices, roundsData, totalRounds, kingOfHillSessions]);
 
-  if (isInitialLoading) {
-    return (
-      <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
-        <div className="w-full flex-shrink-0 relative z-10">
-          <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
-            <div className="flex items-center justify-between gap-sm">
-              <div className="flex items-center space-x-sm sm:space-x-sm md:space-x-lg flex-1 min-w-0">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-background-muted rounded-md sm:rounded-lg animate-pulse" />
-                <div className="space-y-xs min-w-0 flex-1">
-                  <div className="h-6 bg-background-muted rounded w-32 animate-pulse" />
-                  <div className="h-4 bg-background-muted rounded w-48 hidden sm:block animate-pulse" />
-                </div>
-              </div>
-              <div className="hidden lg:flex items-center gap-sm">
-                <div className="h-2 bg-background-muted rounded-full w-32 animate-pulse" />
-                <div className="h-4 bg-background-muted rounded w-12 animate-pulse" />
-              </div>
-            </div>
-          </div>
-          <div className="lg:hidden px-sm pb-xs mb-sm">
-            <div className="flex items-center justify-between gap-sm">
-              <div className="flex-1 h-2 bg-background-muted rounded-full animate-pulse" />
-              <div className="h-4 bg-background-muted rounded w-8 animate-pulse" />
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-center px-xs py-xs sm:p-md md:p-xl relative z-20">
-          <div className="relative w-full max-w-4xl 2xl:max-w-6xl mx-auto px-xs sm:px-sm md:px-0">
-            <div className="relative" style={{ height: 'clamp(380px, calc(100vh - 180px), 600px)' }}>
-              {[0, 1, 2].map(i => (
-                <motion.div
-                  key={i}
-                  className="absolute inset-0"
-                  style={{ zIndex: 30 - i * 10, scale: 1 - i * 0.08, y: i * 25, opacity: 1 - i * 0.3 }}
-                >
-                  <SkeletonCard />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (loadingError) {
-    return (
-      <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
-        <ErrorState onRetry={handleRetry} message={loadingError} />
-      </div>
-    );
-  }
-
-  if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive || roundCompleted) {
-    return (
-      <SwiperSummary
-        userChoices={userChoices}
-        roundsData={roundsData}
-        totalRounds={totalRounds}
-        kingOfHillSessions={kingOfHillSessions}
-        onStartOver={handleStartOver}
-        onGenerateLayout={handleGenerateLayout}
-      />
-    );
-  }
-
-  const currentCategory = currentRoundData?.category || 'Design';
-  const roundMessage = kingOfHill.isActive
-    ? 'Select your favorite. It helps refine your taste.'
-    : roundMessages[currentCategory] || 'Choose the design that resonates with you.';
-
+if (isInitialLoading) {
   return (
-    <>
-      {loading ? (<GlobalSpinner />) :
-        <>
-          <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
-            <div className="w-full flex-shrink-0 relative z-10">
-              <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
-                <div className="flex items-center justify-between gap-sm">
-                  <div className="flex items-center space-x-sm sm:space-x-sm md:space-x-lg flex-1 min-w-0">
-                    <button
-                      onClick={() => dispatch(setShowExitModal(true))}
-                      className="flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-background-secondary text-text-secondary rounded-md sm:rounded-lg hover:bg-background-muted hover:text-text-primary transition-colors cursor-pointer"
-                    >
-                      <FiX className="text-icon-sm sm:text-icon-md" />
-                    </button>
-                    <div className="space-y-0 md:space-y-xs min-w-0 flex-1">
-                      <div className="flex items-center space-x-xs sm:space-x-sm md:space-x-md flex-wrap">
-                        <h1 className="text-h6-sm sm:text-h5-sm md:text-h4-md 2xl:text-h4-lg font-bold text-text-primary truncate">
-                          {kingOfHill.isActive ? 'King of the Hill' : `${currentCategory} Round`}
-                        </h1>
-                        <span className="px-xs py-px sm:px-sm sm:py-xs md:px-sm md:py-xs bg-accent-subtle text-text-primary text-para-xs font-medium rounded-sm sm:rounded-md whitespace-nowrap">
-                          {kingOfHill.isActive
-                            ? `Match ${kingOfHill.currentMatchNumber} of ${kingOfHill.matches.length + kingOfHill.remainingComponents.length + 1}`
-                            : `Round ${currentRound + 1} of ${totalRounds}`
-                          }
-                        </span>
-                      </div>
-                      <p className="text-text-secondary text-para-xs sm:text-para-sm 2xl:text-para-lg max-w-md hidden sm:block truncate">
-                        {roundMessage}
-                      </p>
-                    </div>
-                  </div>
-                  <SwipeProgress current={currentRound + 1} total={totalRounds} className="hidden lg:flex" />
-                </div>
-              </div>
-              <div className="lg:hidden px-sm pb-xs mb-sm">
-                <div className="flex items-center justify-between gap-sm">
-                  <div className="flex-1 h-2 bg-background-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-accent-default rounded-full transition-transform duration-700 ease-out"
-                      style={{ transform: `scaleX(${percentage / 100})`, transformOrigin: 'left' }}
-                    />
-                  </div>
-                  <span className="text-text-secondary text-para-xs font-medium whitespace-nowrap">{percentage}%</span>
-                </div>
+    <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
+      <div className="w-full flex-shrink-0 relative z-10">
+        <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
+          <div className="flex items-center justify-between gap-sm">
+            <div className="flex items-center space-x-sm sm:space-x-sm md:space-x-lg flex-1 min-w-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-background-muted rounded-md sm:rounded-lg animate-pulse" />
+              <div className="space-y-xs min-w-0 flex-1">
+                <div className="h-6 bg-background-muted rounded w-32 animate-pulse" />
+                <div className="h-4 bg-background-muted rounded w-48 hidden sm:block animate-pulse" />
               </div>
             </div>
-            <div className="flex items-center justify-center 2xl:p-xl relative z-20 h-[-webkit-fill-available]">
-              <AnimatePresence mode="wait">
-                {showRoundCompletion ? (
-                  <RoundCompletionCelebration />
-                ) : kingOfHill.isActive && kingOfHill.currentDefender && kingOfHill.currentChallenger ? (
-                  <motion.div key="king-of-hill" {...animations.page} className="w-full h-full">
-                    <KingOfTheHill
-                      defender={kingOfHill.currentDefender}
-                      challenger={kingOfHill.currentChallenger}
-                      onSelect={handleKingOfHillSelect}
-                      matchNumber={kingOfHill.currentMatchNumber}
-                      isAnimating={isAnimating}
-                      onAnimationStart={handleAnimationStart}
-                      onAnimationComplete={handleAnimationComplete}
-                    />
-                  </motion.div>
-                ) : currentRoundData && !currentRoundData.completed ? (
-                  <motion.div key={`round-${currentRound}`} {...animations.page} className="w-full h-full flex items-center justify-center">
-                    <SwiperStack
-                      key={currentRound}
-                      components={currentRoundData.components}
-                      onSwipe={handleSwipe}
-                      onComplete={handleRoundComplete}
-                      isAnimating={isAnimating}
-                      onAnimationStart={handleAnimationStart}
-                      onAnimationComplete={handleAnimationComplete}
-                      isModalOpen={isAnyModalOpen}
-                    />
-                  </motion.div>
-                ) : null}
-              </AnimatePresence>
+            <div className="hidden lg:flex items-center gap-sm">
+              <div className="h-2 bg-background-muted rounded-full w-32 animate-pulse" />
+              <div className="h-4 bg-background-muted rounded w-12 animate-pulse" />
             </div>
           </div>
+        </div>
+        <div className="lg:hidden px-sm pb-xs mb-sm">
+          <div className="flex items-center justify-between gap-sm">
+            <div className="flex-1 h-2 bg-background-muted rounded-full animate-pulse" />
+            <div className="h-4 bg-background-muted rounded w-8 animate-pulse" />
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-center px-xs py-xs sm:p-md md:p-xl relative z-20">
+        <div className="relative w-full max-w-4xl 2xl:max-w-6xl mx-auto px-xs sm:px-sm md:px-0">
+          <div className="relative" style={{ height: 'clamp(380px, calc(100vh - 180px), 600px)' }}>
+            {[0, 1, 2].map(i => (
+              <motion.div
+                key={i}
+                className="absolute inset-0"
+                style={{ zIndex: 30 - i * 10, scale: 1 - i * 0.08, y: i * 25, opacity: 1 - i * 0.3 }}
+              >
+                <SkeletonCard />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          <Modal
-            isOpen={shouldAskForPreview}
-            onClose={() => {
-              dispatch(handleSkipPreview());
-              dispatch(moveToNextRound());
-              setTimeout(() => { dispatch(unlockTransition()); }, 1000);
-            }}
-            title="Preview Your Design?"
-            size="sm"
-            footer={
-              <div className="flex gap-sm justify-end">
-                <motion.button
-                  onClick={() => {
-                    dispatch(handleSkipPreview());
-                    dispatch(moveToNextRound());
-                    setTimeout(() => { dispatch(unlockTransition()); }, 1000);
-                  }}
-                  className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
-                  {...animations.button}
-                >
-                  <span className='inline lg:hidden'>Continue</span>
-                  <span className='hidden lg:inline'>Continue Swiping</span>
-                </motion.button>
-                <motion.button
-                  onClick={() => {
-                    dispatch(setShouldAskForPreview(false));
-                    dispatch(setShowPreviewModal(true));
-                  }}
-                  className="px-lg py-sm text-accent-foreground bg-accent-default hover:bg-accent-hover rounded-lg transition-colors flex items-center gap-sm"
-                  {...animations.button}
-                >
-                  <FiEye className="text-icon-sm" />
-                  <span className='inline lg:hidden'>Preview</span>
-                  <span className='hidden lg:inline'>Show Preview</span>
-                </motion.button>
-              </div>
-            }
-          >
-            <div className="space-y-lg">
-              <div className="flex items-center justify-center">
-                <div className="w-20 h-20 bg-accent-subtle rounded-full flex items-center justify-center">
-                  <FiEye className="text-icon-2xl text-accent-default" />
+if (loadingError) {
+  return (
+    <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
+      <ErrorState onRetry={handleRetry} message={loadingError} />
+    </div>
+  );
+}
+
+if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive || roundCompleted) {
+  return (
+    <SwiperSummary
+      userChoices={userChoices}
+      roundsData={roundsData}
+      totalRounds={totalRounds}
+      kingOfHillSessions={kingOfHillSessions}
+      onStartOver={handleStartOver}
+      onGenerateLayout={handleGenerateLayout}
+    />
+  );
+}
+
+const currentCategory = currentRoundData?.category
+  ? currentRoundData.category.charAt(0).toUpperCase() + currentRoundData.category.slice(1)
+  : 'Design';
+const roundMessage = kingOfHill.isActive
+  ? 'Select your favorite. It helps refine your taste.'
+  : roundMessages[currentCategory] || 'Choose the design that resonates with you.';
+
+return (
+  <>
+    {loading ? (<GlobalSpinner />) :
+      <>
+        <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
+          <div className="w-full flex-shrink-0 relative z-10">
+            <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
+              <div className="flex items-center justify-between gap-sm">
+                <div className="flex items-center space-x-sm sm:space-x-sm md:space-x-lg flex-1 min-w-0">
+                  <button
+                    onClick={() => dispatch(setShowExitModal(true))}
+                    className="flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-background-secondary text-text-secondary rounded-md sm:rounded-lg hover:bg-background-muted hover:text-text-primary transition-colors cursor-pointer"
+                  >
+                    <FiX className="text-icon-sm sm:text-icon-md" />
+                  </button>
+                  <div className="space-y-0 md:space-y-xs min-w-0 flex-1">
+                    <div className="flex items-center space-x-xs sm:space-x-sm md:space-x-md flex-wrap">
+                      <h1 className="text-h6-sm sm:text-h5-sm md:text-h4-md 2xl:text-h4-lg font-bold text-text-primary truncate">
+                        {kingOfHill.isActive ? 'King of the Hill' : `${currentCategory} Round`}
+                      </h1>
+                      <span className="px-xs py-px sm:px-sm sm:py-xs md:px-sm md:py-xs bg-accent-subtle text-text-primary text-para-xs font-medium rounded-sm sm:rounded-md whitespace-nowrap">
+                        {kingOfHill.isActive
+                          ? `Match ${kingOfHill.currentMatchNumber} of ${kingOfHill.matches.length + kingOfHill.remainingComponents.length + 1}`
+                          : `Round ${currentRound + 1} of ${totalRounds}`
+                        }
+                      </span>
+                    </div>
+                    <p className="text-text-secondary text-para-xs sm:text-para-sm 2xl:text-para-lg max-w-md hidden sm:block truncate">
+                      {roundMessage}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="text-center space-y-sm">
-                <p className="text-text-primary text-para-lg font-medium">
-                  Great progress! You've completed {currentRound + 1} rounds.
-                </p>
-                <p className="text-text-secondary text-para-md">
-                  Would you like to see how your design is shaping up based on your choices?
-                </p>
+                <SwipeProgress current={currentRound + 1} total={totalRounds} className="hidden lg:flex" />
               </div>
             </div>
-          </Modal>
-
-          <PreviewModal
-            isOpen={showPreviewModal}
-            onClose={() => dispatch(setShowPreviewModal(false))}
-            onContinue={() => {
-              dispatch(handlePreviewContinue());
-              dispatch(moveToNextRound());
-              setTimeout(() => { dispatch(unlockTransition()); }, 1000);
-            }}
-            roundsCompleted={currentRound + 1}
-          />
-
-          <Modal
-            isOpen={showExitModal}
-            onClose={() => dispatch(setShowExitModal(false))}
-            title="Exit Design Discovery?"
-            size="sm"
-            footer={
-              <div className="flex gap-sm justify-end">
-                <motion.button
-                  onClick={() => dispatch(setShowExitModal(false))}
-                  className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
-                  {...animations.button}
-                >
-                  Continue
-                </motion.button>
-                <motion.button
-                  onClick={handleExit}
-                  className="px-lg py-sm text-accent-foreground bg-accent-default hover:bg-accent-hover rounded-lg transition-colors"
-                  {...animations.button}
-                >
-                  Exit
-                </motion.button>
-              </div>
-            }
-          >
-            <div className="space-y-lg">
-              <div className="flex items-center justify-center">
-                <div className="w-20 h-20 bg-background-warning rounded-full flex items-center justify-center">
-                  <FiAlertTriangle className="text-icon-2xl text-text-warning" />
+            <div className="lg:hidden px-sm pb-xs mb-sm">
+              <div className="flex items-center justify-between gap-sm">
+                <div className="flex-1 h-2 bg-background-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-accent-default rounded-full transition-transform duration-700 ease-out"
+                    style={{ transform: `scaleX(${percentage / 100})`, transformOrigin: 'left' }}
+                  />
                 </div>
+                <span className="text-text-secondary text-para-xs font-medium whitespace-nowrap">{percentage}%</span>
               </div>
-              <p className="text-text-primary text-para-lg text-center font-medium">
-                Are you sure you want to exit? Your progress will be saved.
+            </div>
+          </div>
+          <div className="flex items-center justify-center 2xl:p-xl relative z-20 h-[-webkit-fill-available]">
+            <AnimatePresence mode="wait">
+              {showRoundCompletion ? (
+                <RoundCompletionCelebration />
+              ) : kingOfHill.isActive && kingOfHill.currentDefender && kingOfHill.currentChallenger ? (
+                <motion.div key="king-of-hill" {...animations.page} className="w-full h-full">
+                  <KingOfTheHill
+                    defender={kingOfHill.currentDefender}
+                    challenger={kingOfHill.currentChallenger}
+                    onSelect={handleKingOfHillSelect}
+                    matchNumber={kingOfHill.currentMatchNumber}
+                    isAnimating={isAnimating}
+                    onAnimationStart={handleAnimationStart}
+                    onAnimationComplete={handleAnimationComplete}
+                  />
+                </motion.div>
+              ) : currentRoundData && !currentRoundData.completed ? (
+                <motion.div key={`round-${currentRound}`} {...animations.page} className="w-full h-full flex items-center justify-center">
+                  <SwiperStack
+                    key={currentRound}
+                    components={currentRoundData.components}
+                    onSwipe={handleSwipe}
+                    onComplete={handleRoundComplete}
+                    isAnimating={isAnimating}
+                    onAnimationStart={handleAnimationStart}
+                    onAnimationComplete={handleAnimationComplete}
+                    isModalOpen={isAnyModalOpen}
+                  />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        <Modal
+          isOpen={shouldAskForPreview}
+          onClose={() => {
+            dispatch(handleSkipPreview());
+            dispatch(moveToNextRound());
+            setTimeout(() => { dispatch(unlockTransition()); }, 1000);
+          }}
+          title="Preview Your Design?"
+          size="sm"
+          footer={
+            <div className="flex gap-sm justify-end">
+              <motion.button
+                onClick={() => {
+                  dispatch(handleSkipPreview());
+                  dispatch(moveToNextRound());
+                  setTimeout(() => { dispatch(unlockTransition()); }, 1000);
+                }}
+                className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
+                {...animations.button}
+              >
+                <span className='inline lg:hidden'>Continue</span>
+                <span className='hidden lg:inline'>Continue Swiping</span>
+              </motion.button>
+              <motion.button
+                onClick={() => {
+                  dispatch(setShouldAskForPreview(false));
+                  dispatch(setShowPreviewModal(true));
+                }}
+                className="px-lg py-sm text-accent-foreground bg-accent-default hover:bg-accent-hover rounded-lg transition-colors flex items-center gap-sm"
+                {...animations.button}
+              >
+                <FiEye className="text-icon-sm" />
+                <span className='inline lg:hidden'>Preview</span>
+                <span className='hidden lg:inline'>Show Preview</span>
+              </motion.button>
+            </div>
+          }
+        >
+          <div className="space-y-lg">
+            <div className="flex items-center justify-center">
+              <div className="w-20 h-20 bg-accent-subtle rounded-full flex items-center justify-center">
+                <FiEye className="text-icon-2xl text-accent-default" />
+              </div>
+            </div>
+            <div className="text-center space-y-sm">
+              <p className="text-text-primary text-para-lg font-medium">
+                Great progress! You've completed {currentRound + 1} rounds.
+              </p>
+              <p className="text-text-secondary text-para-md">
+                Would you like to see how your design is shaping up based on your choices?
               </p>
             </div>
-          </Modal>
-        </>
-      }
-    </>
-  );
+          </div>
+        </Modal>
+
+        <PreviewModal
+          isOpen={showPreviewModal}
+          onClose={() => dispatch(setShowPreviewModal(false))}
+          onContinue={() => {
+            dispatch(handlePreviewContinue());
+            dispatch(moveToNextRound());
+            setTimeout(() => { dispatch(unlockTransition()); }, 1000);
+          }}
+          roundsCompleted={currentRound + 1}
+        />
+
+        <Modal
+          isOpen={showExitModal}
+          onClose={() => dispatch(setShowExitModal(false))}
+          title="Exit Design Discovery?"
+          size="sm"
+          footer={
+            <div className="flex gap-sm justify-end">
+              <motion.button
+                onClick={() => dispatch(setShowExitModal(false))}
+                className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
+                {...animations.button}
+              >
+                Continue
+              </motion.button>
+              <motion.button
+                onClick={handleExit}
+                className="px-lg py-sm text-accent-foreground bg-accent-default hover:bg-accent-hover rounded-lg transition-colors"
+                {...animations.button}
+              >
+                Exit
+              </motion.button>
+            </div>
+          }
+        >
+          <div className="space-y-lg">
+            <div className="flex items-center justify-center">
+              <div className="w-20 h-20 bg-background-warning rounded-full flex items-center justify-center">
+                <FiAlertTriangle className="text-icon-2xl text-text-warning" />
+              </div>
+            </div>
+            <p className="text-text-primary text-para-lg text-center font-medium">
+              Are you sure you want to exit? Your progress will be saved.
+            </p>
+          </div>
+        </Modal>
+      </>
+    }
+  </>
+);
 };
 
 export default Swiper;
