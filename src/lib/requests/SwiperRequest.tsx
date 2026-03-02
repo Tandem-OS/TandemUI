@@ -113,12 +113,17 @@ export const swiperData = async (values: SwiperRoundSummary) => {
 // thumbnail_url for canonical components is always a URL — append as string directly
 export const swiperComponentData = async (values: SwiperComponent) => {
   const projectId = store.getState().project.projectId;
+  const clientEmail = store.getState().auth.user.email!;
+  const designerEmail = store.getState().auth.user.designerEmail;
   const formData = new FormData();
 
   for (const [key, value] of Object.entries(values)) {
     if (value === null || value === undefined) continue;
     if (key === 'thumbnail_url') continue;
     if (key === 'project_id') continue;        // ← always override below, never trust incoming value
+    if (key === 'client_email') continue;      // ← add
+    if (key === 'designer_email') continue;    // ← add
+    if (key === 'is_canonical') continue;
 
     if (typeof value === 'object' && !Array.isArray(value)) {
       formData.append(key, JSON.stringify(value));
@@ -131,6 +136,8 @@ export const swiperComponentData = async (values: SwiperComponent) => {
 
   // Always inject real project_id from Redux — never use canonical component's ID
   formData.append('project_id', projectId ?? '');
+  formData.append('client_email', clientEmail ?? '');
+  formData.append('designer_email', designerEmail ?? '');
 
   formData.append('is_canonical', 'false');    // ← force false, user swipe records are never canonical
 

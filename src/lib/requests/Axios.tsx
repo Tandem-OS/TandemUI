@@ -15,9 +15,20 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = store.getState().auth.tokens.access;
   console.log(token)
+  const isAuthRoute = config.url?.includes('/auth') || 
+                      config.url?.includes('/swiper/canonical');
+
+  if (!token && !isAuthRoute) {
+    store.dispatch(logout());
+    store.dispatch(clearProjectId());
+    window.location.href = "/auth";
+    return Promise.reject(new Error('No access token — session cleared.'));
+  }
+
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
+
   return config;
 });
 
