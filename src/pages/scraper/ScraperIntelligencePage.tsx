@@ -75,6 +75,7 @@ const ScraperIntelligencePage = () => {
     const [toastMessage, setToastMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [chatContext, setChatContext] = useState<any>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [sectionCount, setSectionCount] = useState<number | null>(null);
 
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
 
@@ -134,6 +135,7 @@ const ScraperIntelligencePage = () => {
             const scoredSections = scoreSections(data.sections);
 
             setScrapedData({ ...data, sections: scoredSections });
+            setSectionCount(scoredSections.length);
             setCurrentStep("results");
         } catch (error: any) {
             console.error("Error during scraping:", error);
@@ -520,8 +522,9 @@ const ScraperIntelligencePage = () => {
                                                     className="text-left"
                                                 >
                                                     {index === processingSteps.length - 1 && index === processingStep
-                                                        ? `Complete! Found ${dummyScrapedData.sections.length} sections`
-                                                        : step
+                                                        ? sectionCount !== null
+                                                            ? `Complete! Found ${sectionCount} sections`
+                                                            : 'Complete! Sections ready' : step
                                                     }
                                                 </Para>
                                             </motion.div>

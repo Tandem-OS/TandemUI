@@ -11,6 +11,8 @@ import IntakeForm from "@/components/intake-form/IntakeForm";
 import OnboardingForm from "@/components/intake-form/OnboardingForm";
 import OnboardComplete from "@/components/onboard-completed/OnboardComplete";
 import ScraperIntelligencePage from "@/pages/scraper/ScraperIntelligencePage";
+import ComposePage from "../pages/compose/ComposePage";
+
 
 const ClientDashMain = () => {
     return (
@@ -28,6 +30,7 @@ const ClientDashMain = () => {
                 <Route path="/onboard" element={<OnboardingForm />} />
                 <Route path="/onboard/onboard-compelete" element={<OnboardComplete />} />
                 <Route path="/swiper" element={<Swiper />} />
+                <Route path="/compose/:composition_id" element={<ComposePage />} />
             </Routes>
         </>
 

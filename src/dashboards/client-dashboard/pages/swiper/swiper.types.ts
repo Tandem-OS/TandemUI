@@ -79,6 +79,7 @@ export interface SwipeCardProps {
 export interface SwiperProgressProps {
     current: number;
     total: number;
+    completedCount?: number; 
     className?: string;
 }
 
