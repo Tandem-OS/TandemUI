@@ -153,7 +153,27 @@ const ComposePage: React.FC = () => {
   const storedId   = useSelector(selectCompositionId);
 
   const [activeBp, setActiveBp] = useState<Breakpoint>('desktop');
+const swiperChoices = useSelector((state: RootState) => state.swiper.userChoices);
 
+  const reasoningSignals = React.useMemo(() => {
+    if (!swiperChoices.length) return null;
+
+    const liked      = swiperChoices.filter(c => c.action === 'like' || c.action === 'super-like');
+    const superLiked = swiperChoices.filter(c => c.action === 'super-like');
+    const quick      = swiperChoices.filter(c => (c.behavioral_signals?.hesitation_ms ?? 0) < 1000);
+
+    const vibeFreq = liked.reduce((acc: Record<string, number>, c) => {
+      if (c.vibe) acc[c.vibe] = (acc[c.vibe] ?? 0) + 1;
+      return acc;
+    }, {});
+    const topVibe = Object.entries(vibeFreq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
+    const superlikeRate = Math.round((superLiked.length / swiperChoices.length) * 100);
+    const quickRate     = Math.round((quick.length / swiperChoices.length) * 100);
+    const likeRate      = Math.round((liked.length / swiperChoices.length) * 100);
+
+    return { topVibe, superlikeRate, quickRate, likeRate, totalSwipes: swiperChoices.length, superLikedCount: superLiked.length };
+  }, [swiperChoices]);
   // Guard: if user hard-refreshes, Redux is empty but we have the ID from the URL.
   // Restart polling via GET only — never re-POST.
   useEffect(() => {
@@ -231,15 +251,42 @@ const ComposePage: React.FC = () => {
     >
       <div className="space-y-lg">
 
-        {/* Reasoning — visible above preview per spec */}
-        <div className="bg-background-secondary border border-border-default rounded-xl p-lg">
-          <p className="text-text-secondary text-para-xs font-medium uppercase tracking-wider mb-md">
+{/* Reasoning — real session signals */}
+        <div className="bg-background-secondary border border-border-default rounded-xl p-lg space-y-md">
+          <p className="text-text-secondary text-para-xs font-medium uppercase tracking-wider">
             Why we built it this way
           </p>
-          <p className="text-text-secondary text-para-sm leading-relaxed">
-            Sections were selected based on your swipe velocity, superlike patterns, and
-            hesitation signals across all rounds. The layout reflects your strongest preferences.
-          </p>
+          {reasoningSignals ? (
+            <>
+              <div className="flex flex-wrap gap-sm">
+                {reasoningSignals.topVibe && (
+                  <span className="px-sm py-xs bg-accent-subtle text-accent-default text-para-xs font-medium rounded-md border border-accent-default/20">
+                    Top vibe: {reasoningSignals.topVibe}
+                  </span>
+                )}
+                <span className="px-sm py-xs bg-background-muted text-text-secondary text-para-xs font-medium rounded-md border border-border-default">
+                  {reasoningSignals.superLikedCount} super liked
+                </span>
+                <span className="px-sm py-xs bg-background-muted text-text-secondary text-para-xs font-medium rounded-md border border-border-default">
+                  {reasoningSignals.likeRate}% like rate
+                </span>
+                <span className="px-sm py-xs bg-background-muted text-text-secondary text-para-xs font-medium rounded-md border border-border-default">
+                  {reasoningSignals.quickRate}% instinctive decisions
+                </span>
+              </div>
+              <p className="text-text-secondary text-para-sm leading-relaxed">
+                Across {reasoningSignals.totalSwipes} swipes, your choices leaned{' '}
+                {reasoningSignals.topVibe ? `toward a ${reasoningSignals.topVibe} aesthetic` : 'toward a consistent aesthetic'}.
+                {reasoningSignals.superLikedCount > 0 && ` You super liked ${reasoningSignals.superLikedCount} component${reasoningSignals.superLikedCount !== 1 ? 's' : ''}, which anchored the strongest sections.`}
+                {' '}The layout reflects your {reasoningSignals.quickRate > 50 ? 'instinctive' : 'deliberate'} decision pattern and highest-signal picks.
+              </p>
+            </>
+          ) : (
+            <p className="text-text-secondary text-para-sm leading-relaxed">
+              Sections were selected based on your swipe velocity, superlike patterns, and
+              hesitation signals across all rounds. The layout reflects your strongest preferences.
+            </p>
+          )}
         </div>
 
         {/* Preview */}

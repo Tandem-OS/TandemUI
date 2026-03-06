@@ -56,6 +56,8 @@ import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import Modal from '@/common-components/Modal';
 import { useNavigate } from 'react-router-dom';
 import { submitComposition } from '@/features/composition/compositionSlice';
+import TransitionMoment from './components/TransitionMoment';
+
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
@@ -203,6 +205,7 @@ const Swiper: React.FC = () => {
   const navigate = useNavigate();
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
   const [roundCompleted, setRoundCompleted] = useState(false);
+  const [showTransition, setShowTransition] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
 
@@ -721,7 +724,14 @@ const Swiper: React.FC = () => {
       navigate(`/compose/error`);
     }
   }, [dispatch, navigate, kingOfHillSessions, roundsData]);
+  const handleTransitionComplete = useCallback(() => {
+    setShowTransition(false);
+    handleGenerateLayout();
+  }, [handleGenerateLayout]);
 
+  const handleRequestGenerate = useCallback(() => {
+    setShowTransition(true);
+  }, []);
   if (isInitialLoading) {
     return (
       <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
@@ -777,14 +787,23 @@ const Swiper: React.FC = () => {
 
   if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive || roundCompleted) {
     return (
-      <SwiperSummary
-        userChoices={userChoices}
-        roundsData={roundsData}
-        totalRounds={totalRounds}
-        kingOfHillSessions={kingOfHillSessions}
-        onStartOver={handleStartOver}
-        onGenerateLayout={handleGenerateLayout}
-      />
+      <>
+        {showTransition && (
+          <TransitionMoment
+            roundsCompleted={kingOfHillSessions.length}
+            totalSwipes={kingOfHillSessions.reduce((sum, s) => sum + s.matches.length, 0)}
+            onComplete={handleTransitionComplete}
+          />
+        )}
+        <SwiperSummary
+          userChoices={userChoices}
+          roundsData={roundsData}
+          totalRounds={totalRounds}
+          kingOfHillSessions={kingOfHillSessions}
+          onStartOver={handleStartOver}
+          onGenerateLayout={handleRequestGenerate}
+        />
+      </>
     );
   }
 
