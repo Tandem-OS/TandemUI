@@ -55,7 +55,6 @@ import {
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import Modal from '@/common-components/Modal';
 import { useNavigate } from 'react-router-dom';
-import { submitComposition } from '@/features/composition/compositionSlice';
 import TransitionMoment from './components/TransitionMoment';
 
 
@@ -709,20 +708,11 @@ const Swiper: React.FC = () => {
       return;
     }
 
-    try {
-      const result = await dispatch(
-        submitComposition({ winnerIds, projectId })
-      ).unwrap();
-
+    
       // Navigate to the Compose Result Screen
       // thumbnails will still be polling in the background via Redux
-      navigate(`/dashboard/client/compose/${result.compositionId}`);
-    } catch (err) {
-      // submitComposition.rejected already sets status:'error' in Redux
-      // the Compose Result Screen will show the retry UI
-      console.error('handleGenerateLayout failed:', err);
-      navigate(`/compose/error`);
-    }
+      navigate(`/dashboard/client/swiper/compose`);
+    
   }, [dispatch, navigate, kingOfHillSessions, roundsData]);
   const handleTransitionComplete = useCallback(() => {
     setShowTransition(false);
