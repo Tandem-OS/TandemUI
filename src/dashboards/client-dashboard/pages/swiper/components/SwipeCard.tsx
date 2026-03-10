@@ -106,16 +106,19 @@ const CardImage: React.FC<{ src: string; className: string }> = ({ src, classNam
                 </div>
             )}
 
-            {/* Actual image with blur-to-clear transition */}
-            <motion.div
-                className="w-full h-full bg-cover bg-center bg-no-repeat select-none"
-                style={{ backgroundImage: `url(${src})` }}
+            {/* Actual image */}
+            <motion.img
+                src={src}
+                alt=""
+                className="absolute inset-0 w-full h-full select-none"
+                style={{ objectFit: 'cover', objectPosition: 'top center' }}
                 initial={{ opacity: 0, filter: 'blur(10px)' }}
                 animate={{
                     opacity: imageState === 'loaded' ? 1 : 0,
                     filter: imageState === 'loaded' ? 'blur(0px)' : 'blur(10px)'
                 }}
                 transition={{ duration: 0.6, ease: 'easeOut' }}
+                draggable={false}
             />
         </div>
     );
