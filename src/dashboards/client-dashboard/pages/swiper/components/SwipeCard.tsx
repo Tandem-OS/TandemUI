@@ -1,17 +1,18 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, type PanInfo, useMotionValue, useTransform, animate } from 'framer-motion';
-import { FiThumbsUp, FiThumbsDown, FiHelpCircle, FiHeart, FiImage, FiInfo } from 'react-icons/fi';
+import { FiThumbsUp, FiThumbsDown, FiHelpCircle, FiHeart, FiImage, FiInfo, FiMaximize2, FiX } from 'react-icons/fi';
 import { type SwipeCardProps, type BehavioralSignal, type ActionSource } from '../swiper.types';
 import { AskAiModal } from './AskAiModal';
 import swipeAudio from "@/assets/audio/swipeAudio.mp3";
 import clickAudio from "@/assets/audio/clickAudio.mp3";
 import Drawer from '@/common-components/Drawer';
+
 // Constants
 const SWIPE_POWER = 500;
 const X_THRESHOLD = 120;
 const DOUBLE_TAP_DELAY = 300;
-const IMAGE_TIMEOUT = 10000; // 10 seconds timeout for image loading
-const SWIPE_COOLDOWN = 800; // Prevent multiple swipes for 800ms
+const IMAGE_TIMEOUT = 10000;
+const SWIPE_COOLDOWN = 800;
 
 // Action configurations
 const ACTIONS = {
@@ -87,7 +88,6 @@ const CardImage: React.FC<{ src: string; className: string }> = ({ src, classNam
 
     return (
         <div className={`relative overflow-hidden ${className}`}>
-            {/* Loading skeleton */}
             {imageState === 'loading' && (
                 <div className="absolute inset-0 bg-background-muted animate-pulse flex items-center justify-center">
                     <motion.div
@@ -98,7 +98,6 @@ const CardImage: React.FC<{ src: string; className: string }> = ({ src, classNam
                 </div>
             )}
 
-            {/* Error fallback */}
             {imageState === 'error' && (
                 <div className="absolute inset-0 bg-background-muted flex flex-col items-center justify-center text-text-tertiary">
                     <FiImage className="text-icon-2xl mb-sm opacity-50" />
@@ -106,7 +105,6 @@ const CardImage: React.FC<{ src: string; className: string }> = ({ src, classNam
                 </div>
             )}
 
-            {/* Actual image */}
             <motion.img
                 src={src}
                 alt=""
@@ -124,6 +122,58 @@ const CardImage: React.FC<{ src: string; className: string }> = ({ src, classNam
     );
 };
 
+// ── NEW: Expand Modal ──────────────────────────────────────────────────────────
+const ExpandModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    src: string;
+    title: string;
+}> = ({ isOpen, onClose, src, title }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            onClick={onClose}
+        >
+            <motion.div
+                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+            />
+            <motion.div
+                className="relative z-10 w-[90vw] max-w-6xl rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.92 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between px-lg py-md bg-background-secondary border-b border-border-default">
+                    <span className="text-para-md font-semibold text-text-primary">{title}</span>
+                    <motion.button
+                        onClick={onClose}
+                        className="w-9 h-9 rounded-full bg-background-muted flex items-center justify-center hover:bg-background-error/20 group"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <FiX className="text-icon-sm text-text-secondary group-hover:text-text-error" />
+                    </motion.button>
+                </div>
+                <div className="relative w-full bg-background-primary" style={{ aspectRatio: '1440/860' }}>
+                    <img
+                        src={src}
+                        alt={title}
+                        className="w-full h-full object-cover object-top"
+                    />
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+// ──────────────────────────────────────────────────────────────────────────────
+
 const SwipeCard: React.FC<SwipeCardProps> = ({
     component,
     onSwipe,
@@ -133,6 +183,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 }) => {
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
     const [isInfoDrawerOpen, setIsInfoDrawerOpen] = useState(false);
+    const [isExpandModalOpen, setIsExpandModalOpen] = useState(false); // ← NEW
     const [hasAskedAI, setHasAskedAI] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isSwipeInProgress, setIsSwipeInProgress] = useState(false);
@@ -170,6 +221,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         setHasAskedAI(false);
         setIsSwipeInProgress(false);
         setIsInfoDrawerOpen(false);
+        setIsExpandModalOpen(false); // ← NEW
 
         if (swipeCooldownTimer.current) {
             clearTimeout(swipeCooldownTimer.current);
@@ -182,13 +234,13 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         const unsubscribeX = x.on('change', (latest) => {
             const now = Date.now();
             const timeDelta = now - lastVelocityUpdate.current;
-            if (timeDelta > 16) { // Update every ~16ms (60fps)
+            if (timeDelta > 16) {
                 const xDelta = Math.abs(latest - lastPosition.current.x);
-                const velocity = xDelta / timeDelta * 1000; // pixels per second
+                const velocity = xDelta / timeDelta * 1000;
 
                 velocityHistory.current.push(velocity);
                 if (velocityHistory.current.length > 10) {
-                    velocityHistory.current.shift(); // Keep last 10 readings
+                    velocityHistory.current.shift();
                 }
 
                 const avgVelocity = velocityHistory.current.reduce((a, b) => a + b, 0) / velocityHistory.current.length;
@@ -280,7 +332,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
         if (swipeCooldownTimer.current) clearTimeout(swipeCooldownTimer.current);
         swipeCooldownTimer.current = setTimeout(() => setIsSwipeInProgress(false), SWIPE_COOLDOWN);
 
-        // Reset tracking
         pointerDownTime.current = null;
         dragStartTime.current = null;
         gestureVelocity.current = 0;
@@ -450,7 +501,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
                 {/* Main Card */}
                 <div className="bg-background-secondary rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg border border-border-default overflow-hidden">
-                    {/* Mobile Layout - Force hide on desktop */}
+                    {/* Mobile Layout */}
                     <div className="block lg:!hidden">
                         <div className="grid grid-cols-1">
                             <CardImage src={component.thumbnail_url} className="h-48 sm:h-56" />
@@ -493,7 +544,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         </div>
                     </div>
 
-                    {/* Desktop Layout - Force show on desktop */}
+                    {/* Desktop Layout */}
                     <div className="!hidden lg:!block relative h-[370px] 2xl:h-[470px]">
                         <CardImage src={component.thumbnail_url} className="absolute inset-0 w-full h-full" />
 
@@ -507,6 +558,21 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                             className="absolute top-lg left-lg z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center group hover:bg-white"
                         >
                             <FiInfo className="text-icon-md text-gray-700 group-hover:text-accent-default" />
+                        </motion.button>
+
+                        {/* ── NEW: Expand Button ── */}
+                        <motion.button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                playClick();
+                                setIsExpandModalOpen(true);
+                            }}
+                            className="absolute top-lg right-lg z-20 w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm shadow-lg flex items-center justify-center group hover:bg-white"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            title="Expand preview"
+                        >
+                            <FiMaximize2 className="text-icon-md text-gray-700 group-hover:text-accent-default" />
                         </motion.button>
 
                         {/* Bottom Overlay with Title and Tags */}
@@ -552,7 +618,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                     <div className="px-sm py-sm md:px-md md:py-md">
                         <div className="flex justify-center">
                             <div className={`flex items-center justify-center gap-md ${!isActive ? 'pointer-events-none opacity-60' : ''}`}>
-                                {/* Super Like Button with Heart Icon */}
                                 <motion.button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -576,7 +641,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                 </motion.button>
                                 <ActionButton action="like" onClick={() => { playClick(); handleSwipeAction('like', 'button'); }} />
                                 <ActionButton action="dislike" onClick={() => { playClick(); handleSwipeAction('dislike', 'button'); }} />
-                                {/* Ask AI Button */}
                                 <div className="relative">
                                     <ActionButton action="ask-ai" onClick={handleAskAI} />
                                     {isActive && (
@@ -593,7 +657,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 </div>
             </motion.div>
 
-            {/* Info Drawer using your existing Drawer component */}
+            {/* Info Drawer */}
             <Drawer
                 isOpen={isInfoDrawerOpen}
                 onClose={() => setIsInfoDrawerOpen(false)}
@@ -601,10 +665,8 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 width="w-[400px]"
             >
                 <div className="p-md space-y-lg mt-lg bg-background-primary rounded-xl">
-                    {/* Header */}
                     <h3 className="text-h4-md font-semibold text-text-primary">Component Details</h3>
 
-                    {/* Category & Vibe (Bade Chips) */}
                     <div className="flex flex-wrap gap-sm">
                         <span className="px-lg py-sm bg-accent-default text-accent-foreground text-para-sm font-medium rounded-full shadow-sm">
                             {component.category}
@@ -614,7 +676,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         </span>
                     </div>
 
-                    {/* Title & Description */}
                     <div className="space-y-sm">
                         <h4 className="text-h4-sm font-semibold text-text-primary">
                             {component.title}
@@ -624,7 +685,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         </p>
                     </div>
 
-                    {/* Layout Structure */}
                     <div className="space-y-sm">
                         <h5 className="text-h6-sm font-medium text-text-primary border-l-4 border-accent-default pl-sm">Layout Structure</h5>
                         <p className="text-text-secondary text-para-sm bg-background-secondary rounded-lg p-md shadow-sm">
@@ -632,7 +692,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         </p>
                     </div>
 
-                    {/* Intent (Chote Chips, Bada Font) */}
                     <div className="space-y-sm">
                         <h5 className="text-h6-sm font-medium text-text-primary border-l-4 border-emerald-500 pl-sm">Design Intent</h5>
                         <div className="flex flex-wrap gap-sm">
@@ -644,7 +703,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         </div>
                     </div>
 
-                    {/* Tone (Chote Chips, Bada Font) */}
                     <div className="space-y-sm">
                         <h5 className="text-h6-sm font-medium text-text-primary border-l-4 border-purple-500 pl-sm">Design Tone</h5>
                         <div className="flex flex-wrap gap-sm">
@@ -656,7 +714,6 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                         </div>
                     </div>
 
-                    {/* All Tags (Chote Chips, Bada Font) */}
                     <div className="space-y-sm">
                         <h5 className="text-h6-sm font-medium text-text-primary border-l-4 border-border-muted pl-sm">Tags</h5>
                         <div className="flex flex-wrap gap-sm">
@@ -669,6 +726,14 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                     </div>
                 </div>
             </Drawer>
+
+            {/* ── NEW: Expand Modal ── */}
+            <ExpandModal
+                isOpen={isExpandModalOpen}
+                onClose={() => setIsExpandModalOpen(false)}
+                src={component.thumbnail_url}
+                title={component.title}
+            />
         </>
     );
 };
