@@ -1,293 +1,238 @@
-import React, { useMemo, useId, useState } from 'react';
+import React, { useMemo, useId } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import styled from 'styled-components';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
+import { fadeInUp } from '../../../lib/animations/variants';
 import {
-    type Hero_03Props,
     type ColorOverrides,
     type ColorValue,
-    type NewsletterColorOverride
-} from './Hero_03.types';
-import {
-    validateHero03Props,
-    sanitizeProps,
-    formatValidationMessage
-} from './Hero_03.validators';
-import meta from './Hero_03.meta';
+    type ButtonColorOverride,
+    type CTASize,
+    type CTAVariant,
+} from '../Hero_01/Hero_01.types';
 
-// Animation helper function
-const getAnimationProps = (variant: Variants, delay = 0, amount = 0, animated = true) => {
-    if (!animated) return {};
+// ── Slot contract ────────────────────────────────────────────
+export interface Hero_03Slots {
+    hero_heading: string;
+    hero_primary_action: string;
+    hero_subheading?: string;
+    hero_secondary_action?: string;
+    hero_media?: string;
+}
+
+export interface Hero_03Props {
+    title?: string;
+    description?: string;
+    primaryCTA?:   { text?: string; href?: string; size?: CTASize; variant?: CTAVariant; icon?: React.ReactNode };
+    secondaryCTA?: { text?: string; href?: string; size?: CTASize; variant?: CTAVariant; icon?: React.ReactNode };
+    backgroundImage?: string;
+    overlayColor?: string;
+    animated?: boolean;
+    className?: string;
+    colors?: ColorOverrides;
+    slots?: Hero_03Slots;
+}
+
+// ── Slot mapper ──────────────────────────────────────────────
+export function slotsToProps(slots: Hero_03Slots): Omit<Hero_03Props, 'slots'> {
     return {
-        initial: "hidden",
-        whileInView: "show",
-        viewport: { once: true, amount: amount || undefined },
-        variants: variant,
-        transition: { delay }
+        title:           slots.hero_heading,
+        description:     slots.hero_subheading    ?? undefined,
+        backgroundImage: slots.hero_media          ?? undefined,
+        primaryCTA: {
+            text:    slots.hero_primary_action,
+            href:    '/demo',
+            size:    'lg' as CTASize,
+            variant: 'outline' as CTAVariant,
+        },
+        secondaryCTA: slots.hero_secondary_action
+            ? {
+                text:    slots.hero_secondary_action,
+                href:    '/work',
+                size:    'lg' as CTASize,
+                variant: 'outline' as CTAVariant,
+              }
+            : undefined,
+        animated:  true,
+        className: '',
     };
-};
+}
 
-// Component styles hook
-const useComponentStyles = (
-    userColors: ColorOverrides | undefined,
-    theme: 'light' | 'dark'
-): Record<string, string> => {
+// ── Color styles hook ────────────────────────────────────────
+const useStyles = (userColors: ColorOverrides | undefined, theme: 'light' | 'dark') => {
     return useMemo(() => {
-        const defaults = meta.defaults.colors;
-        const getColor = (userValue: ColorValue | undefined, defaultValue: ColorValue): string => {
-            const value = userValue || defaultValue;
-            return theme === 'dark' ? value.dark : value.light;
-        };
-        const getNewsletterVars = (
-            userNewsletter: NewsletterColorOverride | undefined,
-            defaultNewsletter: NewsletterColorOverride
-        ) => {
-            const newsletter = userNewsletter || defaultNewsletter;
+        if (!userColors) return {};
+
+        const gc = (u: ColorValue | undefined) =>
+            u ? (theme === 'dark' ? u.dark : u.light) : undefined;
+
+        const gbv = (u: ButtonColorOverride | undefined, p: string) => {
+            if (!u) return {};
             return {
-                '--newsletter-input-bg': getColor(newsletter.input?.background, defaultNewsletter.input.background),
-                '--newsletter-input-text': getColor(newsletter.input?.text, defaultNewsletter.input.text),
-                '--newsletter-input-border': getColor(newsletter.input?.border, defaultNewsletter.input.border),
-                '--newsletter-input-focus-border': getColor(newsletter.input?.focusBorder, defaultNewsletter.input.focusBorder),
-                '--newsletter-input-placeholder': getColor(newsletter.input?.placeholder, defaultNewsletter.input.placeholder),
-                '--newsletter-btn-bg': getColor(newsletter.button?.background, defaultNewsletter.button.background),
-                '--newsletter-btn-text': getColor(newsletter.button?.text, defaultNewsletter.button.text),
-                '--newsletter-btn-border': getColor(newsletter.button?.border, defaultNewsletter.button.border),
-                '--newsletter-btn-hover-bg': getColor(newsletter.button?.hover?.background, defaultNewsletter.button.hover.background),
-                '--newsletter-btn-hover-text': getColor(newsletter.button?.hover?.text, defaultNewsletter.button.hover.text),
-                '--newsletter-btn-hover-border': getColor(newsletter.button?.hover?.border, defaultNewsletter.button.hover.border),
-                '--newsletter-message-text': getColor(newsletter.message, defaultNewsletter.message),
+                [`--btn-${p}-bg`]:           gc(u.background),
+                [`--btn-${p}-text`]:         gc(u.text),
+                [`--btn-${p}-border`]:       gc(u.border),
+                [`--btn-${p}-hover-bg`]:     gc(u.hover?.background),
+                [`--btn-${p}-hover-text`]:   gc(u.hover?.text),
+                [`--btn-${p}-hover-border`]: gc(u.hover?.border),
             };
         };
+
         return {
-            '--hero-bg': getColor(userColors?.background, defaults.background),
-            '--hero-title': getColor(userColors?.title, defaults.title),
-            '--hero-desc': getColor(userColors?.description, defaults.description),
-            ...getNewsletterVars(userColors?.newsletter, defaults.newsletter),
+            '--hero-title': gc(userColors.title),
+            '--hero-desc':  gc(userColors.description),
+            ...gbv(userColors.primaryButton,   'primary'),
+            ...gbv(userColors.secondaryButton, 'secondary'),
         };
     }, [userColors, theme]);
 };
 
-// Styled components - ONLY for hover and focus states
-const HoverButton = styled.button`
+// ── Styled helpers ───────────────────────────────────────────
+const HBtn = styled.button<{ $t: 'primary' | 'secondary' }>`
     &:hover:not(:disabled) {
-        background-color: var(--newsletter-btn-hover-bg) !important;
-        color: var(--newsletter-btn-hover-text) !important;
-        border-color: var(--newsletter-btn-hover-border) !important;
+        background-color: var(--btn-${p => p.$t}-hover-bg)     !important;
+        color:            var(--btn-${p => p.$t}-hover-text)   !important;
+        border-color:     var(--btn-${p => p.$t}-hover-border) !important;
+    }
+`;
+const HLink = styled.a<{ $t: 'primary' | 'secondary' }>`
+    &:hover {
+        background-color: var(--btn-${p => p.$t}-hover-bg)     !important;
+        color:            var(--btn-${p => p.$t}-hover-text)   !important;
+        border-color:     var(--btn-${p => p.$t}-hover-border) !important;
     }
 `;
 
-const FocusInput = styled.input`
-    &:focus {
-        border-color: var(--newsletter-input-focus-border) !important;
-        outline: none;
-    }
-    &::placeholder {
-        color: var(--newsletter-input-placeholder) !important;
-    }
-`;
-
-// Newsletter component
-interface NewsletterProps {
-    placeholder: string;
-    buttonText: string;
-    message: string;
-    animated?: boolean;
-}
-
-const Newsletter: React.FC<NewsletterProps> = ({
-    placeholder,
-    buttonText,
-    message,
-    animated = true
-}) => {
-    const [email, setEmail] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!email.trim()) return;
-
-        setIsLoading(true);
-        try {
-            // Default behavior - just log
-            console.log('Newsletter subscription:', email);
-            setEmail(''); // Clear on success
-        } catch (error) {
-            console.error('Newsletter submission error:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const inputStyle: React.CSSProperties = {
-        backgroundColor: 'var(--newsletter-input-bg)',
-        color: 'var(--newsletter-input-text)',
-        borderColor: 'var(--newsletter-input-border)',
-        borderWidth: meta.tokens.newsletter.input.borderWidth,
-        borderStyle: meta.tokens.newsletter.input.borderStyle,
-    };
-
-    const buttonStyle: React.CSSProperties = {
-        backgroundColor: 'var(--newsletter-btn-bg)',
-        color: 'var(--newsletter-btn-text)',
-        borderColor: 'var(--newsletter-btn-border)',
-        borderWidth: meta.tokens.newsletter.button.borderWidth,
-        borderStyle: meta.tokens.newsletter.button.borderStyle,
-    };
-
-    return (
-        <div className={meta.tokens.newsletter.container}>
-            <form onSubmit={handleSubmit} className={meta.tokens.newsletter.form}>
-                <div className={meta.tokens.newsletter.inputGroup}>
-                    <div className={meta.tokens.newsletter.inputWrapper}>
-                        <FocusInput
-                            type="email"
-                            name="newsletter-email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder={placeholder}
-                            className={meta.tokens.newsletter.input.classes}
-                            style={inputStyle}
-                            required
-                            aria-label="Email address for newsletter"
-                        />
-                    </div>
-
-                    <HoverButton
-                        type="submit"
-                        className={`${meta.tokens.newsletter.button.classes} ${animated ? meta.tokens.effects.button : 'transition-none'}`}
-                        style={buttonStyle}
-                        disabled={isLoading}
-                        aria-label={`Subscribe to newsletter: ${buttonText}`}
-                    >
-                        {isLoading ? 'Signing up...' : buttonText}
-                    </HoverButton>
-                </div>
-
-                {message && (
-                    <p
-                        className={meta.tokens.newsletter.message.classes}
-                        style={{ color: 'var(--newsletter-message-text)' }}
-                    >
-                        {message}
-                    </p>
-                )}
-            </form>
-        </div>
-    );
+const getAnim = (variant: Variants, delay = 0, animated = true) => {
+    if (!animated) return {};
+    return { initial: 'hidden', whileInView: 'show', viewport: { once: true }, variants: variant, transition: { delay } };
 };
 
-// Main Hero_03 component
-const Hero_03: React.FC<Hero_03Props> = (props = {}) => {
+// ── CTAButton ────────────────────────────────────────────────
+const CTAButton: React.FC<{
+    text: string; href: string; size?: CTASize;
+    icon?: React.ReactNode; animated?: boolean;
+    ariaLabel?: string; buttonType: 'primary' | 'secondary';
+}> = ({ text, href, size = 'lg', icon, ariaLabel, buttonType }) => {
+    const sizeClasses = { sm: 'h-9 px-4 text-sm', md: 'h-11 px-5 text-base', lg: 'h-13 px-6 text-base font-semibold' };
+    const base = `inline-flex items-center justify-center font-semibold rounded-md border-2 border-solid
+                  transition-colors duration-200 leading-none no-underline cursor-pointer ${sizeClasses[size]}`;
+    const style: React.CSSProperties = {
+        backgroundColor: `var(--btn-${buttonType}-bg)`,
+        color:           `var(--btn-${buttonType}-text)`,
+        borderColor:     `var(--btn-${buttonType}-border)`,
+    };
+    const content = <>{text}{icon && <span className="ml-2">{icon}</span>}</>;
+    const isLink  = href.startsWith('http') || href.startsWith('/') || href.startsWith('#');
+    return isLink
+        ? <HLink href={href} className={base} style={style} aria-label={ariaLabel || text} $t={buttonType}>{content}</HLink>
+        : <HBtn  type="button" className={base} style={style} onClick={() => { window.location.href = href; }} aria-label={ariaLabel || text} $t={buttonType}>{content}</HBtn>;
+};
+
+// ── Hero_03 — Full-bleed, left-anchored overlay ──────────────
+const Hero_03: React.FC<Hero_03Props> = (rawProps = {}) => {
+    const { slots, ...direct } = rawProps;
     const { theme } = useTheme();
-    const uniqueId = useId();
+    const uid = useId();
 
-    const validation = validateHero03Props(props);
-    const sanitized = sanitizeProps(props);
+    const resolved = slots ? { ...slotsToProps(slots), ...direct } : direct;
 
-    if (process.env.NODE_ENV === 'development') {
-        if (!validation.valid || validation.warnings) {
-            console.group('Hero_03 Validation');
-            console.log(formatValidationMessage(validation));
-            console.groupEnd();
-        }
-    }
+    const title           = resolved.title;
+    const description     = resolved.description;
+    const backgroundImage = resolved.backgroundImage;
+    const overlayColor    = resolved.overlayColor;
+    const animated        = resolved.animated ?? true;
+    const className       = resolved.className ?? '';
+    const primaryCTA      = resolved.primaryCTA;
+    const secondaryCTA    = resolved.secondaryCTA;
 
-    const title = sanitized.title || meta.defaults.title;
-    const description = sanitized.description || meta.defaults.description;
-    const animated = sanitized.animated !== undefined ? sanitized.animated : meta.defaults.animated;
-    const className = sanitized.className || meta.defaults.className;
-
-    const newsletterPlaceholder = sanitized.newsletterPlaceholder || meta.defaults.newsletterPlaceholder;
-    const newsletterButtonText = sanitized.newsletterButtonText || meta.defaults.newsletterButtonText;
-    const newsletterMessage = sanitized.newsletterMessage || meta.defaults.newsletterMessage;
-
-    const image = sanitized.image || meta.defaults.image;
-    const imageSrc = typeof image === 'string' ? image : image.src;
-    const imageAlt = typeof image === 'object' ? (image.alt || meta.defaults.imageAlt) : meta.defaults.imageAlt;
-
-    const styles = useComponentStyles(sanitized.colors, theme);
-    const MotionWrapper = animated ? motion.div : 'div';
+    const styles = useStyles(resolved.colors, theme);
+    const Wrap   = animated ? motion.div : 'div';
 
     return (
         <section
-            style={styles as React.CSSProperties}
-            className={`${meta.tokens.layout.section} ${className}`}
+            id={uid}
             data-testid="hero-section"
             role="banner"
-            aria-label={meta.accessibility.screenReaderHints?.section || "Main hero content with newsletter signup"}
-            id={uniqueId}
+            aria-label="Main hero content"
+            className={`relative w-full min-h-screen flex items-end lg:items-center overflow-hidden ${className}`}
+            style={styles as React.CSSProperties}
         >
-            <div className={meta.tokens.layout.wrapper}>
+            {/* Full-bleed background */}
+            {backgroundImage && (
                 <div
-                    className={meta.tokens.layout.grid}
-                    style={{ backgroundColor: 'var(--hero-bg)' }}
-                >
-                    {/* Content Column - LEFT SIDE */}
-                    <MotionWrapper
-                        className={`${meta.tokens.layout.contentColumn} ${meta.tokens.spacing.containerX} ${meta.tokens.spacing.containerY}`}
-                        {...(animated ? getAnimationProps(fadeInUp, 0, 0.3, true) : {})}
-                    >
-                        <div className={`${meta.tokens.layout.contentContainer} ${meta.tokens.spacing.contentSpacing}`}>
-                            <MotionWrapper
-                                {...(animated ? getAnimationProps(fadeInUp, 0, 0, true) : {})}
-                                data-testid="hero-title"
-                            >
-                                <h1
-                                    className={meta.tokens.typography.heading.complete}
-                                    style={{ color: 'var(--hero-title)' }}
-                                >
-                                    {title}
-                                </h1>
-                            </MotionWrapper>
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{ backgroundImage: `url(${backgroundImage})` }}
+                    aria-hidden="true"
+                    data-testid="hero-image-container"
+                />
+            )}
 
-                            <MotionWrapper
-                                {...(animated ? getAnimationProps(fadeInUp, 0.1, 0, true) : {})}
-                                data-testid="hero-description"
-                            >
-                                <p
-                                    className={meta.tokens.typography.body.complete}
-                                    style={{ color: 'var(--hero-desc)' }}
-                                >
-                                    {description}
-                                </p>
-                            </MotionWrapper>
+            {/* Overlay */}
+            {overlayColor && (
+                <div
+                    className="absolute inset-0"
+                    style={{ backgroundColor: overlayColor, opacity: 0.82 }}
+                    aria-hidden="true"
+                />
+            )}
 
-                            <MotionWrapper
-                                {...(animated ? getAnimationProps(fadeInUp, 0.2, 0, true) : {})}
-                                data-testid="hero-newsletter"
-                                role="complementary"
-                                aria-label="Newsletter signup form"
-                            >
-                                <Newsletter
-                                    placeholder={newsletterPlaceholder}
-                                    buttonText={newsletterButtonText}
-                                    message={newsletterMessage}
-                                    animated={animated}
-                                />
-                            </MotionWrapper>
-                        </div>
-                    </MotionWrapper>
+            {/* Left-anchored content */}
+            <div className="relative z-10 w-full max-w-7xl mx-auto px-8 lg:px-20 py-24 lg:py-32">
+                <div className="max-w-2xl flex flex-col items-start text-left">
 
-                    {/* Image Column - RIGHT SIDE */}
-                    <div className={meta.tokens.layout.imageColumn}>
-                        <MotionWrapper
-                            className={meta.tokens.layout.imageContainer}
-                            {...(animated ? getAnimationProps(fadeIn, 0, 0.3, true) : {})}
-                            data-testid="hero-image-container"
+                    {title && (
+                        <Wrap {...getAnim(fadeInUp, 0, animated)} data-testid="hero-title">
+                            <h1
+                                className="text-4xl md:text-5xl font-bold leading-tight break-words mb-6"
+                                style={{ color: 'var(--hero-title)', fontWeight: 700 }}
+                            >
+                                {title}
+                            </h1>
+                        </Wrap>
+                    )}
+
+                    {description && (
+                        <Wrap {...getAnim(fadeInUp, 0.1, animated)} data-testid="hero-description">
+                            <p
+                                className="text-base md:text-lg leading-relaxed mb-10"
+                                style={{ color: 'var(--hero-desc)' }}
+                            >
+                                {description}
+                            </p>
+                        </Wrap>
+                    )}
+
+                    {primaryCTA?.text && (
+                        <Wrap
+                            className="flex flex-col sm:flex-row gap-4"
+                            {...getAnim(fadeInUp, 0.2, animated)}
+                            data-testid="hero-buttons"
+                            role="group"
+                            aria-label="Call to action buttons"
                         >
-                            <img
-                                src={imageSrc}
-                                alt={imageAlt || meta.accessibility.screenReaderHints?.image || "decorative"}
-                                className={meta.tokens.image.classes}
-                                loading={meta.tokens.image.loading as "lazy" | "eager"}
-                                data-testid="hero-image"
-                                role="presentation"
-                                aria-hidden={!imageAlt}
+                            <CTAButton
+                                text={primaryCTA.text}
+                                href={primaryCTA.href || '#'}
+                                size={primaryCTA.size}
+                                icon={primaryCTA.icon}
+                                animated={animated}
+                                ariaLabel={`Primary action: ${primaryCTA.text}`}
+                                buttonType="primary"
                             />
-                        </MotionWrapper>
-                    </div>
+                            {secondaryCTA?.text && (
+                                <CTAButton
+                                    text={secondaryCTA.text}
+                                    href={secondaryCTA.href || '#'}
+                                    size={secondaryCTA.size}
+                                    icon={secondaryCTA.icon}
+                                    animated={animated}
+                                    ariaLabel={`Secondary action: ${secondaryCTA.text}`}
+                                    buttonType="secondary"
+                                />
+                            )}
+                        </Wrap>
+                    )}
                 </div>
             </div>
         </section>
@@ -295,5 +240,4 @@ const Hero_03: React.FC<Hero_03Props> = (props = {}) => {
 };
 
 Hero_03.displayName = 'Hero_03';
-
 export default Hero_03;

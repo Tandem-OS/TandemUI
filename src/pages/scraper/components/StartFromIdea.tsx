@@ -7,7 +7,7 @@ import Para from '../../../common-components/Para';
 import { callAiComposePipeline } from '@/lib/requests/CompositionRequest';
 
 interface StartFromIdeaProps {
-    onGenerateLayout: (sections: any[], composition: ReturnType<typeof mapCompositionToSections>) => void;
+    onGenerateLayout: (sections: any[], compositionId: string) => void;
 }
 
 const STAGES = [
@@ -47,7 +47,7 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
             const mapped = mapCompositionToSections(result);
             setIsOpen(false);
             setIdea('');
-            onGenerateLayout(mapped.sections, mapped);
+            onGenerateLayout(mapped.sections, result.composition_id);
         } catch (err) {
             setError('Something went wrong. Please try again.');
             console.error('[StartFromIdea] compose failed:', err);
