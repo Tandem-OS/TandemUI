@@ -2,6 +2,11 @@ import api from '@/lib/requests/Axios';
 import { store } from "@/store";
 import type { Thumbnails } from '@/features/composition/compositionSlice';
 
+import type { ComposeSection } from '@/pages/Renderer/CompositionType';
+
+export interface PageSchema {
+    sections: ComposeSection[];
+}
 export interface ComposePayload {
   winner_ids: string[];
   project_id: string;
@@ -10,9 +15,8 @@ export interface ComposePayload {
 export interface ComposeResponse {
   composition_id: string;
   project_id: string;
-  page_schema: object;
+  page_schema: PageSchema;
   thumbnails: Thumbnails | null;
-  // html_snapshot intentionally omitted — not stored per SMA spec
 }
 
 export interface CallAiComposePipeline {
