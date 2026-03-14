@@ -70,5 +70,4 @@ export interface ComposeSection {
     tags?: string[];
     content_slots: ComposeSectionSlots | NavSlots;
     tokens: ComposeSectionTokens | NavTokens;
-    thumbnail_url?: string;
 }
