@@ -91,23 +91,23 @@ const mapCanonicalToPreview = (component: CanonicalComponent): ComponentPreview 
   client_email: component.client_email,
   designer_email: component.designer_email,
   thumbnail_url: component.thumbnail_url ?? "",
-  vibe: component.vibe ?? component.category,
-  tone: component.tone ?? [],
-  layout_structure: component.layout_structure ?? "default",
-  intent: component.intent ?? [],
-  tags: component.tags ?? [component.category],
-  title: component.title,
-  description: component.description,
+  vibe: component.vibe ?? null,
+  tone: Array.isArray(component.tone) ? component.tone : [],
+  intent: Array.isArray(component.intent) ? component.intent : [],
+  tags: Array.isArray(component.tags) ? component.tags : [],
+  title: component.title ?? null,
+  description: component.description ?? null,
+  layout_structure: component.layout_structure,
   category: component.category.toLowerCase(),
   project_id: component.project_id,
   is_canonical: component.is_canonical,
   content_slots: typeof component.content_slots === 'string'
-    ? JSON.parse(component.content_slots)   // ← parse string
+    ? JSON.parse(component.content_slots)
     : component.content_slots ?? {},
   tokens: typeof component.tokens === 'string'
-    ? JSON.parse(component.tokens)          // ← parse string
+    ? JSON.parse(component.tokens)
     : component.tokens ?? {},
-});
+})
 
 const normalizeLayout = (category: string, layout: string): string => {
   const fallbacks: Record<string, string> = {
@@ -615,8 +615,12 @@ const Swiper: React.FC = () => {
                   content_slots: winner.content_slots,
                   tokens: winner.tokens,
                   is_canonical: winner.is_canonical ?? false,
-                  // is_skipped:       false,
-                  // skip_reason:      null,
+                  title: winner.title,            // ← add
+                  description: winner.description, // ← add
+                  tone: winner.tone,               // ← add
+                  intent: winner.intent,           // ← add
+                  tags: winner.tags,               // ← add
+                  vibe: winner.vibe,               // ← add
                 });
               } catch (err) {
                 console.error("❌ Failed to post auto-winner component:", err);

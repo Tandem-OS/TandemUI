@@ -81,27 +81,15 @@ const NavBase: React.FC<NavBaseProps> = ({
   }
 
   // ── Logo
-  const LogoEl = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-      {logo && !logo.includes('placehold.co') ? (
-        <img
-          src={logo}
-          alt="Logo"
-          style={{ height: 32, width: 'auto', objectFit: 'contain' }}
-          data-slot="nav_logo"
-          data-testid="nav-logo"
-        />
-      ) : (
-        <span
-          style={{ color: colors.text, fontWeight: 700, fontSize: '1.1rem' }}
-          data-slot="nav_logo"
-          data-testid="nav-logo"
-        >
-          Tandem
-        </span>
-      )}
-    </div>
-  )
+  const LogoEl = logo ? (
+    <img
+      src={logo}
+      alt="Logo"
+      style={{ height: 32, width: 'auto', objectFit: 'contain' }}
+      data-slot="nav_logo"
+      data-testid="nav-logo"
+    />
+  ) : null
 
   // ── Links — pill style derived from tags
   const LinksEl = (

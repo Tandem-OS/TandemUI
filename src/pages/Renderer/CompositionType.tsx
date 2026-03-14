@@ -67,7 +67,7 @@ export interface ComposeSection {
     category: string;
     component_id: string;
     layout_structure?: string;
-    tags?: string[];
+    tags: string[];
     content_slots: ComposeSectionSlots | NavSlots;
     tokens: ComposeSectionTokens | NavTokens;
 }

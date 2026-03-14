@@ -515,7 +515,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                             {component.category}
                                         </span>
                                         <span className="px-xs py-px sm:px-sm sm:py-xs md:px-md md:py-sm bg-background-secondary-2 text-text-secondary text-para-xs sm:text-para-sm font-medium rounded-sm sm:rounded-md md:rounded-lg">
-                                            {component.vibe}
+                                            {component.vibe ?? ''}
                                         </span>
                                     </div>
 
@@ -606,7 +606,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                             {component.category}
                                         </span>
                                         <span className="px-md py-sm bg-white/20 backdrop-blur-sm text-white text-para-sm font-medium rounded-lg border border-white/20">
-                                            {component.vibe}
+                                            {component.vibe ?? ''}
                                         </span>
                                     </div>
                                 </div>
@@ -646,7 +646,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                     {isActive && (
                                         <AskAiModal
                                             isOpen={isAiModalOpen}
-                                            description={`This ${component.vibe.toLowerCase()} ${component.category.toLowerCase()} design focuses on ${component.tone.join(', ')} aesthetics with ${component.layout_structure} layout structure to achieve ${component.intent.join(' and ')} goals.`}
+                                            description={`This ${component.vibe ? component.vibe.toLowerCase() + ' ' : ''}${component.category.toLowerCase()} design focuses on ${component.tone.join(', ')} aesthetics with ${component.layout_structure} layout structure to achieve ${component.intent.join(' and ')} goals.`}
                                             onClose={() => setIsAiModalOpen(false)}
                                         />
                                     )}
@@ -672,7 +672,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                             {component.category}
                         </span>
                         <span className="px-lg py-sm bg-background-secondary text-text-secondary text-para-sm font-medium rounded-full border border-border-muted">
-                            {component.vibe}
+                            {component.vibe ?? ''}
                         </span>
                     </div>
 
@@ -732,7 +732,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                 isOpen={isExpandModalOpen}
                 onClose={() => setIsExpandModalOpen(false)}
                 src={component.thumbnail_url}
-                title={component.title}
+                title={component.title ?? ''}
             />
         </>
     );
