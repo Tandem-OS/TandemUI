@@ -11,7 +11,8 @@ import IntakeForm from "@/components/intake-form/IntakeForm";
 import OnboardingForm from "@/components/intake-form/OnboardingForm";
 import OnboardComplete from "@/components/onboard-completed/OnboardComplete";
 import ScraperIntelligencePage from "@/pages/scraper/ScraperIntelligencePage";
-import CompositionRenderer from "@/pages/Renderer/CompostionRenderer";
+import CompositionRenderer from "@/pages/Renderer/CompositionRenderer";
+
 
 
 const ClientDashMain = () => {

@@ -86,10 +86,10 @@ const animations: { [key: string]: Variants | any } = {
 
 // NEW: Maps canonical backend shape → ComponentPreview shape the swiper expects
 const mapCanonicalToPreview = (component: CanonicalComponent): ComponentPreview => ({
-  id: component.id,                                                         // ADD
+  id: component.id,
   component_id: component.component_id,
-  client_email: component.client_email,                                     // ADD
-  designer_email: component.designer_email,                                 // ADD
+  client_email: component.client_email,
+  designer_email: component.designer_email,
   thumbnail_url: component.thumbnail_url ?? "",
   vibe: component.vibe ?? component.category,
   tone: component.tone ?? [],
@@ -101,8 +101,12 @@ const mapCanonicalToPreview = (component: CanonicalComponent): ComponentPreview 
   category: component.category.toLowerCase(),
   project_id: component.project_id,
   is_canonical: component.is_canonical,
-  content_slots: component.content_slots ?? {},                             // ADD
-  tokens: component.tokens ?? {},                                           // ADD
+  content_slots: typeof component.content_slots === 'string'
+    ? JSON.parse(component.content_slots)   // ← parse string
+    : component.content_slots ?? {},
+  tokens: typeof component.tokens === 'string'
+    ? JSON.parse(component.tokens)          // ← parse string
+    : component.tokens ?? {},
 });
 
 const normalizeLayout = (category: string, layout: string): string => {
@@ -708,11 +712,11 @@ const Swiper: React.FC = () => {
       return;
     }
 
-    
-      // Navigate to the Compose Result Screen
-      // thumbnails will still be polling in the background via Redux
-      navigate(`/dashboard/client/swiper/compose`);
-    
+
+    // Navigate to the Compose Result Screen
+    // thumbnails will still be polling in the background via Redux
+    navigate(`/dashboard/client/swiper/compose`);
+
   }, [dispatch, navigate, kingOfHillSessions, roundsData]);
   const handleTransitionComplete = useCallback(() => {
     setShowTransition(false);
