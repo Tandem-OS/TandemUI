@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import { getCompose } from '@/lib/requests/CompositionRequest';
 import HeroRenderer from '@/pages/Renderer/HeroRenderer';
 import NavRenderer from '@/pages/Renderer/NavRenderer';
+import FeaturesRenderer from '@/pages/Renderer/FeaturesRenderer';
 import type { ComposeSection } from '@/pages/Renderer/CompositionType';
 
 // ── CompositionRenderer
@@ -50,12 +51,16 @@ const CompositionRenderer: React.FC = () => {
     );
 
     const heroSections = sections.filter(s => s.category === 'hero');
-    const navSections  = sections.filter(s => s.category === 'nav');
+    const navSections = sections.filter(s => s.category === 'nav');
+    const featuresSections = sections.filter(s => s.category === 'features');
+
 
     return (
         <>
             <NavRenderer sections={navSections} />
             <HeroRenderer sections={heroSections} />
+            <FeaturesRenderer sections={featuresSections} />
+
         </>
     );
 };

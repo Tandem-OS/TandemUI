@@ -1,6 +1,7 @@
 import React from 'react'
 import { Hero_01, Hero_02, Hero_03, Hero_04 } from '@/components-lib/Hero'
 import NavBase from '@/components-lib/Nav/NavBase'
+import FeaturesBase from '@/components-lib/Features/FeaturesBase'
 
 const componentRegistry: Record<string, React.ComponentType<any>> = {
   // ── Heroes
@@ -14,6 +15,10 @@ const componentRegistry: Record<string, React.ComponentType<any>> = {
   canonical_nav_002: NavBase,
   canonical_nav_003: NavBase,
   canonical_nav_004: NavBase,
+  canonical_features_001: FeaturesBase,
+  canonical_features_002: FeaturesBase,
+  canonical_features_003: FeaturesBase,
+  canonical_features_004: FeaturesBase,
 }
 
 export default componentRegistry

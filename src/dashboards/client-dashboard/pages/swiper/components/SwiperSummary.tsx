@@ -196,15 +196,22 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
     const [isPlaying, setIsPlaying] = useState(true);
 
     // Create component lookup map from roundsData
-    const componentMap = useMemo(() => {
-        const map = new Map<string, ComponentPreview>();
-        roundsData.forEach(round => {
-            round.components.forEach(comp => {
-                map.set(comp.component_id, comp);
-            });
-        });
-        return map;
-    }, [roundsData]);
+const componentMap = useMemo(() => {
+    const map = new Map<string, ComponentPreview>();
+    roundsData.forEach(round => {
+      round.components.forEach(comp => {
+        map.set(comp.component_id, comp);
+      });
+    });
+    kingOfHillSessions.forEach(session => {
+      (session.components ?? []).forEach((comp: any) => {
+        if (comp?.component_id && !map.has(comp.component_id)) {
+          map.set(comp.component_id, comp as ComponentPreview);
+        }
+      });
+    });
+    return map;
+  }, [roundsData, kingOfHillSessions]);
 
     // Enhanced analytics with pattern detection
     const intelligence = useMemo(() => {

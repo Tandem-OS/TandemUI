@@ -61,6 +61,8 @@ import TransitionMoment from './components/TransitionMoment';
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
+const KOH_SNAP_KEY = 'tandem_koh_snap';
+
 
 // Animation variants
 const animations: { [key: string]: Variants | any } = {
@@ -208,6 +210,9 @@ const Swiper: React.FC = () => {
   const navigate = useNavigate();
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
   const [roundCompleted, setRoundCompleted] = useState(false);
+  const KOH_SESSIONS_KEY = 'tandem_koh_sessions';
+const KOH_CHOICES_KEY = 'tandem_koh_choices';
+
   const [showTransition, setShowTransition] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
@@ -278,8 +283,24 @@ const Swiper: React.FC = () => {
       try {
         const statusResult = await fetchRoundCompleted();
         if (!statusResult.data.round_completed) return;
-        setRoundCompleted(true);
-
+        if (sessionStorage.getItem('tandem_session_active') !== 'true') return;
+    const savedSessions = sessionStorage.getItem(KOH_SESSIONS_KEY);
+        const savedChoices = sessionStorage.getItem(KOH_CHOICES_KEY);
+        if (savedSessions) {
+          try {
+            setKingOfHillSessions(JSON.parse(savedSessions));
+            if (savedChoices) {
+              JSON.parse(savedChoices).forEach((choice: any) => {
+                dispatch(addUserChoice({ choice, isAnyModalOpen: false }));
+              });
+            }
+            setRoundCompleted(true);
+            return;
+          } catch {
+            sessionStorage.removeItem(KOH_SESSIONS_KEY);
+            sessionStorage.removeItem(KOH_CHOICES_KEY);
+          }
+        }
         const summaryResult = await fetchRoundCompletedData();
         const data = summaryResult.data.data;
         const { swipes, king_of_hill_sessions, king_of_hill_matches, components } = data;
@@ -351,6 +372,8 @@ const Swiper: React.FC = () => {
         });
 
         setKingOfHillSessions(roundsDataPrepopulated);
+        setKingOfHillSessions(roundsDataPrepopulated);
+        setRoundCompleted(true);
 
       } catch (err) {
         console.error("Failed to prepopulate swiper data:", err);
@@ -359,7 +382,19 @@ const Swiper: React.FC = () => {
 
     prepopulateFromBackend();
   }, [dispatch]);
-
+  useEffect(() => {
+    if (isInitialLoading) return;
+    const raw = sessionStorage.getItem(KOH_SNAP_KEY);
+    if (!raw) return;
+    try {
+      const snap = JSON.parse(raw);
+      if (Array.isArray(snap?.components) && snap.components.length >= 2) {
+        dispatch(startKingOfHill(snap.components));
+      }
+    } catch {
+      sessionStorage.removeItem(KOH_SNAP_KEY);
+    }
+  }, [isInitialLoading]);
   const handleRetry = useCallback(async () => {
     dispatch(setRetrying(true));
     await loadData();
@@ -367,6 +402,7 @@ const Swiper: React.FC = () => {
   }, [dispatch, loadData]);
 
   const handleSwipe = useCallback((action: SwipeAction, component: ComponentPreview, signals: BehavioralSignal) => {
+    sessionStorage.setItem('tandem_session_active', 'true');
     dispatch(addUserChoice({
       choice: {
         component_id: component.component_id,
@@ -418,10 +454,18 @@ const Swiper: React.FC = () => {
     dispatch(recordKingOfHillMatch({ winner, loser, signals }));
 
     if (kingOfHill.remainingComponents.length === 0) {
+      const kohSnap = (() => {
+        try { return JSON.parse(sessionStorage.getItem(KOH_SNAP_KEY) ?? 'null'); }
+        catch { return null; }
+      })();
+      const snapRound = kohSnap?.currentRound ?? currentRound;
+      const snapCategory = kohSnap?.category || currentRoundData?.category || '';
+      const snapComponents = kohSnap?.components || currentRoundData?.components || [];
+      const snapIsLastRound = kohSnap?.isLastRound ?? isLastRound;
       const sessionSummary: KingOfHillSession = {
-        round_number: currentRound + 1,
-        category: currentRoundData?.category || '',
-        components: currentRoundData?.components || [],
+        round_number: snapRound + 1,
+        category: snapCategory,
+        components: snapComponents,
         matches: [
           ...kingOfHill.matches,
           {
@@ -491,6 +535,7 @@ const Swiper: React.FC = () => {
         }
 
         saveSuccess = true;
+        sessionStorage.removeItem(KOH_SNAP_KEY);
         setLoading(false);
         setKingOfHillSessions(prev => [...prev, sessionSummary]);
       } catch (error) {
@@ -509,7 +554,7 @@ const Swiper: React.FC = () => {
         setTimeout(() => {
           dispatch(endKingOfHill());
           const completedRoundNumber = currentRound + 1;
-          const shouldShowPreview = completedRoundNumber % 2 === 0 && !isLastRound;
+          const shouldShowPreview = (snapRound + 1) % 2 === 0 && !snapIsLastRound;
 
           if (shouldShowPreview) {
             dispatch(setShouldAskForPreview(true));
@@ -582,8 +627,12 @@ const Swiper: React.FC = () => {
             dispatch(setShowRoundCompletion(false));
 
             if (likedComponents.length >= 2) {
-              // ── KOH fires ─────────────────────────────────────────────────
-              // session_id created inside handleKingOfHillSelect as normal
+              sessionStorage.setItem(KOH_SNAP_KEY, JSON.stringify({
+                components: likedComponents,
+                currentRound,
+                category: currentRoundData?.category ?? '',
+                isLastRound,
+              }));
               dispatch(startKingOfHill(likedComponents));
 
             } else if (likedComponents.length === 1) {
@@ -622,6 +671,7 @@ const Swiper: React.FC = () => {
                   tags: winner.tags,               // ← add
                   vibe: winner.vibe,               // ← add
                 });
+                
               } catch (err) {
                 console.error("❌ Failed to post auto-winner component:", err);
               }
@@ -659,7 +709,16 @@ const Swiper: React.FC = () => {
       setKingOfHillSessions([]);
     };
   }, []);
-
+  useEffect(() => {
+    if (kingOfHillSessions.length > 0) {
+      sessionStorage.setItem(KOH_SESSIONS_KEY, JSON.stringify(kingOfHillSessions));
+    }
+  }, [kingOfHillSessions]);
+  useEffect(() => {
+    if (userChoices.length > 0) {
+      sessionStorage.setItem(KOH_CHOICES_KEY, JSON.stringify(userChoices));
+    }
+  }, [userChoices]);
   const handleAnimationStart = useCallback(() => dispatch(setAnimating(true)), [dispatch]);
   const handleAnimationComplete = useCallback(() => dispatch(setAnimating(false)), [dispatch]);
   const handleExit = useCallback(() => {
@@ -686,21 +745,14 @@ const Swiper: React.FC = () => {
   );
 
   const handleStartOver = useCallback(() => {
+    sessionStorage.removeItem('tandem_session_active');
+    sessionStorage.removeItem(KOH_SESSIONS_KEY);
+        sessionStorage.removeItem(KOH_CHOICES_KEY);
+
+
+
     dispatch(resetSwiper());
   }, [dispatch]);
-
-  // const handleGenerateLayout = useCallback(() => {
-  //   const sessionSummary = {
-  //     session_id: `session_${Date.now()}`,
-  //     total_rounds: totalRounds,
-  //     completed_at: new Date().toISOString(),
-  //     total_choices: userChoices.length,
-  //     user_choices: userChoices,
-  //     rounds_data: roundsData,
-  //     king_of_hill_sessions: kingOfHillSessions
-  //   };
-  //   localStorage.setItem('design_session', JSON.stringify(sessionSummary));
-  // }, [userChoices, roundsData, totalRounds, kingOfHillSessions]);
 
   const handleGenerateLayout = useCallback(async () => {
     // Collect one winner_id per KOH session (one per category)
@@ -783,7 +835,10 @@ const Swiper: React.FC = () => {
     );
   }
 
-  if (allRoundsComplete && isLastRound && !showRoundCompletion && !kingOfHill.isActive || roundCompleted) {
+  if (
+    ((allRoundsComplete && isLastRound && !showRoundCompletion) || roundCompleted)
+    && !kingOfHill.isActive
+  ) {
     return (
       <>
         {showTransition && (
