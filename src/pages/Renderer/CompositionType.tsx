@@ -18,6 +18,12 @@ export interface NavTokens {
     btn_radius?: string;
     btn_primary_bg?: string;
     btn_primary_color?: string;
+    link_gap?: string;
+    logo_height?: string;
+    link_weight?: string;
+    btn_padding?: string;
+    btn_weight?: string;
+    container_max_width?: string;
     [key: string]: string | undefined;
 }
 

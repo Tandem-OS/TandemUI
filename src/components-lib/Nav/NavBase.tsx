@@ -1,22 +1,46 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import type { NavLink } from '@/components-lib/Nav/NavSlotsToProps'
-import type { NavColors } from '@/components-lib/Nav/NavTokensToColors'
+import type { NavColors } from '@/components-lib/Nav/ResolveNavStyles.ts'
+
+// ── Variant config — structural defaults per nav pattern ──────────────────
+// These are not global tokens — they define layout geometry for pill style
+// Only applied when isPill is true, derived from tags
+interface NavVariantConfig {
+  pillPadding: string
+  pillRadius: number
+  pillBorderWidth: string
+}
+
+const DEFAULT_VARIANT_CONFIG: NavVariantConfig = {
+  pillPadding: '5px 14px',
+  pillRadius: 999,
+  pillBorderWidth: '1.5px',
+}
 
 export interface NavBaseProps {
   // Slots — all come from API content_slots
   logo?: string
-  links?: NavLink[]        // ← optional, can be undefined
+  links?: NavLink[]
   cta?: string
 
   // Layout — derived directly from API response fields
   layout_structure: string
   tags: string[]
 
-  // Tokens → colors — no hardcoded defaults
+  // Token layer — themeable per project
   colors: NavColors
   padding?: string
   linkSize?: string
+  linkGap?: string           // token: gap between nav links
+  logoHeight?: string        // token: logo height
+  linkWeight?: string        // token: link font weight
+  btnPadding?: string        // token: CTA button padding
+  btnWeight?: string         // token: CTA button font weight
+  containerMaxWidth?: string // token: max width of nav container
+
+  // Variant config layer — structural defaults per nav pattern
+  variantConfig?: Partial<NavVariantConfig>
 
   // Optional
   className?: string
@@ -32,17 +56,28 @@ const NavBase: React.FC<NavBaseProps> = ({
   colors,
   padding,
   linkSize,
+  linkGap,
+  logoHeight,
+  linkWeight,
+  btnPadding,
+  btnWeight,
+  containerMaxWidth,
+  variantConfig,
   className = '',
   animated = true,
 }) => {
-  // const [menuOpen, setMenuOpen] = useState(false)
+  // Merge variant config with defaults
+  const vc: NavVariantConfig = {
+    ...DEFAULT_VARIANT_CONFIG,
+    ...variantConfig,
+  }
 
   // ── Derive behavior from DB tags — no hardcoding ──────────
   const isPill = tags.includes('pill_links')
   const isCenteredLogo = tags.includes('centered_logo')
   const layoutVariant = isCenteredLogo ? 'centered-logo' : layout_structure
 
-  // ── Safe links — rendering concern only, not data ─────────
+  // ── Safe links ─────────────────────────────────────────────
   const safeLinks = links ?? []
 
   // ── Styles — all from tokens, no fallbacks ────────────────
@@ -59,7 +94,7 @@ const NavBase: React.FC<NavBaseProps> = ({
     color: colors.text,
     fontSize: linkSize,
     textDecoration: 'none',
-    fontWeight: 500,
+    fontWeight: linkWeight,
     transition: 'opacity 0.2s',
   }
 
@@ -67,11 +102,11 @@ const NavBase: React.FC<NavBaseProps> = ({
     backgroundColor: colors.btnBg,
     color: colors.btnText,
     borderRadius: colors.btnRadius,
-    padding: '8px 20px',
+    padding: btnPadding,
     fontSize: linkSize,
-    fontWeight: 600,
+    fontWeight: btnWeight,
     border: colors.btnBg === 'transparent'
-      ? `1.5px solid ${colors.text}`
+      ? `${vc.pillBorderWidth} solid ${colors.text}`
       : 'none',
     cursor: 'pointer',
     transition: 'all 0.2s',
@@ -80,20 +115,35 @@ const NavBase: React.FC<NavBaseProps> = ({
     whiteSpace: 'nowrap' as const,
   }
 
+  const innerContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    maxWidth: containerMaxWidth,
+    margin: '0 auto',
+    width: '100%',
+  }
+
+  const navLinksStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: linkGap,
+  }
+
   // ── Logo
   const LogoEl = logo ? (
     <img
       src={logo}
       alt="Logo"
-      style={{ height: 32, width: 'auto', objectFit: 'contain' }}
+      style={{ height: logoHeight, width: 'auto', objectFit: 'contain' }}
       data-slot="nav_logo"
       data-testid="nav-logo"
     />
   ) : null
 
-  // ── Links — pill style derived from tags
+  // ── Links — pill style derived from tags + variant config
   const LinksEl = (
-    <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+    <nav style={navLinksStyle}>
       {safeLinks.map((link, i) => (
         <a
           key={i}
@@ -102,8 +152,8 @@ const NavBase: React.FC<NavBaseProps> = ({
             ...linkStyle,
             ...(isPill ? {
               backgroundColor: 'rgba(0,0,0,0.06)',
-              padding: '5px 14px',
-              borderRadius: 999,
+              padding: vc.pillPadding,
+              borderRadius: vc.pillRadius,
             } : {}),
           }}
           data-testid={`nav-link-${i}`}
@@ -115,7 +165,7 @@ const NavBase: React.FC<NavBaseProps> = ({
     </nav>
   )
 
-  // ── CTA — only render if slot has value
+  // ── CTA
   const CtaEl = cta ? (
     <a
       href="#cta"
@@ -127,33 +177,17 @@ const NavBase: React.FC<NavBaseProps> = ({
     </a>
   ) : null
 
-  // ── Layout: split
+  // ── Layouts ───────────────────────────────────────────────
   const SplitLayout = (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      maxWidth: 1440,
-      margin: '0 auto',
-      width: '100%',
-    }}>
+    <div style={innerContainerStyle}>
       {LogoEl}
       {LinksEl}
       {CtaEl}
     </div>
   )
 
-  // ── Layout: centered
   const CenteredLayout = (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      position: 'relative',
-      maxWidth: 1440,
-      margin: '0 auto',
-      width: '100%',
-    }}>
+    <div style={{ ...innerContainerStyle, position: 'relative' }}>
       {LogoEl}
       <div style={{
         position: 'absolute',
@@ -166,21 +200,13 @@ const NavBase: React.FC<NavBaseProps> = ({
     </div>
   )
 
-  // ── Layout: centered-logo (symmetric links around logo)
   const halfLinks = Math.ceil(safeLinks.length / 2)
   const leftLinks = safeLinks.slice(0, halfLinks)
   const rightLinks = safeLinks.slice(halfLinks)
 
   const CenteredLogoLayout = (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      maxWidth: 1440,
-      margin: '0 auto',
-      width: '100%',
-    }}>
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+    <div style={innerContainerStyle}>
+      <nav style={navLinksStyle}>
         {leftLinks.map((link, i) => (
           <a key={i} href={link.href} style={linkStyle}
             data-testid={`nav-link-left-${i}`}>
@@ -189,7 +215,7 @@ const NavBase: React.FC<NavBaseProps> = ({
         ))}
       </nav>
       {LogoEl}
-      <nav style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
+      <nav style={navLinksStyle}>
         {rightLinks.map((link, i) => (
           <a key={i} href={link.href} style={linkStyle}
             data-testid={`nav-link-right-${i}`}>
@@ -200,7 +226,6 @@ const NavBase: React.FC<NavBaseProps> = ({
     </div>
   )
 
-  // ── Layout map — derived from DB, not hardcoded
   const layoutMap: Record<string, React.ReactNode> = {
     'split': SplitLayout,
     'centered': CenteredLayout,

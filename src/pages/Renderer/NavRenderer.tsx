@@ -1,48 +1,39 @@
 import React from 'react'
-import componentRegistry from '@/registry/ComponentRegistry'
+import NavBase from '@/components-lib/Nav/NavBase'
 import { navSlotsToProps } from '@/components-lib/Nav/NavSlotsToProps'
-import { navTokensToColors } from '@/components-lib/Nav/NavTokensToColors'
+import { resolveNavStyles } from '@/components-lib/Nav/ResolveNavStyles'
 import type { ComposeSection, NavSlots, NavTokens } from '@/pages/Renderer/CompositionType'
 
 interface NavRendererProps {
-  sections: ComposeSection[]
+    sections: ComposeSection[]
 }
 
 const NavRenderer: React.FC<NavRendererProps> = ({ sections }) => {
-  if (sections.length === 0) return null
+    if (!sections.length) return null
 
-  return (
-    <>
-      {sections.map((section, i) => {
-        const slots = section.content_slots as NavSlots
-        const tokens = section.tokens as NavTokens
-        const colors = navTokensToColors(tokens)
+    const section = sections[0]
+    const slots = section.content_slots as NavSlots
+    const tokens = section.tokens as NavTokens
 
-        const props = navSlotsToProps(
-          slots,
-          section.layout_structure,
-          section.tags,
-          tokens.padding,
-          tokens.link_size,
-        )
+    const props = navSlotsToProps(slots)
+    const styles = resolveNavStyles(tokens)
 
-        const Component = componentRegistry[section.component_id]
-
-        if (!Component) {
-          console.warn(`[NavRenderer] Unknown component_id: "${section.component_id}"`)
-          return null
-        }
-
-        return (
-          <Component
-            key={section.component_id ?? i}
+    return (
+        <NavBase
             {...props}
-            colors={colors}
-          />
-        )
-      })}
-    </>
-  )
+            colors={styles.colors}
+            padding={styles.padding}
+            linkSize={styles.linkSize}
+            linkGap={styles.linkGap}
+            logoHeight={styles.logoHeight}
+            linkWeight={styles.linkWeight}
+            btnPadding={styles.btnPadding}
+            btnWeight={styles.btnWeight}
+            containerMaxWidth={styles.containerMaxWidth}
+            layout_structure={section.layout_structure ?? 'split'}
+            tags={section.tags ?? []}
+        />
+    )
 }
 
 export default NavRenderer
