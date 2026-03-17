@@ -5,24 +5,25 @@ import { store } from "@/store";
 export const TANDEM_CANONICAL_PROJECT_ID = "00000000-0000-0000-0000-000000000000";
 
 export interface CanonicalComponent {
-  id: string;
-  component_id: string;
-  project_id: string;
-  client_email: string;
-  designer_email: string;
-  category: string;
-  title: string;
-  description: string;
-  layout_structure: string | null;
-  thumbnail_url: string | null;
-  vibe: string | null;
-  tone: string[] | null;
-  intent: string[] | null;
-  tags: string[] | null;
-  content_slots: Record<string, any>;
-  tokens: Record<string, any>;
-  is_canonical: boolean;
-  created_at: string;
+  id: string
+  component_id: string
+  project_id: string
+  client_email: string
+  designer_email: string
+  category: string
+  layout_structure: string
+  thumbnail_url: string | null
+  is_canonical: boolean
+  content_slots: string | Record<string, any>
+  tokens: string | Record<string, any>
+  // ← add all these
+  tags: string[]
+  tone: string[]
+  intent: string[]
+  title: string | null
+  description: string | null
+  vibe: string | null
+  created_at?: string
 }
 
 export interface CanonicalComponentsResponse {
@@ -155,6 +156,8 @@ export const swiperComponentData = async (values: SwiperComponent) => {
       formData.append('thumbnail_url', new File([blob], 'thumbnail.png', { type: 'image/png' }));
     }
   }
+
+  console.log(formData)
 
   return await api.post("/swiper/components", formData, {
     headers: { "Content-Type": "multipart/form-data" },

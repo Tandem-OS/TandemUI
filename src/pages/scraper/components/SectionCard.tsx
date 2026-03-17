@@ -95,6 +95,15 @@ const SectionCard = ({
             }
         });
     };
+    const handleCloneSection = () => {
+        navigator.clipboard.writeText(JSON.stringify({
+            section_type: section.section_type,
+            layout_structure: section.layout_structure,
+            intent: section.intent,
+            tone: section.tone,
+            tokens: section.design?.tokens || {}
+        }, null, 2));
+    };
 
     return (
         <motion.div
@@ -416,6 +425,7 @@ const SectionCard = ({
                     /* Designer Mode Actions */
                     <div className="flex flex-col sm:flex-row gap-sm">
                         <motion.button
+                            onClick={() => setShowJson(!showJson)}
                             whileHover={{ scale: 1.02, borderColor: 'var(--accent-default)', color: 'var(--accent-default)' }}
                             whileTap={{ scale: 0.98 }}
                             transition={{ duration: 0.2 }}
@@ -425,6 +435,7 @@ const SectionCard = ({
                             Inspect Code
                         </motion.button>
                         <motion.button
+                            onClick={handleCloneSection}
                             whileHover={{ scale: 1.02, borderColor: 'var(--accent-default)', color: 'var(--accent-default)' }}
                             whileTap={{ scale: 0.98 }}
                             transition={{ duration: 0.2 }}

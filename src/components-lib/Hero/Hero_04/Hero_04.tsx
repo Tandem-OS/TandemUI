@@ -4,296 +4,251 @@ import styled from 'styled-components';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
 import {
-    type Hero_04Props,
     type ColorOverrides,
     type ColorValue,
-    type NewsletterColorOverride
-} from './Hero_04.types';
-import {
-    validateHero04Props,
-    sanitizeProps,
-    formatValidationMessage
-} from './Hero_04.validators';
-import meta from './Hero_04.meta';
+    type ButtonColorOverride,
+    type CTASize,
+    type CTAVariant,
+} from '../Hero_01/Hero_01.types';
 
-// Animation helper function
-const getAnimationProps = (variant: Variants, delay = 0, amount = 0, animated = true) => {
-    if (!animated) return {};
+// ── Slot contract ────────────────────────────────────────────
+export interface Hero_04Slots {
+    hero_heading: string;
+    hero_primary_action: string;
+    hero_subheading?: string;
+    hero_media?: string;
+}
+
+export interface Hero_04Props {
+    title?: string;
+    description?: string;
+    primaryCTA?: { text?: string; href?: string; size?: CTASize; variant?: CTAVariant };
+    backgroundImage?: string;
+    overlayColor?: string;
+    searchPlaceholder?: string;
+    animated?: boolean;
+    className?: string;
+    colors?: ColorOverrides;
+    slots?: Hero_04Slots;
+}
+
+// ── Slot mapper ──────────────────────────────────────────────
+export function slotsToProps(slots: Hero_04Slots): Omit<Hero_04Props, 'slots'> {
     return {
-        initial: "hidden",
-        whileInView: "show",
-        viewport: { once: true, amount: amount || undefined },
-        variants: variant,
-        transition: { delay }
+        title: slots.hero_heading,
+        description: slots.hero_subheading ?? undefined,
+        backgroundImage: slots.hero_media ?? undefined,
+        primaryCTA: {
+            text: slots.hero_primary_action,
+            href: '/explore',
+            size: 'lg' as CTASize,
+            variant: 'solid' as CTAVariant,
+        },
+        animated: true,
+        className: '',
     };
-};
+}
 
-// Component styles hook
-const useComponentStyles = (
-    userColors: ColorOverrides | undefined,
-    theme: 'light' | 'dark'
-): Record<string, string> => {
+// ── Color styles hook ────────────────────────────────────────
+const useStyles = (userColors: ColorOverrides | undefined, theme: 'light' | 'dark') => {
     return useMemo(() => {
-        const defaults = meta.defaults.colors;
-        const getColor = (userValue: ColorValue | undefined, defaultValue: ColorValue): string => {
-            const value = userValue || defaultValue;
-            return theme === 'dark' ? value.dark : value.light;
-        };
-        const getNewsletterVars = (
-            userNewsletter: NewsletterColorOverride | undefined,
-            defaultNewsletter: NewsletterColorOverride
-        ) => {
-            const newsletter = userNewsletter || defaultNewsletter;
+        if (!userColors) return {};
+
+        const gc = (u: ColorValue | undefined) =>
+            u ? (theme === 'dark' ? u.dark : u.light) : undefined;
+
+        const gbv = (u: ButtonColorOverride | undefined, p: string) => {
+            if (!u) return {};
             return {
-                '--newsletter-input-bg': getColor(newsletter.input?.background, defaultNewsletter.input.background),
-                '--newsletter-input-text': getColor(newsletter.input?.text, defaultNewsletter.input.text),
-                '--newsletter-input-border': getColor(newsletter.input?.border, defaultNewsletter.input.border),
-                '--newsletter-input-focus-border': getColor(newsletter.input?.focusBorder, defaultNewsletter.input.focusBorder),
-                '--newsletter-input-placeholder': getColor(newsletter.input?.placeholder, defaultNewsletter.input.placeholder),
-                '--newsletter-btn-bg': getColor(newsletter.button?.background, defaultNewsletter.button.background),
-                '--newsletter-btn-text': getColor(newsletter.button?.text, defaultNewsletter.button.text),
-                '--newsletter-btn-border': getColor(newsletter.button?.border, defaultNewsletter.button.border),
-                '--newsletter-btn-hover-bg': getColor(newsletter.button?.hover?.background, defaultNewsletter.button.hover.background),
-                '--newsletter-btn-hover-text': getColor(newsletter.button?.hover?.text, defaultNewsletter.button.hover.text),
-                '--newsletter-btn-hover-border': getColor(newsletter.button?.hover?.border, defaultNewsletter.button.hover.border),
-                '--newsletter-message-text': getColor(newsletter.message, defaultNewsletter.message),
+                [`--btn-${p}-bg`]: gc(u.background),
+                [`--btn-${p}-text`]: gc(u.text),
+                [`--btn-${p}-border`]: gc(u.border),
+                [`--btn-${p}-hover-bg`]: gc(u.hover?.background),
+                [`--btn-${p}-hover-text`]: gc(u.hover?.text),
+                [`--btn-${p}-hover-border`]: gc(u.hover?.border),
             };
         };
+
         return {
-            '--hero-bg': getColor(userColors?.background, defaults.background),
-            '--hero-title': getColor(userColors?.title, defaults.title),
-            '--hero-desc': getColor(userColors?.description, defaults.description),
-            ...getNewsletterVars(userColors?.newsletter, defaults.newsletter),
+            '--hero-title': gc(userColors.title),
+            '--hero-desc': gc(userColors.description),
+            ...gbv(userColors.primaryButton, 'primary'),
         };
     }, [userColors, theme]);
 };
 
-// Styled components - ONLY for hover and focus states
-const HoverButton = styled.button`
-    &:hover:not(:disabled) {
-        background-color: var(--newsletter-btn-hover-bg) !important;
-        color: var(--newsletter-btn-hover-text) !important;
-        border-color: var(--newsletter-btn-hover-border) !important;
+// ── Styled helpers ───────────────────────────────────────────
+const HLink = styled.a<{ $t: 'primary' | 'secondary' }>`
+    &:hover {
+        background-color: var(--btn-${p => p.$t}-hover-bg)     !important;
+        color:            var(--btn-${p => p.$t}-hover-text)   !important;
+        border-color:     var(--btn-${p => p.$t}-hover-border) !important;
     }
 `;
 
-const FocusInput = styled.input`
-    &:focus {
-        border-color: var(--newsletter-input-focus-border) !important;
-        outline: none;
-    }
-    &::placeholder {
-        color: var(--newsletter-input-placeholder) !important;
-    }
+const SearchInput = styled.input`
+    &::placeholder { color: rgba(255,255,255,0.5); }
+    &:focus { outline: none; border-color: rgba(255,255,255,0.8) !important; }
 `;
 
-// Newsletter component
-interface NewsletterProps {
-    placeholder: string;
-    buttonText: string;
-    message: string;
-    animated?: boolean;
-}
+const getAnim = (variant: Variants, delay = 0, animated = true) => {
+    if (!animated) return {};
+    return { initial: 'hidden', whileInView: 'show', viewport: { once: true }, variants: variant, transition: { delay } };
+};
 
-const Newsletter: React.FC<NewsletterProps> = ({
-    placeholder,
-    buttonText,
-    message,
-    animated = true
-}) => {
-    const [email, setEmail] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!email.trim()) return;
-
-        setIsLoading(true);
-        try {
-            // Default behavior - just log
-            console.log('Newsletter subscription:', email);
-            setEmail(''); // Clear on success
-        } catch (error) {
-            console.error('Newsletter submission error:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const inputStyle: React.CSSProperties = {
-        backgroundColor: 'var(--newsletter-input-bg)',
-        color: 'var(--newsletter-input-text)',
-        borderColor: 'var(--newsletter-input-border)',
-        borderWidth: meta.tokens.newsletter.input.borderWidth,
-        borderStyle: meta.tokens.newsletter.input.borderStyle,
-    };
-
-    const buttonStyle: React.CSSProperties = {
-        backgroundColor: 'var(--newsletter-btn-bg)',
-        color: 'var(--newsletter-btn-text)',
-        borderColor: 'var(--newsletter-btn-border)',
-        borderWidth: meta.tokens.newsletter.button.borderWidth,
-        borderStyle: meta.tokens.newsletter.button.borderStyle,
-    };
+// ── Search Bar ───────────────────────────────────────────────
+const SearchBar: React.FC<{ placeholder?: string; animated: boolean }> = ({ placeholder, animated }) => {
+    const [query, setQuery] = useState('');
+    const Wrap = animated ? motion.div : 'div';
 
     return (
-        <div className={meta.tokens.newsletter.container}>
-            <form onSubmit={handleSubmit} className={meta.tokens.newsletter.form}>
-                <div className={meta.tokens.newsletter.inputGroup}>
-                    <div className={meta.tokens.newsletter.inputWrapper}>
-                        <FocusInput
-                            type="email"
-                            name="newsletter-email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder={placeholder}
-                            className={meta.tokens.newsletter.input.classes}
-                            style={inputStyle}
-                            required
-                            aria-label="Email address for newsletter"
-                        />
-                    </div>
-
-                    <HoverButton
-                        type="submit"
-                        className={`${meta.tokens.newsletter.button.classes} ${animated ? meta.tokens.effects.button : 'transition-none'}`}
-                        style={buttonStyle}
-                        disabled={isLoading}
-                        aria-label={`Subscribe to newsletter: ${buttonText}`}
-                    >
-                        {isLoading ? 'Signing up...' : buttonText}
-                    </HoverButton>
+        <Wrap {...getAnim(fadeInUp, 0.2, animated)} className="w-full max-w-2xl mx-auto" data-testid="hero-search">
+            <div className="relative flex items-center">
+                <div className="absolute left-4 pointer-events-none" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <circle cx="7.5" cy="7.5" r="5.5" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" />
+                        <path d="M11.5 11.5L15.5 15.5" stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
                 </div>
-
-                {message && (
-                    <p
-                        className={meta.tokens.newsletter.message.classes}
-                        style={{ color: 'var(--newsletter-message-text)' }}
-                    >
-                        {message}
-                    </p>
-                )}
-            </form>
-        </div>
+                <SearchInput
+                    type="search"
+                    value={query}
+                    onChange={e => setQuery(e.target.value)}
+                    placeholder={placeholder}
+                    aria-label="Search"
+                    className="w-full h-14 pl-12 pr-32 rounded-xl text-white text-sm"
+                    style={{
+                        background: 'rgba(255,255,255,0.12)',
+                        border: '1.5px solid rgba(255,255,255,0.25)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                    }}
+                />
+                <button
+                    type="button"
+                    onClick={() => console.log('Search:', query)}
+                    className="absolute right-2 h-10 px-5 rounded-lg text-sm font-semibold text-white transition-colors duration-200"
+                    style={{ background: 'rgba(255,255,255,0.2)' }}
+                    aria-label="Submit search"
+                >
+                    Search
+                </button>
+            </div>
+        </Wrap>
     );
 };
 
-// Main Hero_04 component
-const Hero_04: React.FC<Hero_04Props> = (props = {}) => {
+// ── Hero_04 — Stacked institutional with search + bottom CTA ─
+const Hero_04: React.FC<Hero_04Props> = (rawProps = {}) => {
+    const { slots, ...direct } = rawProps;
     const { theme } = useTheme();
-    const uniqueId = useId();
+    const uid = useId();
 
-    const validation = validateHero04Props(props);
-    const sanitized = sanitizeProps(props);
+    const resolved = slots ? { ...slotsToProps(slots), ...direct } : direct;
 
-    if (process.env.NODE_ENV === 'development') {
-        if (!validation.valid || validation.warnings) {
-            console.group('Hero_04 Validation');
-            console.log(formatValidationMessage(validation));
-            console.groupEnd();
-        }
-    }
+    const title = resolved.title;
+    const description = resolved.description;
+    const backgroundImage = resolved.backgroundImage;
+    const overlayColor = resolved.overlayColor;
+    const searchPlaceholder = resolved.searchPlaceholder;
+    const animated = resolved.animated ?? true;
+    const className = resolved.className ?? '';
+    const primaryCTA = resolved.primaryCTA;
 
-    const title = sanitized.title || meta.defaults.title;
-    const description = sanitized.description || meta.defaults.description;
-    const animated = sanitized.animated !== undefined ? sanitized.animated : meta.defaults.animated;
-    const className = sanitized.className || meta.defaults.className;
-
-    const newsletterPlaceholder = sanitized.newsletterPlaceholder || meta.defaults.newsletterPlaceholder;
-    const newsletterButtonText = sanitized.newsletterButtonText || meta.defaults.newsletterButtonText;
-    const newsletterMessage = sanitized.newsletterMessage || meta.defaults.newsletterMessage;
-
-    const image = sanitized.image || meta.defaults.image;
-    const imageSrc = typeof image === 'string' ? image : image.src;
-    const imageAlt = typeof image === 'object' ? (image.alt || meta.defaults.imageAlt) : meta.defaults.imageAlt;
-
-    const styles = useComponentStyles(sanitized.colors, theme);
-    const MotionWrapper = animated ? motion.div : 'div';
+    const styles = useStyles(resolved.colors, theme);
+    const Wrap = animated ? motion.div : 'div';
 
     return (
         <section
-            style={styles as React.CSSProperties}
-            className={`${meta.tokens.layout.section} ${className}`}
+            id={uid}
             data-testid="hero-section"
             role="banner"
-            aria-label={meta.accessibility.screenReaderHints?.section || "Main hero content with newsletter signup"}
-            id={uniqueId}
+            aria-label="Main hero content"
+            className={`relative w-full min-h-screen flex flex-col overflow-hidden ${className}`}
+            style={styles as React.CSSProperties}
         >
-            <div className={meta.tokens.layout.wrapper}>
+            {/* Full-bleed background */}
+            {backgroundImage && (
                 <div
-                    className={meta.tokens.layout.grid}
-                    style={{ backgroundColor: 'var(--hero-bg)' }}
-                >
-                    {/* Image Column - LEFT SIDE */}
-                    <div className={meta.tokens.layout.imageColumn}>
-                        <MotionWrapper
-                            className={meta.tokens.layout.imageContainer}
-                            {...(animated ? getAnimationProps(fadeIn, 0, 0.3, true) : {})}
-                            data-testid="hero-image-container"
-                        >
-                            <img
-                                src={imageSrc}
-                                alt={imageAlt || meta.accessibility.screenReaderHints?.image || "decorative"}
-                                className={meta.tokens.image.classes}
-                                loading={meta.tokens.image.loading as "lazy" | "eager"}
-                                data-testid="hero-image"
-                                role="presentation"
-                                aria-hidden={!imageAlt}
-                            />
-                        </MotionWrapper>
-                    </div>
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{ backgroundImage: `url(${backgroundImage})` }}
+                    aria-hidden="true"
+                    data-testid="hero-image-container"
+                />
+            )}
 
-                    {/* Content Column - RIGHT SIDE */}
-                    <MotionWrapper
-                        className={`${meta.tokens.layout.contentColumn} ${meta.tokens.spacing.containerX} ${meta.tokens.spacing.containerY}`}
-                        {...(animated ? getAnimationProps(fadeInUp, 0, 0.3, true) : {})}
-                    >
-                        <div className={`${meta.tokens.layout.contentContainer} ${meta.tokens.spacing.contentSpacing}`}>
-                            <MotionWrapper
-                                {...(animated ? getAnimationProps(fadeInUp, 0, 0, true) : {})}
-                                data-testid="hero-title"
-                            >
-                                <h1
-                                    className={meta.tokens.typography.heading.complete}
-                                    style={{ color: 'var(--hero-title)' }}
-                                >
-                                    {title}
-                                </h1>
-                            </MotionWrapper>
+            {/* Overlay */}
+            {overlayColor && (
+                <div
+                    className="absolute inset-0"
+                    style={{ backgroundColor: overlayColor, opacity: 0.88 }}
+                    aria-hidden="true"
+                />
+            )}
 
-                            <MotionWrapper
-                                {...(animated ? getAnimationProps(fadeInUp, 0.1, 0, true) : {})}
-                                data-testid="hero-description"
-                            >
-                                <p
-                                    className={meta.tokens.typography.body.complete}
-                                    style={{ color: 'var(--hero-desc)' }}
-                                >
-                                    {description}
-                                </p>
-                            </MotionWrapper>
+            {/* Main content */}
+            <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-24 pb-12 text-center">
+                <div className="w-full max-w-3xl flex flex-col items-center gap-8">
 
-                            <MotionWrapper
-                                {...(animated ? getAnimationProps(fadeInUp, 0.2, 0, true) : {})}
-                                data-testid="hero-newsletter"
-                                role="complementary"
-                                aria-label="Newsletter signup form"
+                    {title && (
+                        <Wrap {...getAnim(fadeInUp, 0, animated)} data-testid="hero-title">
+                            <h1
+                                className="font-extrabold leading-tight break-words"
+                                style={{ color: 'var(--hero-title)', fontSize: 'clamp(2.8rem, 6vw, 4rem)', fontWeight: 800 }}
                             >
-                                <Newsletter
-                                    placeholder={newsletterPlaceholder}
-                                    buttonText={newsletterButtonText}
-                                    message={newsletterMessage}
-                                    animated={animated}
-                                />
-                            </MotionWrapper>
-                        </div>
-                    </MotionWrapper>
+                                {title}
+                            </h1>
+                        </Wrap>
+                    )}
+
+                    {description && (
+                        <Wrap {...getAnim(fadeInUp, 0.1, animated)} data-testid="hero-description">
+                            <p
+                                className="text-base md:text-lg leading-relaxed max-w-xl"
+                                style={{ color: 'var(--hero-desc)' }}
+                            >
+                                {description}
+                            </p>
+                        </Wrap>
+                    )}
+
+                    <SearchBar placeholder={searchPlaceholder} animated={animated} />
                 </div>
             </div>
+
+            {/* Bottom CTA bar — only rendered if primaryCTA exists */}
+            {primaryCTA?.text && (
+                <Wrap
+                    className="relative z-10 w-full"
+                    {...getAnim(fadeIn, 0.3, animated)}
+                    data-testid="hero-buttons"
+                >
+                    <div
+                        className="w-full flex items-center justify-between px-10 lg:px-20 py-5 gap-4"
+                        style={{ background: 'rgba(0,0,0,0.3)', borderTop: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                        <p className="text-sm text-white text-opacity-70 hidden md:block">
+                            Trusted by teams building modern digital experiences
+                        </p>
+                        <HLink
+                            href={primaryCTA.href || '#'}
+                            aria-label={`Primary action: ${primaryCTA.text}`}
+                            $t="primary"
+                            className="inline-flex items-center justify-center h-11 px-8 rounded-lg font-semibold text-sm border-2 border-solid transition-colors duration-200 whitespace-nowrap"
+                            style={{
+                                backgroundColor: 'var(--btn-primary-bg)',
+                                color: 'var(--btn-primary-text)',
+                                borderColor: 'var(--btn-primary-border)',
+                            }}
+                        >
+                            {primaryCTA.text}
+                        </HLink>
+                    </div>
+                </Wrap>
+            )}
         </section>
     );
 };
 
 Hero_04.displayName = 'Hero_04';
-
 export default Hero_04;

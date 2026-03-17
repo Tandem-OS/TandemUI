@@ -1,4 +1,6 @@
 // src/scraper/constants.ts
+import type { AiComposePipelineResponse } from '../../../src/lib/requests/CompositionRequest';
+
 
 // Existing vibe images
 export const vibesImages = [
@@ -12,7 +14,6 @@ export const vibesImages = [
     { id: 8, name: "Luxury", src: "/images/vibeImages/luxury.webp" }
 ];
 
-// Enhanced section data with more metadata
 export const dummyScrapedData = {
     url: "stripe.com",
     analyzedAt: new Date(),
@@ -232,6 +233,71 @@ export const dummyScrapedData = {
             feedback: null
         }
     ]
+};
+// Frontend section shape (what dummyScrapedData.sections currently provides)
+export interface MappedSection {
+    id: string;
+    section_type: string;
+    layout_structure: string;
+    intent: string | null;
+    tone: string | null;
+    screenshot_url: string;
+    editableProps: Record<string, unknown>;
+    metadata: {
+        insight: string;
+        section_type: string;
+        layout_structure: string;
+        tokens: Record<string, unknown>;
+    };
+    design: {
+        editableProps: Record<string, unknown>;
+        tokens: Record<string, unknown>;
+        matched_components: never[];
+    };
+    feedback: null;
+}
+
+export interface MappedComposition {
+    composition_id: string;
+    project_id: string;
+    html_snapshot: string;
+    thumbnails: AiComposePipelineResponse['thumbnails'];
+    sections: MappedSection[];
+}
+
+export const mapCompositionToSections = (
+    response: AiComposePipelineResponse
+): MappedComposition => {
+    const sections = response.page_schema.sections as any[];
+
+    return {
+        composition_id: response.composition_id,
+        project_id: response.project_id,
+        html_snapshot: response.html_snapshot,
+        thumbnails: response.thumbnails,
+        sections: sections.map((s): MappedSection => ({
+            // Real API                      → Mock field
+            id:               s.component_id,           // "hero-1"
+            section_type:     s.category,               // "Hero"
+            layout_structure: s.layout_structure,       // "stacked"
+            intent:           null,                     // not in API yet
+            tone:             null,                     // not in API yet
+            screenshot_url:   s.thumbnail_url,          // component screenshot
+            editableProps:    s.content_slots ?? {},    // title, subheading, cta...
+            metadata: {
+                insight:          s.title ?? '',
+                section_type:     s.category,
+                layout_structure: s.layout_structure,
+                tokens:           s.tokens ?? {},
+            },
+            design: {
+                editableProps:      s.content_slots ?? {},
+                tokens:             s.tokens ?? {},
+                matched_components: [],                 // P0 #3 — filled on refinement
+            },
+            feedback: null,
+        })),
+    };
 };
 
 // Quick suggestions for URL input

@@ -1,296 +1,251 @@
-import React, { useMemo, useId } from 'react';
+import React, { useMemo, useId, useState } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import styled from 'styled-components';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { fadeInUp, fadeIn } from '../../../lib/animations/variants';
+import { fadeInUp } from '../../../lib/animations/variants';
 import {
-    type Hero_02Props,
     type ColorOverrides,
     type ColorValue,
-    type ButtonColorOverride
-} from './Hero_02.types';
-import {
-    validateHero02Props,
-    sanitizeProps,
-    formatValidationMessage
-} from './Hero_02.validators';
-import meta from './Hero_02.meta';
+    type ButtonColorOverride,
+    type CTASize,
+    type CTAVariant,
+} from '../Hero_01/Hero_01.types';
 
-// Animation helper function
-const getAnimationProps = (variant: Variants, delay = 0, amount = 0, animated = true) => {
-    if (!animated) return {};
+// ── Slot contract ────────────────────────────────────────────
+export interface Hero_02Slots {
+    hero_heading: string;
+    hero_primary_action: string;
+    hero_media?: string;
+    hero_media_slides?: string[];
+}
+
+export interface Hero_02Props {
+    title?: string;
+    primaryCTA?: { text?: string; href?: string; size?: CTASize; variant?: CTAVariant; icon?: React.ReactNode };
+    backgroundImage?: string;
+    backgroundSlides?: string[];
+    overlayColor?: string;
+    animated?: boolean;
+    className?: string;
+    colors?: ColorOverrides;
+    slots?: Hero_02Slots;
+}
+
+// ── Slot mapper ──────────────────────────────────────────────
+export function slotsToProps(slots: Hero_02Slots): Omit<Hero_02Props, 'slots'> {
     return {
-        initial: "hidden",
-        whileInView: "show",
-        viewport: { once: true, amount: amount || undefined },
-        variants: variant,
-        transition: { delay }
+        title: slots.hero_heading,
+        backgroundImage: slots.hero_media ?? undefined,
+        backgroundSlides: slots.hero_media_slides ?? undefined,
+        primaryCTA: {
+            text: slots.hero_primary_action,
+            href: '/order',
+            size: 'lg' as CTASize,
+            variant: 'solid' as CTAVariant,
+        },
+        animated: true,
+        className: '',
     };
-};
+}
 
-// Component styles hook
-const useComponentStyles = (
-    userColors: ColorOverrides | undefined,
-    theme: 'light' | 'dark'
-): Record<string, string> => {
+// ── Color styles hook ────────────────────────────────────────
+const useStyles = (userColors: ColorOverrides | undefined, theme: 'light' | 'dark') => {
     return useMemo(() => {
-        const defaults = meta.defaults.colors;
-        const getColor = (userValue: ColorValue | undefined, defaultValue: ColorValue): string => {
-            const value = userValue || defaultValue;
-            return theme === 'dark' ? value.dark : value.light;
-        };
-        const getButtonVars = (
-            userButton: ButtonColorOverride | undefined,
-            defaultButton: ButtonColorOverride,
-            prefix: string
-        ) => {
-            const button = userButton || defaultButton;
+        if (!userColors) return {};
+
+        const gc = (u: ColorValue | undefined) =>
+            u ? (theme === 'dark' ? u.dark : u.light) : undefined;
+
+        const gbv = (u: ButtonColorOverride | undefined, p: string) => {
+            if (!u) return {};
             return {
-                [`--btn-${prefix}-bg`]: getColor(button.background, defaultButton.background),
-                [`--btn-${prefix}-text`]: getColor(button.text, defaultButton.text),
-                [`--btn-${prefix}-border`]: getColor(button.border, defaultButton.border),
-                [`--btn-${prefix}-hover-bg`]: getColor(button.hover?.background, defaultButton.hover.background),
-                [`--btn-${prefix}-hover-text`]: getColor(button.hover?.text, defaultButton.hover.text),
-                [`--btn-${prefix}-hover-border`]: getColor(button.hover?.border, defaultButton.hover.border),
+                [`--btn-${p}-bg`]: gc(u.background),
+                [`--btn-${p}-text`]: gc(u.text),
+                [`--btn-${p}-border`]: gc(u.border),
+                [`--btn-${p}-hover-bg`]: gc(u.hover?.background),
+                [`--btn-${p}-hover-text`]: gc(u.hover?.text),
+                [`--btn-${p}-hover-border`]: gc(u.hover?.border),
             };
         };
+
         return {
-            '--hero-bg': getColor(userColors?.background, defaults.background),
-            '--hero-title': getColor(userColors?.title, defaults.title),
-            '--hero-desc': getColor(userColors?.description, defaults.description),
-            ...getButtonVars(userColors?.primaryButton, defaults.primaryButton, 'primary'),
-            ...getButtonVars(userColors?.secondaryButton, defaults.secondaryButton, 'secondary'),
+            '--hero-title': gc(userColors.title),
+            ...gbv(userColors.primaryButton, 'primary'),
         };
     }, [userColors, theme]);
 };
 
-// Styled components - ONLY for hover states
-const HoverButton = styled.button<{ $buttonType: 'primary' | 'secondary' }>`
+// ── Styled helpers ───────────────────────────────────────────
+const HBtn = styled.button<{ $t: 'primary' | 'secondary' }>`
     &:hover:not(:disabled) {
-        background-color: var(--btn-${props => props.$buttonType}-hover-bg) !important;
-        color: var(--btn-${props => props.$buttonType}-hover-text) !important;
-        border-color: var(--btn-${props => props.$buttonType}-hover-border) !important;
+        background-color: var(--btn-${p => p.$t}-hover-bg)     !important;
+        color:            var(--btn-${p => p.$t}-hover-text)   !important;
+        border-color:     var(--btn-${p => p.$t}-hover-border) !important;
+    }
+`;
+const HLink = styled.a<{ $t: 'primary' | 'secondary' }>`
+    &:hover {
+        background-color: var(--btn-${p => p.$t}-hover-bg)     !important;
+        color:            var(--btn-${p => p.$t}-hover-text)   !important;
+        border-color:     var(--btn-${p => p.$t}-hover-border) !important;
     }
 `;
 
-const HoverLink = styled.a<{ $buttonType: 'primary' | 'secondary' }>`
-    &:hover:not(:disabled) {
-        background-color: var(--btn-${props => props.$buttonType}-hover-bg) !important;
-        color: var(--btn-${props => props.$buttonType}-hover-text) !important;
-        border-color: var(--btn-${props => props.$buttonType}-hover-border) !important;
-    }
-`;
+const getAnim = (variant: Variants, delay = 0, animated = true) => {
+    if (!animated) return {};
+    return { initial: 'hidden', whileInView: 'show', viewport: { once: true }, variants: variant, transition: { delay } };
+};
 
-// ActionButton component
-interface ActionButtonProps {
-    text: string;
-    href: string;
-    size?: "sm" | "md" | "lg";
-    icon?: React.ReactNode;
-    animated?: boolean;
-    ariaLabel?: string;
+// ── CTA Button ───────────────────────────────────────────────
+const CTAButton: React.FC<{
+    text: string; href: string; size?: CTASize;
+    icon?: React.ReactNode; ariaLabel?: string;
     buttonType: 'primary' | 'secondary';
-}
-
-const ActionButton: React.FC<ActionButtonProps> = ({
-    text,
-    href,
-    size = 'lg',
-    icon,
-    animated = true,
-    ariaLabel,
-    buttonType
-}) => {
-    const buttonClasses = [
-        meta.tokens.button.base,
-        meta.tokens.button.sizes[size],
-        meta.tokens.responsive.width,
-        animated ? meta.tokens.effects.button : 'transition-none'
-    ].join(' ');
-
-    const buttonStyle: React.CSSProperties = {
+}> = ({ text, href, size = 'lg', icon, ariaLabel, buttonType }) => {
+    const sz = { sm: 'h-9 px-4 text-sm', md: 'h-11 px-5 text-base', lg: 'h-14 px-8 text-base' };
+    const base = `inline-flex items-center justify-center font-semibold rounded-md border-2 border-solid
+                  transition-colors duration-200 leading-none no-underline cursor-pointer ${sz[size]}`;
+    const style: React.CSSProperties = {
         backgroundColor: `var(--btn-${buttonType}-bg)`,
         color: `var(--btn-${buttonType}-text)`,
         borderColor: `var(--btn-${buttonType}-border)`,
-        borderWidth: meta.tokens.button.borderWidth,
-        borderStyle: meta.tokens.button.borderStyle,
     };
-
-    const buttonContent = (
-        <>
-            {text}
-            {icon && <span className={meta.tokens.button.iconSpacing}>{icon}</span>}
-        </>
-    );
-
-    if (href.startsWith('http') || href.startsWith('/') || href.startsWith('#')) {
-        return (
-            <HoverLink
-                href={href}
-                className={buttonClasses}
-                style={buttonStyle}
-                aria-label={ariaLabel || text}
-                $buttonType={buttonType}
-            >
-                {buttonContent}
-            </HoverLink>
-        );
-    }
-
-    return (
-        <HoverButton
-            className={buttonClasses}
-            style={buttonStyle}
-            onClick={() => window.location.href = href}
-            aria-label={ariaLabel || text}
-            type='button'
-            $buttonType={buttonType}
-        >
-            {buttonContent}
-        </HoverButton>
-    );
+    const content = <>{text}{icon && <span className="ml-2">{icon}</span>}</>;
+    const isLink = href.startsWith('http') || href.startsWith('/') || href.startsWith('#');
+    return isLink
+        ? <HLink href={href} className={base} style={style} aria-label={ariaLabel || text} $t={buttonType}>{content}</HLink>
+        : <HBtn type="button" className={base} style={style} onClick={() => { window.location.href = href; }} aria-label={ariaLabel || text} $t={buttonType}>{content}</HBtn>;
 };
 
-// Main Hero_02 component
-const Hero_02: React.FC<Hero_02Props> = (props = {}) => {
+// ── Carousel arrow ───────────────────────────────────────────
+const ArrowBtn = styled.button`
+    &:hover { background: rgba(255,255,255,0.2); }
+`;
+
+// ── Hero_02 ──────────────────────────────────────────────────
+const Hero_02: React.FC<Hero_02Props> = (rawProps = {}) => {
+    const { slots, ...direct } = rawProps;
     const { theme } = useTheme();
-    const uniqueId = useId();
+    const uid = useId();
 
-    const validation = validateHero02Props(props);
-    const sanitized = sanitizeProps(props);
+    const resolved = slots ? { ...slotsToProps(slots), ...direct } : direct;
 
-    if (process.env.NODE_ENV === 'development') {
-        if (!validation.valid || validation.warnings) {
-            console.group('Hero_02 Validation');
-            console.log(formatValidationMessage(validation));
-            console.groupEnd();
-        }
-    }
+    const title = resolved.title;
+    const overlayColor = resolved.overlayColor;
+    const animated = resolved.animated ?? true;
+    const className = resolved.className ?? '';
 
-    const title = sanitized.title || meta.defaults.title;
-    const description = sanitized.description || meta.defaults.description;
-    const animated = sanitized.animated !== undefined ? sanitized.animated : meta.defaults.animated;
-    const className = sanitized.className || meta.defaults.className;
+    const slides = resolved.backgroundSlides?.length
+        ? resolved.backgroundSlides
+        : resolved.backgroundImage
+            ? [resolved.backgroundImage]
+            : [];
 
-    const primaryCTA = {
-        text: sanitized.primaryCTA?.text || meta.defaults.primaryCTA.text,
-        href: sanitized.primaryCTA?.href || meta.defaults.primaryCTA.href,
-        size: sanitized.primaryCTA?.size || meta.defaults.primaryCTA.size,
-        icon: sanitized.primaryCTA?.icon
-    };
+    const [activeSlide, setActiveSlide] = useState(0);
+    const prev = () => setActiveSlide(i => (i - 1 + slides.length) % slides.length);
+    const next = () => setActiveSlide(i => (i + 1) % slides.length);
 
-    const hasSecondaryCTA = sanitized.secondaryCTA !== undefined || !('secondaryCTA' in sanitized);
-    const secondaryCTA = hasSecondaryCTA ? {
-        text: sanitized.secondaryCTA?.text || meta.defaults.secondaryCTA.text,
-        href: sanitized.secondaryCTA?.href || meta.defaults.secondaryCTA.href,
-        size: sanitized.secondaryCTA?.size || meta.defaults.secondaryCTA.size,
-        icon: sanitized.secondaryCTA?.icon
-    } : undefined;
+    const primaryCTA = resolved.primaryCTA;
 
-    const image = sanitized.image || meta.defaults.image;
-    const imageSrc = typeof image === 'string' ? image : image.src;
-    const imageAlt = typeof image === 'object' ? (image.alt || meta.defaults.imageAlt) : meta.defaults.imageAlt;
-
-    const styles = useComponentStyles(sanitized.colors, theme);
-    const MotionWrapper = animated ? motion.div : 'div';
+    const styles = useStyles(resolved.colors, theme);
+    const Wrap = animated ? motion.div : 'div';
 
     return (
         <section
-            style={styles as React.CSSProperties}
-            className={`${meta.tokens.layout.section} ${className}`}
+            id={uid}
             data-testid="hero-section"
             role="banner"
-            aria-label={meta.accessibility.screenReaderHints?.section || "Main hero content"}
-            id={uniqueId}
+            aria-label="Main hero content"
+            className={`relative w-full min-h-screen flex items-end overflow-hidden ${className}`}
+            style={styles as React.CSSProperties}
         >
-            <div
-                className={meta.tokens.layout.grid}
-                style={{ backgroundColor: 'var(--hero-bg)' }}
-            >
-                {/* Image Column - LEFT SIDE */}
-                <div className={meta.tokens.layout.imageColumn}>
-                    <MotionWrapper
-                        className={meta.tokens.layout.imageContainer}
-                        {...(animated ? getAnimationProps(fadeIn, 0, 0.3, true) : {})}
-                        data-testid="hero-image-container"
-                    >
-                        <img
-                            src={imageSrc}
-                            alt={imageAlt || meta.accessibility.screenReaderHints?.image || "decorative"}
-                            className={meta.tokens.image.classes}
-                            loading={meta.tokens.image.loading as "lazy" | "eager"}
-                            data-testid="hero-image"
-                            role="presentation"
-                            aria-hidden={!imageAlt}
-                        />
-                    </MotionWrapper>
-                </div>
+            {/* Background slides */}
+            {slides.map((src, i) => (
+                <div
+                    key={src}
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700"
+                    style={{ backgroundImage: `url(${src})`, opacity: i === activeSlide ? 1 : 0 }}
+                    aria-hidden="true"
+                    data-testid={i === 0 ? 'hero-image-container' : undefined}
+                />
+            ))}
 
-                {/* Content Column - RIGHT SIDE */}
-                <MotionWrapper
-                    className={`${meta.tokens.layout.contentColumn} ${meta.tokens.spacing.containerX} ${meta.tokens.spacing.containerY}`}
-                    {...(animated ? getAnimationProps(fadeInUp, 0, 0.3, true) : {})}
-                >
-                    <div className={`${meta.tokens.layout.contentContainer} ${meta.tokens.spacing.contentSpacing}`}>
-                        <MotionWrapper
-                            {...(animated ? getAnimationProps(fadeInUp, 0, 0, true) : {})}
-                            data-testid="hero-title"
-                        >
+            {/* Gradient overlay */}
+            {overlayColor && (
+                <div
+                    className="absolute inset-0"
+                    style={{ background: `linear-gradient(to top, ${overlayColor}ee 0%, ${overlayColor}99 40%, ${overlayColor}33 100%)` }}
+                    aria-hidden="true"
+                />
+            )}
+
+            {/* Content */}
+            <div className="relative z-10 w-full max-w-7xl mx-auto px-10 lg:px-20 pb-24 lg:pb-32 pt-40 lg:pt-48">
+                <div className="max-w-3xl">
+
+                    {title && (
+                        <Wrap {...getAnim(fadeInUp, 0, animated)} data-testid="hero-title">
                             <h1
-                                className={meta.tokens.typography.heading.complete}
-                                style={{ color: 'var(--hero-title)' }}
+                                className="font-extrabold leading-none break-words mb-10"
+                                style={{ color: 'var(--hero-title)', fontSize: 'clamp(2.5rem, 6vw, 4rem)', fontWeight: 800, lineHeight: 1.05 }}
                             >
                                 {title}
                             </h1>
-                        </MotionWrapper>
+                        </Wrap>
+                    )}
 
-                        <MotionWrapper
-                            {...(animated ? getAnimationProps(fadeInUp, 0.1, 0, true) : {})}
-                            data-testid="hero-description"
-                        >
-                            <p
-                                className={meta.tokens.typography.body.complete}
-                                style={{ color: 'var(--hero-desc)' }}
-                            >
-                                {description}
-                            </p>
-                        </MotionWrapper>
-
-                        <MotionWrapper
-                            className={`${meta.tokens.responsive.flexDirection} ${meta.tokens.spacing.buttonSpacing}`}
-                            {...(animated ? getAnimationProps(fadeInUp, 0.2, 0, true) : {})}
-                            data-testid="hero-buttons"
-                            role="group"
-                            aria-label="Call to action buttons"
-                        >
-                            <ActionButton
+                    {primaryCTA?.text && (
+                        <Wrap {...getAnim(fadeInUp, 0.15, animated)} data-testid="hero-buttons">
+                            <CTAButton
                                 text={primaryCTA.text}
-                                href={primaryCTA.href}
+                                href={primaryCTA.href || '#'}
                                 size={primaryCTA.size}
                                 icon={primaryCTA.icon}
-                                animated={animated}
                                 ariaLabel={`Primary action: ${primaryCTA.text}`}
                                 buttonType="primary"
                             />
-                            {secondaryCTA && (
-                                <ActionButton
-                                    text={secondaryCTA.text}
-                                    href={secondaryCTA.href}
-                                    size={secondaryCTA.size}
-                                    icon={secondaryCTA.icon}
-                                    animated={animated}
-                                    ariaLabel={`Secondary action: ${secondaryCTA.text}`}
-                                    buttonType="secondary"
+                        </Wrap>
+                    )}
+                </div>
+
+                {/* Carousel controls — only shown if more than 1 slide */}
+                {slides.length > 1 && (
+                    <div className="absolute bottom-10 right-10 lg:bottom-12 lg:right-20 flex items-center gap-4">
+                        <div className="flex gap-2" role="tablist" aria-label="Slide indicators">
+                            {slides.map((_, i) => (
+                                <button
+                                    key={i}
+                                    role="tab"
+                                    aria-selected={i === activeSlide}
+                                    aria-label={`Go to slide ${i + 1}`}
+                                    onClick={() => setActiveSlide(i)}
+                                    className="rounded-full transition-all duration-300 focus:outline-none"
+                                    style={{
+                                        width: i === activeSlide ? '24px' : '8px',
+                                        height: '8px',
+                                        backgroundColor: i === activeSlide ? '#ffffff' : 'rgba(255,255,255,0.4)',
+                                    }}
                                 />
-                            )}
-                        </MotionWrapper>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <ArrowBtn onClick={prev} aria-label="Previous slide" className="w-10 h-10 rounded-full border border-white border-opacity-40 flex items-center justify-center transition-colors duration-200 focus:outline-none" style={{ color: '#ffffff' }}>
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </ArrowBtn>
+                            <ArrowBtn onClick={next} aria-label="Next slide" className="w-10 h-10 rounded-full border border-white border-opacity-40 flex items-center justify-center transition-colors duration-200 focus:outline-none" style={{ color: '#ffffff' }}>
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                    <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                            </ArrowBtn>
+                        </div>
                     </div>
-                </MotionWrapper>
+                )}
             </div>
         </section>
     );
 };
 
 Hero_02.displayName = 'Hero_02';
-
 export default Hero_02;

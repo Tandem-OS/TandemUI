@@ -2,8 +2,10 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import authReducer from '@/features/authentication/authSlice';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // defaults to localStorage
-import swiperReducer from "@/features/swiper/swiperSlice"
-import projectReducer from "@/features/project/projectSlice"
+import swiperReducer from "@/features/swiper/swiperSlice";
+import projectReducer from "@/features/project/projectSlice";
+import compositionReducer from '@/features/composition/compositionSlice'; 
+
 
 const persistConfig = {
   key: 'root',
@@ -15,6 +17,7 @@ const rootReducer = combineReducers({
   auth: authReducer,
   swiper: swiperReducer,
   project: projectReducer,
+  composition: compositionReducer,
   // add other reducers here later
 });
 

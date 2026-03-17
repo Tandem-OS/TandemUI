@@ -6,4 +6,5 @@ export const ROUTES = {
     ONBOARDING: "/onboard",
     DASHBOARD: "/dashboard",
     SCRAPER: "/scraper",
+    PREVIEW_COMPOSE: "/preview/compose/:id",
 };

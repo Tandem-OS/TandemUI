@@ -8,7 +8,8 @@ import {
     FaUser,
     FaPalette,
     FaCheck,
-    FaCircle
+    FaCircle,
+    FaEye
 } from 'react-icons/fa';
 import { FaArrowLeftLong } from "react-icons/fa6";
 
@@ -75,6 +76,8 @@ const ScraperIntelligencePage = () => {
     const [toastMessage, setToastMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [chatContext, setChatContext] = useState<any>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
+    const [sectionCount, setSectionCount] = useState<number | null>(null);
+    const [compositionId, setCompositionId] = useState<string | null>(null);
 
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
 
@@ -134,6 +137,7 @@ const ScraperIntelligencePage = () => {
             const scoredSections = scoreSections(data.sections);
 
             setScrapedData({ ...data, sections: scoredSections });
+            setSectionCount(scoredSections.length);
             setCurrentStep("results");
         } catch (error: any) {
             console.error("Error during scraping:", error);
@@ -173,7 +177,8 @@ const ScraperIntelligencePage = () => {
         setLayoutPlan(sections);
     };
 
-    const handleGenerateLayout = (sections: any[]) => {
+    const handleGenerateLayout = (sections: any[], compositionId: string) => {
+        setCompositionId(compositionId);
         setScrapedData({
             url: 'Generated from idea',
             analyzedAt: new Date(),
@@ -520,8 +525,9 @@ const ScraperIntelligencePage = () => {
                                                     className="text-left"
                                                 >
                                                     {index === processingSteps.length - 1 && index === processingStep
-                                                        ? `Complete! Found ${dummyScrapedData.sections.length} sections`
-                                                        : step
+                                                        ? sectionCount !== null
+                                                            ? `Complete! Found ${sectionCount} sections`
+                                                            : 'Complete! Sections ready' : step
                                                     }
                                                 </Para>
                                             </motion.div>
@@ -572,16 +578,32 @@ const ScraperIntelligencePage = () => {
                                     </div>
                                     <div className="flex items-center gap-xs sm:gap-sm">
                                         <StartFromIdea onGenerateLayout={handleGenerateLayout} />
+
+                                        {/* Hero preview button — only shown when we have a compositionId */}
+                                        {compositionId && (
+                                            <motion.button
+                                                whileHover={{ scale: 1.03 }}
+                                                whileTap={{ scale: 0.97 }}
+                                                onClick={() => navigate(`/dashboard/client/swiper/compose/${compositionId}`)
+}
+                                                className="flex items-center gap-xs px-sm sm:px-md py-xs sm:py-sm rounded-lg
+                       bg-accent-default text-accent-foreground text-para-xs sm:text-para-sm
+                       font-medium hover:bg-accent-hover transition-colors"
+                                            >
+                                                <FaEye className="text-icon-sm" />
+                                                <span className="hidden sm:inline">Preview Hero</span>
+                                                <span className="sm:hidden">Preview</span>
+                                            </motion.button>
+                                        )}
+
                                         <div className="bg-background-secondary rounded-full p-0.5 sm:p-1 flex">
                                             <button
-                                                // onClick={() => handleModeToggle(false)}
                                                 className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${!isDesignerMode ? 'bg-accent-default text-accent-foreground' : 'text-text-secondary hover:text-text-primary'}`}
                                             >
                                                 <FaUser className="inline mr-xs text-icon-sm" />
                                                 <span className="hidden sm:inline">Client</span>
                                             </button>
                                             <button
-                                                // onClick={() => handleModeToggle(true)}
                                                 className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${isDesignerMode ? 'bg-accent-default text-accent-foreground' : 'text-text-secondary hover:text-text-primary'}`}
                                             >
                                                 <FaPalette className="inline mr-xs text-icon-sm" />
