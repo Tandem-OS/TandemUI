@@ -50,17 +50,24 @@ const CompositionRenderer: React.FC = () => {
         </div>
     );
 
-    const heroSections = sections.filter(s => s.category === 'hero');
-    const navSections = sections.filter(s => s.category === 'nav');
-    const featuresSections = sections.filter(s => s.category === 'features');
+    const rendererMap: Record<string, React.FC<{ sections: ComposeSection[] }>> = {
+        nav: NavRenderer,
+        hero: HeroRenderer,
+        features: FeaturesRenderer,
+    };
 
+    const ordered = [...sections].sort((a, b) => a.position - b.position);
 
     return (
         <>
-            <NavRenderer sections={navSections} />
-            <HeroRenderer sections={heroSections} />
-            <FeaturesRenderer sections={featuresSections} />
-
+            {ordered.map((section) => {
+                const Renderer = rendererMap[section.category];
+                if (!Renderer) {
+                    console.error(`[CompositionRenderer] No renderer for category: "${section.category}"`);
+                    return null;
+                }
+                return <Renderer key={section.component_id} sections={[section]} />;
+            })}
         </>
     );
 };
