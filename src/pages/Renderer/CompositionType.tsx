@@ -143,4 +143,30 @@ export interface FeaturesComposeSection {
   tokens: FeaturesTokens;
 }
 
+export interface HeroColors {
+  background?:               string;
+  text_color?:               string;
+  btn_primary_bg?:           string;
+  btn_primary_color?:        string;
+  btn_primary_border?:       string;
+  btn_primary_hover_bg?:     string;
+  btn_primary_hover_color?:  string;
+  btn_primary_hover_border?: string;
+  btn_outline_bg?:           string;
+  btn_outline_color?:        string;
+  btn_outline_border?:       string;
+  btn_outline_hover_bg?:     string;
+  btn_outline_hover_color?:  string;
+  btn_outline_hover_border?: string;
+  btn_radius?:               string;
+  padding?:                  string;
+}
+
+export interface HeroAction {
+  label:        string;
+  target:       string;
+  variant?:     'primary' | 'outline' | 'ghost';
+  aria_label?:  string;
+}
+
 export type ComposeSection = NavComposeSection | HeroComposeSection | FeaturesComposeSection;

@@ -141,16 +141,20 @@ const SectionCard = ({
                     <div className="flex flex-wrap items-center gap-xs sm:gap-sm text-para-xs sm:text-para-sm">
                         <span className="flex items-center gap-xs group cursor-pointer">
                             <FaBullseye className="text-icon-sm text-accent-default" />
-                            <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
-                                {section.intent}
-                            </Para>
+                            {section.intent && (
+                                <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
+                                    {section.intent}
+                                </Para>
+                            )}
                         </span>
                         <span className="text-text-tertiary hidden sm:inline">•</span>
                         <span className="flex items-center gap-xs group cursor-pointer">
                             <FaLayerGroup className="text-icon-sm text-accent-default" />
-                            <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
-                                {section.layout_structure}
-                            </Para>
+                            {section.layout_structure && (
+                                <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
+                                    {section.layout_structure}
+                                </Para>
+                            )}
                         </span>
                         {section.tone && (
                             <>
@@ -177,11 +181,13 @@ const SectionCard = ({
                             exit={{ opacity: 0, height: 0 }}
                             className="mb-md"
                         >
-                            <div className="bg-background-muted rounded-xl p-sm sm:p-md">
-                                <Para size="sm" className="leading-relaxed">
-                                    {section.metadata?.insight || "This section uses a split-screen layout to balance visual impact and clear messaging."}
-                                </Para>
-                            </div>
+                            {section.metadata?.insight && (
+                                <div className="bg-background-muted rounded-xl p-sm sm:p-md">
+                                    <Para size="sm" className="leading-relaxed">
+                                        {section.metadata.insight}
+                                    </Para>
+                                </div>
+                            )}
                         </motion.div>
                     ) : (
                         /* Designer View */
