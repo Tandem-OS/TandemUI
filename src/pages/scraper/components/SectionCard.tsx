@@ -24,6 +24,7 @@ import SuggestionsCarousel from './SuggestionsCarousel';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
 import { AiOutlineRadiusUpright } from "react-icons/ai";
+import SectionPreview from './SectionPreview';
 
 interface SectionCardProps {
     section: any;
@@ -97,6 +98,9 @@ const SectionCard = ({
             }
         });
     };
+
+    const isComposeSection = 'component_id' in section && 'content_slots' in section;
+
     const handleCloneSection = () => {
         navigator.clipboard.writeText(JSON.stringify({
             section_type: section.section_type,
@@ -120,11 +124,18 @@ const SectionCard = ({
         >
             {/* Section Screenshot */}
             <div className="relative h-40 sm:h-48 md:h-64 bg-background-muted overflow-hidden">
-                <img
-                    src={section.screenshot_url}
-                    alt={`${section.section_type} section`}
-                    className="w-full h-full object-cover"
-                />
+                {(isComposeSection ? (
+                    <SectionPreview
+                        section={section}
+                        highlighted={true}
+                    />
+                ) : (
+                    <img
+                        src={section.screenshot_url}
+                        alt={`${section.section_type} section`}
+                        className="w-full h-full object-cover"
+                    />
+                ))}
                 <div className="absolute top-2 sm:top-4 left-2 sm:left-4">
                     <span className="bg-background-dark/90 text-text-light px-sm sm:px-md py-xs sm:py-sm rounded-lg text-para-xs sm:text-para-sm font-medium shadow-lg">
                         {section.section_type}

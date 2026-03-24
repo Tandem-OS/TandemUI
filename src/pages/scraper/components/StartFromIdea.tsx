@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaLightbulb, FaTimes, FaMagic } from 'react-icons/fa';
-import { mapCompositionToSections } from '../constants';   // ← adapter
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
 import { callAiComposePipeline } from '@/lib/requests/CompositionRequest';
@@ -44,10 +43,9 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
 
         try {
             const result = await callAiComposePipeline({ user_input: idea });
-            const mapped = mapCompositionToSections(result);
             setIsOpen(false);
             setIdea('');
-            onGenerateLayout(mapped.sections, result.composition_id);
+            onGenerateLayout(result.page_schema.sections as any[], result.composition_id);
         } catch (err) {
             setError('Something went wrong. Please try again.');
             console.error('[StartFromIdea] compose failed:', err);
