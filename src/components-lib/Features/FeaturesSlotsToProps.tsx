@@ -1,7 +1,7 @@
 import type { FeaturesSlots } from '@/pages/Renderer/CompositionType';
 export type { FeaturesSlots }
 
-export function featuresSlotsToProps(raw: Record<string, any>) {
+export function featuresSlotsToProps(raw: FeaturesSlots) {
   return {
     features_heading:          raw.features_heading,
     features_subheading:       raw.features_subheading,

@@ -2,19 +2,11 @@ import React from 'react'
 import componentRegistry from '@/registry/ComponentRegistry'
 import { heroSlotsToProps } from '@/components-lib/Hero/HeroSlotsToProps'
 import { heroTokensToColors } from '@/components-lib/Hero/HeroTokensToColors'
-import type { ComposeSection, ComposeSectionSlots, ComposeSectionTokens } from '@/pages/Renderer/CompositionType'
-
-// ── Helper ────────────────────────────────────────────────────
-function isRealImage(url?: string | null): boolean {
-  if (!url) return false
-  if (url.includes('placehold.co')) return false
-  if (url.includes('placeholder')) return false
-  return true
-}
+import type { HeroComposeSection } from '@/pages/Renderer/CompositionType'
 
 // ── Props ─────────────────────────────────────────────────────
 interface HeroRendererProps {
-  sections: ComposeSection[]
+  sections: HeroComposeSection[]
 }
 
 // ── HeroRenderer (pure) ───────────────────────────────────────
@@ -24,15 +16,17 @@ const HeroRenderer: React.FC<HeroRendererProps> = ({ sections }) => {
   return (
     <>
       {sections.map((section, i) => {
-        const slots = section.content_slots as ComposeSectionSlots
-        const tokens = section.tokens as ComposeSectionTokens
-        const props = heroSlotsToProps(slots)
-        const colors = heroTokensToColors(tokens)
+        const props  = heroSlotsToProps(section.content_slots)
+        const colors = heroTokensToColors(section.tokens)
         const Component = componentRegistry[section.component_id]
 
         if (!Component) {
-          console.warn(`[HeroRenderer] Unknown component_id: "${section.component_id}"`)
-          return null
+          console.error(`[HeroRenderer] Unknown component_id: "${section.component_id}"`)
+          return (
+            <section key={section.component_id ?? i} style={{ padding: '2rem', color: 'red' }}>
+              [HeroRenderer] Unknown component: "{section.component_id}"
+            </section>
+          )
         }
 
         return (
@@ -40,7 +34,6 @@ const HeroRenderer: React.FC<HeroRendererProps> = ({ sections }) => {
             key={section.component_id ?? i}
             {...props}
             colors={colors}
-            overlayColor={isRealImage(props.backgroundImage) ? undefined : tokens.background}
           />
         )
       })}

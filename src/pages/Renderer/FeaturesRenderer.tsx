@@ -2,10 +2,10 @@ import React from 'react'
 import componentRegistry from '@/registry/ComponentRegistry'
 import { featuresSlotsToProps } from '@/components-lib/Features/FeaturesSlotsToProps'
 import { featuresTokensToColors } from '@/components-lib/Features/FeaturesTokensToColors'
-import type { ComposeSection, FeaturesSlots, FeaturesTokens } from '@/pages/Renderer/CompositionType'
+import type { FeaturesComposeSection } from '@/pages/Renderer/CompositionType'
 
 interface FeaturesRendererProps {
-  sections: ComposeSection[]
+  sections: FeaturesComposeSection[]
 }
 
 const FeaturesRenderer: React.FC<FeaturesRendererProps> = ({ sections }) => {
@@ -14,16 +14,17 @@ const FeaturesRenderer: React.FC<FeaturesRendererProps> = ({ sections }) => {
   return (
     <>
       {sections.map((section, i) => {
-        const slots  = section.content_slots as FeaturesSlots
-        const tokens = section.tokens as FeaturesTokens
-        const colors = featuresTokensToColors(tokens)
-        const props  = featuresSlotsToProps(slots)
-
+        const colors = featuresTokensToColors(section.tokens)
+        const props  = featuresSlotsToProps(section.content_slots)
         const Component = componentRegistry[section.component_id]
 
         if (!Component) {
-          console.warn(`[FeaturesRenderer] Unknown component_id: "${section.component_id}"`)
-          return null
+          console.error(`[FeaturesRenderer] Unknown component_id: "${section.component_id}"`)
+          return (
+            <section key={section.component_id ?? i} style={{ padding: '2rem', color: 'red' }}>
+              [FeaturesRenderer] Unknown component: "{section.component_id}"
+            </section>
+          )
         }
 
         return (

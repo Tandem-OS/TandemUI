@@ -80,9 +80,9 @@ const SortableItem = ({ section, onRemove, isOverlay = false }: {
                 animate={!isOverlay ? { opacity: 1, y: 0 } : {}}
                 exit={!isOverlay ? { opacity: 0, x: -20 } : {}}
                 // ✅ FIX: Hover effects moved here to avoid conflicts and ensure smoothness.
-                whileHover={!isOverlay ? { 
+                whileHover={!isOverlay ? {
                     boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                    borderColor: 'var(--border-hover)' 
+                    borderColor: 'var(--border-hover)'
                 } : {}}
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 // ✅ FIX: Removed "transition-all duration-200" and CSS hover classes.
@@ -110,9 +110,11 @@ const SortableItem = ({ section, onRemove, isOverlay = false }: {
                                         {section.layout_structure}
                                     </Para>
                                     <span className="text-text-tertiary">•</span>
-                                    <Para size="xs" color="secondary" className="truncate max-w-[80px]">
-                                        {section.metadata.intent}
-                                    </Para>
+                                    {section.metadata?.intent && (
+                                        <Para size="xs" color="secondary" className="truncate max-w-[80px]">
+                                            {section.metadata.intent}
+                                        </Para>
+                                    )}
                                 </div>
                             </div>
                             {!isOverlay && (
@@ -125,9 +127,11 @@ const SortableItem = ({ section, onRemove, isOverlay = false }: {
                                 </button>
                             )}
                         </div>
-                        <Para size="xs" color="secondary" className="mt-xs sm:mt-sm line-clamp-2">
-                            {section.metadata.insight}
-                        </Para>
+                        {section.metadata?.insight && (
+                            <Para size="xs" color="secondary" className="mt-xs sm:mt-sm line-clamp-2">
+                                {section.metadata.insight}
+                            </Para>
+                        )}
                     </div>
                 </div>
             </motion.div>

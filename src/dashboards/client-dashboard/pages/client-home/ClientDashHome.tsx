@@ -232,7 +232,7 @@ const ClientDashHome: React.FC = () => {
   ];
 
   const scrapperButton = [
-    { icon: RiLinkM, label: 'Add Favorite Website', color: 'from-blue-500 to-cyan-500', href: 'scraper', disabled: false },
+    { icon: RiLinkM, label: 'Capture & Create', color: 'from-blue-500 to-cyan-500', href: 'scraper', disabled: false },
   ];
 
 

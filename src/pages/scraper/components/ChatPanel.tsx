@@ -1,26 +1,23 @@
 import { useState, useEffect, useRef, memo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaComments, FaTimes, FaPaperPlane } from 'react-icons/fa';
 import { mockChatResponses, chatPrompts } from '../constants';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
+import { refineComposition } from '@/features/composition/compositionSlice';
+import { selectIsRefining } from '@/features/composition/compositionSelectors';
+import type { AppDispatch } from '@/store';
 
-// Custom hook to check screen size
 const useMediaQuery = (query: string) => {
     const [matches, setMatches] = useState(false);
-
     useEffect(() => {
         const media = window.matchMedia(query);
-        if (media.matches !== matches) {
-            setMatches(media.matches);
-        }
-        const listener = () => {
-            setMatches(media.matches);
-        };
+        if (media.matches !== matches) setMatches(media.matches);
+        const listener = () => setMatches(media.matches);
         window.addEventListener('resize', listener);
         return () => window.removeEventListener('resize', listener);
     }, [matches, query]);
-
     return matches;
 };
 
@@ -33,9 +30,11 @@ interface ChatMessage {
 
 interface ChatPanelProps {
     context?: any;
+    compositionId?: string | null;
+    sections?: string[];
 }
 
-const ChatPanel = ({ context }: ChatPanelProps) => {
+const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
@@ -48,42 +47,25 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    
-    // ✅ FIX: Track processed contexts to prevent duplicate messages
     const processedContextRef = useRef<Set<string>>(new Set());
+
+    const dispatch = useDispatch<AppDispatch>();
+    const isRefining = useSelector(selectIsRefining);
 
     const isDesktop = useMediaQuery('(min-width: 1024px)');
 
-    // ✅ FIX: Separate useEffect without isDesktop dependency
     useEffect(() => {
         if (context && context.prompt) {
-            // Create unique key for this context
             const contextKey = `${context.prompt}_${JSON.stringify(context.context || {})}`;
-            
-            // Check if we've already processed this context
-            if (processedContextRef.current.has(contextKey)) {
-                return; // Don't process again
-            }
-            
-            // Mark this context as processed
+            if (processedContextRef.current.has(contextKey)) return;
             processedContextRef.current.add(contextKey);
-            
-            // Only open chat on mobile
-            if (!isDesktop) {
-                setIsOpen(true);
-            }
-            
-            setTimeout(() => {
-                handleSendMessage(context.prompt);
-            }, 300);
+            if (!isDesktop) setIsOpen(true);
+            setTimeout(() => { handleSendMessage(context.prompt); }, 300);
         }
-    }, [context]); // ❌ Removed isDesktop from dependencies
+    }, [context]);
 
-    // ✅ FIX: Clear processed contexts when component unmounts or context changes significantly
     useEffect(() => {
-        return () => {
-            processedContextRef.current.clear();
-        };
+        return () => { processedContextRef.current.clear(); };
     }, []);
 
     const scrollToBottom = () => {
@@ -113,10 +95,39 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
         setMessages(prev => [...prev, userMessage]);
         setInputValue('');
 
+        // ── Real refine call when compositionId is available ──
+        if (compositionId && sections.length) {
+            setIsTyping(true);
+            try {
+                await dispatch(refineComposition({
+                    compositionId,
+                    sections,
+                    userInstruction: message.trim(),
+                })).unwrap();
+                const assistantMessage: ChatMessage = {
+                    id: (Date.now() + 1).toString(),
+                    type: 'assistant',
+                    message: 'Done! Your composition has been updated. New previews are generating.',
+                    timestamp: new Date()
+                };
+                setMessages(prev => [...prev, assistantMessage]);
+            } catch (err: any) {
+                const errorMessage: ChatMessage = {
+                    id: (Date.now() + 1).toString(),
+                    type: 'assistant',
+                    message: err ?? 'Something went wrong. Please try again.',
+                    timestamp: new Date()
+                };
+                setMessages(prev => [...prev, errorMessage]);
+            } finally {
+                setIsTyping(false);
+            }
+            return;
+        }
+
+        // ── Fallback mock responses when no compositionId ──
         let response = "Got it — here's a breakdown...";
-        
         const lowerMessage = message.toLowerCase();
-        
         if (lowerMessage.includes('why') && lowerMessage.includes('work')) {
             response = mockChatResponses["Why does this layout work?"];
         } else if (lowerMessage.includes('clean') || lowerMessage.includes('refine')) {
@@ -130,12 +141,10 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                 }
             });
         }
-
         if (context?.context?.metadata) {
             const metadata = context.context.metadata;
             response = `For this ${metadata.section_type} section with ${metadata.layout_structure} layout: ${response}`;
         }
-
         const assistantResponse = await simulateTyping(response);
         const assistantMessage: ChatMessage = {
             id: (Date.now() + 1).toString(),
@@ -151,7 +160,7 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
             {/* Header */}
             <div className="p-md border-b border-border-default flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-sm">
-                    <motion.div 
+                    <motion.div
                         className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-subtle rounded-full flex items-center justify-center will-change-transform"
                         whileHover={{ scale: 1.1 }}
                         transition={{ type: "spring", stiffness: 400 }}
@@ -164,7 +173,7 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                     </div>
                 </div>
                 {!isDesktop && (
-                     <motion.button
+                    <motion.button
                         onClick={() => setIsOpen(false)}
                         whileHover={{ scale: 1.1, backgroundColor: 'var(--background-secondary)' }}
                         whileTap={{ scale: 0.9 }}
@@ -188,8 +197,8 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                         <motion.div
                             transition={{ duration: 0.2 }}
                             className={`max-w-[85%] sm:max-w-[80%] p-sm rounded-xl will-change-transform ${message.type === 'user'
-                                    ? 'bg-accent-default text-white'
-                                    : 'bg-background-secondary-2 text-text-primary'
+                                ? 'bg-accent-default text-white'
+                                : 'bg-background-secondary-2 text-text-primary'
                                 }`}
                         >
                             <Para size="sm" className={message.type === 'user' ? '!text-white' : ''}>{message.message}</Para>
@@ -199,7 +208,6 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                         </motion.div>
                     </motion.div>
                 ))}
-
                 {isTyping && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
                         <div className="bg-background-secondary p-sm rounded-xl">
@@ -217,13 +225,13 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
             {/* Quick Prompts */}
             <div className="p-sm border-t border-border-default">
                 <div className="flex gap-xs overflow-x-auto scrollbar-hide">
-                    {chatPrompts.slice(0, 3).map((prompt, index) => (
+            {(sections.length ? sections : chatPrompts.slice(0, 3)).map((prompt, index) => (
                         <motion.button
                             key={index}
                             onClick={() => handleSendMessage(prompt)}
-                            whileHover={{}}
                             whileTap={{ scale: 0.95 }}
-                            className="flex-shrink-0 text-para-xs px-sm py-xs bg-background-secondary border border-border-default rounded-lg hover:border-accent-default hover:bg-accent-subtle transition-colors whitespace-nowrap"
+                            disabled={isRefining}
+                            className="flex-shrink-0 text-para-xs px-sm py-xs bg-background-secondary border border-border-default rounded-lg hover:border-accent-default hover:bg-accent-subtle transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {prompt}
                         </motion.button>
@@ -241,15 +249,16 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="Type your message..."
-                        className="flex-1 px-sm sm:px-md py-sm bg-background-secondary border border-border-default rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-default transition-colors text-para-sm"
+                        placeholder={isRefining ? "Refining your design..." : "Type your message..."}
+                        disabled={isRefining}
+                        className="flex-1 px-sm sm:px-md py-sm bg-background-secondary border border-border-default rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-default transition-colors text-para-sm disabled:opacity-50"
                         autoFocus
                     />
                     <motion.button
                         type="submit"
-                        disabled={!inputValue.trim()}
-                        whileHover={inputValue.trim() ? { scale: 1.05, backgroundColor: 'var(--accent-hover)' } : {}}
-                        whileTap={inputValue.trim() ? { scale: 0.95 } : {}}
+                        disabled={!inputValue.trim() || isRefining}
+                        whileHover={inputValue.trim() && !isRefining ? { scale: 1.05, backgroundColor: 'var(--accent-hover)' } : {}}
+                        whileTap={inputValue.trim() && !isRefining ? { scale: 0.95 } : {}}
                         transition={{ duration: 0.2 }}
                         className="p-sm bg-accent-default text-accent-foreground rounded-lg disabled:opacity-50 disabled:cursor-not-allowed will-change-transform"
                     >
@@ -260,13 +269,10 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
         </div>
     );
 
-    if (isDesktop) {
-        return ChatInterface;
-    }
+    if (isDesktop) return ChatInterface;
 
     return (
         <>
-            {/* Floating Chat Button */}
             <AnimatePresence>
                 {!isOpen && (
                     <motion.button
@@ -283,12 +289,9 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                     </motion.button>
                 )}
             </AnimatePresence>
-
-            {/* Chat Panel - Mobile Responsive */}
             <AnimatePresence>
                 {isOpen && (
                     <>
-                        {/* Mobile Backdrop */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -296,7 +299,6 @@ const ChatPanel = ({ context }: ChatPanelProps) => {
                             className="fixed inset-0 bg-black/50 z-40 sm:hidden"
                             onClick={() => setIsOpen(false)}
                         />
-
                         <motion.div
                             initial={{ opacity: 0, y: 20, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}

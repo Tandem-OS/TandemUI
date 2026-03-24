@@ -34,9 +34,9 @@ interface BreakpointConfig {
 // ─── Config ───────────────────────────────────────────────────────────────────
 
 const BREAKPOINTS: BreakpointConfig[] = [
-  { key: 'desktop', label: 'Desktop', Icon: ({ className }) => <FiMonitor    className={className} />, width: '1440px', previewClass: 'w-full'  },
-  { key: 'tablet',  label: 'Tablet',  Icon: ({ className }) => <FiTablet     className={className} />, width: '768px',  previewClass: 'w-[53%]' },
-  { key: 'mobile',  label: 'Mobile',  Icon: ({ className }) => <FiSmartphone className={className} />, width: '375px',  previewClass: 'w-[26%]' },
+  { key: 'desktop', label: 'Desktop', Icon: ({ className }) => <FiMonitor className={className} />, width: '1440px', previewClass: 'w-full' },
+  { key: 'tablet', label: 'Tablet', Icon: ({ className }) => <FiTablet className={className} />, width: '768px', previewClass: 'w-[53%]' },
+  { key: 'mobile', label: 'Mobile', Icon: ({ className }) => <FiSmartphone className={className} />, width: '375px', previewClass: 'w-[26%]' },
 ];
 
 const btn = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 } };
@@ -87,11 +87,10 @@ const BreakpointSwitcher: React.FC<{
         key={key}
         onClick={() => onChange(key)}
         title={label}
-        className={`p-sm rounded-md transition-all ${
-          active === key
-            ? 'bg-accent-default text-accent-foreground'
-            : 'text-text-secondary hover:text-text-primary hover:bg-background-muted'
-        }`}
+        className={`p-sm rounded-md transition-all ${active === key
+          ? 'bg-accent-default text-accent-foreground'
+          : 'text-text-secondary hover:text-text-primary hover:bg-background-muted'
+          }`}
       >
         <Icon className="text-icon-md" />
       </button>
@@ -128,7 +127,7 @@ const PageShell: React.FC<{
     {(title || headerRight) && (
       <div className="border-b border-border-default px-xl py-lg flex items-center justify-between">
         <div>
-          {title    && <h1 className="text-h4-sm font-bold text-text-primary">{title}</h1>}
+          {title && <h1 className="text-h4-sm font-bold text-text-primary">{title}</h1>}
           {subtitle && <p className="text-text-secondary text-para-sm mt-xs">{subtitle}</p>}
         </div>
         {headerRight && <div>{headerRight}</div>}
@@ -144,23 +143,24 @@ const PageShell: React.FC<{
 
 const ComposePage: React.FC = () => {
   const { composition_id } = useParams<{ composition_id: string }>();
-  const navigate  = useNavigate();
-  const dispatch  = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
-  const status     = useSelector(selectThumbnailStatus);
+  const status = useSelector(selectThumbnailStatus);
   const thumbnails = useSelector(selectThumbnails);
-  const error      = useSelector(selectThumbnailError);
-  const storedId   = useSelector(selectCompositionId);
+  const error = useSelector(selectThumbnailError);
+  const storedId = useSelector(selectCompositionId);
 
   const [activeBp, setActiveBp] = useState<Breakpoint>('desktop');
-const swiperChoices = useSelector((state: RootState) => state.swiper.userChoices);
+
+  const swiperChoices = useSelector((state: RootState) => state.swiper.userChoices);
 
   const reasoningSignals = React.useMemo(() => {
     if (!swiperChoices.length) return null;
 
-    const liked      = swiperChoices.filter(c => c.action === 'like' || c.action === 'super-like');
+    const liked = swiperChoices.filter(c => c.action === 'like' || c.action === 'super-like');
     const superLiked = swiperChoices.filter(c => c.action === 'super-like');
-    const quick      = swiperChoices.filter(c => (c.behavioral_signals?.hesitation_ms ?? 0) < 1000);
+    const quick = swiperChoices.filter(c => (c.behavioral_signals?.hesitation_ms ?? 0) < 1000);
 
     const vibeFreq = liked.reduce((acc: Record<string, number>, c) => {
       if (c.vibe) acc[c.vibe] = (acc[c.vibe] ?? 0) + 1;
@@ -169,8 +169,8 @@ const swiperChoices = useSelector((state: RootState) => state.swiper.userChoices
     const topVibe = Object.entries(vibeFreq).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 
     const superlikeRate = Math.round((superLiked.length / swiperChoices.length) * 100);
-    const quickRate     = Math.round((quick.length / swiperChoices.length) * 100);
-    const likeRate      = Math.round((liked.length / swiperChoices.length) * 100);
+    const quickRate = Math.round((quick.length / swiperChoices.length) * 100);
+    const likeRate = Math.round((liked.length / swiperChoices.length) * 100);
 
     return { topVibe, superlikeRate, quickRate, likeRate, totalSwipes: swiperChoices.length, superLikedCount: superLiked.length };
   }, [swiperChoices]);
@@ -205,7 +205,6 @@ const swiperChoices = useSelector((state: RootState) => state.swiper.userChoices
       </PageShell>
     );
   }
-
   // ── generating ─────────────────────────────────────────────────────────────
   if (status === 'generating') {
     return (
@@ -251,7 +250,7 @@ const swiperChoices = useSelector((state: RootState) => state.swiper.userChoices
     >
       <div className="space-y-lg">
 
-{/* Reasoning — real session signals */}
+        {/* Reasoning — real session signals */}
         <div className="bg-background-secondary border border-border-default rounded-xl p-lg space-y-md">
           <p className="text-text-secondary text-para-xs font-medium uppercase tracking-wider">
             Why we built it this way
@@ -301,6 +300,7 @@ const swiperChoices = useSelector((state: RootState) => state.swiper.userChoices
           </div>
           {thumbnails && <ThumbnailPreview thumbnails={thumbnails} active={activeBp} />}
         </div>
+
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-md">

@@ -135,9 +135,11 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ component, userChoice, isSupe
                     <span className="px-sm py-xs bg-accent-default text-white text-para-xs font-semibold rounded-md">
                         {component.category}
                     </span>
-                    <span className="px-sm py-xs bg-background-secondary text-text-secondary text-para-xs font-medium rounded-md">
-                        {component.vibe}
-                    </span>
+                    {component.vibe && (
+                        <span className="px-sm py-xs bg-background-secondary text-text-secondary text-para-xs font-medium rounded-md">
+                            {component.vibe}
+                        </span>
+                    )}
                 </div>
 
                 <div className="space-y-xs">
@@ -160,7 +162,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ component, userChoice, isSupe
                 <div className="text-center space-y-sm">
                     <h4 className="font-semibold text-white text-para-md">Why You Loved This:</h4>
                     <div className="flex flex-wrap gap-xs justify-center">
-                        {component.tags.slice(0, 3).map((tag: string, i: number) => (
+                        {component.tags.filter((tag: string) => !!tag).slice(0, 3).map((tag: string, i: number) => (
                             <motion.span
                                 key={tag}
                                 initial={{ scale: 0.8, opacity: 0 }}
@@ -196,22 +198,22 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
     const [isPlaying, setIsPlaying] = useState(true);
 
     // Create component lookup map from roundsData
-const componentMap = useMemo(() => {
-    const map = new Map<string, ComponentPreview>();
-    roundsData.forEach(round => {
-      round.components.forEach(comp => {
-        map.set(comp.component_id, comp);
-      });
-    });
-    kingOfHillSessions.forEach(session => {
-      (session.components ?? []).forEach((comp: any) => {
-        if (comp?.component_id && !map.has(comp.component_id)) {
-          map.set(comp.component_id, comp as ComponentPreview);
-        }
-      });
-    });
-    return map;
-  }, [roundsData, kingOfHillSessions]);
+    const componentMap = useMemo(() => {
+        const map = new Map<string, ComponentPreview>();
+        roundsData.forEach(round => {
+            round.components.forEach(comp => {
+                map.set(comp.component_id, comp);
+            });
+        });
+        kingOfHillSessions.forEach(session => {
+            (session.components ?? []).forEach((comp: any) => {
+                if (comp?.component_id && !map.has(comp.component_id)) {
+                    map.set(comp.component_id, comp as ComponentPreview);
+                }
+            });
+        });
+        return map;
+    }, [roundsData, kingOfHillSessions]);
 
     // Enhanced analytics with pattern detection
     const intelligence = useMemo(() => {
@@ -438,6 +440,15 @@ const componentMap = useMemo(() => {
                         <div className="space-y-sm">
                             {kingOfHillSessions.map((session, i) => {
                                 const winner = componentMap.get(session.final_winner_id);
+                                if (!winner) return (
+                                    <div key={`skeleton-${i}`} className="flex items-center gap-md bg-background-primary-2 border border-border-default rounded-xl p-md animate-pulse">
+                                        <div className="w-16 h-12 rounded-lg bg-background-muted flex-shrink-0" />
+                                        <div className="flex-1 space-y-xs">
+                                            <div className="h-3 bg-background-muted rounded w-16" />
+                                            <div className="h-4 bg-background-muted rounded w-32" />
+                                        </div>
+                                    </div>
+                                );
                                 return (
                                     <motion.div
                                         key={`${session.category}-${i}`}
@@ -467,7 +478,7 @@ const componentMap = useMemo(() => {
                                                 {session.category}
                                             </p>
                                             <p className="text-para-sm font-semibold text-text-primary truncate">
-                                                {winner?.title ?? session.final_winner_id ?? '—'}
+                                                {winner?.title ?? '—'}
                                             </p>
                                         </div>
 
@@ -514,7 +525,7 @@ const componentMap = useMemo(() => {
                             whileTap={{ scale: 0.98 }}
                             className="flex-1 px-lg py-md bg-gradient-to-r from-accent-default to-indigo-600 hover:from-accent-hover hover:to-indigo-700 rounded-lg font-semibold text-para-sm text-white transition-all flex items-center justify-center gap-sm shadow-lg"
                         >
-                            Continue Building
+                            Back To Dashboard
                             <FiArrowRight className="text-icon-sm" />
                         </motion.button>
                     </motion.div>

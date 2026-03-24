@@ -10,3 +10,5 @@ export const selectIsComposing     = (s: RootState) => s.composition.thumbnailSt
 export const selectIsGenerating    = (s: RootState) => s.composition.thumbnailStatus === 'generating';
 export const selectThumbnailsReady = (s: RootState) => s.composition.thumbnailStatus === 'ready';
 export const selectThumbnailFailed = (s: RootState) => s.composition.thumbnailStatus === 'error';
+export const selectPageSchema      = (s: RootState) => s.composition.pageSchema;
+export const selectIsRefining      = (s: RootState) => s.composition.thumbnailStatus === 'refining';

@@ -12,6 +12,46 @@ interface FeaturesBaseProps {
   colors: FeaturesColors;
 }
 
+// ── Variant config layer — structural defaults tied to each layout pattern
+const variantConfig: Record<string, {
+  gridCols: string;
+  gridGap: string;
+  cardPadding: string;
+  itemMarginBottom: string;
+  actionsGap: string;
+  actionsMarginTop: string;
+  headerMarginBottom: string;
+  cardHeadingSize: string;
+}> = {
+  gallery: {
+    gridCols:          '1fr 1fr',
+    gridGap:           '60px',
+    cardPadding:       '0px',
+    itemMarginBottom:  '16px',
+    actionsGap:        '16px',
+    actionsMarginTop:  '32px',
+    headerMarginBottom:'48px',
+    cardHeadingSize:   'inherit',
+  },
+  stats: {
+    gridCols:          'repeat(auto-fit, minmax(240px, 1fr))',
+    gridGap:           '24px',
+    cardPadding:       '28px',
+    itemMarginBottom:  '0px',
+    actionsGap:        '16px',
+    actionsMarginTop:  '48px',
+    headerMarginBottom:'48px',
+    cardHeadingSize:   '1.1rem',
+  },
+};
+
+// ── Action variant styles — canonical shape from FeaturesAction.variant
+const actionVariantStyles: Record<string, React.CSSProperties> = {
+  primary:   { fontWeight: 600 },
+  secondary: { fontWeight: 400 },
+  ghost:     { fontWeight: 400, textDecoration: 'underline' },
+};
+
 const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   features_heading,
   features_subheading,
@@ -22,7 +62,23 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   features_secondary_action,
   colors,
 }) => {
+  const cfg = features_variant ? variantConfig[features_variant] : undefined;
 
+  if (!cfg) {
+    console.error(
+      `[FeaturesBase] Unsupported or missing features_variant: "${features_variant}". ` +
+      `Supported variants: ${Object.keys(variantConfig).join(', ')}`
+    );
+    return (
+      <section style={{ padding: colors.padding, backgroundColor: colors.background }}>
+        <p style={{ color: 'red' }}>
+          [FeaturesBase] Unknown variant: "{features_variant}"
+        </p>
+      </section>
+    );
+  }
+
+  // ── Token layer — themeable values from canonical config
   const sectionStyle: React.CSSProperties = {
     backgroundColor: colors.background,
     color:           colors.text_color,
@@ -46,35 +102,46 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   const cardStyle: React.CSSProperties = {
     backgroundColor: colors.card_bg,
     borderRadius:    colors.card_radius,
-    padding:         '28px',
+    padding:         cfg.cardPadding,
   };
 
   const SectionHeader = () => (
-    <div style={{ marginBottom: '48px' }}>
-      {features_heading && <h2 style={headingStyle}>{features_heading}</h2>}
+    <div style={{ marginBottom: cfg.headerMarginBottom }}>
+      {features_heading    && <h2 style={headingStyle}>{features_heading}</h2>}
       {features_subheading && <p style={subheadingStyle}>{features_subheading}</p>}
     </div>
   );
 
+  const renderAction = (action: FeaturesAction) => {
+    const variantStyle = action.variant
+      ? (actionVariantStyles[action.variant] ?? {})
+      : {};
+    return (
+      <a
+        href={action.target}
+        aria-label={action.aria_label ?? action.label}
+        style={{ color: colors.text_color, ...variantStyle }}
+      >
+        {action.label}
+      </a>
+    );
+  };
+
   const Actions = () => (
-    <div style={{ display: 'flex', gap: '16px', marginTop: '32px' }}>
-      {features_primary_action && (
-        <a href={features_primary_action.target}>{features_primary_action.label}</a>
-      )}
-      {features_secondary_action && (
-        <a href={features_secondary_action.target}>{features_secondary_action.label}</a>
-      )}
+    <div style={{ display: 'flex', gap: cfg.actionsGap, marginTop: cfg.actionsMarginTop }}>
+      {features_primary_action   && renderAction(features_primary_action)}
+      {features_secondary_action && renderAction(features_secondary_action)}
     </div>
   );
 
   if (features_variant === 'gallery') {
     return (
       <section style={sectionStyle}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: cfg.gridCols, gap: cfg.gridGap, alignItems: 'center' }}>
           <div>
             <SectionHeader />
             {features_items.map((item, i) => (
-              <div key={i} style={{ marginBottom: '16px' }}>
+              <div key={i} style={{ marginBottom: cfg.itemMarginBottom }}>
                 <h3 style={{ color: colors.text_color }}>{item.title}</h3>
                 {item.description && (
                   <p style={{ color: colors.text_color, opacity: 0.7 }}>{item.description}</p>
@@ -103,10 +170,10 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
         <div style={{ textAlign: 'center' }}>
           <SectionHeader />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: cfg.gridCols, gap: cfg.gridGap }}>
           {features_items.map((item, i) => (
             <div key={i} style={cardStyle}>
-              <h3 style={{ ...headingStyle, fontSize: '1.1rem' }}>{item.title}</h3>
+              <h3 style={{ ...headingStyle, fontSize: cfg.cardHeadingSize }}>{item.title}</h3>
               {item.description && (
                 <p style={{ color: colors.text_color, opacity: 0.7, margin: 0 }}>{item.description}</p>
               )}
@@ -114,7 +181,7 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
           ))}
         </div>
         {(features_primary_action || features_secondary_action) && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '48px' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: cfg.actionsMarginTop }}>
             <Actions />
           </div>
         )}
@@ -122,6 +189,9 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
     );
   }
 
+  // This line is unreachable — cfg guard above catches all unknown variants
+  // If we ever reach here something is wrong with variantConfig keys
+  console.error(`[FeaturesBase] Reached unreachable branch for variant: "${features_variant}"`);
   return null;
 };
 
