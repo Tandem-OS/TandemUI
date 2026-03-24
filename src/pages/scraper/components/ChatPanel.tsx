@@ -32,27 +32,33 @@ interface ChatPanelProps {
     context?: any;
     compositionId?: string | null;
     sections?: string[];
+    onRefineComplete?: (refinedSections: string[]) => void;
 }
 
-const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) => {
+const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: ChatPanelProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: '1',
             type: 'assistant',
             message: "Ask me anything about this layout. I'll explain or improve it.",
-            timestamp: new Date()
-        }
+            timestamp: new Date(),
+        },
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const processedContextRef = useRef<Set<string>>(new Set());
 
     const dispatch = useDispatch<AppDispatch>();
     const isRefining = useSelector(selectIsRefining);
-
     const isDesktop = useMediaQuery('(min-width: 1024px)');
+
+    useEffect(() => {
+        setSelectedSections(new Set());
+    }, [sections.join(',')]);
 
     useEffect(() => {
         if (context && context.prompt) {
@@ -68,12 +74,8 @@ const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) =>
         return () => { processedContextRef.current.clear(); };
     }, []);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
     useEffect(() => {
-        scrollToBottom();
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isTyping]);
 
     const simulateTyping = async (response: string) => {
@@ -83,6 +85,14 @@ const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) =>
         return response;
     };
 
+    const toggleSection = (sectionType: string) => {
+        setSelectedSections(prev => {
+            const next = new Set(prev);
+            next.has(sectionType) ? next.delete(sectionType) : next.add(sectionType);
+            return next;
+        });
+    };
+
     const handleSendMessage = async (message: string) => {
         if (!message.trim()) return;
 
@@ -90,42 +100,52 @@ const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) =>
             id: Date.now().toString(),
             type: 'user',
             message,
-            timestamp: new Date()
+            timestamp: new Date(),
         };
         setMessages(prev => [...prev, userMessage]);
         setInputValue('');
 
-        // ── Real refine call when compositionId is available ──
-        if (compositionId && sections.length) {
+        if (compositionId && selectedSections.size > 0) {
             setIsTyping(true);
             try {
                 await dispatch(refineComposition({
                     compositionId,
-                    sections,
+                    sections: Array.from(selectedSections),
                     userInstruction: message.trim(),
                 })).unwrap();
-                const assistantMessage: ChatMessage = {
+
+                setMessages(prev => [...prev, {
                     id: (Date.now() + 1).toString(),
                     type: 'assistant',
-                    message: 'Done! Your composition has been updated. New previews are generating.',
-                    timestamp: new Date()
-                };
-                setMessages(prev => [...prev, assistantMessage]);
+                    message: `Done! Updated ${Array.from(selectedSections).join(', ')}. New previews are generating.`,
+                    timestamp: new Date(),
+                }]);
+
+                onRefineComplete?.(Array.from(selectedSections));
+                setSelectedSections(new Set());
             } catch (err: any) {
-                const errorMessage: ChatMessage = {
+                setMessages(prev => [...prev, {
                     id: (Date.now() + 1).toString(),
                     type: 'assistant',
                     message: err ?? 'Something went wrong. Please try again.',
-                    timestamp: new Date()
-                };
-                setMessages(prev => [...prev, errorMessage]);
+                    timestamp: new Date(),
+                }]);
             } finally {
                 setIsTyping(false);
             }
             return;
         }
 
-        // ── Fallback mock responses when no compositionId ──
+        if (compositionId && selectedSections.size === 0) {
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                type: 'assistant',
+                message: 'Select at least one section above before sending an instruction.',
+                timestamp: new Date(),
+            }]);
+            return;
+        }
+
         let response = "Got it — here's a breakdown...";
         const lowerMessage = message.toLowerCase();
         if (lowerMessage.includes('why') && lowerMessage.includes('work')) {
@@ -142,18 +162,21 @@ const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) =>
             });
         }
         if (context?.context?.metadata) {
-            const metadata = context.context.metadata;
-            response = `For this ${metadata.section_type} section with ${metadata.layout_structure} layout: ${response}`;
+            const { section_type, layout_structure } = context.context.metadata;
+            response = `For this ${section_type} section with ${layout_structure} layout: ${response}`;
         }
         const assistantResponse = await simulateTyping(response);
-        const assistantMessage: ChatMessage = {
+        setMessages(prev => [...prev, {
             id: (Date.now() + 1).toString(),
             type: 'assistant',
             message: assistantResponse,
-            timestamp: new Date()
-        };
-        setMessages(prev => [...prev, assistantMessage]);
+            timestamp: new Date(),
+        }]);
     };
+
+    const canSubmit = compositionId
+        ? inputValue.trim().length > 0 && selectedSections.size > 0 && !isRefining
+        : inputValue.trim().length > 0 && !isRefining;
 
     const ChatInterface = (
         <div className="h-full w-full bg-background-primary-2 rounded-2xl max-md:rounded-b-none shadow-md border border-border-default flex flex-col">
@@ -163,7 +186,7 @@ const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) =>
                     <motion.div
                         className="w-8 h-8 sm:w-10 sm:h-10 bg-accent-subtle rounded-full flex items-center justify-center will-change-transform"
                         whileHover={{ scale: 1.1 }}
-                        transition={{ type: "spring", stiffness: 400 }}
+                        transition={{ type: 'spring', stiffness: 400 }}
                     >
                         <FaComments className="text-accent-default text-icon-sm sm:text-icon-md" />
                     </motion.div>
@@ -196,12 +219,15 @@ const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) =>
                     >
                         <motion.div
                             transition={{ duration: 0.2 }}
-                            className={`max-w-[85%] sm:max-w-[80%] p-sm rounded-xl will-change-transform ${message.type === 'user'
-                                ? 'bg-accent-default text-white'
-                                : 'bg-background-secondary-2 text-text-primary'
-                                }`}
+                            className={`max-w-[85%] sm:max-w-[80%] p-sm rounded-xl will-change-transform ${
+                                message.type === 'user'
+                                    ? 'bg-accent-default text-white'
+                                    : 'bg-background-secondary-2 text-text-primary'
+                            }`}
                         >
-                            <Para size="sm" className={message.type === 'user' ? '!text-white' : ''}>{message.message}</Para>
+                            <Para size="sm" className={message.type === 'user' ? '!text-white' : ''}>
+                                {message.message}
+                            </Para>
                             <Para size="xs" className={`mt-xs opacity-70 ${message.type === 'user' ? '!text-white' : ''}`}>
                                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Para>
@@ -212,9 +238,9 @@ const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) =>
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
                         <div className="bg-background-secondary p-sm rounded-xl">
                             <div className="flex gap-xs">
-                                <div className="w-2 h-2 bg-text-tertiary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                <div className="w-2 h-2 bg-text-tertiary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                <div className="w-2 h-2 bg-text-tertiary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                <div className="w-2 h-2 bg-text-tertiary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                <div className="w-2 h-2 bg-text-tertiary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                <div className="w-2 h-2 bg-text-tertiary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                             </div>
                         </div>
                     </motion.div>
@@ -222,21 +248,51 @@ const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) =>
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick Prompts */}
+            {/* Section selector (refine mode) / quick prompts (mock mode) */}
             <div className="p-sm border-t border-border-default">
-                <div className="flex gap-xs overflow-x-auto scrollbar-hide">
-            {(sections.length ? sections : chatPrompts.slice(0, 3)).map((prompt, index) => (
-                        <motion.button
-                            key={index}
-                            onClick={() => handleSendMessage(prompt)}
-                            whileTap={{ scale: 0.95 }}
-                            disabled={isRefining}
-                            className="flex-shrink-0 text-para-xs px-sm py-xs bg-background-secondary border border-border-default rounded-lg hover:border-accent-default hover:bg-accent-subtle transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {prompt}
-                        </motion.button>
-                    ))}
-                </div>
+                {compositionId && sections.length > 0 ? (
+                    <div className="space-y-xs">
+                        <Para size="xs" color="secondary">
+                            {selectedSections.size === 0
+                                ? 'Select sections to refine:'
+                                : `Refining: ${Array.from(selectedSections).join(', ')}`}
+                        </Para>
+                        <div className="flex gap-xs flex-wrap">
+                            {sections.map((sectionType) => {
+                                const isSelected = selectedSections.has(sectionType);
+                                return (
+                                    <motion.button
+                                        key={sectionType}
+                                        onClick={() => toggleSection(sectionType)}
+                                        whileTap={{ scale: 0.95 }}
+                                        disabled={isRefining}
+                                        className={`flex-shrink-0 text-para-xs px-sm py-xs rounded-lg border transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${
+                                            isSelected
+                                                ? 'bg-accent-default text-accent-foreground border-accent-default'
+                                                : 'bg-background-secondary border-border-default hover:border-accent-default hover:bg-accent-subtle'
+                                        }`}
+                                    >
+                                        {sectionType}
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex gap-xs overflow-x-auto scrollbar-hide">
+                        {chatPrompts.slice(0, 3).map((prompt, index) => (
+                            <motion.button
+                                key={index}
+                                onClick={() => handleSendMessage(prompt)}
+                                whileTap={{ scale: 0.95 }}
+                                disabled={isRefining}
+                                className="flex-shrink-0 text-para-xs px-sm py-xs bg-background-secondary border border-border-default rounded-lg hover:border-accent-default hover:bg-accent-subtle transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {prompt}
+                            </motion.button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Input */}
@@ -249,16 +305,22 @@ const ChatPanel = ({ context, compositionId, sections = [] }: ChatPanelProps) =>
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
-                        placeholder={isRefining ? "Refining your design..." : "Type your message..."}
+                        placeholder={
+                            isRefining
+                                ? 'Refining your design...'
+                                : compositionId && selectedSections.size === 0
+                                ? 'Select sections above first...'
+                                : 'Type your instruction...'
+                        }
                         disabled={isRefining}
                         className="flex-1 px-sm sm:px-md py-sm bg-background-secondary border border-border-default rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-default transition-colors text-para-sm disabled:opacity-50"
                         autoFocus
                     />
                     <motion.button
                         type="submit"
-                        disabled={!inputValue.trim() || isRefining}
-                        whileHover={inputValue.trim() && !isRefining ? { scale: 1.05, backgroundColor: 'var(--accent-hover)' } : {}}
-                        whileTap={inputValue.trim() && !isRefining ? { scale: 0.95 } : {}}
+                        disabled={!canSubmit}
+                        whileHover={canSubmit ? { scale: 1.05, backgroundColor: 'var(--accent-hover)' } : {}}
+                        whileTap={canSubmit ? { scale: 0.95 } : {}}
                         transition={{ duration: 0.2 }}
                         className="p-sm bg-accent-default text-accent-foreground rounded-lg disabled:opacity-50 disabled:cursor-not-allowed will-change-transform"
                     >

@@ -78,6 +78,12 @@ const ScraperIntelligencePage = () => {
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [sectionCount, setSectionCount] = useState<number | null>(null);
     const [compositionId, setCompositionId] = useState<string | null>(null);
+    const [refinedSections, setRefinedSections] = useState<Set<string>>(new Set());
+
+    const handleRefineComplete = (sections: string[]) => {
+        setRefinedSections(new Set(sections));
+        setTimeout(() => setRefinedSections(new Set()), 2500);
+    };
 
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
 
@@ -690,10 +696,11 @@ const ScraperIntelligencePage = () => {
                                             <ChatPanel
                                                 context={chatContext}
                                                 compositionId={compositionId}
-                                                sections={scrapedData?.sections.map((s: any) => s.section_type).filter(Boolean) ?? []} />                                        </div>
+                                                sections={scrapedData?.sections.map((s: any) => s.section_type).filter(Boolean) ?? []}
+                                                onRefineComplete={handleRefineComplete} />
+                                        </div>
                                     </div>
                                 </aside>
-
                                 {/* Right Scrollable Column for Sections */}
                                 <div className="lg:col-span-3 h-full overflow-y-auto custom-scrollbar py-lg">
                                     {/* ✅ UPDATED: Apply fade transition when switching modes */}
@@ -716,6 +723,7 @@ const ScraperIntelligencePage = () => {
                                                     onAddToLayout={handleAddToLayout}
                                                     updateTaste={updateTaste}
                                                     openChat={openChat}
+                                                    isJustRefined={refinedSections.has(section.section_type)}
                                                 />
                                             ))}
                                             {isFeedbackComplete && !isDesignerMode && (
@@ -732,7 +740,9 @@ const ScraperIntelligencePage = () => {
                                                 <ChatPanel
                                                     context={chatContext}
                                                     compositionId={compositionId}
-                                                    sections={scrapedData?.sections.map((s: any) => s.section_type).filter(Boolean) ?? []} />                                            </div>
+                                                    sections={scrapedData?.sections.map((s: any) => s.section_type).filter(Boolean) ?? []}
+                                                    onRefineComplete={handleRefineComplete} />
+                                            </div>
                                         </motion.div>
                                     </AnimatePresence>
                                 </div>
