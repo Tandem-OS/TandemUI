@@ -30,6 +30,7 @@ export interface CompositionState {
   thumbnails: Thumbnails | null;
   thumbnailStatus: ThumbnailStatus;
   thumbnailError: string | null;
+  isRefining: boolean;
   // NOTE: html_snapshot intentionally excluded — large string, per SMA spec
 }
 
@@ -148,6 +149,7 @@ const initialState: CompositionState = {
   thumbnails: null,
   thumbnailStatus: 'idle',
   thumbnailError: null,
+  isRefining: false
 };
 
 const compositionSlice = createSlice({
@@ -199,20 +201,17 @@ const compositionSlice = createSlice({
         state.thumbnailError = action.payload as string;
       });
 
-    // ── refineComposition ──
+      // ── refineComposition ──
     builder
       .addCase(refineComposition.pending, (state) => {
-        state.thumbnailStatus = 'refining';
-        state.thumbnailError = null;
+        state.isRefining = true;
       })
       .addCase(refineComposition.fulfilled, (state, action) => {
-        state.compositionId = action.payload.compositionId;
+        state.isRefining = false;
         state.pageSchema = action.payload.pageSchema;
-        state.thumbnails = null;
       })
-      .addCase(refineComposition.rejected, (state, action) => {
-        state.thumbnailStatus = 'error';
-        state.thumbnailError = action.payload as string;
+      .addCase(refineComposition.rejected, (state) => {
+        state.isRefining = false;
       });
   },
 });
