@@ -37,6 +37,8 @@ export interface CompositionState {
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLL_ATTEMPTS = 20; // 20 × 3s = 60s max
+let activePollPromise: { abort: () => void } | null = null;
+
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
 
@@ -49,7 +51,7 @@ export const submitComposition = createAsyncThunk(
   'composition/submit',
   async (
     payload: { winnerIds: string[]; projectId: string },
-    { dispatch, rejectWithValue }
+ { dispatch, rejectWithValue }
   ) => {
     try {
       const data = await postCompose({
@@ -58,7 +60,8 @@ export const submitComposition = createAsyncThunk(
       });
 
       // thumbnails will be null here — expected, not an error
-      dispatch(pollForThumbnails({ compositionId: data.composition_id }));
+      activePollPromise?.abort();
+      activePollPromise = dispatch(pollForThumbnails({ compositionId: data.composition_id }));
 
       return {
         compositionId: data.composition_id,
@@ -81,7 +84,7 @@ export const refineComposition = createAsyncThunk(
   'composition/refine',
   async (
     payload: { compositionId: string; sections: string[]; userInstruction: string },
-    { dispatch, rejectWithValue }
+    { rejectWithValue }
   ) => {
     try {
       const data = await postRefine({
@@ -89,7 +92,6 @@ export const refineComposition = createAsyncThunk(
         sections: payload.sections,
         user_instruction: payload.userInstruction,
       });
-      dispatch(pollForThumbnails({ compositionId: data.composition_id }));
       return {
         compositionId: data.composition_id,
         pageSchema: data.page_schema,
@@ -105,18 +107,27 @@ export const pollForThumbnails = createAsyncThunk(
   'composition/pollThumbnails',
   async (
     payload: { compositionId: string },
-    { rejectWithValue }
+    { rejectWithValue, signal }
   ) => {
     for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
-      await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
+      if (signal.aborted) return rejectWithValue('Polling cancelled');
+
+      // Abort-aware sleep
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, POLL_INTERVAL_MS);
+        signal.addEventListener('abort', () => {
+          clearTimeout(timer);
+          resolve();
+        }, { once: true });
+      });
+
+      if (signal.aborted) return rejectWithValue('Polling cancelled');
 
       try {
         const data = await getCompose(payload.compositionId);
-
         if (data.thumbnails !== null) {
           return { thumbnails: data.thumbnails as Thumbnails, pageSchema: data.page_schema };
         }
-        // thumbnails still null — keep polling
       } catch (err: any) {
         return rejectWithValue(
           err?.response?.data?.detail ?? err.message ?? 'Polling request failed'
