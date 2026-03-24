@@ -1,227 +1,290 @@
-import React, { useMemo, useId } from 'react';
-import { motion, type Variants } from 'framer-motion';
-import styled from 'styled-components';
-import { useTheme } from '../../../contexts/ThemeContext';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { fadeInUp } from '../../../lib/animations/variants';
-import {
-    type ColorOverrides,
-    type ColorValue,
-    type ButtonColorOverride,
-    type CTASize,
-    type CTAVariant,
-} from '../Hero_01/Hero_01.types';
-import {
-    validateHero01Props,
-    sanitizeProps,
-    formatValidationMessage,
-} from '../Hero_01/Hero_01.validators';
-import meta from './Hero_01.meta';
+import type { HeroColors, HeroAction } from '@/pages/Renderer/CompositionType';
 
-// ── Slot contract (mirrors backend HERO_RULES_V1_1) ──────────
-export interface Hero_01Slots {
-    hero_heading: string;
-    hero_primary_action: string;
-    hero_subheading?: string;
-    hero_secondary_action?: string;
-    hero_media?: string;
+// ── Props ────────────────────────────────────────────────────────────────────
+interface Hero_01Props {
+  hero_heading?: string | null;
+  hero_subheading?: string | null;
+  hero_media?: string | null;
+  hero_animated?: boolean | null;
+  hero_primary_action?: HeroAction | null;
+  hero_secondary_action?: HeroAction | null;
+  colors: HeroColors;
 }
 
-export interface Hero_01Props {
-    title?: string;
-    description?: string;
-    primaryCTA?: { text?: string; href?: string; size?: CTASize; variant?: CTAVariant; icon?: React.ReactNode };
-    backgroundImage?: string;
-    overlayColor?: string;
-    animated?: boolean;
-    className?: string;
-    colors?: ColorOverrides;
-    slots?: Hero_01Slots;
-}
-
-// ── Slot mapper ──────────────────────────────────────────────
-export function slotsToProps(slots: Hero_01Slots): Omit<Hero_01Props, 'slots'> {
-    return {
-        title: slots.hero_heading,
-        description: slots.hero_subheading ?? undefined,
-        backgroundImage: slots.hero_media ?? undefined,
-        primaryCTA: {
-            text: slots.hero_primary_action,
-            href: '/signup',
-            size: 'lg' as CTASize,
-            variant: 'solid' as CTAVariant,
-        },
-        animated: true,
-        className: '',
-    };
-}
-
-// ── Color styles hook ────────────────────────────────────────
-const useStyles = (userColors: ColorOverrides | undefined, theme: 'light' | 'dark') => {
-    return useMemo(() => {
-        if (!userColors) return {};
-
-        const gc = (u: ColorValue | undefined) =>
-            u ? (theme === 'dark' ? u.dark : u.light) : undefined;
-
-        const gbv = (u: ButtonColorOverride | undefined, p: string) => {
-            if (!u) return {};
-            return {
-                [`--btn-${p}-bg`]: gc(u.background),
-                [`--btn-${p}-text`]: gc(u.text),
-                [`--btn-${p}-border`]: gc(u.border),
-                [`--btn-${p}-hover-bg`]: gc(u.hover?.background),
-                [`--btn-${p}-hover-text`]: gc(u.hover?.text),
-                [`--btn-${p}-hover-border`]: gc(u.hover?.border),
-            };
-        };
-
-        return {
-            '--hero-title': gc(userColors.title),
-            '--hero-desc': gc(userColors.description),
-            ...gbv(userColors.primaryButton, 'primary'),
-        };
-    }, [userColors, theme]);
+// ── Variant config — structural defaults per layout variant ──────────────────
+const variantConfig: Record<string, {
+  sectionMinHeight: string;
+  contentPaddingTop: string;
+  contentPaddingBot: string;
+  contentPaddingX: string;
+  contentMaxWidth: string;
+  contentGap: string;
+  titleFontSize: string;
+  titleFontWeight: string;
+  titleLineHeight: string;
+  descFontSize: string;
+  actionsGap: string;
+  btnHeight: string;
+  btnPaddingX: string;
+  btnBorderWidth: string;
+  btnBorderStyle: string;
+  btnBorderRadius: string;
+  overlayOpacity: string;
+}> = {
+  default: {
+    sectionMinHeight: '100vh',
+    contentPaddingTop: '120px',
+    contentPaddingBot: '80px',
+    contentPaddingX: '24px',
+    contentMaxWidth: '48rem',
+    contentGap: '32px',
+    titleFontSize: 'clamp(2.5rem, 6vw, 3.5rem)',
+    titleFontWeight: '800',
+    titleLineHeight: '1.1',
+    descFontSize: '1.125rem',
+    actionsGap: '16px',
+    btnHeight: '3.5rem',
+    btnPaddingX: '2.5rem',
+    btnBorderWidth: '2px',
+    btnBorderStyle: 'solid',
+    btnBorderRadius: '0.5rem',
+    overlayOpacity: '0.85',
+  },
+  compact: {
+    sectionMinHeight: '70vh',
+    contentPaddingTop: '80px',
+    contentPaddingBot: '48px',
+    contentPaddingX: '24px',
+    contentMaxWidth: '40rem',
+    contentGap: '24px',
+    titleFontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+    titleFontWeight: '700',
+    titleLineHeight: '1.15',
+    descFontSize: '1rem',
+    actionsGap: '12px',
+    btnHeight: '2.75rem',
+    btnPaddingX: '1.75rem',
+    btnBorderWidth: '2px',
+    btnBorderStyle: 'solid',
+    btnBorderRadius: '0.5rem',
+    overlayOpacity: '0.85',
+  },
 };
 
-// ── Styled helpers ───────────────────────────────────────────
-const HLink = styled.a<{ $t: 'primary' | 'secondary' }>`
-    &:hover {
-        background-color: var(--btn-${p => p.$t}-hover-bg)     !important;
-        color:            var(--btn-${p => p.$t}-hover-text)   !important;
-        border-color:     var(--btn-${p => p.$t}-hover-border) !important;
-    }
-`;
-
-const getAnim = (variant: Variants, delay = 0, animated = true) => {
-    if (!animated) return {};
-    return { initial: 'hidden', whileInView: 'show', viewport: { once: true }, variants: variant, transition: { delay } };
+// ── Action variant styles — driven by HeroAction.variant ────────────────────
+const actionVariantStyles: Record<string, React.CSSProperties> = {
+  primary: { fontWeight: 600 },
+  outline: { fontWeight: 600, background: 'transparent' },
+  ghost: { fontWeight: 400, textDecoration: 'underline', background: 'transparent', border: 'none' },
 };
 
-// ── Hero_01 ──────────────────────────────────────────────────
-const Hero_01: React.FC<Hero_01Props> = (rawProps = {}) => {
-    const { slots, ...direct } = rawProps;
-    const { theme } = useTheme();
-    const uid = useId();
+// ── Animation helper ─────────────────────────────────────────────────────────
+const getAnim = (delay: number, animated: boolean) => {
+  if (!animated) return {};
+  return {
+    initial: 'hidden' as const,
+    whileInView: 'show' as const,
+    viewport: { once: true },
+    variants: fadeInUp,
+    transition: { delay },
+  };
+};
 
-    const resolved = slots ? { ...slotsToProps(slots), ...direct } : direct;
+// ── Hero_01 ──────────────────────────────────────────────────────────────────
+const Hero_01: React.FC<Hero_01Props> = ({
+  hero_heading,
+  hero_subheading,
+  hero_media,
+  hero_animated,
+  hero_primary_action,
+  hero_secondary_action,
+  colors,
+}) => {
+  const cfg = variantConfig['default'];
 
-    const validationProps = {
-        title: resolved.title,
-        description: resolved.description,
-        primaryCTA: resolved.primaryCTA,
-        animated: resolved.animated,
-        className: resolved.className,
-        colors: resolved.colors,
+  if (!cfg) {
+    console.error('[Hero_01] variantConfig["default"] is missing.');
+    return (
+      <section style={{ padding: colors.padding, backgroundColor: colors.background }}>
+        <p style={{ color: 'red' }}>[Hero_01] Missing variant config.</p>
+      </section>
+    );
+  }
+
+  const animated = hero_animated ?? false;
+  const Wrap = animated ? motion.div : 'div';
+
+  // ── Token layer — all visual values from colors + cfg ──────────────────────
+  const sectionStyle: React.CSSProperties = {
+    position: 'relative',
+    width: '100%',
+    minHeight: cfg.sectionMinHeight,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    backgroundColor: colors.background,
+  };
+
+  const contentStyle: React.CSSProperties = {
+    position: 'relative',
+    zIndex: 10,
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    paddingTop: cfg.contentPaddingTop,
+    paddingBottom: cfg.contentPaddingBot,
+    paddingLeft: cfg.contentPaddingX,
+    paddingRight: cfg.contentPaddingX,
+  };
+
+  const innerStyle: React.CSSProperties = {
+    maxWidth: cfg.contentMaxWidth,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: cfg.contentGap,
+  };
+
+  const titleStyle: React.CSSProperties = {
+    fontSize: cfg.titleFontSize,
+    fontWeight: cfg.titleFontWeight,
+    lineHeight: cfg.titleLineHeight,
+    color: colors.text_color,
+    margin: 0,
+    wordBreak: 'break-word',
+  };
+
+  const descStyle: React.CSSProperties = {
+    fontSize: cfg.descFontSize,
+    color: colors.text_color,
+    opacity: 0.8,
+    margin: 0,
+  };
+
+  const actionsStyle: React.CSSProperties = {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: cfg.actionsGap,
+    justifyContent: 'center',
+  };
+
+  // ── Action renderer ────────────────────────────────────────────────────────
+  const renderAction = (action: HeroAction) => {
+    const vs = action.variant ? (actionVariantStyles[action.variant] ?? {}) : {};
+    const isPrimary = action.variant === 'primary' || !action.variant;
+    const isOutline = action.variant === 'outline';
+
+    const btnStyle: React.CSSProperties = {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: cfg.btnHeight,
+      paddingLeft: cfg.btnPaddingX,
+      paddingRight: cfg.btnPaddingX,
+      borderRadius: colors.btn_radius ?? cfg.btnBorderRadius,
+      borderWidth: cfg.btnBorderWidth,
+      borderStyle: cfg.btnBorderStyle,
+      textDecoration: 'none',
+      transition: 'background-color 200ms, color 200ms, border-color 200ms',
+      backgroundColor: isPrimary ? colors.btn_primary_bg
+        : isOutline ? (colors.btn_outline_bg ?? 'transparent')
+          : 'transparent',
+      color: isPrimary ? colors.btn_primary_color
+        : isOutline ? colors.btn_outline_color
+          : colors.text_color,
+      borderColor: isPrimary ? (colors.btn_primary_border ?? colors.btn_primary_bg)
+        : isOutline ? (colors.btn_outline_border ?? colors.btn_outline_color)
+          : 'transparent',
+      ...vs,
     };
-    const validation = validateHero01Props(validationProps);
-    const sanitized = sanitizeProps(validationProps);
-
-    if (process.env.NODE_ENV === 'development' && (!validation.valid || validation.warnings)) {
-        console.group('Hero_01 Validation');
-        console.log(formatValidationMessage(validation));
-        console.groupEnd();
-    }
-
-    const title = sanitized.title;
-    const description = sanitized.description;
-    const backgroundImage = resolved.backgroundImage;
-    const overlayColor = resolved.overlayColor;
-    const animated = resolved.animated ?? true;
-    const className = resolved.className ?? '';
-
-    const primaryCTA = sanitized.primaryCTA;
-
-    const styles = useStyles(resolved.colors, theme);
-    const Wrap = animated ? motion.div : 'div';
 
     return (
-        <section
-            id={uid}
-            data-testid="hero-section"
-            role="banner"
-            aria-label={meta.accessibility.screenReaderHints?.section || "Main hero content"}
-            className={`relative w-full min-h-screen flex flex-col overflow-hidden ${className}`}
-            style={styles as React.CSSProperties}
-        >
-            {/* Full-bleed background */}
-            {backgroundImage && (
-                <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                    style={{ backgroundImage: `url(${backgroundImage})` }}
-                    aria-hidden="true"
-                    data-testid="hero-image-container"
-                />
-            )}
-
-            {/* Overlay */}
-            {overlayColor && (
-                <div
-                    className="absolute inset-0"
-                    style={{ backgroundColor: overlayColor, opacity: 0.85 }}
-                    aria-hidden="true"
-                />
-            )}
-
-            {/* Content */}
-            <div
-                className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center"
-                style={{ paddingTop: '120px', paddingBottom: '80px' }}
-            >
-                <div className="max-w-3xl flex flex-col items-center gap-8">
-
-                    {title && (
-                        <Wrap {...getAnim(fadeInUp, 0, animated)} data-testid="hero-title">
-                            <h1
-                                className="font-extrabold leading-tight break-words"
-                                style={{
-                                    color: 'var(--hero-title)',
-                                    fontSize: 'clamp(2.5rem, 6vw, 3.5rem)',
-                                    fontWeight: 800,
-                                    lineHeight: 1.1,
-                                }}
-                            >
-                                {title}
-                            </h1>
-                        </Wrap>
-                    )}
-
-                    {description && (
-                        <Wrap {...getAnim(fadeInUp, 0.1, animated)} data-testid="hero-description">
-                            <p
-                                className="text-base md:text-lg leading-relaxed max-w-xl"
-                                style={{ color: 'var(--hero-desc)' }}
-                            >
-                                {description}
-                            </p>
-                        </Wrap>
-                    )}
-
-                    {primaryCTA?.text && (
-                        <Wrap
-                            {...getAnim(fadeInUp, 0.2, animated)}
-                            data-testid="hero-buttons"
-                            role="group"
-                            aria-label="Call to action"
-                        >
-                            <HLink
-                                href={primaryCTA.href || '#'}
-                                aria-label={`Primary action: ${primaryCTA.text}`}
-                                $t="primary"
-                                className="inline-flex items-center justify-center h-14 px-10 rounded-lg font-bold text-base border-2 border-solid transition-colors duration-200 no-underline"
-                                style={{
-                                    backgroundColor: 'var(--btn-primary-bg)',
-                                    color: 'var(--btn-primary-text)',
-                                    borderColor: 'var(--btn-primary-border)',
-                                }}
-                            >
-                                {primaryCTA.text}
-                            </HLink>
-                        </Wrap>
-                    )}
-                </div>
-            </div>
-        </section>
+      <a
+        key={action.target}
+        href={action.target}
+        aria-label={action.aria_label ?? action.label}
+        style={btnStyle}
+      >
+        {action.label}
+      </a>
     );
+  };
+
+  return (
+    <section
+      data-testid="hero-section"
+      role="banner"
+      aria-label="Main hero content"
+      style={sectionStyle}
+    >
+      {/* Full-bleed background image */}
+      {hero_media && (
+        <div
+          aria-hidden="true"
+          data-testid="hero-image-container"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${hero_media})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
+      )}
+
+      {/* Overlay — only when no background image */}
+      {!hero_media && colors.background && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: colors.background,
+            opacity: cfg.overlayOpacity,
+          }}
+        />
+      )}
+      {/* Content */}
+      <div style={contentStyle}>
+        <div style={innerStyle}>
+
+          {hero_heading && (
+            <Wrap {...getAnim(0, animated)} data-testid="hero-title">
+              <h1 style={titleStyle}>{hero_heading}</h1>
+            </Wrap>
+          )}
+
+          {hero_subheading && (
+            <Wrap {...getAnim(0.1, animated)} data-testid="hero-description">
+              <p style={descStyle}>{hero_subheading}</p>
+            </Wrap>
+          )}
+
+          {(hero_primary_action || hero_secondary_action) && (
+            <Wrap
+              {...getAnim(0.2, animated)}
+              data-testid="hero-buttons"
+              role="group"
+              aria-label="Call to action"
+            >
+              <div style={actionsStyle}>
+                {hero_primary_action && renderAction(hero_primary_action)}
+                {hero_secondary_action && renderAction(hero_secondary_action)}
+              </div>
+            </Wrap>
+          )}
+
+        </div>
+      </div>
+    </section>
+  );
 };
 
 Hero_01.displayName = 'Hero_01';

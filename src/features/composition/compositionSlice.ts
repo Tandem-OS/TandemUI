@@ -2,7 +2,10 @@ import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/tool
 import {
   postCompose,
   getCompose,
+  postRefine,
 } from '@/lib/requests/CompositionRequest';
+import type { PageSchema } from '@/lib/requests/CompositionRequest';
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,11 +20,13 @@ export type ThumbnailStatus =
   | 'composing'   // POST /compose in flight
   | 'generating'  // polling, thumbnails not yet ready
   | 'ready'       // thumbnails available
-  | 'error';      // timeout or network failure
+  | 'refining'
+  | 'error';
 
 export interface CompositionState {
   compositionId: string | null;
   projectId: string | null;
+  pageSchema: PageSchema | null;
   thumbnails: Thumbnails | null;
   thumbnailStatus: ThumbnailStatus;
   thumbnailError: string | null;
@@ -72,6 +77,30 @@ export const submitComposition = createAsyncThunk(
  * Polls every 3s up to 20 attempts (60s timeout).
  * Only dispatched internally by submitComposition — never call POST again.
  */
+export const refineComposition = createAsyncThunk(
+  'composition/refine',
+  async (
+    payload: { compositionId: string; sections: string[]; userInstruction: string },
+    { dispatch, rejectWithValue }
+  ) => {
+    try {
+      const data = await postRefine({
+        composition_id: payload.compositionId,
+        sections: payload.sections,
+        user_instruction: payload.userInstruction,
+      });
+      dispatch(pollForThumbnails({ compositionId: data.composition_id }));
+      return {
+        compositionId: data.composition_id,
+        pageSchema: data.page_schema,
+      };
+    } catch (err: any) {
+      return rejectWithValue(
+        err?.response?.data?.detail ?? err.message ?? 'Failed to refine composition'
+      );
+    }
+  }
+);
 export const pollForThumbnails = createAsyncThunk(
   'composition/pollThumbnails',
   async (
@@ -85,7 +114,7 @@ export const pollForThumbnails = createAsyncThunk(
         const data = await getCompose(payload.compositionId);
 
         if (data.thumbnails !== null) {
-          return data.thumbnails as Thumbnails;
+          return { thumbnails: data.thumbnails as Thumbnails, pageSchema: data.page_schema };
         }
         // thumbnails still null — keep polling
       } catch (err: any) {
@@ -104,6 +133,7 @@ export const pollForThumbnails = createAsyncThunk(
 const initialState: CompositionState = {
   compositionId: null,
   projectId: null,
+  pageSchema: null,
   thumbnails: null,
   thumbnailStatus: 'idle',
   thumbnailError: null,
@@ -148,11 +178,28 @@ const compositionSlice = createSlice({
         state.thumbnailStatus = 'generating';
       })
       .addCase(pollForThumbnails.fulfilled, (state, action) => {
-        state.thumbnails = action.payload;
+        state.thumbnails = action.payload.thumbnails;
+        state.pageSchema = action.payload.pageSchema;
         state.thumbnailStatus = 'ready';
         state.thumbnailError = null;
       })
       .addCase(pollForThumbnails.rejected, (state, action) => {
+        state.thumbnailStatus = 'error';
+        state.thumbnailError = action.payload as string;
+      });
+
+    // ── refineComposition ──
+    builder
+      .addCase(refineComposition.pending, (state) => {
+        state.thumbnailStatus = 'refining';
+        state.thumbnailError = null;
+      })
+      .addCase(refineComposition.fulfilled, (state, action) => {
+        state.compositionId = action.payload.compositionId;
+        state.pageSchema = action.payload.pageSchema;
+        state.thumbnails = null;
+      })
+      .addCase(refineComposition.rejected, (state, action) => {
         state.thumbnailStatus = 'error';
         state.thumbnailError = action.payload as string;
       });

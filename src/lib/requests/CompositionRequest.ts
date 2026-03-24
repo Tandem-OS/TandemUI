@@ -5,7 +5,7 @@ import type { Thumbnails } from '@/features/composition/compositionSlice';
 import type { ComposeSection } from '@/pages/Renderer/CompositionType';
 
 export interface PageSchema {
-    sections: ComposeSection[];
+  sections: ComposeSection[];
 }
 export interface ComposePayload {
   winner_ids: string[];
@@ -52,7 +52,18 @@ export const getAllProjectCompose = async (): Promise<ComposeResponse> => {
   const response = await api.get(`/compose?project_id${projectId}`);
   return response.data;
 };
+// ─── Refine ───────────────────────────────────────────────────────────────────
 
+export interface RefinePayload {
+  composition_id: string;
+  sections: string[];
+  user_instruction: string;
+}
+
+export const postRefine = async (payload: RefinePayload): Promise<ComposeResponse> => {
+  const response = await api.post('/ai/refine', payload);
+  return response.data;
+};
 export const callAiComposePipeline = async (
   values: CallAiComposePipeline
 ): Promise<AiComposePipelineResponse> => {

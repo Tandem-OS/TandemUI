@@ -2,9 +2,9 @@ import type { NavSlots, NavLink } from '@/pages/Renderer/CompositionType';
 export type { NavLink }
 
 export interface NavProps {
-  logo?: string | null
+  logo?: string
   links?: NavLink[]
-  cta?: string | null
+  cta?: string
   layout_structure?: string
   tags?: string[]
   padding?: string
@@ -19,9 +19,9 @@ export function navSlotsToProps(
   linkSize?: string,
 ): NavProps {
   return {
-    logo: slots.nav_logo ?? null,
+    logo: slots.nav_logo ?? undefined,
     links: (slots.nav_links ?? []) as NavLink[],
-    cta: slots.nav_cta ?? null,
+    cta: slots.nav_cta ?? undefined,
     layout_structure: layout_structure ?? 'split',
     tags: tags ?? [],
     padding,

@@ -210,8 +210,7 @@ const Swiper: React.FC = () => {
   const navigate = useNavigate();
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
   const [roundCompleted, setRoundCompleted] = useState(false);
-  const KOH_SESSIONS_KEY = 'tandem_koh_sessions';
-  const KOH_CHOICES_KEY = 'tandem_koh_choices';
+
 
   const [showTransition, setShowTransition] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -283,24 +282,6 @@ const Swiper: React.FC = () => {
       try {
         const statusResult = await fetchRoundCompleted();
         if (!statusResult.data.round_completed) return;
-        if (sessionStorage.getItem('tandem_session_active') !== 'true') return;
-        const savedSessions = sessionStorage.getItem(KOH_SESSIONS_KEY);
-        const savedChoices = sessionStorage.getItem(KOH_CHOICES_KEY);
-        if (savedSessions) {
-          try {
-            setKingOfHillSessions(JSON.parse(savedSessions));
-            if (savedChoices) {
-              JSON.parse(savedChoices).forEach((choice: any) => {
-                dispatch(addUserChoice({ choice, isAnyModalOpen: false }));
-              });
-            }
-            setRoundCompleted(true);
-            return;
-          } catch {
-            sessionStorage.removeItem(KOH_SESSIONS_KEY);
-            sessionStorage.removeItem(KOH_CHOICES_KEY);
-          }
-        }
         const summaryResult = await fetchRoundCompletedData();
         const data = summaryResult.data.data;
         const { swipes, king_of_hill_sessions, king_of_hill_matches, components } = data;
@@ -402,7 +383,6 @@ const Swiper: React.FC = () => {
   }, [dispatch, loadData]);
 
   const handleSwipe = useCallback((action: SwipeAction, component: ComponentPreview, signals: BehavioralSignal) => {
-    sessionStorage.setItem('tandem_session_active', 'true');
     dispatch(addUserChoice({
       choice: {
         component_id: component.component_id,
@@ -709,16 +689,6 @@ const Swiper: React.FC = () => {
       setKingOfHillSessions([]);
     };
   }, []);
-  useEffect(() => {
-    if (kingOfHillSessions.length > 0) {
-      sessionStorage.setItem(KOH_SESSIONS_KEY, JSON.stringify(kingOfHillSessions));
-    }
-  }, [kingOfHillSessions]);
-  useEffect(() => {
-    if (userChoices.length > 0) {
-      sessionStorage.setItem(KOH_CHOICES_KEY, JSON.stringify(userChoices));
-    }
-  }, [userChoices]);
   const handleAnimationStart = useCallback(() => dispatch(setAnimating(true)), [dispatch]);
   const handleAnimationComplete = useCallback(() => dispatch(setAnimating(false)), [dispatch]);
   const handleExit = useCallback(() => {
@@ -745,9 +715,8 @@ const Swiper: React.FC = () => {
   );
 
   const handleStartOver = useCallback(() => {
-    sessionStorage.removeItem('tandem_session_active');
-    sessionStorage.removeItem(KOH_SESSIONS_KEY);
-    sessionStorage.removeItem(KOH_CHOICES_KEY);
+       sessionStorage.removeItem(KOH_SNAP_KEY);
+
 
 
 

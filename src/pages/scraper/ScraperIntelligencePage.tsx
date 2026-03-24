@@ -585,7 +585,7 @@ const ScraperIntelligencePage = () => {
                                                 whileHover={{ scale: 1.03 }}
                                                 whileTap={{ scale: 0.97 }}
                                                 onClick={() => navigate(`/dashboard/client/swiper/compose/${compositionId}`)
-}
+                                                }
                                                 className="flex items-center gap-xs px-sm sm:px-md py-xs sm:py-sm rounded-lg
                        bg-accent-default text-accent-foreground text-para-xs sm:text-para-sm
                        font-medium hover:bg-accent-hover transition-colors"
@@ -687,8 +687,10 @@ const ScraperIntelligencePage = () => {
 
                                         {/* Chat Panel - Takes remaining space */}
                                         <div className="flex-1 min-h-0">
-                                            <ChatPanel context={chatContext} />
-                                        </div>
+                                            <ChatPanel
+                                                context={chatContext}
+                                                compositionId={compositionId}
+                                                sections={scrapedData?.sections.map((s: any) => s.section_type).filter(Boolean) ?? []} />                                        </div>
                                     </div>
                                 </aside>
 
@@ -727,8 +729,10 @@ const ScraperIntelligencePage = () => {
                                             )}
                                             {/* ChatPanel for Mobile View - Appears as a regular component in the flow */}
                                             <div className="lg:hidden">
-                                                <ChatPanel context={chatContext} />
-                                            </div>
+                                                <ChatPanel
+                                                    context={chatContext}
+                                                    compositionId={compositionId}
+                                                    sections={scrapedData?.sections.map((s: any) => s.section_type).filter(Boolean) ?? []} />                                            </div>
                                         </motion.div>
                                     </AnimatePresence>
                                 </div>
