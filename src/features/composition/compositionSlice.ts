@@ -96,6 +96,7 @@ export const refineComposition = createAsyncThunk(
       return {
         compositionId: data.composition_id,
         pageSchema: data.updated_sections,
+        chatResponse: data.chat_response,
       };
     } catch (err: any) {
       return rejectWithValue(

@@ -108,7 +108,7 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
         if (compositionId && selectedSections.size > 0) {
             setIsTyping(true);
             try {
-                await dispatch(refineComposition({
+                const result = await dispatch(refineComposition({
                     compositionId,
                     sections: Array.from(selectedSections),
                     userInstruction: message.trim(),
@@ -117,7 +117,7 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
                 setMessages(prev => [...prev, {
                     id: (Date.now() + 1).toString(),
                     type: 'assistant',
-                    message: `Done! Updated ${Array.from(selectedSections).join(', ')}. New previews are generating.`,
+                    message: result.chatResponse ?? `Done! Updated ${Array.from(selectedSections).join(', ')}.`,
                     timestamp: new Date(),
                 }]);
 
@@ -219,11 +219,10 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
                     >
                         <motion.div
                             transition={{ duration: 0.2 }}
-                            className={`max-w-[85%] sm:max-w-[80%] p-sm rounded-xl will-change-transform ${
-                                message.type === 'user'
+                            className={`max-w-[85%] sm:max-w-[80%] p-sm rounded-xl will-change-transform ${message.type === 'user'
                                     ? 'bg-accent-default text-white'
                                     : 'bg-background-secondary-2 text-text-primary'
-                            }`}
+                                }`}
                         >
                             <Para size="sm" className={message.type === 'user' ? '!text-white' : ''}>
                                 {message.message}
@@ -266,11 +265,10 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
                                         onClick={() => toggleSection(sectionType)}
                                         whileTap={{ scale: 0.95 }}
                                         disabled={isRefining}
-                                        className={`flex-shrink-0 text-para-xs px-sm py-xs rounded-lg border transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${
-                                            isSelected
+                                        className={`flex-shrink-0 text-para-xs px-sm py-xs rounded-lg border transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${isSelected
                                                 ? 'bg-accent-default text-accent-foreground border-accent-default'
                                                 : 'bg-background-secondary border-border-default hover:border-accent-default hover:bg-accent-subtle'
-                                        }`}
+                                            }`}
                                     >
                                         {sectionType}
                                     </motion.button>
@@ -309,8 +307,8 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
                             isRefining
                                 ? 'Refining your design...'
                                 : compositionId && selectedSections.size === 0
-                                ? 'Select sections above first...'
-                                : 'Type your instruction...'
+                                    ? 'Select sections above first...'
+                                    : 'Type your instruction...'
                         }
                         disabled={isRefining}
                         className="flex-1 px-sm sm:px-md py-sm bg-background-secondary border border-border-default rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-default transition-colors text-para-sm disabled:opacity-50"
