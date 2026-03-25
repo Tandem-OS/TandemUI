@@ -29,6 +29,7 @@ import { pollForThumbnails } from '@/features/composition/compositionSlice';
 import { createScraper } from '@/lib/requests/ScraperRequest';
 import { useNavigate } from 'react-router-dom';
 import Toast from '@/common-components/Toast';
+import { selectPageSchema } from '@/features/composition/compositionSelectors';
 
 // Custom hook for taste profile
 const useTasteProfile = () => {
@@ -117,6 +118,11 @@ const ScraperIntelligencePage = () => {
         setTimeout(() => setToastMessage(null), 3000);
     };
 
+    const pageSchema = useSelector(selectPageSchema);
+
+    const activeSections = compositionId && pageSchema?.sections
+    ? pageSchema.sections
+    : (scrapedData?.sections ?? []);
 
     const handleStartScraping = async (url: string) => {
         try {
@@ -703,7 +709,8 @@ const ScraperIntelligencePage = () => {
                                             <ChatPanel
                                                 context={chatContext}
                                                 compositionId={compositionId}
-                                                sections={scrapedData?.sections.map((s: any) => s.category ?? s.section_type).filter(Boolean) ?? []}
+                                                sections={activeSections.map((s: any) => s.category ?? s.section_type).filter(Boolean)}
+
                                                 onRefineComplete={handleRefineComplete} />
                                         </div>
                                     </div>
@@ -720,7 +727,7 @@ const ScraperIntelligencePage = () => {
                                             transition={{ duration: 0.2 }}
                                             className="flex flex-col gap-lg"
                                         >
-                                            {(scrapedData.sections as any[]).map((section) => (
+                                            {(activeSections as any[]).map((section) => (
                                                 <SectionCard
                                                     key={section.id}
                                                     section={section}
@@ -747,7 +754,8 @@ const ScraperIntelligencePage = () => {
                                                 <ChatPanel
                                                     context={chatContext}
                                                     compositionId={compositionId}
-                                                    sections={scrapedData?.sections.map((s: any) => s.category ?? s.section_type).filter(Boolean) ?? []}
+                                                    sections={activeSections.map((s: any) => s.category ?? s.section_type).filter(Boolean)}
+
                                                     onRefineComplete={handleRefineComplete} />
                                             </div>
                                         </motion.div>
