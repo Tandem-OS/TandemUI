@@ -6,9 +6,8 @@ import { mockChatResponses, chatPrompts } from '../constants';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
 import { refineComposition } from '@/features/composition/compositionSlice';
-import { selectIsRefining, selectPageSchema } from '@/features/composition/compositionSelectors';
+import { selectIsRefining } from '@/features/composition/compositionSelectors';
 import type { AppDispatch } from '@/store';
-import type { ComposeSection } from '@/pages/Renderer/CompositionType';
 
 
 const useMediaQuery = (query: string) => {
