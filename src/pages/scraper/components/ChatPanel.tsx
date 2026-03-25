@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaComments, FaTimes, FaPaperPlane } from 'react-icons/fa';
+import { FaComments, FaTimes, FaPaperPlane, FaCheck } from 'react-icons/fa';
 import { mockChatResponses, chatPrompts } from '../constants';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
 import { refineComposition } from '@/features/composition/compositionSlice';
-import { selectIsRefining } from '@/features/composition/compositionSelectors';
+import { selectIsRefining, selectPageSchema } from '@/features/composition/compositionSelectors';
 import type { AppDispatch } from '@/store';
+import type { ComposeSection } from '@/pages/Renderer/CompositionType';
+
 
 const useMediaQuery = (query: string) => {
     const [matches, setMatches] = useState(false);
@@ -251,11 +253,16 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
             <div className="p-sm border-t border-border-default">
                 {compositionId && sections.length > 0 ? (
                     <div className="space-y-xs">
-                        <Para size="xs" color="secondary">
-                            {selectedSections.size === 0
-                                ? 'Select sections to refine:'
-                                : `Refining: ${Array.from(selectedSections).join(', ')}`}
-                        </Para>
+                        {selectedSections.size === 0 ? (
+                            <Para size="xs" color="secondary">Select sections to refine:</Para>
+                        ) : (
+                            <div className="flex items-center gap-xs px-sm py-xs rounded-full bg-accent-subtle border border-accent-default w-fit">
+                                <FaCheck className="text-accent-default text-[10px]" />
+                                <Para size="xs" color="accent" weight="medium">
+                                    {selectedSections.size === 1 ? `1 section selected` : `${selectedSections.size} sections selected`}
+                                </Para>
+                            </div>
+                        )}
                         <div className="flex gap-xs flex-wrap">
                             {sections.map((sectionType) => {
                                 const isSelected = selectedSections.has(sectionType);
@@ -263,13 +270,15 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
                                     <motion.button
                                         key={sectionType}
                                         onClick={() => toggleSection(sectionType)}
+                                        whileHover={{ scale: isRefining ? 1 : 1.04 }}
                                         whileTap={{ scale: 0.95 }}
                                         disabled={isRefining}
-                                        className={`flex-shrink-0 text-para-xs px-sm py-xs rounded-lg border transition-colors whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${isSelected
-                                                ? 'bg-accent-default text-accent-foreground border-accent-default'
-                                                : 'bg-background-secondary border-border-default hover:border-accent-default hover:bg-accent-subtle'
+                                        className={`flex-shrink-0 flex items-center gap-xs text-para-xs px-sm py-xs rounded-lg border transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${isSelected
+                                            ? 'bg-accent-default text-accent-foreground border-accent-default shadow-sm'
+                                            : 'bg-background-secondary border-border-default text-text-secondary hover:border-accent-default hover:text-text-primary hover:bg-accent-subtle'
                                             }`}
                                     >
+                                        {isSelected && <FaCheck className="text-[10px]" />}
                                         {sectionType}
                                     </motion.button>
                                 );
