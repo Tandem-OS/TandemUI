@@ -19,6 +19,13 @@ export interface ComposeResponse {
   thumbnails: Thumbnails | null;
 }
 
+export interface RefineResponse {
+  composition_id: string;
+  project_id: string;
+  updated_sections: PageSchema['sections'];
+  current_version: number;
+}
+
 export interface CallAiComposePipeline {
   user_input: string | null;
 }
@@ -60,10 +67,11 @@ export interface RefinePayload {
   user_instruction: string;
 }
 
-export const postRefine = async (payload: RefinePayload): Promise<ComposeResponse> => {
-  const response = await api.post('/ai/refine', payload);
+export const postRefine = async (payload: RefinePayload): Promise<RefineResponse> => {
+  const response = await api.patch('/ai/refine', payload);
   return response.data;
 };
+
 export const callAiComposePipeline = async (
   values: CallAiComposePipeline
 ): Promise<AiComposePipelineResponse> => {

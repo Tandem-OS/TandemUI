@@ -4,6 +4,9 @@ import { FaLightbulb, FaTimes, FaMagic } from 'react-icons/fa';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
 import { callAiComposePipeline } from '@/lib/requests/CompositionRequest';
+import { useDispatch } from 'react-redux';
+import type { AppDispatch } from '@/store';
+import { setPageSchema } from '@/features/composition/compositionSlice';
 
 interface StartFromIdeaProps {
     onGenerateLayout: (sections: any[], compositionId: string) => void;
@@ -21,6 +24,8 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [activeStage, setActiveStage] = useState(0);
     const [error, setError] = useState<string | null>(null);
+
+    const dispatch = useDispatch<AppDispatch>();
 
     const ideaExamples = [
         "I want to build a personal finance coaching site",
@@ -45,6 +50,7 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
             const result = await callAiComposePipeline({ user_input: idea });
             setIsOpen(false);
             setIdea('');
+            dispatch(setPageSchema(result.page_schema as any));
             onGenerateLayout(result.page_schema.sections as any[], result.composition_id);
         } catch (err) {
             setError('Something went wrong. Please try again.');

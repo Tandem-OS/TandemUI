@@ -52,7 +52,7 @@ export const submitComposition = createAsyncThunk(
   'composition/submit',
   async (
     payload: { winnerIds: string[]; projectId: string },
- { dispatch, rejectWithValue }
+    { dispatch, rejectWithValue }
   ) => {
     try {
       const data = await postCompose({
@@ -95,7 +95,7 @@ export const refineComposition = createAsyncThunk(
       });
       return {
         compositionId: data.composition_id,
-        pageSchema: data.page_schema,
+        pageSchema: data.updated_sections,
       };
     } catch (err: any) {
       return rejectWithValue(
@@ -104,6 +104,7 @@ export const refineComposition = createAsyncThunk(
     }
   }
 );
+
 export const pollForThumbnails = createAsyncThunk(
   'composition/pollThumbnails',
   async (
@@ -149,7 +150,7 @@ const initialState: CompositionState = {
   thumbnails: null,
   thumbnailStatus: 'idle',
   thumbnailError: null,
-  isRefining: false
+  isRefining: false,
 };
 
 const compositionSlice = createSlice({
@@ -166,7 +167,12 @@ const compositionSlice = createSlice({
     setThumbnailStatus: (state, action: PayloadAction<ThumbnailStatus>) => {
       state.thumbnailStatus = action.payload;
     },
+
+    setPageSchema: (state, action: PayloadAction<any>) => {
+    state.pageSchema = action.payload;
+},
   },
+
   extraReducers: (builder) => {
     // ── submitComposition ──
     builder
@@ -201,15 +207,29 @@ const compositionSlice = createSlice({
         state.thumbnailError = action.payload as string;
       });
 
-      // ── refineComposition ──
+    // ── refineComposition ──
     builder
       .addCase(refineComposition.pending, (state) => {
         state.isRefining = true;
       })
       .addCase(refineComposition.fulfilled, (state, action) => {
-        state.isRefining = false;
-        state.pageSchema = action.payload.pageSchema;
-      })
+    state.isRefining = false;
+
+    if (state.pageSchema?.sections) {
+        // pageSchema exists — merge by category
+        action.payload.pageSchema.forEach((updatedSection: any) => {
+            const index = state.pageSchema!.sections.findIndex(
+                s => s.category === updatedSection.category
+            );
+            if (index !== -1) {
+                state.pageSchema!.sections[index] = updatedSection;
+            }
+        });
+    } else {
+        // pageSchema null — store as-is, will be incomplete but better than nothing
+        state.pageSchema = { sections: action.payload.pageSchema } as any;
+    }
+})
       .addCase(refineComposition.rejected, (state) => {
         state.isRefining = false;
       });
@@ -220,6 +240,7 @@ export const {
   resetComposition,
   clearThumbnailError,
   setThumbnailStatus,
+  setPageSchema,
 } = compositionSlice.actions;
 
 export default compositionSlice.reducer;
