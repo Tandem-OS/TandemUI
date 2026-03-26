@@ -87,3 +87,21 @@ export const callAiComposePipeline = async (
   const response = await api.post(`${COMPOSE_ENDPOINT}`, payload);
   return response.data;
 };
+export const getVersions = async (projectId: string) => {
+  debugger;
+  const response = await api.get(`/compose/versions/${projectId}`);
+  return response.data;
+};
+
+export const getVersionByNumber = async (projectId: string, versionNumber: number) => {
+  const response = await api.get(`/compose/versions/${projectId}/${versionNumber}`);
+  return response.data;
+};
+
+export const postRestoreVersion = async (projectId: string, targetVersion: number) => {
+  const response = await api.post('/compose/versions/restore', {
+    project_id: projectId,
+    target_version: targetVersion,
+  });
+  return response.data;
+};

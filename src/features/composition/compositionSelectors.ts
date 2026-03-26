@@ -12,3 +12,8 @@ export const selectThumbnailsReady = (s: RootState) => s.composition.thumbnailSt
 export const selectThumbnailFailed = (s: RootState) => s.composition.thumbnailStatus === 'error';
 export const selectPageSchema      = (s: RootState) => s.composition.pageSchema;
 export const selectIsRefining = (s: RootState) => s.composition.isRefining
+
+export const selectVersions       = (s: RootState) => s.composition.versions.versions
+export const selectCurrentVersion = (s: RootState) => s.composition.versions.currentVersion
+export const selectVersionsStatus = (s: RootState) => s.composition.versions.status
+export const selectRestoreStatus  = (s: RootState) => s.composition.versions.restoreStatus

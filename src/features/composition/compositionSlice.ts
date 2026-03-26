@@ -3,6 +3,9 @@ import {
   postCompose,
   getCompose,
   postRefine,
+  getVersions,
+  getVersionByNumber,
+  postRestoreVersion,
 } from '@/lib/requests/CompositionRequest';
 import type { PageSchema } from '@/lib/requests/CompositionRequest';
 
@@ -22,7 +25,19 @@ export type ThumbnailStatus =
   | 'ready'       // thumbnails available
   | 'refining'
   | 'error';
+export type VersionEntry = {
+  version_number: number;
+  refine_prompt: string;
+  stacking_version: string;
+  created_at: string;
+};
 
+export type VersionsState = {
+  versions: VersionEntry[];
+  currentVersion: number | null;
+  status: 'idle' | 'loading' | 'error';
+  restoreStatus: 'idle' | 'loading' | 'error';
+};
 export interface CompositionState {
   compositionId: string | null;
   projectId: string | null;
@@ -31,6 +46,8 @@ export interface CompositionState {
   thumbnailStatus: ThumbnailStatus;
   thumbnailError: string | null;
   isRefining: boolean;
+  versions: VersionsState;
+
   // NOTE: html_snapshot intentionally excluded — large string, per SMA spec
 }
 
@@ -93,10 +110,11 @@ export const refineComposition = createAsyncThunk(
         sections: payload.sections,
         user_instruction: payload.userInstruction,
       });
-      return {
+     return {
         compositionId: data.composition_id,
         pageSchema: data.updated_sections,
         chatResponse: data.chat_response,
+        currentVersion: data.current_version as number ?? null,
       };
     } catch (err: any) {
       return rejectWithValue(
@@ -105,7 +123,60 @@ export const refineComposition = createAsyncThunk(
     }
   }
 );
+export const fetchVersions = createAsyncThunk(
+  'composition/fetchVersions',
+  async (projectId: string, { rejectWithValue }) => {
+  try {
+      const data = await getVersions(projectId);
+      return {
+        versions: data.versions as VersionEntry[],
+        currentVersion: data.current_version as number,
+      };
+    } catch (err: any) {
+      return rejectWithValue(err.message ?? 'Failed to fetch versions');
+    }
+  }
+);
+export const fetchVersionByNumber = createAsyncThunk(
+  'composition/fetchVersionByNumber',
+  async (
+    payload: { projectId: string; versionNumber: number },
+    { rejectWithValue }
+  ) => {
+ try {
+      const data = await getVersionByNumber(payload.projectId, payload.versionNumber);
+      return {
+        pageSchema: data.page_schema,
+        chatResponse: data.chat_response as string,
+        reasoning: data.reasoning as string,
+        refinePrompt: data.refine_prompt as string,
+        isCurrent: data.is_current as boolean,
+      };
+    } catch (err: any) {
+      return rejectWithValue(err.message ?? 'Failed to fetch version');
+    }
+  }
+);
+export const restoreVersion = createAsyncThunk(
+  'composition/restoreVersion',
+  async (
+    payload: { projectId: string; targetVersion: number },
+    { dispatch, rejectWithValue }
+  ) => {
+try {
+      const data = await postRestoreVersion(payload.projectId, payload.targetVersion);
 
+      // Reload composition so canvas picks up restored schema
+
+      dispatch(setPageSchema(data.page_schema));
+      dispatch(fetchVersions(payload.projectId));
+
+      return { newCompositionId: data.composition_id as string };
+    } catch (err: any) {
+      return rejectWithValue(err.message ?? 'Failed to restore version');
+    }
+  }
+);
 export const pollForThumbnails = createAsyncThunk(
   'composition/pollThumbnails',
   async (
@@ -152,6 +223,12 @@ const initialState: CompositionState = {
   thumbnailStatus: 'idle',
   thumbnailError: null,
   isRefining: false,
+  versions: {                    // ← add from here
+    versions: [],
+    currentVersion: null,
+    status: 'idle',
+    restoreStatus: 'idle',
+  },
 };
 
 const compositionSlice = createSlice({
@@ -170,10 +247,13 @@ const compositionSlice = createSlice({
     },
 
     setPageSchema: (state, action: PayloadAction<any>) => {
-    state.pageSchema = action.payload;
-},
-  },
+      state.pageSchema = action.payload;
+    },
 
+    setProjectId: (state, action: PayloadAction<string>) => {
+      state.projectId = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     // ── submitComposition ──
     builder
@@ -207,30 +287,55 @@ const compositionSlice = createSlice({
         state.thumbnailStatus = 'error';
         state.thumbnailError = action.payload as string;
       });
+    // ── fetchVersions ──
+    builder
+      .addCase(fetchVersions.pending, (state) => {
+        state.versions.status = 'loading';
+      })
+      .addCase(fetchVersions.fulfilled, (state, action) => {
+        state.versions.versions = action.payload.versions;
+        state.versions.currentVersion = action.payload.currentVersion;
+        state.versions.status = 'idle';
+      })
+      .addCase(fetchVersions.rejected, (state) => {
+        state.versions.status = 'error';
+      });
 
+    // ── restoreVersion ──
+    builder
+      .addCase(restoreVersion.pending, (state) => {
+        state.versions.restoreStatus = 'loading';
+      })
+      .addCase(restoreVersion.fulfilled, (state) => {
+        state.versions.restoreStatus = 'idle';
+      })
+      .addCase(restoreVersion.rejected, (state) => {
+        state.versions.restoreStatus = 'error';
+      });
     // ── refineComposition ──
     builder
       .addCase(refineComposition.pending, (state) => {
         state.isRefining = true;
       })
       .addCase(refineComposition.fulfilled, (state, action) => {
-    state.isRefining = false;
+        state.isRefining = false;
+        state.versions.currentVersion = action.payload.currentVersion ?? state.versions.currentVersion;
 
-    if (state.pageSchema?.sections) {
-        // pageSchema exists — merge by category
-        action.payload.pageSchema.forEach((updatedSection: any) => {
+        if (state.pageSchema?.sections) {
+          // pageSchema exists — merge by category
+          action.payload.pageSchema.forEach((updatedSection: any) => {
             const index = state.pageSchema!.sections.findIndex(
-                s => s.category === updatedSection.category
+              s => s.category === updatedSection.category
             );
             if (index !== -1) {
-                state.pageSchema!.sections[index] = updatedSection;
+              state.pageSchema!.sections[index] = updatedSection;
             }
-        });
-    } else {
-        // pageSchema null — store as-is, will be incomplete but better than nothing
-        state.pageSchema = { sections: action.payload.pageSchema } as any;
-    }
-})
+          });
+        } else {
+          // pageSchema null — store as-is, will be incomplete but better than nothing
+          state.pageSchema = { sections: action.payload.pageSchema } as any;
+        }
+      })
       .addCase(refineComposition.rejected, (state) => {
         state.isRefining = false;
       });
@@ -242,6 +347,7 @@ export const {
   clearThumbnailError,
   setThumbnailStatus,
   setPageSchema,
+  setProjectId,
 } = compositionSlice.actions;
 
 export default compositionSlice.reducer;

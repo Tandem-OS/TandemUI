@@ -5,10 +5,21 @@ import { FaComments, FaTimes, FaPaperPlane, FaCheck } from 'react-icons/fa';
 import { mockChatResponses, chatPrompts } from '../constants';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
-import { refineComposition } from '@/features/composition/compositionSlice';
-import { selectIsRefining } from '@/features/composition/compositionSelectors';
-import type { AppDispatch } from '@/store';
-
+import {
+    refineComposition,
+    fetchVersions,
+    fetchVersionByNumber,
+    restoreVersion,
+    setPageSchema,
+} from '@/features/composition/compositionSlice';
+import {
+    selectIsRefining,
+    selectVersions,
+    selectCurrentVersion,
+    selectVersionsStatus,
+    selectRestoreStatus,
+} from '@/features/composition/compositionSelectors';
+import type { AppDispatch, RootState } from '@/store';
 
 const useMediaQuery = (query: string) => {
     const [matches, setMatches] = useState(false);
@@ -32,11 +43,167 @@ interface ChatMessage {
 interface ChatPanelProps {
     context?: any;
     compositionId?: string | null;
+    projectId?: string | null;
     sections?: string[];
     onRefineComplete?: (refinedSections: string[]) => void;
+    onRestoreComplete?: (newCompositionId: string) => void;
 }
 
-const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: ChatPanelProps) => {
+// ─── Version Navigator ────────────────────────────────────────────────────────
+
+interface VersionNavigatorProps {
+    projectId: string;
+    versions: import('@/features/composition/compositionSlice').VersionEntry[];
+    currentVersion: number | null;
+    restoreStatus: 'idle' | 'loading' | 'error';
+    onRestore: (targetVersion: number) => void;
+    onVersionChange: (msgs: ChatMessage[]) => void;
+    onPageSchemaChange: (schema: any) => void;
+}
+
+const VersionNavigator = ({
+    projectId,
+    versions,
+    currentVersion,
+    restoreStatus,
+    onRestore,
+    onVersionChange,
+    onPageSchemaChange,
+}: VersionNavigatorProps) => {
+    const dispatch = useDispatch<AppDispatch>();
+    const [viewingVersion, setViewingVersion] = useState<number | null>(currentVersion);
+    const [isFetching, setIsFetching] = useState(false);
+    const [refinePrompt, setRefinePrompt] = useState<string | null>(null);
+    const [isCurrent, setIsCurrent] = useState(true);
+
+    const allVersionNumbers = versions.map(v => v.version_number);
+    const minVersion = Math.min(...allVersionNumbers);
+    const maxVersion = currentVersion ?? Math.max(...allVersionNumbers);
+    const totalVersions = versions.length;
+
+    const canGoBack = viewingVersion !== null && viewingVersion > minVersion && !isFetching;
+    const canGoForward = viewingVersion !== null && viewingVersion < maxVersion && !isFetching;
+
+    const navigate = async (targetVersion: number) => {
+        if (!projectId || isFetching) return;
+        setIsFetching(true);
+        try {
+            const result = await dispatch(
+                fetchVersionByNumber({ projectId, versionNumber: targetVersion })
+            ).unwrap();
+
+            setViewingVersion(targetVersion);
+            setRefinePrompt(result.refinePrompt);
+            setIsCurrent(result.isCurrent);
+            onPageSchemaChange(result.pageSchema);
+
+            onVersionChange([
+                {
+                    id: `v-${targetVersion}-prompt`,
+                    type: 'user',
+                    message: result.refinePrompt,
+                    timestamp: new Date(),
+                },
+                {
+                    id: `v-${targetVersion}-response`,
+                    type: 'assistant',
+                    message: result.chatResponse,
+                    timestamp: new Date(),
+                },
+                ...(result.reasoning
+                    ? [{
+                        id: `v-${targetVersion}-reasoning`,
+                        type: 'assistant' as const,
+                        message: `💡 ${result.reasoning}`,
+                        timestamp: new Date(),
+                    }]
+                    : []),
+            ]);
+        } catch {
+            // fetch failed — viewingVersion stays unchanged
+        } finally {
+            setIsFetching(false);
+        }
+    };
+
+    return (
+        <div className="px-sm py-xs border-b border-border-default bg-background-secondary flex-shrink-0 space-y-xs">
+            {/* Navigation row */}
+            <div className="flex items-center justify-between gap-xs">
+              <motion.button
+                    onClick={() => viewingVersion !== null && navigate(viewingVersion - 1)}
+                    disabled={!canGoBack}
+                    whileTap={canGoBack ? { scale: 0.9 } : {}}
+                    className="flex items-center gap-xs px-sm py-xs rounded-lg border border-border-default text-text-secondary hover:border-accent-default hover:text-accent-default transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-para-xs font-medium"
+                >
+                    ← Older
+                </motion.button>
+
+                <div className="flex flex-col items-center gap-xs">
+                    <div className="flex items-center gap-xs">
+                        <div className="w-1.5 h-1.5 rounded-full bg-accent-default animate-pulse" />
+                        <Para size="xs" color="secondary" className="text-center tabular-nums font-medium">
+                            {isFetching
+                                ? 'Loading...'
+                                : (() => {
+                                    const idx = versions.findIndex(v => v.version_number === (viewingVersion ?? maxVersion));
+                                    const pos = idx !== -1 ? idx + 1 : totalVersions;
+                                    return `v${viewingVersion ?? maxVersion}  ·  ${pos} of ${totalVersions}`;
+                                })()}
+                        </Para>
+                    </div>
+                </div>
+
+                <motion.button
+                    onClick={() => viewingVersion !== null && navigate(viewingVersion + 1)}
+                    disabled={!canGoForward}
+                    whileTap={canGoForward ? { scale: 0.9 } : {}}
+                    className="flex items-center gap-xs px-sm py-xs rounded-lg border border-border-default text-text-secondary hover:border-accent-default hover:text-accent-default transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-para-xs font-medium"
+                >
+                    Newer →
+                </motion.button>
+            </div>
+
+            {/* Refine prompt label */}
+            {refinePrompt && (
+                <Para size="xs" color="secondary" className="truncate text-center italic">
+                    "{refinePrompt}"
+                </Para>
+            )}
+
+            {/* Restore button — only when not viewing current */}
+            {!isCurrent && viewingVersion !== null && (
+                <motion.button
+                    onClick={() => onRestore(viewingVersion)}
+                    disabled={restoreStatus === 'loading'}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="w-full text-para-xs py-xs rounded-lg border border-accent-default text-accent-default hover:bg-accent-subtle transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {restoreStatus === 'loading' ? 'Restoring...' : 'Restore this version'}
+                </motion.button>
+            )}
+
+            {/* Restore error */}
+            {restoreStatus === 'error' && (
+                <Para size="xs" className="text-center !text-red-500">
+                    Restore failed. Please try again.
+                </Para>
+            )}
+        </div>
+    );
+};
+
+// ─── Chat Panel ───────────────────────────────────────────────────────────────
+
+const ChatPanel = ({
+    context,
+    compositionId,
+    projectId,
+    sections = [],
+    onRefineComplete,
+    onRestoreComplete,
+}: ChatPanelProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
@@ -55,11 +222,23 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
 
     const dispatch = useDispatch<AppDispatch>();
     const isRefining = useSelector(selectIsRefining);
+    const versions = useSelector(selectVersions);
+    const currentVersion = useSelector(selectCurrentVersion);
+    const restoreStatus = useSelector(selectRestoreStatus);
+    const reduxProjectId = useSelector((state: RootState) => state.project.projectId);
     const isDesktop = useMediaQuery('(min-width: 1024px)');
+
+    const resolvedProjectId = reduxProjectId ?? projectId;
 
     useEffect(() => {
         setSelectedSections(new Set());
     }, [sections.join(',')]);
+
+    useEffect(() => {
+        if (compositionId && resolvedProjectId) {
+            dispatch(fetchVersions(resolvedProjectId));
+        }
+    }, [compositionId, resolvedProjectId]);
 
     useEffect(() => {
         if (context && context.prompt) {
@@ -94,6 +273,19 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
         });
     };
 
+    const handleRestore = async (targetVersion: number) => {
+        if (!resolvedProjectId) return;
+        try {
+            const result = await dispatch(restoreVersion({
+                projectId: resolvedProjectId,
+                targetVersion,
+            })).unwrap();
+            onRestoreComplete?.(result.newCompositionId);
+        } catch {
+            // restoreStatus in Redux will be 'error' — UI reads from there
+        }
+    };
+
     const handleSendMessage = async (message: string) => {
         if (!message.trim()) return;
 
@@ -124,6 +316,8 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
 
                 onRefineComplete?.(Array.from(selectedSections));
                 setSelectedSections(new Set());
+
+                if (resolvedProjectId) dispatch(fetchVersions(resolvedProjectId));
             } catch (err: any) {
                 setMessages(prev => [...prev, {
                     id: (Date.now() + 1).toString(),
@@ -209,6 +403,18 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
                 )}
             </div>
 
+            {/* Version Navigator */}
+            {compositionId && versions.length > 0 && resolvedProjectId && (
+                <VersionNavigator
+                    projectId={resolvedProjectId}
+                    versions={versions}
+                    currentVersion={currentVersion}
+                    restoreStatus={restoreStatus}
+                    onRestore={handleRestore}
+                    onVersionChange={(msgs) => setMessages(prev => [...prev, ...msgs])}
+                    onPageSchemaChange={(schema) => dispatch(setPageSchema(schema))} />
+            )}
+
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-sm sm:p-md space-y-sm sm:space-y-md">
                 {messages.map((message) => (
@@ -221,8 +427,8 @@ const ChatPanel = ({ context, compositionId, sections = [], onRefineComplete }: 
                         <motion.div
                             transition={{ duration: 0.2 }}
                             className={`max-w-[85%] sm:max-w-[80%] p-sm rounded-xl will-change-transform ${message.type === 'user'
-                                    ? 'bg-accent-default text-white'
-                                    : 'bg-background-secondary-2 text-text-primary'
+                                ? 'bg-accent-default text-white'
+                                : 'bg-background-secondary-2 text-text-primary'
                                 }`}
                         >
                             <Para size="sm" className={message.type === 'user' ? '!text-white' : ''}>
