@@ -45,19 +45,21 @@ export interface AiComposePipelineResponse {
   thumbnails: CompositionThumbnails | null;
 }
 
+const COMPOSE_ENDPOINT = '/compose' 
+
 export const postCompose = async (payload: ComposePayload): Promise<ComposeResponse> => {
-  const response = await api.post('/compose', payload);
+  const response = await api.post(`${COMPOSE_ENDPOINT}`, payload);
   return response.data;
 };
 
 export const getCompose = async (compositionId: string): Promise<ComposeResponse> => {
-  const response = await api.get(`/compose/${compositionId}`);
+  const response = await api.get(`${COMPOSE_ENDPOINT}/${compositionId}`);
   return response.data;
 };
 
 export const getAllProjectCompose = async (): Promise<ComposeResponse> => {
   const projectId = store.getState().project.projectId;
-  const response = await api.get(`/compose?project_id${projectId}`);
+  const response = await api.get(`${COMPOSE_ENDPOINT}?project_id${projectId}`);
   return response.data;
 };
 // ─── Refine ───────────────────────────────────────────────────────────────────
@@ -69,7 +71,7 @@ export interface RefinePayload {
 }
 
 export const postRefine = async (payload: RefinePayload): Promise<RefineResponse> => {
-  const response = await api.patch('/ai/refine', payload);
+  const response = await api.patch(`${COMPOSE_ENDPOINT}/refine`, payload);
   return response.data;
 };
 
@@ -82,6 +84,6 @@ export const callAiComposePipeline = async (
     ...values,
     project_id: projectId,
   };
-  const response = await api.post('/ai/compose', payload);
+  const response = await api.post(`${COMPOSE_ENDPOINT}`, payload);
   return response.data;
 };
