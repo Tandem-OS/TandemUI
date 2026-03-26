@@ -17,3 +17,4 @@ export const selectVersions       = (s: RootState) => s.composition.versions.ver
 export const selectCurrentVersion = (s: RootState) => s.composition.versions.currentVersion
 export const selectVersionsStatus = (s: RootState) => s.composition.versions.status
 export const selectRestoreStatus  = (s: RootState) => s.composition.versions.restoreStatus
+export const selectLastUpdatedCategories = (s: RootState) => s.composition.lastUpdatedCategories;

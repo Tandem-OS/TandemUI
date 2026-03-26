@@ -25,6 +25,8 @@ import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
 import { AiOutlineRadiusUpright } from "react-icons/ai";
 import SectionPreview from './SectionPreview';
+import { useSelector } from 'react-redux';
+import { selectLastUpdatedCategories } from '@/features/composition/compositionSelectors';
 
 interface SectionCardProps {
     section: any;
@@ -100,6 +102,8 @@ const SectionCard = ({
     };
 
     const isComposeSection = 'component_id' in section && 'content_slots' in section;
+    const lastUpdatedCategories = useSelector(selectLastUpdatedCategories);
+
 
     const handleCloneSection = () => {
         navigator.clipboard.writeText(JSON.stringify({
@@ -127,7 +131,7 @@ const SectionCard = ({
                 {(isComposeSection ? (
                     <SectionPreview
                         section={section}
-                        highlighted={true}
+                        highlighted={lastUpdatedCategories.includes(section.category)}
                     />
                 ) : (
                     <img

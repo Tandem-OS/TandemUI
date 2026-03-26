@@ -13,16 +13,16 @@ import type { PageSchema } from '@/lib/requests/CompositionRequest';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface Thumbnails {
-  desktop: string; // 1440px screenshot URL
-  tablet: string;  // 768px screenshot URL
-  mobile: string;  // 375px screenshot URL
+  desktop: string;
+  tablet: string;
+  mobile: string;
 }
 
 export type ThumbnailStatus =
   | 'idle'
-  | 'composing'   // POST /compose in flight
-  | 'generating'  // polling, thumbnails not yet ready
-  | 'ready'       // thumbnails available
+  | 'composing'
+  | 'generating'
+  | 'ready'
   | 'refining'
   | 'error';
 export type VersionEntry = {
@@ -48,23 +48,19 @@ export interface CompositionState {
   isRefining: boolean;
   versions: VersionsState;
 
+  lastUpdatedCategories: string[];   // ← added
   // NOTE: html_snapshot intentionally excluded — large string, per SMA spec
 }
 
 // ─── Polling Config ───────────────────────────────────────────────────────────
 
 const POLL_INTERVAL_MS = 3000;
-const MAX_POLL_ATTEMPTS = 20; // 20 × 3s = 60s max
+const MAX_POLL_ATTEMPTS = 20;
 let activePollPromise: { abort: () => void } | null = null;
 
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
 
-/**
- * Step 1 — POST /compose
- * Call ONCE after KOH completes with winner_ids.
- * NEVER call again to re-poll — each call creates a new DB row.
- */
 export const submitComposition = createAsyncThunk(
   'composition/submit',
   async (
@@ -77,7 +73,6 @@ export const submitComposition = createAsyncThunk(
         project_id: payload.projectId,
       });
 
-      // thumbnails will be null here — expected, not an error
       activePollPromise?.abort();
       activePollPromise = dispatch(pollForThumbnails({ compositionId: data.composition_id }));
 
@@ -93,11 +88,6 @@ export const submitComposition = createAsyncThunk(
   }
 );
 
-/**
- * Step 2 — GET /compose/{id} polling
- * Polls every 3s up to 20 attempts (60s timeout).
- * Only dispatched internally by submitComposition — never call POST again.
- */
 export const refineComposition = createAsyncThunk(
   'composition/refine',
   async (
@@ -186,7 +176,6 @@ export const pollForThumbnails = createAsyncThunk(
     for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
       if (signal.aborted) return rejectWithValue('Polling cancelled');
 
-      // Abort-aware sleep
       await new Promise<void>((resolve) => {
         const timer = setTimeout(resolve, POLL_INTERVAL_MS);
         signal.addEventListener('abort', () => {
@@ -229,6 +218,7 @@ const initialState: CompositionState = {
     status: 'idle',
     restoreStatus: 'idle',
   },
+  lastUpdatedCategories: [],         // ← added
 };
 
 const compositionSlice = createSlice({
@@ -265,7 +255,6 @@ const compositionSlice = createSlice({
       .addCase(submitComposition.fulfilled, (state, action) => {
         state.compositionId = action.payload.compositionId;
         state.projectId = action.payload.projectId;
-        // status moves to 'generating' via pollForThumbnails.pending
       })
       .addCase(submitComposition.rejected, (state, action) => {
         state.thumbnailStatus = 'error';
@@ -321,6 +310,12 @@ const compositionSlice = createSlice({
         state.isRefining = false;
         state.versions.currentVersion = action.payload.currentVersion ?? state.versions.currentVersion;
 
+
+        // Track which categories were updated — drives section highlight
+        state.lastUpdatedCategories = action.payload.pageSchema.map(
+          (s: any) => s.category
+        );
+
         if (state.pageSchema?.sections) {
           // pageSchema exists — merge by category
           action.payload.pageSchema.forEach((updatedSection: any) => {
@@ -333,6 +328,7 @@ const compositionSlice = createSlice({
           });
         } else {
           // pageSchema null — store as-is, will be incomplete but better than nothing
+          // pageSchema null — store as-is
           state.pageSchema = { sections: action.payload.pageSchema } as any;
         }
       })
