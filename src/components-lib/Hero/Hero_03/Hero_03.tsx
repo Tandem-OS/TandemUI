@@ -132,7 +132,7 @@ const Hero_03: React.FC<Hero_03Props> = ({
     fontSize: cfg.titleFontSize,
     fontWeight: cfg.titleFontWeight,
     lineHeight: cfg.titleLineHeight,
-    color: colors.text_color,
+    color: colors.heading_color,
     marginBottom: cfg.titleMarginBottom,
     marginTop: 0,
     wordBreak: 'break-word',
@@ -140,7 +140,7 @@ const Hero_03: React.FC<Hero_03Props> = ({
 
   const descStyle: React.CSSProperties = {
     fontSize: cfg.descFontSize,
-    color: colors.text_color,
+    color: colors.subheading_color,
     opacity: 0.8,
     marginBottom: cfg.descMarginBottom,
     marginTop: 0,

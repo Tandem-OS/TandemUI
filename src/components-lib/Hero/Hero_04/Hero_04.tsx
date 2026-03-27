@@ -170,14 +170,14 @@ const Hero_04: React.FC<Hero_04Props> = ({
     fontSize: cfg.titleFontSize,
     fontWeight: cfg.titleFontWeight,
     lineHeight: cfg.titleLineHeight,
-    color: colors.text_color,
+    color: colors.heading_color,
     margin: 0,
     wordBreak: 'break-word',
   };
 
   const descStyle: React.CSSProperties = {
     fontSize: cfg.descFontSize,
-    color: colors.text_color,
+    color: colors.subheading_color,
     opacity: 0.8,
     margin: 0,
   };

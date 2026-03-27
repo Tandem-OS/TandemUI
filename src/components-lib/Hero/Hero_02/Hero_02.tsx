@@ -154,7 +154,7 @@ const Hero_02: React.FC<Hero_02Props> = ({
     fontSize: cfg.titleFontSize,
     fontWeight: cfg.titleFontWeight,
     lineHeight: cfg.titleLineHeight,
-    color: colors.text_color,
+    color: colors.heading_color,
     marginBottom: cfg.titleMarginBottom,
     marginTop: 0,
     wordBreak: 'break-word',
@@ -189,7 +189,7 @@ const Hero_02: React.FC<Hero_02Props> = ({
           : 'transparent',
       color: isPrimary ? colors.btn_primary_color
         : isOutline ? colors.btn_outline_color
-          : colors.text_color,
+          : colors.heading_color,
       borderColor: isPrimary ? (colors.btn_primary_border ?? colors.btn_primary_bg)
         : isOutline ? (colors.btn_outline_border ?? colors.btn_outline_color)
           : 'transparent',

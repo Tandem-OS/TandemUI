@@ -40,7 +40,8 @@ export interface NavColors {
 // ── Hero
 export interface ComposeSectionTokens {
   background?: string;
-  text_color?: string;
+  heading_color?:    string;
+  subheading_color?: string;
   btn_primary_bg?: string;
   btn_primary_color?: string;
   btn_outline_border?: string;
@@ -145,6 +146,8 @@ export interface FeaturesComposeSection {
 
 export interface HeroColors {
   background?:               string;
+  heading_color?:            string;
+  subheading_color?:         string;
   text_color?:               string;
   btn_primary_bg?:           string;
   btn_primary_color?:        string;

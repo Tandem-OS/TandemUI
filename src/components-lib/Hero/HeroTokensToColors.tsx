@@ -3,7 +3,8 @@ import type { ComposeSectionTokens, HeroColors } from '@/pages/Renderer/Composit
 export function heroTokensToColors(tokens: ComposeSectionTokens): HeroColors {
   return {
     background:              tokens.background,
-    text_color:              tokens.text_color,
+    heading_color:           tokens.heading_color,
+    subheading_color:        tokens.subheading_color,
     btn_primary_bg:          tokens.btn_primary_bg,
     btn_primary_color:       tokens.btn_primary_color,
     btn_primary_border:      tokens.btn_primary_bg,
