@@ -11,6 +11,8 @@ import {
     fetchVersionByNumber,
     restoreVersion,
     setPageSchema,
+    setPreviewSchema,
+    clearPreview,
 } from '@/features/composition/compositionSlice';
 import {
     selectIsRefining,
@@ -18,6 +20,7 @@ import {
     selectCurrentVersion,
     selectVersionsStatus,
     selectRestoreStatus,
+    selectIsPreviewingHistory,
 } from '@/features/composition/compositionSelectors';
 import type { AppDispatch, RootState } from '@/store';
 
@@ -56,6 +59,7 @@ interface VersionNavigatorProps {
     versions: import('@/features/composition/compositionSlice').VersionEntry[];
     currentVersion: number | null;
     restoreStatus: 'idle' | 'loading' | 'error';
+    isPreviewingHistory: boolean;
     onRestore: (targetVersion: number) => void;
     onVersionChange: (msgs: ChatMessage[]) => void;
     onPageSchemaChange: (schema: any) => void;
@@ -66,6 +70,7 @@ const VersionNavigator = ({
     versions,
     currentVersion,
     restoreStatus,
+    isPreviewingHistory,
     onRestore,
     onVersionChange,
     onPageSchemaChange,
@@ -75,7 +80,11 @@ const VersionNavigator = ({
     const [isFetching, setIsFetching] = useState(false);
     const [refinePrompt, setRefinePrompt] = useState<string | null>(null);
     const [isCurrent, setIsCurrent] = useState(true);
-
+    useEffect(() => {
+        if (!isPreviewingHistory) {
+            setIsCurrent(true);
+        }
+    }, [isPreviewingHistory]);
     const allVersionNumbers = versions.map(v => v.version_number);
     const minVersion = Math.min(...allVersionNumbers);
     const maxVersion = currentVersion ?? Math.max(...allVersionNumbers);
@@ -130,7 +139,7 @@ const VersionNavigator = ({
         <div className="px-sm py-xs border-b border-border-default bg-background-secondary flex-shrink-0 space-y-xs">
             {/* Navigation row */}
             <div className="flex items-center justify-between gap-xs">
-              <motion.button
+                <motion.button
                     onClick={() => viewingVersion !== null && navigate(viewingVersion - 1)}
                     disabled={!canGoBack}
                     whileTap={canGoBack ? { scale: 0.9 } : {}}
@@ -141,14 +150,20 @@ const VersionNavigator = ({
 
                 <div className="flex flex-col items-center gap-xs">
                     <div className="flex items-center gap-xs">
-                        <div className="w-1.5 h-1.5 rounded-full bg-accent-default animate-pulse" />
+                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isPreviewingHistory
+                            ? 'bg-amber-500'
+                            : 'bg-green-500 animate-pulse'
+                            }`} />
                         <Para size="xs" color="secondary" className="text-center tabular-nums font-medium">
                             {isFetching
                                 ? 'Loading...'
                                 : (() => {
                                     const idx = versions.findIndex(v => v.version_number === (viewingVersion ?? maxVersion));
                                     const pos = idx !== -1 ? idx + 1 : totalVersions;
-                                    return `v${viewingVersion ?? maxVersion}  ·  ${pos} of ${totalVersions}`;
+                                    const label = `v${viewingVersion ?? maxVersion}  ·  ${pos} of ${totalVersions}`;
+                                    return isPreviewingHistory
+                                        ? `${label}  ·  preview`
+                                        : `${label}  ·  live`;
                                 })()}
                         </Para>
                     </div>
@@ -225,6 +240,7 @@ const ChatPanel = ({
     const versions = useSelector(selectVersions);
     const currentVersion = useSelector(selectCurrentVersion);
     const restoreStatus = useSelector(selectRestoreStatus);
+    const isPreviewingHistory = useSelector(selectIsPreviewingHistory);
     const reduxProjectId = useSelector((state: RootState) => state.project.projectId);
     const isDesktop = useMediaQuery('(min-width: 1024px)');
 
@@ -280,6 +296,7 @@ const ChatPanel = ({
                 projectId: resolvedProjectId,
                 targetVersion,
             })).unwrap();
+            dispatch(clearPreview());
             onRestoreComplete?.(result.newCompositionId);
         } catch {
             // restoreStatus in Redux will be 'error' — UI reads from there
@@ -370,8 +387,8 @@ const ChatPanel = ({
     };
 
     const canSubmit = compositionId
-        ? inputValue.trim().length > 0 && selectedSections.size > 0 && !isRefining
-        : inputValue.trim().length > 0 && !isRefining;
+        ? inputValue.trim().length > 0 && selectedSections.size > 0 && !isRefining && !isPreviewingHistory
+        : inputValue.trim().length > 0 && !isRefining && !isPreviewingHistory;
 
     const ChatInterface = (
         <div className="h-full w-full bg-background-primary-2 rounded-2xl max-md:rounded-b-none shadow-md border border-border-default flex flex-col">
@@ -410,9 +427,28 @@ const ChatPanel = ({
                     versions={versions}
                     currentVersion={currentVersion}
                     restoreStatus={restoreStatus}
+                    isPreviewingHistory={isPreviewingHistory}
                     onRestore={handleRestore}
                     onVersionChange={(msgs) => setMessages(prev => [...prev, ...msgs])}
-                    onPageSchemaChange={(schema) => dispatch(setPageSchema(schema))} />
+                    onPageSchemaChange={(schema) => dispatch(setPreviewSchema(schema))} />
+            )}
+            {/* Preview Mode Banner */}
+            {isPreviewingHistory && (
+                <div className="flex items-center justify-between gap-xs px-sm py-xs bg-amber-500/10 border-b border-amber-500/30 flex-shrink-0">
+                    <div className="flex items-center gap-xs">
+                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                        <Para size="xs" className="!text-amber-600 dark:!text-amber-400 font-medium">
+                            Browsing history — canvas shows a past version
+                        </Para>
+                    </div>
+                    <motion.button
+                        onClick={() => dispatch(clearPreview())}
+                        whileTap={{ scale: 0.95 }}
+                        className="text-para-xs text-amber-600 dark:text-amber-400 hover:underline flex-shrink-0"
+                    >
+                        Back to live
+                    </motion.button>
+                </div>
             )}
 
             {/* Messages */}
@@ -477,9 +513,8 @@ const ChatPanel = ({
                                         onClick={() => toggleSection(sectionType)}
                                         whileHover={{ scale: isRefining ? 1 : 1.04 }}
                                         whileTap={{ scale: 0.95 }}
-                                        disabled={isRefining}
-                                        className={`flex-shrink-0 flex items-center gap-xs text-para-xs px-sm py-xs rounded-lg border transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${isSelected
-                                            ? 'bg-accent-default text-accent-foreground border-accent-default shadow-sm'
+                                        disabled={isRefining || isPreviewingHistory}
+                                        className={`flex-shrink-0 flex items-center gap-xs text-para-xs px-sm py-xs rounded-lg border transition-all whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${isSelected ? 'bg-accent-default text-accent-foreground border-accent-default shadow-sm'
                                             : 'bg-background-secondary border-border-default text-text-secondary hover:border-accent-default hover:text-text-primary hover:bg-accent-subtle'
                                             }`}
                                     >
@@ -518,13 +553,15 @@ const ChatPanel = ({
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder={
-                            isRefining
-                                ? 'Refining your design...'
-                                : compositionId && selectedSections.size === 0
-                                    ? 'Select sections above first...'
-                                    : 'Type your instruction...'
+                            isPreviewingHistory
+                                ? 'Restore this version to make changes...'
+                                : isRefining
+                                    ? 'Refining your design...'
+                                    : compositionId && selectedSections.size === 0
+                                        ? 'Select sections above first...'
+                                        : 'Type your instruction...'
                         }
-                        disabled={isRefining}
+                        disabled={isRefining || isPreviewingHistory}
                         className="flex-1 px-sm sm:px-md py-sm bg-background-secondary border border-border-default rounded-lg text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-default transition-colors text-para-sm disabled:opacity-50"
                         autoFocus
                     />

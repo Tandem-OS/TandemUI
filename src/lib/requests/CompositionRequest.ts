@@ -88,7 +88,6 @@ export const callAiComposePipeline = async (
   return response.data;
 };
 export const getVersions = async (projectId: string) => {
-  debugger;
   const response = await api.get(`/compose/versions/${projectId}`);
   return response.data;
 };

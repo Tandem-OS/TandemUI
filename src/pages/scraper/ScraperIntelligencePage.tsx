@@ -25,12 +25,11 @@ import { dummyScrapedData, quickSuggestions, processingSteps } from './constants
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '@/store';
 import type { RootState } from '@/store';
-import { pollForThumbnails, setProjectId } from '@/features/composition/compositionSlice';
+import { pollForThumbnails } from '@/features/composition/compositionSlice';
 import { createScraper } from '@/lib/requests/ScraperRequest';
 import { useNavigate } from 'react-router-dom';
 import Toast from '@/common-components/Toast';
-import { selectPageSchema } from '@/features/composition/compositionSelectors';
-
+import { selectActiveOrPreviewSchema } from '@/features/composition/compositionSelectors';
 // Custom hook for taste profile
 const useTasteProfile = () => {
     const [profile, setProfile] = useState(() => {
@@ -112,18 +111,12 @@ const ScraperIntelligencePage = () => {
             handleModeToggle(false);
         }
     }, [userRole]);
-    useEffect(() => {
-        if (projectId) {
-            dispatch(setProjectId(projectId));
-        }
-    }, [projectId]);
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);
     };
 
-    const pageSchema = useSelector(selectPageSchema);
-
+const pageSchema = useSelector(selectActiveOrPreviewSchema);
     const activeSections = compositionId && pageSchema?.sections
         ? pageSchema.sections
         : (scrapedData?.sections ?? []);

@@ -40,8 +40,9 @@ export type VersionsState = {
 };
 export interface CompositionState {
   compositionId: string | null;
-  projectId: string | null;
   pageSchema: PageSchema | null;
+  previewSchema: PageSchema | null;
+  isPreviewingHistory: boolean;
   thumbnails: Thumbnails | null;
   thumbnailStatus: ThumbnailStatus;
   thumbnailError: string | null;
@@ -78,7 +79,6 @@ export const submitComposition = createAsyncThunk(
 
       return {
         compositionId: data.composition_id,
-        projectId: payload.projectId,
       };
     } catch (err: any) {
       return rejectWithValue(
@@ -100,7 +100,7 @@ export const refineComposition = createAsyncThunk(
         sections: payload.sections,
         user_instruction: payload.userInstruction,
       });
-     return {
+      return {
         compositionId: data.composition_id,
         pageSchema: data.updated_sections,
         chatResponse: data.chat_response,
@@ -116,7 +116,7 @@ export const refineComposition = createAsyncThunk(
 export const fetchVersions = createAsyncThunk(
   'composition/fetchVersions',
   async (projectId: string, { rejectWithValue }) => {
-  try {
+    try {
       const data = await getVersions(projectId);
       return {
         versions: data.versions as VersionEntry[],
@@ -133,7 +133,7 @@ export const fetchVersionByNumber = createAsyncThunk(
     payload: { projectId: string; versionNumber: number },
     { rejectWithValue }
   ) => {
- try {
+    try {
       const data = await getVersionByNumber(payload.projectId, payload.versionNumber);
       return {
         pageSchema: data.page_schema,
@@ -153,7 +153,7 @@ export const restoreVersion = createAsyncThunk(
     payload: { projectId: string; targetVersion: number },
     { dispatch, rejectWithValue }
   ) => {
-try {
+    try {
       const data = await postRestoreVersion(payload.projectId, payload.targetVersion);
 
       // Reload composition so canvas picks up restored schema
@@ -206,8 +206,9 @@ export const pollForThumbnails = createAsyncThunk(
 
 const initialState: CompositionState = {
   compositionId: null,
-  projectId: null,
   pageSchema: null,
+  previewSchema: null,
+  isPreviewingHistory: false,
   thumbnails: null,
   thumbnailStatus: 'idle',
   thumbnailError: null,
@@ -240,9 +241,16 @@ const compositionSlice = createSlice({
       state.pageSchema = action.payload;
     },
 
-    setProjectId: (state, action: PayloadAction<string>) => {
-      state.projectId = action.payload;
+    setPreviewSchema: (state, action: PayloadAction<PageSchema>) => {
+      state.previewSchema = action.payload;
+      state.isPreviewingHistory = true;
     },
+
+    clearPreview: (state) => {
+      state.previewSchema = null;
+      state.isPreviewingHistory = false;
+    },
+
   },
   extraReducers: (builder) => {
     // ── submitComposition ──
@@ -254,7 +262,6 @@ const compositionSlice = createSlice({
       })
       .addCase(submitComposition.fulfilled, (state, action) => {
         state.compositionId = action.payload.compositionId;
-        state.projectId = action.payload.projectId;
       })
       .addCase(submitComposition.rejected, (state, action) => {
         state.thumbnailStatus = 'error';
@@ -297,6 +304,8 @@ const compositionSlice = createSlice({
       })
       .addCase(restoreVersion.fulfilled, (state) => {
         state.versions.restoreStatus = 'idle';
+        state.previewSchema = null;
+        state.isPreviewingHistory = false;
       })
       .addCase(restoreVersion.rejected, (state) => {
         state.versions.restoreStatus = 'error';
@@ -343,7 +352,8 @@ export const {
   clearThumbnailError,
   setThumbnailStatus,
   setPageSchema,
-  setProjectId,
+  setPreviewSchema,
+  clearPreview,
 } = compositionSlice.actions;
 
 export default compositionSlice.reducer;
