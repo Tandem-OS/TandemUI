@@ -25,6 +25,7 @@ export interface RefineResponse {
   updated_sections: PageSchema['sections'];
   current_version: number;
   chat_response: string;
+  reasoning?: string;
 }
 
 export interface CallAiComposePipeline {

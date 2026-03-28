@@ -104,6 +104,7 @@ export const refineComposition = createAsyncThunk(
         compositionId: data.composition_id,
         pageSchema: data.updated_sections,
         chatResponse: data.chat_response,
+        reasoning: data.reasoning as string ?? undefined,
         currentVersion: data.current_version as number ?? null,
       };
     } catch (err: any) {

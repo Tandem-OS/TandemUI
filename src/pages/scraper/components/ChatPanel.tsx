@@ -40,6 +40,7 @@ interface ChatMessage {
     id: string;
     type: 'user' | 'assistant';
     message: string;
+    reasoning?: string;
     timestamp: Date;
 }
 
@@ -51,6 +52,56 @@ interface ChatPanelProps {
     onRefineComplete?: (refinedSections: string[]) => void;
     onRestoreComplete?: (newCompositionId: string) => void;
 }
+
+// ─── Reasoning Toggle ─────────────────────────────────────────────────────────
+
+interface ReasoningToggleProps {
+    reasoning: string;
+}
+
+const ReasoningToggle = ({ reasoning }: ReasoningToggleProps) => {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <div className="mt-xs border-t border-border-default pt-xs">
+            <motion.button
+                onClick={() => setOpen(prev => !prev)}
+                className="flex items-center gap-xs text-para-xs text-text-secondary hover:text-text-primary transition-colors"
+                whileTap={{ scale: 0.97 }}
+            >
+                <span>💡 View reasoning</span>
+                <motion.span
+                    animate={{ rotate: open ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="inline-flex ml-xs"
+                >
+                    ›
+                </motion.span>
+            </motion.button>
+
+            <AnimatePresence initial={false}>
+                {open && (
+                    <motion.div
+                        key="reasoning"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeInOut' }}
+                        className="overflow-hidden"
+                    >
+                        <Para
+                            size="xs"
+                            color="secondary"
+                            className="mt-xs leading-relaxed border-l-2 border-accent-default pl-xs italic"
+                        >
+                            {reasoning}
+                        </Para>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
 
 // ─── Version Navigator ────────────────────────────────────────────────────────
 
@@ -117,16 +168,9 @@ const VersionNavigator = ({
                     id: `v-${targetVersion}-response`,
                     type: 'assistant',
                     message: result.chatResponse,
+                    reasoning: result.reasoning ?? undefined, // ← reasoning attached here
                     timestamp: new Date(),
                 },
-                ...(result.reasoning
-                    ? [{
-                        id: `v-${targetVersion}-reasoning`,
-                        type: 'assistant' as const,
-                        message: `💡 ${result.reasoning}`,
-                        timestamp: new Date(),
-                    }]
-                    : []),
             ]);
         } catch {
             // fetch failed — viewingVersion stays unchanged
@@ -328,6 +372,7 @@ const ChatPanel = ({
                     id: (Date.now() + 1).toString(),
                     type: 'assistant',
                     message: result.chatResponse ?? `Done! Updated ${Array.from(selectedSections).join(', ')}.`,
+                    reasoning: result.reasoning ?? undefined, // ← ADD this line
                     timestamp: new Date(),
                 }]);
 
@@ -473,6 +518,10 @@ const ChatPanel = ({
                             <Para size="xs" className={`mt-xs opacity-70 ${message.type === 'user' ? '!text-white' : ''}`}>
                                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Para>
+                            {/* Reasoning toggle — only on assistant messages with reasoning */}
+                            {message.type === 'assistant' && message.reasoning && (
+                                <ReasoningToggle reasoning={message.reasoning} />
+                            )}
                         </motion.div>
                     </motion.div>
                 ))}
