@@ -4,7 +4,7 @@ import { fadeInUp } from '../../../lib/animations/variants';
 import type { HeroColors, HeroAction } from '@/pages/Renderer/CompositionType';
 
 // ── Props ────────────────────────────────────────────────────────────────────
-interface Hero_01Props {
+interface HeroStackedProps {
   hero_heading?: string | null;
   hero_subheading?: string | null;
   hero_media?: string | null;
@@ -93,8 +93,8 @@ const getAnim = (delay: number, animated: boolean) => {
   };
 };
 
-// ── Hero_01 ──────────────────────────────────────────────────────────────────
-const Hero_01: React.FC<Hero_01Props> = ({
+// ── HeroStacked ──────────────────────────────────────────────────────────────────
+const HeroStacked: React.FC<HeroStackedProps> = ({
   hero_heading,
   hero_subheading,
   hero_media,
@@ -106,10 +106,10 @@ const Hero_01: React.FC<Hero_01Props> = ({
   const cfg = variantConfig['default'];
 
   if (!cfg) {
-    console.error('[Hero_01] variantConfig["default"] is missing.');
+    console.error('[HeroStacked] variantConfig["default"] is missing.');
     return (
       <section style={{ padding: colors.padding, backgroundColor: colors.background }}>
-        <p style={{ color: 'red' }}>[Hero_01] Missing variant config.</p>
+        <p style={{ color: 'red' }}>[HeroStacked] Missing variant config.</p>
       </section>
     );
   }
@@ -287,5 +287,5 @@ const Hero_01: React.FC<Hero_01Props> = ({
   );
 };
 
-Hero_01.displayName = 'Hero_01';
-export default Hero_01;
+HeroStacked.displayName = 'HeroStacked';
+export default HeroStacked;

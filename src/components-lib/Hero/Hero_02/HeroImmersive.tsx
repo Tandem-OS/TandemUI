@@ -4,7 +4,7 @@ import { fadeInUp } from '../../../lib/animations/variants';
 import type { HeroColors, HeroAction } from '@/pages/Renderer/CompositionType';
 
 // ── Props ────────────────────────────────────────────────────────────────────
-interface Hero_02Props {
+interface HeroImmersiveProps {
   hero_heading?: string | null;
   hero_media?: string | null;
   hero_media_slides?: string[] | null;
@@ -96,8 +96,8 @@ const getAnim = (delay: number, animated: boolean) => {
   };
 };
 
-// ── Hero_02 ──────────────────────────────────────────────────────────────────
-const Hero_02: React.FC<Hero_02Props> = ({
+// ── HeroImmersive ──────────────────────────────────────────────────────────────────
+const HeroImmersive: React.FC<HeroImmersiveProps> = ({
   hero_heading,
   hero_media,
   hero_media_slides,
@@ -109,10 +109,10 @@ const Hero_02: React.FC<Hero_02Props> = ({
   const cfg = variantConfig['default'];
 
   if (!cfg) {
-    console.error('[Hero_02] variantConfig["default"] is missing.');
+    console.error('[HeroImmersive] variantConfig["default"] is missing.');
     return (
       <section style={{ padding: colors.padding, backgroundColor: colors.background }}>
-        <p style={{ color: 'red' }}>[Hero_02] Missing variant config.</p>
+        <p style={{ color: 'red' }}>[HeroImmersive] Missing variant config.</p>
       </section>
     );
   }
@@ -346,5 +346,5 @@ const Hero_02: React.FC<Hero_02Props> = ({
   );
 };
 
-Hero_02.displayName = 'Hero_02';
-export default Hero_02;
+HeroImmersive.displayName = 'HeroImmersive';
+export default HeroImmersive;

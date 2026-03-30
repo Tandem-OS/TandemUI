@@ -4,7 +4,7 @@ import { fadeInUp } from '../../../lib/animations/variants';
 import type { HeroColors, HeroAction } from '@/pages/Renderer/CompositionType';
 
 // ── Props ────────────────────────────────────────────────────────────────────
-interface Hero_03Props {
+interface HeroSplitProps {
   hero_heading?: string | null;
   hero_subheading?: string | null;
   hero_media?: string | null;
@@ -76,8 +76,8 @@ const getAnim = (delay: number, animated: boolean) => {
   };
 };
 
-// ── Hero_03 — full-bleed, left-anchored overlay ──────────────────────────────
-const Hero_03: React.FC<Hero_03Props> = ({
+// ── HeroSplit — full-bleed, left-anchored overlay ──────────────────────────────
+const HeroSplit: React.FC<HeroSplitProps> = ({
   hero_heading,
   hero_subheading,
   hero_media,
@@ -89,10 +89,10 @@ const Hero_03: React.FC<Hero_03Props> = ({
   const cfg = variantConfig['default'];
 
   if (!cfg) {
-    console.error('[Hero_03] variantConfig["default"] is missing.');
+    console.error('[HeroSplit] variantConfig["default"] is missing.');
     return (
       <section style={{ padding: colors.padding, backgroundColor: colors.background }}>
-        <p style={{ color: 'red' }}>[Hero_03] Missing variant config.</p>
+        <p style={{ color: 'red' }}>[HeroSplit] Missing variant config.</p>
       </section>
     );
   }
@@ -267,5 +267,5 @@ const Hero_03: React.FC<Hero_03Props> = ({
   );
 };
 
-Hero_03.displayName = 'Hero_03';
-export default Hero_03;
+HeroSplit.displayName = 'HeroSplit';
+export default HeroSplit;

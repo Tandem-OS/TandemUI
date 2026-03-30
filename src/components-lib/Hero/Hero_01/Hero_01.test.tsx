@@ -4,7 +4,7 @@ import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import fs from 'fs';
 import path from 'path';
-import Hero_01 from './Hero_01';
+import Hero_01 from './HeroStacked';
 import type { HeroColors } from '@/pages/Renderer/CompositionType';
 
 vi.mock('framer-motion', () => ({

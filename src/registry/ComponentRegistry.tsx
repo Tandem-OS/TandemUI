@@ -1,14 +1,16 @@
-import React from 'react'
-import { Hero_01, Hero_02, Hero_03, Hero_04 } from '@/components-lib/Hero'
+import React from 'react';
+import HeroStacked from '@/components-lib/Hero/Hero_01/HeroStacked';
+import HeroImmersive from '@/components-lib/Hero/Hero_02/HeroImmersive';
+import HeroSplit from '@/components-lib/Hero/Hero_03/HeroSplit';
 import NavBase from '@/components-lib/Nav/NavBase'
 import FeaturesBase from '@/components-lib/Features/FeaturesBase'
 
 const componentRegistry: Record<string, React.ComponentType<any>> = {
+
   // ── Heroes
-  canonical_hero_001: Hero_01,
-  canonical_hero_002: Hero_02,
-  canonical_hero_003: Hero_03,
-  canonical_hero_004: Hero_04,
+  stacked: HeroStacked,
+  immersive: HeroImmersive,
+  split: HeroSplit,
 
   // ── Navs — all map to NavBase, layout derived from API
   canonical_nav_001: NavBase,
