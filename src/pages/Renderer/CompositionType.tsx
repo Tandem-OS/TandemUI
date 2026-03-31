@@ -171,5 +171,67 @@ export interface HeroAction {
   variant?:     'primary' | 'outline' | 'ghost';
   aria_label?:  string;
 }
+// ── Pricing
 
-export type ComposeSection = NavComposeSection | HeroComposeSection | FeaturesComposeSection;
+export interface PricingPlanRaw {
+  id:                string
+  name:              string
+  price_monthly?:    string | null
+  price_annual?:     string | null
+  currency_label?:   string | null
+  description?:      string | null
+  features?:         string[] | null
+  is_featured?:      boolean | null
+  featured_badge?:   string | null
+  action_label?:     string | null
+  action_target?:    string | null
+  action_variant?:   string | null
+  action_aria_label?: string | null
+}
+
+export interface PricingSlots {
+  pricing_heading?:        string | null
+  pricing_subheading?:     string | null
+  pricing_plans?:          PricingPlanRaw[] | null
+  pricing_billing_toggle?: boolean | null
+  pricing_billing_note?:   string | null
+  pricing_logos?:          string[] | null
+  [key: string]: unknown
+}
+
+export interface PricingTokens {
+  background?:           string
+  heading_color?:        string
+  subheading_color?:     string
+  heading_size?:         string
+  heading_weight?:       string
+  card_bg?:              string
+  card_radius?:          string
+  card_border?:          string
+  featured_card_bg?:     string
+  featured_card_border?: string
+  body_color?:           string
+  price_color?:          string
+  feature_color?:        string
+  btn_primary_bg?:       string
+  btn_primary_color?:    string
+  btn_outline_color?:    string
+  btn_outline_border?:   string
+  btn_radius?:           string
+  padding?:              string
+  toggle_active?:        string
+  toggle_inactive?:      string
+  [key: string]: string | undefined
+}
+
+export interface PricingComposeSection {
+  position:          number
+  category:          'pricing'
+  component_id:      string
+  layout_structure?: string
+  tags:              string[]
+  content_slots:     PricingSlots
+  tokens:            PricingTokens
+}
+
+export type ComposeSection = NavComposeSection | HeroComposeSection | FeaturesComposeSection  | PricingComposeSection;

@@ -30,6 +30,7 @@ export interface CanonicalComponentsResponse {
   hero: CanonicalComponent[];
   nav: CanonicalComponent[];
   features: CanonicalComponent[];
+  pricing:CanonicalComponent[];
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
