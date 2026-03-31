@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import type { HeroShellProps, HeroLayoutStructure } from '@/components-lib/Hero/HeroTypes'
+import type { HeroShellProps, HeroLayoutStructure } from '@/components-lib/Hero/hero.types'
 
 import HeroStackedShell   from './Shells/HeroStackedShell'
 import HeroImmersiveShell from '@/components-lib/Hero/Shells/HeroImmersiveShell'

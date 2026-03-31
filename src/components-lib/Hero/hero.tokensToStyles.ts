@@ -1,5 +1,5 @@
 import type { ComposeSectionTokens } from '@/pages/Renderer/CompositionType'
-import type { HeroStyles } from '@/components-lib/Hero/HeroTypes'
+import type { HeroStyles } from '@/components-lib/Hero/hero.types'
 
 export function heroTokensToStyles(tokens: ComposeSectionTokens): HeroStyles {
   return {
@@ -10,7 +10,7 @@ export function heroTokensToStyles(tokens: ComposeSectionTokens): HeroStyles {
     heading_weight:     tokens.heading_weight,
     btn_primary_bg:     tokens.btn_primary_bg,
     btn_primary_color:  tokens.btn_primary_color,
-    btn_outline_color:  tokens.btn_outline_border,
+    btn_outline_color:  tokens.btn_outline_color,
     btn_outline_border: tokens.btn_outline_border,
     btn_radius:         tokens.btn_radius,
     padding:            tokens.padding,

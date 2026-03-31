@@ -1,14 +1,31 @@
 import type { HeroComposeSection } from '@/pages/Renderer/CompositionType'
-import type { HeroLayoutStructure } from '@/components-lib/Hero/HeroTypes'
+import type { HeroLayoutStructure } from '@/components-lib/Hero/hero.types'
 
-const ALLOWED_LAYOUTS:        HeroLayoutStructure[] = ['stacked', 'immersive', 'split', 'centered']
-const REQUIRED_SLOTS:         string[]              = ['hero_heading']
-const OPTIONAL_SLOTS:         string[]              = ['hero_subheading', 'hero_secondary_action', 'hero_media']
-const ALLOWED_SLOTS:          Set<string>           = new Set([...REQUIRED_SLOTS, ...OPTIONAL_SLOTS])
-const ALLOWED_TOKEN_KEYS:     Set<string>           = new Set([
-  'background', 'heading_color', 'subheading_color', 'heading_size',
-  'heading_weight', 'btn_primary_bg', 'btn_primary_color',
-  'btn_outline_border', 'btn_radius', 'padding',
+const ALLOWED_LAYOUTS:    HeroLayoutStructure[] = ['stacked', 'immersive', 'split', 'centered']
+
+const REQUIRED_SLOTS:     string[] = ['hero_heading']
+const OPTIONAL_SLOTS:     string[] = [
+  'hero_subheading',
+  'hero_primary_action',
+  'hero_secondary_action',
+  'hero_media',
+  'hero_media_slides',
+  'hero_animated',
+]
+const ALLOWED_SLOTS:      Set<string> = new Set([...REQUIRED_SLOTS, ...OPTIONAL_SLOTS])
+
+const ALLOWED_TOKEN_KEYS: Set<string> = new Set([
+  'background',
+  'heading_color',
+  'subheading_color',
+  'heading_size',
+  'heading_weight',
+  'btn_primary_bg',
+  'btn_primary_color',
+  'btn_outline_color',
+  'btn_outline_border',
+  'btn_radius',
+  'padding',
 ])
 
 export interface HeroValidationResult {
