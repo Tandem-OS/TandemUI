@@ -22,12 +22,14 @@ import Heading from '../../components/demos/typography/Heading';
 import Para from '../../common-components/Para';
 // Import constants
 import { dummyScrapedData, quickSuggestions, processingSteps } from './constants';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import type { AppDispatch } from '@/store';
 import type { RootState } from '@/store';
+import { pollForThumbnails } from '@/features/composition/compositionSlice';
 import { createScraper } from '@/lib/requests/ScraperRequest';
 import { useNavigate } from 'react-router-dom';
 import Toast from '@/common-components/Toast';
-
+import { selectActiveOrPreviewSchema } from '@/features/composition/compositionSelectors';
 // Custom hook for taste profile
 const useTasteProfile = () => {
     const [profile, setProfile] = useState(() => {
@@ -78,10 +80,18 @@ const ScraperIntelligencePage = () => {
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [sectionCount, setSectionCount] = useState<number | null>(null);
     const [compositionId, setCompositionId] = useState<string | null>(null);
+    const [refinedSections, setRefinedSections] = useState<Set<string>>(new Set());
+
+    const handleRefineComplete = (sections: string[]) => {
+        setRefinedSections(new Set(sections));
+        setTimeout(() => setRefinedSections(new Set()), 2500);
+    };
 
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
 
     const navigate = useNavigate();
+    const dispatch = useDispatch<AppDispatch>();
+
 
     // const clientEmail = useSelector((state: RootState) => state.auth.user.email)!;
     const email = useSelector((state: RootState) => state.auth.user.email);
@@ -101,12 +111,15 @@ const ScraperIntelligencePage = () => {
             handleModeToggle(false);
         }
     }, [userRole]);
-
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);
     };
 
+const pageSchema = useSelector(selectActiveOrPreviewSchema);
+    const activeSections = compositionId && pageSchema?.sections
+        ? pageSchema.sections
+        : (scrapedData?.sections ?? []);
 
     const handleStartScraping = async (url: string) => {
         try {
@@ -584,11 +597,14 @@ const ScraperIntelligencePage = () => {
                                             <motion.button
                                                 whileHover={{ scale: 1.03 }}
                                                 whileTap={{ scale: 0.97 }}
-                                                onClick={() => navigate(`/dashboard/client/swiper/compose/${compositionId}`)
-                                                }
+                                                onClick={() => {
+                                                    dispatch(pollForThumbnails({ compositionId: compositionId! }));
+                                                    navigate(`/dashboard/client/swiper/compose/${compositionId}`);
+                                                }}
+
                                                 className="flex items-center gap-xs px-sm sm:px-md py-xs sm:py-sm rounded-lg
-                       bg-accent-default text-accent-foreground text-para-xs sm:text-para-sm
-                       font-medium hover:bg-accent-hover transition-colors"
+                                        bg-accent-default text-accent-foreground text-para-xs sm:text-para-sm
+                                        font-medium hover:bg-accent-hover transition-colors"
                                             >
                                                 <FaEye className="text-icon-sm" />
                                                 <span className="hidden sm:inline">Preview Hero</span>
@@ -690,10 +706,12 @@ const ScraperIntelligencePage = () => {
                                             <ChatPanel
                                                 context={chatContext}
                                                 compositionId={compositionId}
-                                                sections={scrapedData?.sections.map((s: any) => s.section_type).filter(Boolean) ?? []} />                                        </div>
+                                                sections={activeSections.map((s: any) => s.category ?? s.section_type).filter(Boolean)}
+
+                                                onRefineComplete={handleRefineComplete} />
+                                        </div>
                                     </div>
                                 </aside>
-
                                 {/* Right Scrollable Column for Sections */}
                                 <div className="lg:col-span-3 h-full overflow-y-auto custom-scrollbar py-lg">
                                     {/* ✅ UPDATED: Apply fade transition when switching modes */}
@@ -706,7 +724,7 @@ const ScraperIntelligencePage = () => {
                                             transition={{ duration: 0.2 }}
                                             className="flex flex-col gap-lg"
                                         >
-                                            {scrapedData.sections.map((section) => (
+                                            {(activeSections as any[]).map((section) => (
                                                 <SectionCard
                                                     key={section.id}
                                                     section={section}
@@ -716,6 +734,7 @@ const ScraperIntelligencePage = () => {
                                                     onAddToLayout={handleAddToLayout}
                                                     updateTaste={updateTaste}
                                                     openChat={openChat}
+                                                    isJustRefined={refinedSections.has(section.category ?? section.section_type)}
                                                 />
                                             ))}
                                             {isFeedbackComplete && !isDesignerMode && (
@@ -732,7 +751,10 @@ const ScraperIntelligencePage = () => {
                                                 <ChatPanel
                                                     context={chatContext}
                                                     compositionId={compositionId}
-                                                    sections={scrapedData?.sections.map((s: any) => s.section_type).filter(Boolean) ?? []} />                                            </div>
+                                                    sections={activeSections.map((s: any) => s.category ?? s.section_type).filter(Boolean)}
+
+                                                    onRefineComplete={handleRefineComplete} />
+                                            </div>
                                         </motion.div>
                                     </AnimatePresence>
                                 </div>
@@ -743,7 +765,7 @@ const ScraperIntelligencePage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 };
 

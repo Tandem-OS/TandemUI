@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { fadeInUp } from '../../../lib/animations/variants';
 import type { HeroColors, HeroAction } from '@/pages/Renderer/CompositionType';
 
 // ── Props ────────────────────────────────────────────────────────────────────
-interface Hero_03Props {
+interface HeroImmersiveProps {
   hero_heading?: string | null;
-  hero_subheading?: string | null;
   hero_media?: string | null;
+  hero_media_slides?: string[] | null;
   hero_animated?: boolean | null;
   hero_primary_action?: HeroAction | null;
   hero_secondary_action?: HeroAction | null;
@@ -18,42 +18,62 @@ interface Hero_03Props {
 const variantConfig: Record<string, {
   sectionMinHeight: string;
   contentPaddingX: string;
-  contentPaddingY: string;
+  contentPaddingBot: string;
+  contentPaddingTop: string;
   contentMaxWidth: string;
   titleFontSize: string;
   titleFontWeight: string;
   titleLineHeight: string;
   titleMarginBottom: string;
-  descFontSize: string;
-  descMarginBottom: string;
   actionsGap: string;
-  actionsDirection: string;
   btnHeight: string;
   btnPaddingX: string;
   btnBorderWidth: string;
   btnBorderStyle: string;
   btnBorderRadius: string;
-  overlayOpacity: string;
+  overlayGradient: string;
+  dotActiveWidth: string;
+  dotInactiveWidth: string;
+  dotHeight: string;
+  dotActiveColor: string;
+  dotInactiveColor: string;
+  arrowSize: string;
+  arrowBorderColor: string;
+  arrowColor: string;
+  arrowHoverBg: string;
+  controlsBottom: string;
+  controlsRight: string;
+  slideDuration: string;
 }> = {
   default: {
     sectionMinHeight: '100vh',
-    contentPaddingX: '32px',
-    contentPaddingY: '96px',
-    contentMaxWidth: '40rem',
-    titleFontSize: 'clamp(2rem, 5vw, 3rem)',
-    titleFontWeight: '700',
-    titleLineHeight: '1.2',
-    titleMarginBottom: '24px',
-    descFontSize: '1.125rem',
-    descMarginBottom: '40px',
+    contentPaddingX: '40px',
+    contentPaddingBot: '96px',
+    contentPaddingTop: '160px',
+    contentMaxWidth: '48rem',
+    titleFontSize: 'clamp(2.5rem, 6vw, 4rem)',
+    titleFontWeight: '800',
+    titleLineHeight: '1.05',
+    titleMarginBottom: '40px',
     actionsGap: '16px',
-    actionsDirection: 'row',
-    btnHeight: '3.25rem',
-    btnPaddingX: '1.5rem',
+    btnHeight: '3.5rem',
+    btnPaddingX: '2rem',
     btnBorderWidth: '2px',
     btnBorderStyle: 'solid',
     btnBorderRadius: '0.375rem',
-    overlayOpacity: '0.82',
+    overlayGradient: 'to top',
+    dotActiveWidth: '24px',
+    dotInactiveWidth: '8px',
+    dotHeight: '8px',
+    dotActiveColor: '#ffffff',
+    dotInactiveColor: 'rgba(255,255,255,0.4)',
+    arrowSize: '40px',
+    arrowBorderColor: 'rgba(255,255,255,0.4)',
+    arrowColor: '#ffffff',
+    arrowHoverBg: 'rgba(255,255,255,0.2)',
+    controlsBottom: '40px',
+    controlsRight: '40px',
+    slideDuration: '700ms',
   },
 };
 
@@ -76,11 +96,11 @@ const getAnim = (delay: number, animated: boolean) => {
   };
 };
 
-// ── Hero_03 — full-bleed, left-anchored overlay ──────────────────────────────
-const Hero_03: React.FC<Hero_03Props> = ({
+// ── HeroImmersive ──────────────────────────────────────────────────────────────────
+const HeroImmersive: React.FC<HeroImmersiveProps> = ({
   hero_heading,
-  hero_subheading,
   hero_media,
+  hero_media_slides,
   hero_animated,
   hero_primary_action,
   hero_secondary_action,
@@ -89,10 +109,10 @@ const Hero_03: React.FC<Hero_03Props> = ({
   const cfg = variantConfig['default'];
 
   if (!cfg) {
-    console.error('[Hero_03] variantConfig["default"] is missing.');
+    console.error('[HeroImmersive] variantConfig["default"] is missing.');
     return (
       <section style={{ padding: colors.padding, backgroundColor: colors.background }}>
-        <p style={{ color: 'red' }}>[Hero_03] Missing variant config.</p>
+        <p style={{ color: 'red' }}>[HeroImmersive] Missing variant config.</p>
       </section>
     );
   }
@@ -100,13 +120,23 @@ const Hero_03: React.FC<Hero_03Props> = ({
   const animated = hero_animated ?? false;
   const Wrap = animated ? motion.div : 'div';
 
+  const slides = hero_media_slides?.length
+    ? hero_media_slides
+    : hero_media
+      ? [hero_media]
+      : [];
+
+  const [activeSlide, setActiveSlide] = useState(0);
+  const prev = () => setActiveSlide(i => (i - 1 + slides.length) % slides.length);
+  const next = () => setActiveSlide(i => (i + 1) % slides.length);
+
   // ── Token layer ────────────────────────────────────────────────────────────
   const sectionStyle: React.CSSProperties = {
     position: 'relative',
     width: '100%',
     minHeight: cfg.sectionMinHeight,
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     overflow: 'hidden',
   };
 
@@ -116,41 +146,24 @@ const Hero_03: React.FC<Hero_03Props> = ({
     width: '100%',
     paddingLeft: cfg.contentPaddingX,
     paddingRight: cfg.contentPaddingX,
-    paddingTop: cfg.contentPaddingY,
-    paddingBottom: cfg.contentPaddingY,
-  };
-
-  const innerStyle: React.CSSProperties = {
-    maxWidth: cfg.contentMaxWidth,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    textAlign: 'left',
+    paddingBottom: cfg.contentPaddingBot,
+    paddingTop: cfg.contentPaddingTop,
   };
 
   const titleStyle: React.CSSProperties = {
     fontSize: cfg.titleFontSize,
     fontWeight: cfg.titleFontWeight,
     lineHeight: cfg.titleLineHeight,
-    color: colors.text_color,
+    color: colors.heading_color,
     marginBottom: cfg.titleMarginBottom,
     marginTop: 0,
     wordBreak: 'break-word',
   };
 
-  const descStyle: React.CSSProperties = {
-    fontSize: cfg.descFontSize,
-    color: colors.text_color,
-    opacity: 0.8,
-    marginBottom: cfg.descMarginBottom,
-    marginTop: 0,
-  };
-
   const actionsStyle: React.CSSProperties = {
     display: 'flex',
-    flexDirection: cfg.actionsDirection as React.CSSProperties['flexDirection'],
-    flexWrap: 'wrap',
     gap: cfg.actionsGap,
+    flexWrap: 'wrap',
   };
 
   // ── Action renderer ────────────────────────────────────────────────────────
@@ -176,7 +189,7 @@ const Hero_03: React.FC<Hero_03Props> = ({
           : 'transparent',
       color: isPrimary ? colors.btn_primary_color
         : isOutline ? colors.btn_outline_color
-          : colors.text_color,
+          : colors.heading_color,
       borderColor: isPrimary ? (colors.btn_primary_border ?? colors.btn_primary_bg)
         : isOutline ? (colors.btn_outline_border ?? colors.btn_outline_color)
           : 'transparent',
@@ -202,38 +215,41 @@ const Hero_03: React.FC<Hero_03Props> = ({
       aria-label="Main hero content"
       style={sectionStyle}
     >
-      {/* Full-bleed background */}
-      {hero_media && (
+      {/* Background slides */}
+      {slides.map((src, i) => (
         <div
+          key={src}
           aria-hidden="true"
-          data-testid="hero-image-container"
+          data-testid={i === 0 ? 'hero-image-container' : undefined}
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: `url(${hero_media})`,
+            backgroundImage: `url(${src})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
+            opacity: i === activeSlide ? 1 : 0,
+            transition: `opacity ${cfg.slideDuration}`,
           }}
         />
-      )}
+      ))}
 
-      {/* Overlay — only when no background image */}
-      {!hero_media && colors.background && (
+      {/* Gradient overlay — only when no slides */}
+      {slides.length === 0 && colors.background && (
         <div
           aria-hidden="true"
           style={{
             position: 'absolute',
             inset: 0,
             backgroundColor: colors.background,
-            opacity: cfg.overlayOpacity,
+            opacity: 0.85,
           }}
         />
       )}
 
       {/* Content */}
       <div style={contentWrapStyle}>
-        <div style={innerStyle}>
+        <div style={{ maxWidth: cfg.contentMaxWidth }}>
 
           {hero_heading && (
             <Wrap {...getAnim(0, animated)} data-testid="hero-title">
@@ -241,15 +257,9 @@ const Hero_03: React.FC<Hero_03Props> = ({
             </Wrap>
           )}
 
-          {hero_subheading && (
-            <Wrap {...getAnim(0.1, animated)} data-testid="hero-description">
-              <p style={descStyle}>{hero_subheading}</p>
-            </Wrap>
-          )}
-
           {(hero_primary_action || hero_secondary_action) && (
             <Wrap
-              {...getAnim(0.2, animated)}
+              {...getAnim(0.15, animated)}
               data-testid="hero-buttons"
               role="group"
               aria-label="Call to action"
@@ -260,12 +270,81 @@ const Hero_03: React.FC<Hero_03Props> = ({
               </div>
             </Wrap>
           )}
-
         </div>
+
+        {/* Carousel controls */}
+        {slides.length > 1 && (
+          <div
+            style={{
+              position: 'absolute',
+              bottom: cfg.controlsBottom,
+              right: cfg.controlsRight,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+            }}
+          >
+            {/* Dot indicators */}
+            <div role="tablist" aria-label="Slide indicators" style={{ display: 'flex', gap: '8px' }}>
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  role="tab"
+                  aria-selected={i === activeSlide}
+                  aria-label={`Go to slide ${i + 1}`}
+                  onClick={() => setActiveSlide(i)}
+                  style={{
+                    width: i === activeSlide ? cfg.dotActiveWidth : cfg.dotInactiveWidth,
+                    height: cfg.dotHeight,
+                    borderRadius: '9999px',
+                    backgroundColor: i === activeSlide ? cfg.dotActiveColor : cfg.dotInactiveColor,
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    transition: 'width 300ms, background-color 300ms',
+                  }}
+                />
+              ))}
+            </div>
+
+            {/* Arrow buttons */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {(['prev', 'next'] as const).map(dir => (
+                <button
+                  key={dir}
+                  onClick={dir === 'prev' ? prev : next}
+                  aria-label={dir === 'prev' ? 'Previous slide' : 'Next slide'}
+                  style={{
+                    width: cfg.arrowSize,
+                    height: cfg.arrowSize,
+                    borderRadius: '9999px',
+                    border: `1px solid ${cfg.arrowBorderColor}`,
+                    backgroundColor: 'transparent',
+                    color: cfg.arrowColor,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'background-color 200ms',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = cfg.arrowHoverBg)}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    {dir === 'prev'
+                      ? <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      : <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    }
+                  </svg>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
 };
 
-Hero_03.displayName = 'Hero_03';
-export default Hero_03;
+HeroImmersive.displayName = 'HeroImmersive';
+export default HeroImmersive;

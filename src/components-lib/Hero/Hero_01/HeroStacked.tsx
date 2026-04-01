@@ -4,7 +4,7 @@ import { fadeInUp } from '../../../lib/animations/variants';
 import type { HeroColors, HeroAction } from '@/pages/Renderer/CompositionType';
 
 // ── Props ────────────────────────────────────────────────────────────────────
-interface Hero_01Props {
+interface HeroStackedProps {
   hero_heading?: string | null;
   hero_subheading?: string | null;
   hero_media?: string | null;
@@ -93,8 +93,8 @@ const getAnim = (delay: number, animated: boolean) => {
   };
 };
 
-// ── Hero_01 ──────────────────────────────────────────────────────────────────
-const Hero_01: React.FC<Hero_01Props> = ({
+// ── HeroStacked ──────────────────────────────────────────────────────────────────
+const HeroStacked: React.FC<HeroStackedProps> = ({
   hero_heading,
   hero_subheading,
   hero_media,
@@ -106,10 +106,10 @@ const Hero_01: React.FC<Hero_01Props> = ({
   const cfg = variantConfig['default'];
 
   if (!cfg) {
-    console.error('[Hero_01] variantConfig["default"] is missing.');
+    console.error('[HeroStacked] variantConfig["default"] is missing.');
     return (
       <section style={{ padding: colors.padding, backgroundColor: colors.background }}>
-        <p style={{ color: 'red' }}>[Hero_01] Missing variant config.</p>
+        <p style={{ color: 'red' }}>[HeroStacked] Missing variant config.</p>
       </section>
     );
   }
@@ -155,14 +155,14 @@ const Hero_01: React.FC<Hero_01Props> = ({
     fontSize: cfg.titleFontSize,
     fontWeight: cfg.titleFontWeight,
     lineHeight: cfg.titleLineHeight,
-    color: colors.text_color,
+    color: colors.heading_color,
     margin: 0,
     wordBreak: 'break-word',
   };
 
   const descStyle: React.CSSProperties = {
     fontSize: cfg.descFontSize,
-    color: colors.text_color,
+    color: colors.subheading_color,
     opacity: 0.8,
     margin: 0,
   };
@@ -197,7 +197,7 @@ const Hero_01: React.FC<Hero_01Props> = ({
           : 'transparent',
       color: isPrimary ? colors.btn_primary_color
         : isOutline ? colors.btn_outline_color
-          : colors.text_color,
+          : colors.heading_color,
       borderColor: isPrimary ? (colors.btn_primary_border ?? colors.btn_primary_bg)
         : isOutline ? (colors.btn_outline_border ?? colors.btn_outline_color)
           : 'transparent',
@@ -287,5 +287,5 @@ const Hero_01: React.FC<Hero_01Props> = ({
   );
 };
 
-Hero_01.displayName = 'Hero_01';
-export default Hero_01;
+HeroStacked.displayName = 'HeroStacked';
+export default HeroStacked;

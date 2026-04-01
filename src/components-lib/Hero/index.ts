@@ -1,9 +1,9 @@
 // src/components-lib/Hero/index.ts
 
 // Just export the components - simple and clean
-export { default as Hero_01 } from './Hero_01/Hero_01';
-export { default as Hero_02 } from './Hero_02/Hero_02';
-export { default as Hero_03 } from './Hero_03/Hero_03';
+export { default as Hero_01 } from './Hero_01/HeroStacked';
+export { default as Hero_02 } from './Hero_02/HeroImmersive';
+export { default as Hero_03 } from './Hero_03/HeroSplit';
 export { default as Hero_04 } from './Hero_04/Hero_04';
 export { default as Hero_05 } from './Hero_05/Hero_05';
 export { default as Hero_06 } from './Hero_06/Hero_06';

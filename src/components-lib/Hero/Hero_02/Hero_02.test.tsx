@@ -4,7 +4,7 @@ import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import fs from 'fs';
 import path from 'path';
-import Hero_02 from './Hero_02';
+import Hero_02 from './HeroImmersive';
 
 // Mock dependencies
 vi.mock('../../../contexts/ThemeContext', () => ({

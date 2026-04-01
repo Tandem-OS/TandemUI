@@ -19,6 +19,15 @@ export interface ComposeResponse {
   thumbnails: Thumbnails | null;
 }
 
+export interface RefineResponse {
+  composition_id: string;
+  project_id: string;
+  updated_sections: PageSchema['sections'];
+  current_version: number;
+  chat_response: string;
+  reasoning?: string;
+}
+
 export interface CallAiComposePipeline {
   user_input: string | null;
 }
@@ -37,19 +46,21 @@ export interface AiComposePipelineResponse {
   thumbnails: CompositionThumbnails | null;
 }
 
+const COMPOSE_ENDPOINT = '/compose' 
+
 export const postCompose = async (payload: ComposePayload): Promise<ComposeResponse> => {
-  const response = await api.post('/compose', payload);
+  const response = await api.post(`${COMPOSE_ENDPOINT}`, payload);
   return response.data;
 };
 
 export const getCompose = async (compositionId: string): Promise<ComposeResponse> => {
-  const response = await api.get(`/compose/${compositionId}`);
+  const response = await api.get(`${COMPOSE_ENDPOINT}/${compositionId}`);
   return response.data;
 };
 
 export const getAllProjectCompose = async (): Promise<ComposeResponse> => {
   const projectId = store.getState().project.projectId;
-  const response = await api.get(`/compose?project_id${projectId}`);
+  const response = await api.get(`${COMPOSE_ENDPOINT}?project_id${projectId}`);
   return response.data;
 };
 // ─── Refine ───────────────────────────────────────────────────────────────────
@@ -60,10 +71,11 @@ export interface RefinePayload {
   user_instruction: string;
 }
 
-export const postRefine = async (payload: RefinePayload): Promise<ComposeResponse> => {
-  const response = await api.post('/ai/refine', payload);
+export const postRefine = async (payload: RefinePayload): Promise<RefineResponse> => {
+  const response = await api.patch(`${COMPOSE_ENDPOINT}/refine`, payload);
   return response.data;
 };
+
 export const callAiComposePipeline = async (
   values: CallAiComposePipeline
 ): Promise<AiComposePipelineResponse> => {
@@ -73,6 +85,23 @@ export const callAiComposePipeline = async (
     ...values,
     project_id: projectId,
   };
-  const response = await api.post('/ai/compose', payload);
+  const response = await api.post(`${COMPOSE_ENDPOINT}`, payload);
+  return response.data;
+};
+export const getVersions = async (projectId: string) => {
+  const response = await api.get(`/compose/versions/${projectId}`);
+  return response.data;
+};
+
+export const getVersionByNumber = async (projectId: string, versionNumber: number) => {
+  const response = await api.get(`/compose/versions/${projectId}/${versionNumber}`);
+  return response.data;
+};
+
+export const postRestoreVersion = async (projectId: string, targetVersion: number) => {
+  const response = await api.post('/compose/versions/restore', {
+    project_id: projectId,
+    target_version: targetVersion,
+  });
   return response.data;
 };
