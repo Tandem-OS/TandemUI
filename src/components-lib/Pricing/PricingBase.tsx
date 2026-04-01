@@ -10,20 +10,38 @@ interface PricingBaseProps {
 }
 
 const PricingBase: React.FC<PricingBaseProps> = ({ section }) => {
+  const trace = {
+    componentId: section.component_id,
+    layout:      section.layout_structure    ?? '(no layout)',
+    slotKeys:    Object.keys(section.content_slots ?? {}),
+    planCount:   section.content_slots?.pricing_plans?.length ?? 0,
+    hasTokens:   Boolean(section.tokens && Object.keys(section.tokens).length),
+  }
 
   const { valid, errors, warnings } = validatePricingPayload(section)
 
-  warnings.forEach(w => console.warn(`[PricingBase] ${w}`))
-
+  if (warnings.length > 0) {
+    console.warn('[PricingBase] Validation warnings — section will still render', {
+      ...trace,
+      warnings,
+    })
+  }
   if (!valid) {
-    errors.forEach(e => console.error(`[PricingBase] ${e}`))
+    console.error('[PricingBase] Validation failed — section will not render', {
+      ...trace,
+      errors,
+      contentSlots: section.content_slots ?? null,
+      tokens:       section.tokens        ?? null,
+    })
     return null
   }
-
   const props = pricingSlotToProps(section.content_slots)
 
   if (!props) {
-    console.error('[PricingBase] pricingSlotToProps returned null after passing validation — skipping render')
+    console.error('[PricingBase] pricingSlotToProps returned null after passing validation — contract gap suspected', {
+      ...trace,
+      contentSlots: section.content_slots ?? null,
+    })
     return null
   }
 

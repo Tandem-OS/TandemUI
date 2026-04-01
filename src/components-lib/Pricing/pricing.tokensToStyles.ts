@@ -3,26 +3,62 @@ import type { PricingStyles } from '@/components-lib/Pricing/pricing.types'
 
 export function pricingTokensToStyles(tokens: PricingTokens): PricingStyles {
   return {
-    background:           tokens.background,
-    heading_color:        tokens.heading_color,
-    subheading_color:     tokens.subheading_color,
-    heading_size:         tokens.heading_size,
-    heading_weight:       tokens.heading_weight,
-    card_bg:              tokens.card_bg,
-    card_radius:          tokens.card_radius,
-    card_border:          tokens.card_border,
-    featured_card_bg:     tokens.featured_card_bg,
-    featured_card_border: tokens.featured_card_border,
-    body_color:           tokens.body_color,
-    price_color:          tokens.price_color,
-    feature_color:        tokens.feature_color,
-    btn_primary_bg:       tokens.btn_primary_bg,
-    btn_primary_color:    tokens.btn_primary_color,
-    btn_outline_color:    tokens.btn_outline_color,
-    btn_outline_border:   tokens.btn_outline_border,
-    btn_radius:           tokens.btn_radius,
-    padding:              tokens.padding,
-    toggle_active:        tokens.toggle_active,
-    toggle_inactive:      tokens.toggle_inactive,
+    // ─── Section ─────────────────────────────────────────────────────────────
+    background:                tokens['background'],
+    padding:                   tokens['padding'],
+
+    // ─── Heading ─────────────────────────────────────────────────────────────
+    heading_color:             tokens['heading-color'],
+    subheading_color:          tokens['subheading-color'],
+    heading_size:              tokens['heading-size'],
+    heading_weight:            tokens['heading-weight'],
+
+    // ─── Card ─────────────────────────────────────────────────────────────────
+    card_bg:                   tokens['card-surface'],
+    card_radius:               tokens['card-radius'],
+    card_border:               tokens['card-border'],
+    card_shadow:               tokens['card-shadow'],
+    card_padding:              tokens['card-padding'],
+
+    // ─── Featured card ────────────────────────────────────────────────────────
+    featured_card_bg:          tokens['featured-card-background'],
+    featured_card_border:      tokens['featured-card-border'],
+
+    // ─── Badge ───────────────────────────────────────────────────────────────
+    badge_bg:                  tokens['badge-background'],
+    badge_color:               tokens['badge-text'],
+
+    // ─── Body / feature text ─────────────────────────────────────────────────
+    body_color:                tokens['subheading-color'],
+    feature_color:             tokens['feature-text-color'],
+
+    // ─── Price ───────────────────────────────────────────────────────────────
+    price_color:               tokens['price-color'],
+    price_suffix_color:        tokens['price-suffix-color'],
+    currency_label_color:      tokens['currency-label-color'],
+
+    // ─── CTA ─────────────────────────────────────────────────────────────────
+    btn_primary_bg:            tokens['cta-background'],
+    btn_primary_color:         tokens['cta-text'],
+    featured_btn_bg:           tokens['featured-cta-background'],
+    featured_btn_color:        tokens['featured-cta-text'],
+    btn_outline_color:         tokens['btn_outline_color'],
+    btn_outline_border:        tokens['btn_outline_border'],
+    btn_radius:                tokens['btn_radius'],
+
+    // ─── Toggle ──────────────────────────────────────────────────────────────
+    toggle_active:             tokens['toggle-active-background'],
+    toggle_inactive:           tokens['toggle-background'],
+    toggle_active_text:        tokens['toggle-active-text'],
+    toggle_inactive_text:      tokens['toggle-inactive-text'],
+
+    // ─── Misc ─────────────────────────────────────────────────────────────────
+    billing_note_color:        tokens['billing-note-color'],
+    footer_note_color:         tokens['footer-note-color'],
+    upgrade_action_color:      tokens['upgrade-action-color'],
+    logos_color:               tokens['logos-color'],
+    summary_color:             tokens['summary-color'],
+    expand_icon_color:         tokens['expand-icon-color'],
+    comparison_note_color:     tokens['comparison-note-color'],
   }
 }

@@ -527,7 +527,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                         >
                             Back To Dashboard
                             <FiArrowRight className="text-icon-sm" />
-                        </motion.button>Here's what you picked across {kingOfHillSessions.length} round{kingOfHillSessions.length !== 1 ? 's' : ''}
+                        </motion.button>
 
                     </motion.div>
                 </motion.div>

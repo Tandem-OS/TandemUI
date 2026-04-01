@@ -171,22 +171,28 @@ export interface HeroAction {
   variant?:     'primary' | 'outline' | 'ghost';
   aria_label?:  string;
 }
+
 // ── Pricing
 
+export interface PricingPlanRawAction {
+  label:       string
+  target:      string
+  variant?:    string | null
+  aria_label?: string | null
+}
+
 export interface PricingPlanRaw {
-  id:                string
-  name:              string
-  price_monthly?:    string | null
-  price_annual?:     string | null
-  currency_label?:   string | null
-  description?:      string | null
-  features?:         string[] | null
-  is_featured?:      boolean | null
-  featured_badge?:   string | null
-  action_label?:     string | null
-  action_target?:    string | null
-  action_variant?:   string | null
-  action_aria_label?: string | null
+  id?:             string | null
+  title:           string
+  price:           string | null
+  price_suffix?:   string | null
+  price_annual?:   string | null
+  currency_label?: string | null
+  description?:    string | null
+  features?:       string[] | null
+  is_featured?:    boolean | null
+  featured_badge?: string | null
+  action?:         PricingPlanRawAction | null
 }
 
 export interface PricingSlots {
@@ -199,28 +205,61 @@ export interface PricingSlots {
   [key: string]: unknown
 }
 
+// ── Pricing tokens — kebab-case keys matching the backend payload exactly
 export interface PricingTokens {
-  background?:           string
-  heading_color?:        string
-  subheading_color?:     string
-  heading_size?:         string
-  heading_weight?:       string
-  card_bg?:              string
-  card_radius?:          string
-  card_border?:          string
-  featured_card_bg?:     string
-  featured_card_border?: string
-  body_color?:           string
-  price_color?:          string
-  feature_color?:        string
-  btn_primary_bg?:       string
-  btn_primary_color?:    string
-  btn_outline_color?:    string
-  btn_outline_border?:   string
-  btn_radius?:           string
-  padding?:              string
-  toggle_active?:        string
-  toggle_inactive?:      string
+  'background'?:                  string
+  'padding'?:                     string
+
+  // Heading
+  'heading-color'?:               string
+  'subheading-color'?:            string
+  'heading-size'?:                string
+  'heading-weight'?:              string
+
+  // Card
+  'card-surface'?:                string
+  'card-radius'?:                 string
+  'card-border'?:                 string
+  'card-shadow'?:                 string
+  'card-padding'?:                string
+
+  // Featured card
+  'featured-card-background'?:    string
+  'featured-card-border'?:        string
+
+  // Badge
+  'badge-background'?:            string
+  'badge-text'?:                  string
+
+  // Body / feature text
+  'feature-text-color'?:          string
+
+  // Price
+  'price-color'?:                 string
+  'price-suffix-color'?:          string
+  'currency-label-color'?:        string
+
+  // CTA
+  'cta-background'?:              string
+  'cta-text'?:                    string
+  'featured-cta-background'?:     string
+  'featured-cta-text'?:           string
+
+  // Toggle
+  'toggle-active-background'?:    string
+  'toggle-background'?:           string
+  'toggle-active-text'?:          string
+  'toggle-inactive-text'?:        string
+
+  // Misc
+  'billing-note-color'?:          string
+  'footer-note-color'?:           string
+  'upgrade-action-color'?:        string
+  'logos-color'?:                 string
+  'summary-color'?:               string
+  'expand-icon-color'?:           string
+  'comparison-note-color'?:       string
+
   [key: string]: string | undefined
 }
 
@@ -234,4 +273,8 @@ export interface PricingComposeSection {
   tokens:            PricingTokens
 }
 
-export type ComposeSection = NavComposeSection | HeroComposeSection | FeaturesComposeSection  | PricingComposeSection;
+export type ComposeSection =
+  | NavComposeSection
+  | HeroComposeSection
+  | FeaturesComposeSection
+  | PricingComposeSection

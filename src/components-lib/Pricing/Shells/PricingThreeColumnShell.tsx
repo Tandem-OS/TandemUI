@@ -14,12 +14,14 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
 
   const [isAnnual, setIsAnnual] = useState(false)
 
+  // ─── Section ───────────────────────────────────────────────────────────────
   const sectionStyle: React.CSSProperties = {
     width:           '100%',
     backgroundColor: styles.background,
     padding:         styles.padding,
   }
 
+  // ─── Heading ───────────────────────────────────────────────────────────────
   const headingStyle: React.CSSProperties = {
     fontSize:   styles.heading_size,
     fontWeight: styles.heading_weight,
@@ -34,6 +36,7 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
     margin:    '1rem 0 0',
   }
 
+  // ─── Grid ──────────────────────────────────────────────────────────────────
   const gridStyle: React.CSSProperties = {
     display:             'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
@@ -42,6 +45,7 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
     margin:              '0 auto',
   }
 
+  // ─── Plan renderer ─────────────────────────────────────────────────────────
   const renderPlan = (plan: PricingPlan) => {
     const price = isAnnual ? plan.price_annual : plan.price_monthly
 
@@ -49,60 +53,95 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
       display:         'flex',
       flexDirection:   'column',
       backgroundColor: plan.is_featured
-        ? (styles.featured_card_bg  ?? styles.card_bg)
+        ? (styles.featured_card_bg ?? styles.card_bg)
         : styles.card_bg,
       borderRadius:    styles.card_radius,
       border:          plan.is_featured
         ? `2px solid ${styles.featured_card_border ?? styles.card_border}`
         : `1px solid ${styles.card_border}`,
-      padding:         '2rem',
+      boxShadow:       styles.card_shadow,
+      padding:         styles.card_padding ?? '2rem',
       gap:             '1.5rem',
     }
 
+    const badgeStyle: React.CSSProperties = {
+      alignSelf:       'flex-start',
+      fontSize:        '0.75rem',
+      fontWeight:      600,
+      padding:         '0.25rem 0.75rem',
+      borderRadius:    '9999px',
+      backgroundColor: styles.badge_bg,
+      color:           styles.badge_color,
+    }
+
+    const planNameStyle: React.CSSProperties = {
+      margin:     0,
+      fontWeight: 600,
+      color:      plan.is_featured
+        ? (styles.featured_btn_color ?? styles.heading_color)
+        : styles.heading_color,
+    }
+
+    const descriptionStyle: React.CSSProperties = {
+      margin:    '0.5rem 0 0',
+      color:     styles.body_color,
+      fontSize:  '0.875rem',
+    }
+
+    const priceStyle: React.CSSProperties = {
+      margin:     0,
+      fontSize:   '2rem',
+      fontWeight: 700,
+      color:      styles.price_color,
+    }
+
+    const priceSuffixStyle: React.CSSProperties = {
+      fontSize: '0.875rem',
+      color:    styles.price_suffix_color,
+      marginLeft: '0.25rem',
+    }
+
+    const currencyLabelStyle: React.CSSProperties = {
+      fontSize: '0.75rem',
+      color:    styles.currency_label_color ?? styles.body_color,
+      margin:   '0.25rem 0 0',
+    }
+
     return (
-      <div key={plan.id} style={cardStyle}>
+      <div key={plan.id ?? plan.name} style={cardStyle}>
 
         {/* Badge */}
-        {plan.is_featured && plan.featured_badge && (
-          <div style={{
-            alignSelf:       'flex-start',
-            fontSize:        '0.75rem',
-            fontWeight:      600,
-            padding:         '0.25rem 0.75rem',
-            borderRadius:    '9999px',
-            backgroundColor: styles.toggle_active,
-            color:           styles.btn_primary_color,
-          }}>
+        {plan.featured_badge && (
+          <div style={badgeStyle}>
             {plan.featured_badge}
           </div>
         )}
 
-        {/* Plan name */}
+        {/* Plan name + description */}
         <div>
-          <p style={{ margin: 0, fontWeight: 600, color: styles.heading_color }}>
-            {plan.name}
-          </p>
+          <p style={planNameStyle}>{plan.name}</p>
           {plan.description && (
-            <p style={{ margin: '0.5rem 0 0', color: styles.body_color, fontSize: '0.875rem' }}>
-              {plan.description}
-            </p>
+            <p style={descriptionStyle}>{plan.description}</p>
           )}
         </div>
 
         {/* Price */}
         <div>
-          {price
-            ? (
-              <p style={{ margin: 0, fontSize: '2rem', fontWeight: 700, color: styles.price_color }}>
-                {plan.currency_label ?? ''}{price}
+          {price ? (
+            <div>
+              <p style={priceStyle}>
+                {price}
+                {plan.price_suffix && (
+                  <span style={priceSuffixStyle}>{plan.price_suffix}</span>
+                )}
               </p>
-            )
-            : (
-              <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: styles.price_color }}>
-                —
-              </p>
-            )
-          }
+              {plan.currency_label && (
+                <p style={currencyLabelStyle}>{plan.currency_label}</p>
+              )}
+            </div>
+          ) : (
+            <p style={{ ...priceStyle, fontSize: '1.5rem' }}>—</p>
+          )}
         </div>
 
         {/* Features */}
@@ -132,12 +171,8 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
       {/* Header */}
       {(pricing_heading || pricing_subheading) && (
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          {pricing_heading && (
-            <h2 style={headingStyle}>{pricing_heading}</h2>
-          )}
-          {pricing_subheading && (
-            <p style={subheadingStyle}>{pricing_subheading}</p>
-          )}
+          {pricing_heading && <h2 style={headingStyle}>{pricing_heading}</h2>}
+          {pricing_subheading && <p style={subheadingStyle}>{pricing_subheading}</p>}
         </div>
       )}
 
@@ -145,7 +180,9 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
       {pricing_billing_toggle && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ color: styles.body_color, fontSize: '0.875rem' }}>Monthly</span>
+            <span style={{ color: isAnnual ? styles.toggle_inactive_text : styles.toggle_active_text, fontSize: '0.875rem' }}>
+              Monthly
+            </span>
             <button
               role="switch"
               aria-checked={isAnnual}
@@ -175,10 +212,12 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
                 transition:      'left 200ms',
               }} />
             </button>
-            <span style={{ color: styles.body_color, fontSize: '0.875rem' }}>Annual</span>
+            <span style={{ color: isAnnual ? styles.toggle_active_text : styles.toggle_inactive_text, fontSize: '0.875rem' }}>
+              Annual
+            </span>
           </div>
           {pricing_billing_note && (
-            <p style={{ margin: 0, fontSize: '0.75rem', color: styles.subheading_color }}>
+            <p style={{ margin: 0, fontSize: '0.75rem', color: styles.billing_note_color ?? styles.subheading_color }}>
               {pricing_billing_note}
             </p>
           )}
@@ -199,7 +238,7 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
               src={src}
               alt=""
               aria-hidden="true"
-              style={{ height: '2rem', objectFit: 'contain', opacity: 0.6 }}
+              style={{ height: '2rem', objectFit: 'contain', opacity: 0.6, filter: styles.logos_color ? `opacity(0.6)` : undefined }}
             />
           ))}
         </div>
