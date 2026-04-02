@@ -1,4 +1,6 @@
-import type { FeaturesTokens, FeaturesColors } from '@/pages/Renderer/CompositionType';
+// ── Features Tokens → Colors
+
+import type { FeaturesTokens, FeaturesColors } from './features.types'
 export type { FeaturesColors, FeaturesTokens }
 
 export function featuresTokensToColors(tokens: FeaturesTokens): FeaturesColors {
@@ -10,5 +12,5 @@ export function featuresTokensToColors(tokens: FeaturesTokens): FeaturesColors {
     padding:        tokens.padding,
     heading_size:   tokens.heading_size,
     heading_weight: tokens.heading_weight,
-  };
+  }
 }
