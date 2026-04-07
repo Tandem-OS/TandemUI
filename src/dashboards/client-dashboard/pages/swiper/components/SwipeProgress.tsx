@@ -4,12 +4,14 @@ import { type SwiperProgressProps } from '../swiper.types';
 const SwipeProgress: React.FC<SwiperProgressProps> = ({
     current,
     total,
+    completedCount,
     className = ''
 }) => {
     // Fix: Show 0% at start, calculate based on completed rounds (current - 1)
-    const completedRounds = Math.max(0, current - 1);
-    const percentage = Math.round((completedRounds / total) * 100);
-
+    // const completedRounds = Math.max(0, current - 1);
+    // const percentage = Math.round((completedRounds / total) * 100);
+    const completed = completedCount ?? Math.max(0, current - 1);
+    const percentage = total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0;
     return (
         <div className={`flex flex-col items-end space-y-xs ${className}`}>
 

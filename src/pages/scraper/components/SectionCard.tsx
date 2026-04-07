@@ -24,6 +24,9 @@ import SuggestionsCarousel from './SuggestionsCarousel';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
 import { AiOutlineRadiusUpright } from "react-icons/ai";
+import SectionPreview from './SectionPreview';
+import { useSelector } from 'react-redux';
+import { selectLastUpdatedCategories } from '@/features/composition/compositionSelectors';
 
 interface SectionCardProps {
     section: any;
@@ -33,6 +36,7 @@ interface SectionCardProps {
     onAddToLayout: (section: any) => void;
     updateTaste: (action: 'like' | 'dislike', section: any) => void;
     openChat: (context: any) => void;
+    isJustRefined?: boolean;
 }
 
 const SectionCard = ({
@@ -42,7 +46,8 @@ const SectionCard = ({
     feedback,
     onAddToLayout,
     updateTaste,
-    openChat
+    openChat,
+    isJustRefined = false,
 }: SectionCardProps) => {
     const [showLikeOptions, setShowLikeOptions] = useState(false);
     const [showDislikeOptions, setShowDislikeOptions] = useState(false);
@@ -96,20 +101,45 @@ const SectionCard = ({
         });
     };
 
+    const isComposeSection = 'component_id' in section && 'content_slots' in section;
+    const lastUpdatedCategories = useSelector(selectLastUpdatedCategories);
+
+
+    const handleCloneSection = () => {
+        navigator.clipboard.writeText(JSON.stringify({
+            section_type: section.section_type,
+            layout_structure: section.layout_structure,
+            intent: section.intent,
+            tone: section.tone,
+            tokens: section.design?.tokens || {}
+        }, null, 2));
+    };
+
     return (
         <motion.div
             // ✅ FIX: Removed initial={{ opacity: 0, y: 20 }} and animate={{ opacity: 1, y: 0 }}
             // to prevent the "floating" effect on scroll.
+            animate={isJustRefined ? {
+                boxShadow: ['0 0 0 0px rgba(99,102,241,0)', '0 0 0 3px rgba(99,102,241,0.6)', '0 0 0 3px rgba(99,102,241,0.3)', '0 0 0 0px rgba(99,102,241,0)'],
+                transition: { duration: 1.8, ease: 'easeOut' }
+            } : {}}
             whileHover={{ boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}
-            className="bg-background-secondary border border-border-default rounded-xl sm:rounded-2xl overflow-hidden"
+            className={`bg-background-secondary border rounded-xl sm:rounded-2xl overflow-hidden transition-colors duration-300 ${isJustRefined ? 'border-accent-default' : 'border-border-default'}`}
         >
             {/* Section Screenshot */}
             <div className="relative h-40 sm:h-48 md:h-64 bg-background-muted overflow-hidden">
-                <img
-                    src={section.screenshot_url}
-                    alt={`${section.section_type} section`}
-                    className="w-full h-full object-cover"
-                />
+                {(isComposeSection ? (
+                    <SectionPreview
+                        section={section}
+                        highlighted={lastUpdatedCategories.includes(section.category)}
+                    />
+                ) : (
+                    <img
+                        src={section.screenshot_url}
+                        alt={`${section.section_type} section`}
+                        className="w-full h-full object-cover"
+                    />
+                ))}
                 <div className="absolute top-2 sm:top-4 left-2 sm:left-4">
                     <span className="bg-background-dark/90 text-text-light px-sm sm:px-md py-xs sm:py-sm rounded-lg text-para-xs sm:text-para-sm font-medium shadow-lg">
                         {section.section_type}
@@ -132,16 +162,20 @@ const SectionCard = ({
                     <div className="flex flex-wrap items-center gap-xs sm:gap-sm text-para-xs sm:text-para-sm">
                         <span className="flex items-center gap-xs group cursor-pointer">
                             <FaBullseye className="text-icon-sm text-accent-default" />
-                            <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
-                                {section.intent}
-                            </Para>
+                            {section.intent && (
+                                <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
+                                    {section.intent}
+                                </Para>
+                            )}
                         </span>
                         <span className="text-text-tertiary hidden sm:inline">•</span>
                         <span className="flex items-center gap-xs group cursor-pointer">
                             <FaLayerGroup className="text-icon-sm text-accent-default" />
-                            <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
-                                {section.layout_structure}
-                            </Para>
+                            {section.layout_structure && (
+                                <Para size="sm" color="secondary" className="group-hover:text-text-primary transition-colors">
+                                    {section.layout_structure}
+                                </Para>
+                            )}
                         </span>
                         {section.tone && (
                             <>
@@ -168,11 +202,13 @@ const SectionCard = ({
                             exit={{ opacity: 0, height: 0 }}
                             className="mb-md"
                         >
-                            <div className="bg-background-muted rounded-xl p-sm sm:p-md">
-                                <Para size="sm" className="leading-relaxed">
-                                    {section.metadata?.insight || "This section uses a split-screen layout to balance visual impact and clear messaging."}
-                                </Para>
-                            </div>
+                            {section.metadata?.insight && (
+                                <div className="bg-background-muted rounded-xl p-sm sm:p-md">
+                                    <Para size="sm" className="leading-relaxed">
+                                        {section.metadata.insight}
+                                    </Para>
+                                </div>
+                            )}
                         </motion.div>
                     ) : (
                         /* Designer View */
@@ -416,6 +452,7 @@ const SectionCard = ({
                     /* Designer Mode Actions */
                     <div className="flex flex-col sm:flex-row gap-sm">
                         <motion.button
+                            onClick={() => setShowJson(!showJson)}
                             whileHover={{ scale: 1.02, borderColor: 'var(--accent-default)', color: 'var(--accent-default)' }}
                             whileTap={{ scale: 0.98 }}
                             transition={{ duration: 0.2 }}
@@ -425,6 +462,7 @@ const SectionCard = ({
                             Inspect Code
                         </motion.button>
                         <motion.button
+                            onClick={handleCloneSection}
                             whileHover={{ scale: 1.02, borderColor: 'var(--accent-default)', color: 'var(--accent-default)' }}
                             whileTap={{ scale: 0.98 }}
                             transition={{ duration: 0.2 }}

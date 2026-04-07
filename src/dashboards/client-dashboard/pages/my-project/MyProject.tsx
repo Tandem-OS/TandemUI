@@ -217,7 +217,7 @@ const MyProject: React.FC = () => {
                     className="flex items-center gap-md px-2xl py-lg bg-accent-default hover:bg-accent-hover text-accent-foreground text-para-lg font-medium rounded-xl transition-all duration-200 hover:shadow-lg"
                   >
                     <FaPlus className="text-icon-sm" />
-                    <span>Send Magic Link</span>
+                    <span>Send Login Link</span>
                   </motion.button>
                   {modalOpen && (<MagicLinkModal isOpen={modalOpen} setIsOpen={setModalOpen} />)}
                 </div>

@@ -50,7 +50,6 @@ const MagicLinkModal: React.FC<MagicLinkModalProps> = ({ isOpen, setIsOpen }) =>
         }, 1500);
       }
     } catch (error: any) {
-      debugger;
 
       // Try to extract backend error detail
       let backendError = "Unknown error";

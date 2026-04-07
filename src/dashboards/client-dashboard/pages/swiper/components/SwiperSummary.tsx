@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FiZap, FiRefreshCw, FiTrendingUp, FiLayers, FiEye, FiHeart,
-    FiArrowRight, FiActivity, FiBarChart, FiThumbsUp, FiCheckCircle
+    FiArrowRight, FiActivity, FiBarChart, FiThumbsUp, FiCheckCircle, FiAward
 } from 'react-icons/fi';
 import { FaPlay } from "react-icons/fa6";
 import { FaPause } from "react-icons/fa";
@@ -53,11 +53,11 @@ interface GradientIconBoxProps {
     size?: 'sm' | 'md' | 'lg';
 }
 
-const GradientIconBox: React.FC<GradientIconBoxProps> = ({ 
-    icon, 
-    gradientFrom, 
-    gradientTo, 
-    size = 'md' 
+const GradientIconBox: React.FC<GradientIconBoxProps> = ({
+    icon,
+    gradientFrom,
+    gradientTo,
+    size = 'md'
 }) => {
     const sizeClasses = {
         sm: 'w-10 h-10',
@@ -67,11 +67,11 @@ const GradientIconBox: React.FC<GradientIconBoxProps> = ({
 
     return (
         <motion.div
-            whileHover={{ 
+            whileHover={{
                 rotate: 360,
                 scale: 1.05
             }}
-            transition={{ 
+            transition={{
                 rotate: { duration: 0.6, ease: "easeInOut" },
                 scale: { duration: 0.2, ease: "easeOut" }
             }}
@@ -135,9 +135,11 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ component, userChoice, isSupe
                     <span className="px-sm py-xs bg-accent-default text-white text-para-xs font-semibold rounded-md">
                         {component.category}
                     </span>
-                    <span className="px-sm py-xs bg-background-secondary text-text-secondary text-para-xs font-medium rounded-md">
-                        {component.vibe}
-                    </span>
+                    {component.vibe && (
+                        <span className="px-sm py-xs bg-background-secondary text-text-secondary text-para-xs font-medium rounded-md">
+                            {component.vibe}
+                        </span>
+                    )}
                 </div>
 
                 <div className="space-y-xs">
@@ -160,17 +162,16 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ component, userChoice, isSupe
                 <div className="text-center space-y-sm">
                     <h4 className="font-semibold text-white text-para-md">Why You Loved This:</h4>
                     <div className="flex flex-wrap gap-xs justify-center">
-                        {component.tags.slice(0, 3).map((tag: string, i: number) => (
+                        {component.tags.filter((tag: string) => !!tag).slice(0, 3).map((tag: string, i: number) => (
                             <motion.span
                                 key={tag}
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: i * 0.1, duration: 0.2 }}
-                                className={`px-sm py-xs text-white text-para-xs font-medium rounded-md border ${
-                                    isSuperlike 
-                                        ? 'bg-gradient-to-r from-rose-500/30 to-pink-600/30 border-rose-400/40' 
-                                        : 'bg-gradient-to-r from-emerald-500/30 to-green-600/30 border-emerald-400/40'
-                                }`}
+                                className={`px-sm py-xs text-white text-para-xs font-medium rounded-md border ${isSuperlike
+                                    ? 'bg-gradient-to-r from-rose-500/30 to-pink-600/30 border-rose-400/40'
+                                    : 'bg-gradient-to-r from-emerald-500/30 to-green-600/30 border-emerald-400/40'
+                                    }`}
                             >
                                 {tag.replace(/-/g, ' ')}
                             </motion.span>
@@ -190,6 +191,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
     totalRounds,
     kingOfHillSessions
 }) => {
+    const [showRecap, setShowRecap] = useState(true);
     const [showAllRegular, setShowAllRegular] = useState(false);
     const [showAllSuper, setShowAllSuper] = useState(false);
     const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
@@ -203,8 +205,15 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                 map.set(comp.component_id, comp);
             });
         });
+        kingOfHillSessions.forEach(session => {
+            (session.components ?? []).forEach((comp: any) => {
+                if (comp?.component_id && !map.has(comp.component_id)) {
+                    map.set(comp.component_id, comp as ComponentPreview);
+                }
+            });
+        });
         return map;
-    }, [roundsData]);
+    }, [roundsData, kingOfHillSessions]);
 
     // Enhanced analytics with pattern detection
     const intelligence = useMemo(() => {
@@ -353,7 +362,6 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
             category_performance: intelligence.categoryStats,
             king_of_hill_sessions: kingOfHillSessions
         };
-
         console.log('='.repeat(80));
         console.log('🧠 [INTELLIGENT DESIGN ANALYSIS COMPLETE]');
         console.log('✨ Session Summary with Behavioral Intelligence:');
@@ -362,7 +370,170 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
 
         onGenerateLayout();
     };
+    if (showRecap) {
+        return (
+            <div className="min-h-screen flex items-center justify-center px-md py-xl">
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="w-full max-w-2xl space-y-2xl"
+                >
+                    {/* Header */}
+                    <div className="text-center space-y-md">
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+                            className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-accent-default via-indigo-600 to-purple-600 flex items-center justify-center shadow-xl"
+                        >
+                            <FiCheckCircle className="text-icon-xl text-white" />
+                        </motion.div>
+                        <motion.h1
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-h3-sm font-bold text-text-primary"
+                        >
+                            Session Complete
+                        </motion.h1>
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                            className="text-para-md text-text-secondary"
+                        >
+                            Here's what you picked across {kingOfHillSessions.length} round{kingOfHillSessions.length !== 1 ? 's' : ''}
+                        </motion.p>
+                    </div>
 
+                    {/* Stats row */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.35 }}
+                        className="grid grid-cols-3 gap-md"
+                    >
+                        {[
+                            { label: 'Swipes', value: userChoices.length },
+                            { label: 'Rounds', value: kingOfHillSessions.length },
+                            { label: 'Winners', value: kingOfHillSessions.filter(s => s.final_winner_id).length },
+                        ].map((stat) => (
+                            <div key={stat.label} className="bg-background-primary-2 border border-border-default rounded-xl p-lg text-center">
+                                <p className="text-h4-sm font-bold text-accent-default">{stat.value}</p>
+                                <p className="text-para-xs text-text-secondary mt-xs">{stat.label}</p>
+                            </div>
+                        ))}
+                    </motion.div>
+
+                    {/* KOH winners per category */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.45 }}
+                        className="space-y-md"
+                    >
+                        <h2 className="text-para-lg font-semibold text-text-primary flex items-center gap-sm">
+                            <FiAward className="text-accent-default" />
+                            Category Winners
+                        </h2>
+                        <div className="space-y-sm">
+                            {kingOfHillSessions.map((session, i) => {
+                                const winner = componentMap.get(session.final_winner_id);
+                                if (!winner) return (
+                                    <div key={`skeleton-${i}`} className="flex items-center gap-md bg-background-primary-2 border border-border-default rounded-xl p-md animate-pulse">
+                                        <div className="w-16 h-12 rounded-lg bg-background-muted flex-shrink-0" />
+                                        <div className="flex-1 space-y-xs">
+                                            <div className="h-3 bg-background-muted rounded w-16" />
+                                            <div className="h-4 bg-background-muted rounded w-32" />
+                                        </div>
+                                    </div>
+                                );
+                                return (
+                                    <motion.div
+                                        key={`${session.category}-${i}`}
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.5 + i * 0.08 }}
+                                        className="flex items-center gap-md bg-background-primary-2 border border-border-default rounded-xl p-md"
+                                    >
+                                        {/* Thumbnail */}
+                                        <div className="w-16 h-12 rounded-lg overflow-hidden bg-background-muted flex-shrink-0">
+                                            {winner?.thumbnail_url ? (
+                                                <img
+                                                    src={winner.thumbnail_url}
+                                                    alt={winner.title}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center">
+                                                    <FiEye className="text-text-tertiary opacity-40" />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Info */}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-para-xs font-medium text-text-secondary uppercase tracking-wide">
+                                                {session.category}
+                                            </p>
+                                            <p className="text-para-sm font-semibold text-text-primary truncate">
+                                                {winner?.title ?? '—'}
+                                            </p>
+                                        </div>
+
+                                        {/* Crown */}
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-accent-subtle flex items-center justify-center">
+                                            <FiAward className="text-accent-default text-icon-sm" />
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+
+                    {/* Actions */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="flex flex-col sm:flex-row gap-md"
+                    >
+                        <motion.button
+                            onClick={onStartOver}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1 px-lg py-md bg-background-secondary hover:bg-background-muted border border-border-default rounded-lg font-medium text-para-sm text-text-primary transition-all flex items-center justify-center gap-sm"
+                        >
+                            <FiRefreshCw className="text-icon-sm" />
+                            Start Over
+                        </motion.button>
+
+                        <motion.button
+                            onClick={() => setShowRecap(false)}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1 px-lg py-md bg-background-secondary hover:bg-background-muted border border-border-default rounded-lg font-medium text-para-sm text-text-primary transition-all flex items-center justify-center gap-sm"
+                        >
+                            <FiBarChart className="text-icon-sm" />
+                            See Full Analysis
+                        </motion.button>
+
+                        <motion.button
+                            onClick={handleGenerateLayout}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex-1 px-lg py-md bg-gradient-to-r from-accent-default to-indigo-600 hover:from-accent-hover hover:to-indigo-700 rounded-lg font-semibold text-para-sm text-white transition-all flex items-center justify-center gap-sm shadow-lg"
+                        >
+                            Back To Dashboard
+                            <FiArrowRight className="text-icon-sm" />
+                        </motion.button>
+
+                    </motion.div>
+                </motion.div>
+            </div>
+        );
+    }
     // Show logic for both sections
     const regularLikedChoices = intelligence.likedChoicesWithComponents.filter(item => item.choice.action === 'like');
     const visibleRegularChoices = showAllRegular ? regularLikedChoices : regularLikedChoices.slice(0, 6);
@@ -383,7 +554,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                         <motion.div
                             initial={{ scale: 0, rotate: 0 }}
                             animate={{ scale: 1, rotate: 360 }}
-                            transition={{ 
+                            transition={{
                                 scale: { type: "spring", stiffness: 200, damping: 15, delay: 0.2 },
                                 rotate: { duration: 1.2, ease: "easeOut", delay: 0.4 }
                             }}
@@ -486,7 +657,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                                 >
                                     {intelligence.topTags.map((tag, index) => (
                                         <motion.div
-                                             key={`${tag.tag}-${index}`} 
+                                            key={`${tag.tag}-${index}`}
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{
@@ -738,8 +909,8 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                             <ResponsiveContainer width="100%" height={200}>
                                 <RadarChart data={radarData}>
                                     <PolarGrid stroke="rgb(var(--border-muted))" />
-                                    <PolarAngleAxis 
-                                        dataKey="category" 
+                                    <PolarAngleAxis
+                                        dataKey="category"
                                         tick={{ fontSize: 10, fill: 'rgb(var(--text-secondary))' }}
                                         className="text-para-xs"
                                     />
