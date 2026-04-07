@@ -116,13 +116,13 @@ const normalizeLayout = (category: string, layout: string): string => {
     hero: 'stacked',
     nav: 'split_nav',
     features: 'grid',
-    pricing:  'grid',
+    pricing: 'grid',
   };
   const known: Record<string, string[]> = {
     hero: ['stacked', 'centered', 'split', 'immersive', 'minimal', 'video_bg'],
     nav: ['split_nav', 'centered', 'minimal', 'wide', 'sidebar', 'mega_menu'],
     features: ['grid', 'list', 'split'],
-    pricing:  ['three-column', 'stacked', 'grid'],
+    pricing: ['three-column', 'stacked', 'grid'],
   };
   console.log('[normalizeLayout] called with:', { category, layout });
   const cat = category.toLowerCase();
@@ -498,20 +498,20 @@ const Swiper: React.FC = () => {
         }
 
         for (const component of sessionSummary.components) {
-          const componentPayload = {
+          const payload = {
             // Required — backend 422s if any of these are missing
             component_id: component.component_id,
             project_id: component.project_id,
             client_email: component.client_email,       // now available from mapper fix above
             designer_email: component.designer_email,   // now available from mapper fix above
             session_id: sessionId,
-            thumbnail_url: component.thumbnail_url || null,
+            thumbnail_url: component.thumbnail_url ?? '',
 
             // Optional
             id: component.id,
-            title: component.title,
-            description: component.description,
-            category: component.category?.toLowerCase(), // backend stores lowercase
+            title: component.title ?? '',
+            description: component.description ?? '',
+            category: (component.category ?? '').toLowerCase(),
             layout_structure: normalizeLayout(
               component.category ?? '',
               component.layout_structure ?? ''
@@ -524,7 +524,7 @@ const Swiper: React.FC = () => {
             vibe: component.vibe,
             is_canonical: component.is_canonical ?? false,
           };
-          await swiperComponentData(componentPayload);
+          await swiperComponentData(payload);
         }
 
         saveSuccess = true;
@@ -546,7 +546,6 @@ const Swiper: React.FC = () => {
       if (saveSuccess) {
         setTimeout(() => {
           dispatch(endKingOfHill());
-          const completedRoundNumber = currentRound + 1;
           const shouldShowPreview = (snapRound + 1) % 2 === 0 && !snapIsLastRound;
 
           if (shouldShowPreview) {
@@ -657,12 +656,12 @@ const Swiper: React.FC = () => {
                   content_slots: winner.content_slots,
                   tokens: winner.tokens,
                   is_canonical: winner.is_canonical ?? false,
-                  title: winner.title,            // ← add
-                  description: winner.description, // ← add
-                  tone: winner.tone,               // ← add
-                  intent: winner.intent,           // ← add
-                  tags: winner.tags,               // ← add
-                  vibe: winner.vibe,               // ← add
+                  title: winner.title ?? '',
+                  description: winner.description ?? '',
+                  tone: winner.tone,
+                  intent: winner.intent,
+                  tags: winner.tags,
+                  vibe: winner.vibe,
                 });
 
               } catch (err) {

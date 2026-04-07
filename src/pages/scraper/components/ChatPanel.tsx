@@ -10,7 +10,6 @@ import {
     fetchVersions,
     fetchVersionByNumber,
     restoreVersion,
-    setPageSchema,
     setPreviewSchema,
     clearPreview,
 } from '@/features/composition/compositionSlice';
@@ -18,7 +17,6 @@ import {
     selectIsRefining,
     selectVersions,
     selectCurrentVersion,
-    selectVersionsStatus,
     selectRestoreStatus,
     selectIsPreviewingHistory,
 } from '@/features/composition/compositionSelectors';

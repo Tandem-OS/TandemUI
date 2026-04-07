@@ -192,7 +192,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 >
                     <img
                         src={component.thumbnail_url}
-                        alt={component.title}
+                        alt={component.title ?? undefined}
                         className="w-full h-full object-cover"
                     />
                 </motion.div>
@@ -205,7 +205,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 `}>
                     <div>
                         <h3 className={`text-white ${isMobile ? 'text-para-md' : 'text-para-lg'} font-semibold mb-xs`}>
-                            {component.title}
+                            {component.title ??''}
                         </h3>
                         <p className={`text-white/90 ${isMobile ? 'text-para-xs' : 'text-para-sm'}`}>
                             {component.vibe}

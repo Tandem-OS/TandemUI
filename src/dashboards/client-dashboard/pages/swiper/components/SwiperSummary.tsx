@@ -119,7 +119,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ component, userChoice, isSupe
                 {component.thumbnail_url ? (
                     <img
                         src={component.thumbnail_url}
-                        alt={component.title}
+                        alt={component.title ?? undefined}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                 ) : (
@@ -232,11 +232,12 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
             return acc;
         }, {});
 
-        const allVibes = likedComponents.map(comp => comp.vibe).filter(Boolean);
-        const vibeFrequency = allVibes.reduce((acc: Record<string, number>, vibe) => {
-            acc[vibe] = (acc[vibe] || 0) + 1;
-            return acc;
-        }, {});
+        const allVibes = likedComponents
+            .map(comp => comp.vibe)
+            .filter((vibe): vibe is string => vibe !== null); const vibeFrequency = allVibes.reduce((acc: Record<string, number>, vibe) => {
+                acc[vibe] = (acc[vibe] || 0) + 1;
+                return acc;
+            }, {});
 
         const allTones = likedComponents.flatMap(comp => comp.tone || []);
         const toneFrequency = allTones.reduce((acc: Record<string, number>, tone) => {
@@ -462,7 +463,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                                             {winner?.thumbnail_url ? (
                                                 <img
                                                     src={winner.thumbnail_url}
-                                                    alt={winner.title}
+                                                    alt={winner.title ?? undefined}
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
