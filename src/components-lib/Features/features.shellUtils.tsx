@@ -36,7 +36,7 @@ export function resolveFeaturesShellData(
   section: FeaturesComposeSection,
   className = '',
 ): ResolvedFeaturesShellData | null {
-  if (process.env.NODE_ENV === 'development') {
+if (import.meta.env.DEV) {
     const { valid, warnings } = validateFeaturesSection(section)
     if (!valid) {
       warnings.forEach(w => console.warn(`[FeaturesShell] ${w}`))

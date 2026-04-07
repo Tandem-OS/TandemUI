@@ -25,7 +25,7 @@ export interface NavBaseProps {
   cta?: string
 
   // Layout — derived directly from API response fields
-  layout_structure: string
+layout_structure?: string
   tags: string[]
 
   // Token layer — themeable per project
@@ -75,7 +75,7 @@ const NavBase: React.FC<NavBaseProps> = ({
   // ── Derive behavior from DB tags — no hardcoding ──────────
   const isPill = tags.includes('pill_links')
   const isCenteredLogo = tags.includes('centered_logo')
-  const layoutVariant = isCenteredLogo ? 'centered-logo' : layout_structure
+const layoutVariant = isCenteredLogo ? 'centered-logo' : (layout_structure ?? '')
 
   // ── Safe links ─────────────────────────────────────────────
   const safeLinks = links ?? []

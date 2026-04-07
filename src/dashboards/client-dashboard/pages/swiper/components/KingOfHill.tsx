@@ -169,18 +169,16 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     </motion.div>
                 )}
 
-                <motion.div
-                    className="w-full h-full"
-                    animate={isCardHovered && !isMobile && !isShaking ? { scale: 1.05 } : { scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <img
+
+                <div className="w-full h-full overflow-hidden">
+                    <motion.img
                         src={component.thumbnail_url}
                         alt={component.title}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover"
+                        animate={isCardHovered && !isMobile && !isShaking ? { scale: 1.05 } : { scale: 1 }}
+                        transition={{ duration: 0.3 }}
                     />
-                </motion.div>
-
+                </div>
                 <div className={`
                     absolute bottom-0 left-0 right-0 
                     bg-gradient-to-t from-black/80 via-black/40 to-transparent 
@@ -248,7 +246,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 {/* Desktop Layout */}
                 <div className="hidden lg:flex w-full gap-lg items-start justify-center">
                     {/* Defender Card */}
-                    <div className="flex-1 max-w-2xl aspect-[4/3]">
+                    <div className="flex-1 max-w-2xl aspect-[4/3] rounded-xl" style={{ isolation: 'isolate', overflow: 'clip' }}>
                         <BattleCard
                             component={defender}
                             side="left"
@@ -269,7 +267,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     </div>
 
                     {/* Challenger Card */}
-                    <div className="flex-1 max-w-2xl aspect-[4/3]">
+                    <div className="flex-1 max-w-2xl aspect-[4/3] overflow-hidden rounded-xl" style={{ isolation: 'isolate' }}>
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={challenger.component_id}

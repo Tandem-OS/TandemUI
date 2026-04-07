@@ -366,7 +366,6 @@ const Swiper: React.FC = () => {
         });
 
         setKingOfHillSessions(roundsDataPrepopulated);
-        setKingOfHillSessions(roundsDataPrepopulated);
         setRoundCompleted(true);
 
       } catch (err) {

@@ -1,4 +1,4 @@
-// ── NavCenteredLogoShell ──────────────────────────────────────────────────
+// ── NavCenteredLogoShell 
 
 
 import React from 'react'
@@ -25,7 +25,7 @@ const NavCenteredLogoShell: React.FC<NavShellProps> = ({
       logo={logo}
       links={links}
       cta={cta}
-      layout_structure="centered-logo"
+      layout_structure={section.layout_structure} 
       tags={tags}
       colors={styles.colors}
       padding={styles.padding}

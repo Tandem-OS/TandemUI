@@ -83,9 +83,9 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
     }
 
     const descriptionStyle: React.CSSProperties = {
-      margin:    '0.5rem 0 0',
-      color:     styles.body_color,
-      fontSize:  '0.875rem',
+      margin:   '0.5rem 0 0',
+      color:    styles.body_color,
+      fontSize: '0.875rem',
     }
 
     const priceStyle: React.CSSProperties = {
@@ -96,8 +96,8 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
     }
 
     const priceSuffixStyle: React.CSSProperties = {
-      fontSize: '0.875rem',
-      color:    styles.price_suffix_color,
+      fontSize:   '0.875rem',
+      color:      styles.price_suffix_color,
       marginLeft: '0.25rem',
     }
 
@@ -107,11 +107,15 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
       margin:   '0.25rem 0 0',
     }
 
-    return (
-      <div key={plan.id ?? plan.name} style={cardStyle}>
+    // Fix 2: use || not ?? — plan.id can be '' (empty string) from adapter,
+    // which is not nullish so ?? never falls back to plan.name
+    const planKey = plan.id || plan.name
 
-        {/* Badge */}
-        {plan.featured_badge && (
+    return (
+      <div key={planKey} style={cardStyle}>
+
+        {/* Badge — Fix 3: only render when plan is actually featured AND badge exists */}
+        {plan.is_featured && plan.featured_badge && (
           <div style={badgeStyle}>
             {plan.featured_badge}
           </div>
@@ -229,17 +233,23 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
         {pricing_plans.map(renderPlan)}
       </div>
 
-      {/* Logos */}
+      {/* Logos — Fix 5: logos are text strings, apply logos_color as color on <span>.
+          Previous impl used filter: opacity(0.6) regardless of token value — token had no effect. */}
       {pricing_logos && pricing_logos.length > 0 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '3rem', flexWrap: 'wrap' }}>
-          {pricing_logos.map((src, i) => (
-            <img
+          {pricing_logos.map((logo, i) => (
+            <span
               key={i}
-              src={src}
-              alt=""
               aria-hidden="true"
-              style={{ height: '2rem', objectFit: 'contain', opacity: 0.6, filter: styles.logos_color ? `opacity(0.6)` : undefined }}
-            />
+              style={{
+                color:      styles.logos_color,
+                fontSize:   '0.875rem',
+                fontWeight: 500,
+                opacity:    0.7,
+              }}
+            >
+              {logo}
+            </span>
           ))}
         </div>
       )}

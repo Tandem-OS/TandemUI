@@ -16,7 +16,7 @@ const FeaturesStatsShell: React.FC<FeaturesShellProps> = ({
     <FeaturesBase
       features_heading={data.features_heading}
       features_subheading={data.features_subheading}
-      features_variant="stats"
+      features_variant={data.features_variant}
       features_items={data.features_items}
       features_media={data.features_media}
       features_primary_action={data.features_primary_action}

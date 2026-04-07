@@ -34,7 +34,7 @@ export function navSlotsToProps(
     cta: slots.nav_cta ?? undefined,
 
     // Layout
-    layout_structure: layout_structure ?? 'split',
+    layout_structure: layout_structure ?? undefined,
     tags: tags ?? [],
 
     // Token layer — all fields, no omissions

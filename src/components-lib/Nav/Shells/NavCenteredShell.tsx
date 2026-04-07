@@ -1,4 +1,4 @@
-// ── NavCenteredShell ──────────────────────────────────────────────────────
+// ── NavCenteredShell 
 
 import React from 'react'
 import NavBase from '../NavBase'
@@ -24,7 +24,7 @@ const NavCenteredShell: React.FC<NavShellProps> = ({
       logo={logo}
       links={links}
       cta={cta}
-      layout_structure="centered"
+      layout_structure={section.layout_structure}
       tags={tags}
       colors={styles.colors}
       padding={styles.padding}

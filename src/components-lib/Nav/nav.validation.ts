@@ -21,7 +21,7 @@ export function validateNavSection(
   }
 
   if (!section.layout_structure) {
-    warnings.push('section.layout_structure is missing — shell will fall back to "split"')
+    warnings.push('section.layout_structure is missing — layout will not render')
   }
 
   if (!section.tags || !Array.isArray(section.tags)) {

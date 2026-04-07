@@ -1,6 +1,5 @@
 //  Nav Shell Utils 
 
-import React from 'react'
 import type { NavComposeSection, NavStyles } from './nav.types'
 import { navSlotsToProps } from './NavSlotsToProps'
 import { resolveNavStyles } from './ResolveNavStyles'
@@ -29,8 +28,8 @@ export function resolveNavShellData(
   section: NavComposeSection,
   animated = true,
   className = '',
-): ResolvedNavShellData {
-  if (process.env.NODE_ENV === 'development') {
+): ResolvedNavShellData | never {
+  if (import.meta.env.DEV) {
     const { valid, warnings } = validateNavSection(section)
     if (!valid) {
       warnings.forEach(w => console.warn(`[NavShell] ${w}`))
@@ -47,7 +46,10 @@ export function resolveNavShellData(
   const styles = resolveNavStyles(section.tokens)
 
   const layout = resolveNavLayout(section.layout_structure, section.tags)
-
+  if (!layout) {
+    console.warn('[resolveNavShellData] Layout could not be resolved — aborting')
+    throw new Error(`[NavShell] Unresolvable layout for component: ${section.component_id}`)
+  }
   return {
     logo: slotProps.logo,
     links: slotProps.links ?? [],
