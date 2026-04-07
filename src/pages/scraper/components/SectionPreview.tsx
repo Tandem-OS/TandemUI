@@ -2,11 +2,13 @@ import React from 'react';
 import NavRenderer from '@/pages/Renderer/NavRenderer';
 import HeroRenderer from '@/pages/Renderer/HeroRenderer';
 import FeaturesRenderer from '@/pages/Renderer/FeaturesRenderer';
+import PricingRenderer from '@/pages/Renderer/PricingRenderer';
 import type {
   ComposeSection,
   NavComposeSection,
   HeroComposeSection,
   FeaturesComposeSection,
+  PricingComposeSection,
 } from '@/pages/Renderer/CompositionType';
 
 interface SectionPreviewProps {
@@ -23,6 +25,8 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({ section, highlighted = 
         return <HeroRenderer sections={[section as HeroComposeSection]} />;
       case 'features':
         return <FeaturesRenderer sections={[section as FeaturesComposeSection]} />;
+      case 'pricing':
+        return <PricingRenderer sections={[section as PricingComposeSection]} />;
       default: {
         const _exhaustive: never = section;
         console.error(`[SectionPreview] Unhandled category: "${(_exhaustive as any).category}"`);

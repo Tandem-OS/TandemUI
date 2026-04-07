@@ -172,4 +172,109 @@ export interface HeroAction {
   aria_label?:  string;
 }
 
-export type ComposeSection = NavComposeSection | HeroComposeSection | FeaturesComposeSection;
+// ── Pricing
+
+export interface PricingPlanRawAction {
+  label:       string
+  target:      string
+  variant?:    string | null
+  aria_label?: string | null
+}
+
+export interface PricingPlanRaw {
+  id?:             string | null
+  title:           string
+  price:           string | null
+  price_suffix?:   string | null
+  price_annual?:   string | null
+  currency_label?: string | null
+  description?:    string | null
+  features?:       string[] | null
+  is_featured?:    boolean | null
+  featured_badge?: string | null
+  action?:         PricingPlanRawAction | null
+}
+
+export interface PricingSlots {
+  pricing_heading?:        string | null
+  pricing_subheading?:     string | null
+  pricing_plans?:          PricingPlanRaw[] | null
+  pricing_billing_toggle?: boolean | null
+  pricing_billing_note?:   string | null
+  pricing_logos?:          string[] | null
+  [key: string]: unknown
+}
+
+// ── Pricing tokens — kebab-case keys matching the backend payload exactly
+export interface PricingTokens {
+  'background'?:                  string
+  'padding'?:                     string
+
+  // Heading
+  'heading-color'?:               string
+  'subheading-color'?:            string
+  'heading-size'?:                string
+  'heading-weight'?:              string
+
+  // Card
+  'card-surface'?:                string
+  'card-radius'?:                 string
+  'card-border'?:                 string
+  'card-shadow'?:                 string
+  'card-padding'?:                string
+
+  // Featured card
+  'featured-card-background'?:    string
+  'featured-card-border'?:        string
+
+  // Badge
+  'badge-background'?:            string
+  'badge-text'?:                  string
+
+  // Body / feature text
+  'feature-text-color'?:          string
+
+  // Price
+  'price-color'?:                 string
+  'price-suffix-color'?:          string
+  'currency-label-color'?:        string
+
+  // CTA
+  'cta-background'?:              string
+  'cta-text'?:                    string
+  'featured-cta-background'?:     string
+  'featured-cta-text'?:           string
+
+  // Toggle
+  'toggle-active-background'?:    string
+  'toggle-background'?:           string
+  'toggle-active-text'?:          string
+  'toggle-inactive-text'?:        string
+
+  // Misc
+  'billing-note-color'?:          string
+  'footer-note-color'?:           string
+  'upgrade-action-color'?:        string
+  'logos-color'?:                 string
+  'summary-color'?:               string
+  'expand-icon-color'?:           string
+  'comparison-note-color'?:       string
+
+  [key: string]: string | undefined
+}
+
+export interface PricingComposeSection {
+  position:          number
+  category:          'pricing'
+  component_id:      string
+  layout_structure?: string
+  tags:              string[]
+  content_slots:     PricingSlots
+  tokens:            PricingTokens
+}
+
+export type ComposeSection =
+  | NavComposeSection
+  | HeroComposeSection
+  | FeaturesComposeSection
+  | PricingComposeSection

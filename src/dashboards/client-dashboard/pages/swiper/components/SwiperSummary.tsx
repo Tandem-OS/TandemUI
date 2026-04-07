@@ -528,6 +528,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                             Back To Dashboard
                             <FiArrowRight className="text-icon-sm" />
                         </motion.button>
+
                     </motion.div>
                 </motion.div>
             </div>

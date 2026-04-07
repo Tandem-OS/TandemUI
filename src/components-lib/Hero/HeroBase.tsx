@@ -12,19 +12,38 @@ interface HeroBaseProps {
 
 const HeroBase: React.FC<HeroBaseProps> = ({ section }) => {
 
-  const { valid, errors, warnings } = validateHeroPayload(section)
-
-  warnings.forEach(w => console.warn(`[HeroBase] ${w}`))
-
-  if (!valid) {
-    errors.forEach(e => console.error(`[HeroBase] ${e}`))
-    return null
+  const trace = {
+    componentId:    section.component_id,
+    layout:         section.layout_structure ?? '(no layout)',
+    slotKeys:       Object.keys(section.content_slots ?? {}),
+    hasTokens:      Boolean(section.tokens && Object.keys(section.tokens).length),
   }
 
+
+  const { valid, errors, warnings } = validateHeroPayload(section)
+
+  if (warnings.length > 0) {
+    console.warn('[HeroBase] Validation warnings — section will still render', {
+      ...trace,
+      warnings,
+    })
+  }
+  if (!valid) {
+    console.error('[HeroBase] Validation failed — section will not render', {
+      ...trace,
+      errors,
+      contentSlots: section.content_slots ?? null,
+      tokens:       section.tokens        ?? null,
+    })
+    return null
+  }
   const props = heroSlotToProps(section.content_slots)
 
   if (!props) {
-    console.error('[HeroBase] heroSlotToProps returned null after passing validation — skipping render')
+    console.error('[HeroBase] heroSlotToProps returned null after passing validation — contract gap suspected', {
+      ...trace,
+      contentSlots: section.content_slots ?? null,
+    })
     return null
   }
 

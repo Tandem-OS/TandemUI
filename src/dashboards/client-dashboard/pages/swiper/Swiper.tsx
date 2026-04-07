@@ -116,15 +116,20 @@ const normalizeLayout = (category: string, layout: string): string => {
     hero: 'stacked',
     nav: 'split_nav',
     features: 'grid',
+    pricing:  'grid',
   };
   const known: Record<string, string[]> = {
     hero: ['stacked', 'centered', 'split', 'immersive', 'minimal', 'video_bg'],
     nav: ['split_nav', 'centered', 'minimal', 'wide', 'sidebar', 'mega_menu'],
     features: ['grid', 'list', 'split'],
+    pricing:  ['three-column', 'stacked', 'grid'],
   };
+  console.log('[normalizeLayout] called with:', { category, layout });
   const cat = category.toLowerCase();
   const knownLayouts = known[cat] ?? [];
-  return knownLayouts.includes(layout) ? layout : (fallbacks[cat] ?? 'default');
+  const result = knownLayouts.includes(layout) ? layout : (fallbacks[cat] ?? 'default');
+  console.log('[normalizeLayout] returning:', result);
+  return result;
 };
 
 // Skeleton Card Component
@@ -245,6 +250,7 @@ const Swiper: React.FC = () => {
   const loadData = useCallback(async () => {
     try {
       dispatch(startLoading());
+      setKingOfHillSessions([]);
 
       const data = await getCanonicalComponents();
 
@@ -253,6 +259,8 @@ const Swiper: React.FC = () => {
         ...(componentsMap['hero'] ?? []),
         ...(componentsMap['nav'] ?? []),
         ...(componentsMap['features'] ?? []),
+        ...(componentsMap['pricing'] ?? []),
+
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
 
       if (!flatComponents.length) {
@@ -291,7 +299,12 @@ const Swiper: React.FC = () => {
           return acc;
         }, {});
 
-        const roundsDataPrepopulated = king_of_hill_sessions.map((session: any, sessionIndex: number) => {
+        const maxRound = Math.max(...king_of_hill_sessions.map((s: any) => s.round_number ?? 0));
+        const currentSessionSessions = king_of_hill_sessions.filter(
+          (s: any) => s.round_number === maxRound || king_of_hill_sessions.length <= 4
+        );
+
+        const roundsDataPrepopulated = currentSessionSessions.map((session: any, sessionIndex: number) => {
           const sessionMatches = king_of_hill_matches
             .filter((m: any) => m.session_id === session.id)
             .map((m: any, matchIndex: number) => ({
@@ -715,7 +728,7 @@ const Swiper: React.FC = () => {
   );
 
   const handleStartOver = useCallback(() => {
-       sessionStorage.removeItem(KOH_SNAP_KEY);
+    sessionStorage.removeItem(KOH_SNAP_KEY);
 
 
 
