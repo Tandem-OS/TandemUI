@@ -86,7 +86,7 @@ export interface HeroComposeSection {
   tokens: ComposeSectionTokens
 }
 
-// ── Pricing ───────────────────────────────────────────────────────────────
+// ── Pricing 
 export interface PricingPlanRawAction {
   label: string
   target: string
@@ -165,9 +165,18 @@ export interface PricingComposeSection {
   content_slots: PricingSlots
   tokens: PricingTokens
 }
-
-// ── Discriminated union ───────────────────────────────────────────────────
-import type { NavComposeSection }      from '@/components-lib/Nav/nav.types'
+// ── FAQ 
+export interface FAQComposeSection {
+  position: number
+  category: 'faq'
+  component_id: string
+  layout_structure?: string
+  tags: string[]
+  content_slots: any
+  tokens: any
+}
+// ── Discriminated union 
+import type { NavComposeSection } from '@/components-lib/Nav/nav.types'
 import type { FeaturesComposeSection } from '@/components-lib/Features/features.types'
 
 export type ComposeSection =
@@ -175,3 +184,4 @@ export type ComposeSection =
   | HeroComposeSection
   | FeaturesComposeSection
   | PricingComposeSection
+  | FAQComposeSection

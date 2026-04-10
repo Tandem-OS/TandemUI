@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { getCompose } from '@/lib/requests/CompositionRequest'
-import HeroRenderer     from '@/pages/Renderer/HeroRenderer'
-import NavRenderer      from '@/pages/Renderer/NavRenderer'
+import HeroRenderer from '@/pages/Renderer/HeroRenderer'
+import NavRenderer from '@/pages/Renderer/NavRenderer'
 import FeaturesRenderer from '@/pages/Renderer/FeaturesRenderer'
-import PricingRenderer  from '@/pages/Renderer/PricingRenderer'
+import PricingRenderer from '@/pages/Renderer/PricingRenderer'
+import FAQRenderer from '@/pages/Renderer/FAQRenderer'
 
 // ── Types from their own files ────────────────────────────────
-import type { NavComposeSection }      from '@/components-lib/Nav/nav.types'
+import type { NavComposeSection } from '@/components-lib/Nav/nav.types'
 import type { FeaturesComposeSection } from '@/components-lib/Features/features.types'
 import type { ComposeSection, HeroComposeSection, PricingComposeSection } from '@/pages/Renderer/CompositionType'
 
@@ -16,8 +17,8 @@ const CompositionRenderer: React.FC = () => {
   const { id } = useParams<{ id: string }>()
 
   const [sections, setSections] = useState<ComposeSection[]>([])
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -62,13 +63,15 @@ const CompositionRenderer: React.FC = () => {
       {ordered.map((section) => {
         switch (section.category) {
           case 'nav':
-            return <NavRenderer      key={section.component_id} sections={[section as NavComposeSection]}      />
+            return <NavRenderer key={section.component_id} sections={[section as NavComposeSection]} />
           case 'hero':
-            return <HeroRenderer     key={section.component_id} sections={[section as HeroComposeSection]}     />
+            return <HeroRenderer key={section.component_id} sections={[section as HeroComposeSection]} />
           case 'features':
             return <FeaturesRenderer key={section.component_id} sections={[section as FeaturesComposeSection]} />
           case 'pricing':
-            return <PricingRenderer  key={section.component_id} sections={[section as PricingComposeSection]}  />
+            return <PricingRenderer key={section.component_id} sections={[section as PricingComposeSection]} />
+          case 'faq':
+            return <FAQRenderer key={section.component_id} sections={[section]} />
           default: {
             const _exhaustive: never = section
             console.error(`[CompositionRenderer] Unhandled category: "${(_exhaustive as any).category}"`)

@@ -31,6 +31,7 @@ export interface CanonicalComponentsResponse {
   nav: CanonicalComponent[];
   features: CanonicalComponent[];
   pricing:CanonicalComponent[];
+   faq: CanonicalComponent[];
 }
 // ─────────────────────────────────────────────────────────────────────────────
 

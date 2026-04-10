@@ -260,6 +260,7 @@ const Swiper: React.FC = () => {
         ...(componentsMap['nav'] ?? []),
         ...(componentsMap['features'] ?? []),
         ...(componentsMap['pricing'] ?? []),
+        ...(componentsMap['faq'] ?? []),
 
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
 
