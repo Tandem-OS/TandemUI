@@ -119,7 +119,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ component, userChoice, isSupe
                 {component.thumbnail_url ? (
                     <img
                         src={component.thumbnail_url}
-                        alt={component.title}
+                        alt={component.title ?? undefined}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                 ) : (
@@ -196,6 +196,10 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
     const [showAllSuper, setShowAllSuper] = useState(false);
     const [currentInsightIndex, setCurrentInsightIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(true);
+    const roundsCount =
+        kingOfHillSessions.length > 0
+            ? kingOfHillSessions.length
+            : roundsData.length;
 
     // Create component lookup map from roundsData
     const componentMap = useMemo(() => {
@@ -234,7 +238,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
 
         const allVibes = likedComponents.map(comp => comp.vibe).filter(Boolean);
         const vibeFrequency = allVibes.reduce((acc: Record<string, number>, vibe) => {
-            acc[vibe] = (acc[vibe] || 0) + 1;
+            if (vibe) acc[vibe] = (acc[vibe] || 0) + 1;
             return acc;
         }, {});
 
@@ -256,7 +260,10 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
             }));
 
         // Behavioral insights
-        const avgViewTime = userChoices.reduce((sum, c) => sum + (c.behavioral_signals?.view_duration_ms || 0), 0) / userChoices.length;
+        const avgViewTime =
+            userChoices.length > 0
+                ? userChoices.reduce((sum, c) => sum + (c.behavioral_signals?.view_duration_ms || 0), 0) / userChoices.length
+                : 0;
         const quickDecisions = userChoices.filter(c => (c.behavioral_signals?.hesitation_ms || 0) < 1000).length;
 
         const insights = [
@@ -370,6 +377,17 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
 
         onGenerateLayout();
     };
+    const isDataReady =
+        roundsData.length > 0 &&
+        (kingOfHillSessions.length > 0 || userChoices.length > 0);
+
+    if (!isDataReady) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p>Loading session summary...</p>
+            </div>
+        );
+    }
     if (showRecap) {
         return (
             <div className="min-h-screen flex items-center justify-center px-md py-xl">
@@ -403,7 +421,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                             transition={{ delay: 0.3 }}
                             className="text-para-md text-text-secondary"
                         >
-                            Here's what you picked across {kingOfHillSessions.length} round{kingOfHillSessions.length !== 1 ? 's' : ''}
+                            Here's what you picked across {roundsCount} round{roundsCount !== 1 ? 's' : ''}
                         </motion.p>
                     </div>
 
@@ -416,7 +434,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                     >
                         {[
                             { label: 'Swipes', value: userChoices.length },
-                            { label: 'Rounds', value: kingOfHillSessions.length },
+                            { label: 'Rounds', value: roundsCount },
                             { label: 'Winners', value: kingOfHillSessions.filter(s => s.final_winner_id).length },
                         ].map((stat) => (
                             <div key={stat.label} className="bg-background-primary-2 border border-border-default rounded-xl p-lg text-center">
@@ -462,7 +480,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                                             {winner?.thumbnail_url ? (
                                                 <img
                                                     src={winner.thumbnail_url}
-                                                    alt={winner.title}
+                                                    alt={winner.title ?? undefined}
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (

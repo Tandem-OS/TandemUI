@@ -3,14 +3,18 @@ import type { FAQProps } from './faq.types'
 export function faqSlotToProps(slots: any): FAQProps | null {
   if (!slots) return null
 
-  const items = Array.isArray(slots.faq_items)
-    ? slots.faq_items
-    : []
+  const items = slots.faq_items
+  if (!Array.isArray(items) || items.length === 0) {
+    console.error('[faqSlotToProps] faq_items is missing or empty — cannot build props', {
+      received: items,
+    })
+    return null
+  }
 
   return {
     faq_items: items,
 
-    section_heading: slots.faq_heading ?? null,
+    section_heading: slots.faq_heading,
     section_tag: slots.section_tag,
     supporting_text: slots.supporting_text,
 

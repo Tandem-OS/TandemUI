@@ -63,7 +63,6 @@ const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, L
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
 const KOH_SNAP_KEY = 'tandem_koh_snap';
 
-
 // Animation variants
 const animations: { [key: string]: Variants | any } = {
   page: {
@@ -116,13 +115,17 @@ const normalizeLayout = (category: string, layout: string): string => {
     hero: 'stacked',
     nav: 'split_nav',
     features: 'grid',
-    pricing:  'grid',
+    pricing: 'grid',
+    faq: 'accordion',
+
   };
   const known: Record<string, string[]> = {
     hero: ['stacked', 'centered', 'split', 'immersive', 'minimal', 'video_bg'],
     nav: ['split_nav', 'centered', 'minimal', 'wide', 'sidebar', 'mega_menu'],
     features: ['grid', 'list', 'split'],
-    pricing:  ['three-column', 'stacked', 'grid'],
+    pricing: ['three-column', 'stacked', 'grid'],
+    faq: ['accordion', 'contained', 'centered-support', 'minimal'],
+
   };
   console.log('[normalizeLayout] called with:', { category, layout });
   const cat = category.toLowerCase();
@@ -211,6 +214,7 @@ const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetr
 );
 
 const Swiper: React.FC = () => {
+  const [isSummaryReady, setIsSummaryReady] = useState(false)
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
@@ -368,7 +372,7 @@ const Swiper: React.FC = () => {
 
         setKingOfHillSessions(roundsDataPrepopulated);
         setRoundCompleted(true);
-
+        setIsSummaryReady(true)
       } catch (err) {
         console.error("Failed to prepopulate swiper data:", err);
       }
@@ -509,8 +513,8 @@ const Swiper: React.FC = () => {
 
             // Optional
             id: component.id,
-            title: component.title,
-            description: component.description,
+            title: component.title ?? undefined,
+            description: component.description ?? undefined,
             category: component.category?.toLowerCase(), // backend stores lowercase
             layout_structure: normalizeLayout(
               component.category ?? '',
@@ -546,7 +550,7 @@ const Swiper: React.FC = () => {
       if (saveSuccess) {
         setTimeout(() => {
           dispatch(endKingOfHill());
-          const completedRoundNumber = currentRound + 1;
+          setIsSummaryReady(true)
           const shouldShowPreview = (snapRound + 1) % 2 === 0 && !snapIsLastRound;
 
           if (shouldShowPreview) {
@@ -601,7 +605,7 @@ const Swiper: React.FC = () => {
             catch (err) { console.error("❌ Failed to mark round completed:", err); }
           }
 
-          // ── KOH Gate (Dylan rule — locked March 3) ───────────────────────
+          // ── KOH Gate (Dylan rule — locked March 3) 
           // liked >= 2  → KOH fires with liked components only
           // liked === 1 → auto-winner, create session + POST /component directly
           // liked === 0 → no preference, advance with no /component call
@@ -629,7 +633,7 @@ const Swiper: React.FC = () => {
               dispatch(startKingOfHill(likedComponents));
 
             } else if (likedComponents.length === 1) {
-              // ── Auto-winner ───────────────────────────────────────────────
+              // ── Auto-winner 
               // 1 liked — no KOH UI. Create minimal session → get session_id → POST /component.
               const winner = likedComponents[0];
               try {
@@ -657,21 +661,33 @@ const Swiper: React.FC = () => {
                   content_slots: winner.content_slots,
                   tokens: winner.tokens,
                   is_canonical: winner.is_canonical ?? false,
-                  title: winner.title,            // ← add
-                  description: winner.description, // ← add
-                  tone: winner.tone,               // ← add
-                  intent: winner.intent,           // ← add
-                  tags: winner.tags,               // ← add
-                  vibe: winner.vibe,               // ← add
+                  title: winner.title ?? undefined,
+                  description: winner.description ?? undefined,
+                  tone: winner.tone,
+                  intent: winner.intent,
+                  tags: winner.tags,
+                  vibe: winner.vibe,
                 });
 
               } catch (err) {
                 console.error("❌ Failed to post auto-winner component:", err);
               }
-
+              const autoSession: KingOfHillSession = {
+                round_number: currentRound + 1,
+                category: currentRoundData?.category ?? '',
+                components: [winner],
+                matches: [],
+                final_winner_id: winner.component_id,
+                session_duration_ms: 0,
+                started_at: Date.now(),
+                completed_at: Date.now(),
+              }
+              setKingOfHillSessions(prev => [...prev, autoSession]);
               if (!isLastRound) {
                 dispatch(moveToNextRound());
                 setTimeout(() => dispatch(unlockTransition()), 1000);
+              } else {
+                setIsSummaryReady(true);
               }
 
             } else {
@@ -680,6 +696,8 @@ const Swiper: React.FC = () => {
               if (!isLastRound) {
                 dispatch(moveToNextRound());
                 setTimeout(() => dispatch(unlockTransition()), 1000);
+              } else {
+                setIsSummaryReady(true);
               }
             }
 
@@ -830,14 +848,20 @@ const Swiper: React.FC = () => {
             onComplete={handleTransitionComplete}
           />
         )}
-        <SwiperSummary
-          userChoices={userChoices}
-          roundsData={roundsData}
-          totalRounds={totalRounds}
-          kingOfHillSessions={kingOfHillSessions}
-          onStartOver={handleStartOver}
-          onGenerateLayout={handleRequestGenerate}
-        />
+        {isSummaryReady ? (
+          <SwiperSummary
+            userChoices={userChoices}
+            roundsData={roundsData}
+            totalRounds={totalRounds}
+            kingOfHillSessions={kingOfHillSessions}
+            onStartOver={handleStartOver}
+            onGenerateLayout={handleRequestGenerate}
+          />
+        ) : (
+          <div className="min-h-screen flex items-center justify-center">
+            <p>Preparing session summary...</p>
+          </div>
+        )}
       </>
     );
   }

@@ -25,7 +25,7 @@ const FAQAccordionShell: React.FC<FAQShellProps> = ({ props, styles }) => {
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
-        gap: styles.item_gap ?? '1rem',
+        gap: styles.item_gap,
       }}>
 
         {section_heading && (
@@ -62,21 +62,23 @@ const FAQAccordionShell: React.FC<FAQShellProps> = ({ props, styles }) => {
                 {item.question}
               </summary>
 
-              <p
-                style={{
-                  marginTop: '0.5rem',
-                  fontSize: styles.answer_size,
-                  color: styles.text_color,
-                  opacity: 0.85,
-                }}
-              >
-                {item.answer ?? ''}
-              </p>
+              {item.answer && (
+                <p
+                  style={{
+                    marginTop: '0.5rem',
+                    fontSize: styles.answer_size,
+                    color: styles.text_color,
+                    opacity: 0.85,
+                  }}
+                >
+                  {item.answer}
+                </p>
+              )}
             </details>
           </Wrap>
         ))}
       </div>
-    </section >
+    </section>
   )
 }
 
