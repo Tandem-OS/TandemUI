@@ -117,6 +117,8 @@ const normalizeLayout = (category: string, layout: string): string => {
     features: 'grid',
     pricing: 'grid',
     faq: 'accordion',
+    testimonials: 'video-grid',
+
 
   };
   const known: Record<string, string[]> = {
@@ -125,6 +127,8 @@ const normalizeLayout = (category: string, layout: string): string => {
     features: ['grid', 'list', 'split'],
     pricing: ['three-column', 'stacked', 'grid'],
     faq: ['accordion', 'contained', 'centered-support', 'minimal'],
+    testimonials: ['video-grid', 'featured-stats', 'notes', 'carousel'],
+
 
   };
   console.log('[normalizeLayout] called with:', { category, layout });
@@ -265,6 +269,8 @@ const Swiper: React.FC = () => {
         ...(componentsMap['features'] ?? []),
         ...(componentsMap['pricing'] ?? []),
         ...(componentsMap['faq'] ?? []),
+        ...(componentsMap['testimonials'] ?? []),
+
 
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
 

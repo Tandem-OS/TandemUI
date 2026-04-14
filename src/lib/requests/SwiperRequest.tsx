@@ -32,6 +32,7 @@ export interface CanonicalComponentsResponse {
   features: CanonicalComponent[];
   pricing:CanonicalComponent[];
    faq: CanonicalComponent[];
+   testimonials: CanonicalComponent[];
 }
 // ─────────────────────────────────────────────────────────────────────────────
 

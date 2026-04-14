@@ -175,6 +175,16 @@ export interface FAQComposeSection {
   content_slots: any
   tokens: any
 }
+// ── Testimonials
+export interface TestimonialsComposeSection {
+  position: number
+  category: 'testimonials'
+  component_id: string
+  layout_structure: string
+  tags: string[]
+  content_slots: Record<string, unknown>
+  tokens: Record<string, string>
+}
 // ── Discriminated union 
 import type { NavComposeSection } from '@/components-lib/Nav/nav.types'
 import type { FeaturesComposeSection } from '@/components-lib/Features/features.types'
@@ -185,3 +195,4 @@ export type ComposeSection =
   | FeaturesComposeSection
   | PricingComposeSection
   | FAQComposeSection
+  | TestimonialsComposeSection 
