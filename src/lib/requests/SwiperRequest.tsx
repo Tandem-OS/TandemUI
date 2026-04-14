@@ -1,7 +1,7 @@
 import api from "@/lib/requests/Axios";
 import { store } from "@/store";
 
-// ─── Canonical types ──────────────────────────────────────────────────────────
+// ─── Canonical types 
 export const TANDEM_CANONICAL_PROJECT_ID = "00000000-0000-0000-0000-000000000000";
 
 export interface CanonicalComponent {
@@ -33,8 +33,8 @@ export interface CanonicalComponentsResponse {
   pricing:CanonicalComponent[];
    faq: CanonicalComponent[];
    testimonials: CanonicalComponent[];
+   cta: CanonicalComponent[];
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface SwiperRoundSummary {
   choices: any[];
@@ -90,12 +90,11 @@ interface KingOfMatches {
   behavioral_signals: {};
 }
 
-// ─── Canonical fetch ──────────────────────────────────────────────────────────
+// ─── Canonical fetch 
 export const getCanonicalComponents = async (): Promise<CanonicalComponentsResponse> => {
   const response = await api.get("/swiper/canonical");
   return response.data;
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const swiperData = async (values: SwiperRoundSummary) => {
   const clientEmail = store.getState().auth.user.email!;

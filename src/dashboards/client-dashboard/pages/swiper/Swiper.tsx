@@ -118,6 +118,7 @@ const normalizeLayout = (category: string, layout: string): string => {
     pricing: 'grid',
     faq: 'accordion',
     testimonials: 'video-grid',
+    cta: 'hero-footer',
 
 
   };
@@ -128,6 +129,7 @@ const normalizeLayout = (category: string, layout: string): string => {
     pricing: ['three-column', 'stacked', 'grid'],
     faq: ['accordion', 'contained', 'centered-support', 'minimal'],
     testimonials: ['video-grid', 'featured-stats', 'notes', 'carousel'],
+    cta: ['hero-footer', 'announcement-faq', 'newsletter-centered', 'search-footer'],
 
 
   };
@@ -270,6 +272,7 @@ const Swiper: React.FC = () => {
         ...(componentsMap['pricing'] ?? []),
         ...(componentsMap['faq'] ?? []),
         ...(componentsMap['testimonials'] ?? []),
+        ...(componentsMap['cta'] ?? []),
 
 
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));

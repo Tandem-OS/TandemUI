@@ -5,6 +5,8 @@ import FeaturesRenderer from '@/pages/Renderer/FeaturesRenderer';
 import PricingRenderer from '@/pages/Renderer/PricingRenderer';
 import FAQRenderer from '@/pages/Renderer/FAQRenderer'
 import { TestimonialsRenderer } from '@/pages/Renderer/TestimonialsRenderer';
+import { CTARenderer } from '@/pages/Renderer/CTARenderer'
+
 
 import type {
   ComposeSection,
@@ -42,6 +44,16 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({ section, highlighted = 
             }}
           />
         );
+      case 'cta':
+        return (
+          <CTARenderer
+            raw={{
+              layout_structure: section.layout_structure,
+              tokens: section.tokens,
+              content_slots: section.content_slots,
+            }}
+          />
+        )
       default: {
         const _exhaustive: never = section;
         console.error(`[SectionPreview] Unhandled category: "${(_exhaustive as any).category}"`);
