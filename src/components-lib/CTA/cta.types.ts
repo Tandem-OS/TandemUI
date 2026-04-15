@@ -1,3 +1,5 @@
+import type { CTAStyles } from './cta.tokensToStyles';
+
 export type CTALayoutStructure =
   | 'hero-footer'
   | 'announcement-faq'
@@ -87,7 +89,7 @@ export interface CTASearchFooterSlot {
   footer_columns: CTAFooterColumn[];
 }
 
-// ─── Union Props per shell 
+// ─── DB contract props (used by validateCTAProps, slotToCTAProps, CTABase)
 export interface CTAHeroFooterProps {
   layoutStructure: 'hero-footer';
   tokens: CTATokens;
@@ -117,3 +119,15 @@ export type CTAProps =
   | CTAAnnouncementFAQProps
   | CTANewsletterCenteredProps
   | CTASearchFooterProps;
+
+// ─── Shell props (render-time — CTABase adds styles before passing to shells)
+export type CTAHeroFooterShellProps         = CTAHeroFooterProps         & { styles: CTAStyles };
+export type CTAAnnouncementFAQShellProps    = CTAAnnouncementFAQProps    & { styles: CTAStyles };
+export type CTANewsletterCenteredShellProps = CTANewsletterCenteredProps & { styles: CTAStyles };
+export type CTASearchFooterShellProps       = CTASearchFooterProps       & { styles: CTAStyles };
+
+export type CTAShellProps =
+  | CTAHeroFooterShellProps
+  | CTAAnnouncementFAQShellProps
+  | CTANewsletterCenteredShellProps
+  | CTASearchFooterShellProps;

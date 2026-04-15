@@ -2,12 +2,12 @@ import React from 'react'
 import PricingBase from '@/components-lib/Pricing/PricingBase'
 import type { PricingComposeSection } from '@/pages/Renderer/CompositionType'
 
-// ── Props ─────────────────────────────────────────────────────
+// ── Props 
 interface PricingRendererProps {
   sections: PricingComposeSection[]
 }
 
-// ── PricingRenderer (pure) ────────────────────────────────────
+// ── PricingRenderer (pure) 
 const PricingRenderer: React.FC<PricingRendererProps> = ({ sections }) => {
   if (sections.length === 0) return null
 

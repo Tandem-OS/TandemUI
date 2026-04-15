@@ -16,12 +16,12 @@ export function tokensToCTAStyles(tokens: CTATokens): CTAStyles {
   }
 
   return {
-    wrapper: `bg-[${tokens.background}] ${tokens.spacing}`,
+    wrapper: `${tokens.background} ${tokens.spacing}`,
     heading: tokens['heading-scale'],
     body: `${tokens['text-role']} ${tokens['body-scale']}`,
     action: tokens['action-style'],
-    surface: `bg-[${tokens.surface}]`,
-    footerWrapper: `bg-[${tokens['footer-background']}]`,
+    surface: tokens.surface,
+    footerWrapper: tokens['footer-background'],
     footerText: tokens['footer-text'],
   };
 }

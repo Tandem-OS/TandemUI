@@ -1,8 +1,6 @@
-// Nav Layout Resolver
-
 export type NavLayoutKey = 'split' | 'centered' | 'centered-logo'
 
-const SUPPORTED_LAYOUTS: NavLayoutKey[] = ['split', 'centered', 'centered-logo', 'split_nav' as NavLayoutKey]
+const SUPPORTED_LAYOUTS: NavLayoutKey[] = ['split', 'centered', 'centered-logo']
 
 export function resolveNavLayout(
   layout_structure: string | undefined,

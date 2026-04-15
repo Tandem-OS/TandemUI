@@ -36,12 +36,7 @@ export function resolveNavShellData(
     }
   }
 
-  const slotProps = navSlotsToProps(
-    section.content_slots,
-    section.layout_structure,
-    section.tags,
-    section.tokens,
-  )
+ const slotProps = navSlotsToProps(section.content_slots)
 
   const styles = resolveNavStyles(section.tokens)
 

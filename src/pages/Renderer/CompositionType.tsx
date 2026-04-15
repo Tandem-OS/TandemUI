@@ -17,7 +17,7 @@ export type {
   FeaturesComposeSection,
 } from '@/components-lib/Features/features.types'
 
-// ── Hero ──────────────────────────────────────────────────────────────────
+// ── Hero 
 export interface ComposeSectionTokens {
   background?: string
   heading_color?: string
