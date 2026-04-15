@@ -30,10 +30,12 @@ export interface CanonicalComponentsResponse {
   hero: CanonicalComponent[];
   nav: CanonicalComponent[];
   features: CanonicalComponent[];
-  pricing:CanonicalComponent[];
-   faq: CanonicalComponent[];
-   testimonials: CanonicalComponent[];
-   cta: CanonicalComponent[];
+  pricing: CanonicalComponent[];
+  faq: CanonicalComponent[];
+  testimonials: CanonicalComponent[];
+  cta: CanonicalComponent[];
+  contact: CanonicalComponent[];
+
 }
 
 interface SwiperRoundSummary {
