@@ -28,6 +28,8 @@ const CompositionRenderer: React.FC = () => {
   useEffect(() => {
     if (!id) return;
     const load = async () => {
+      console.log('[RENDERER] previewToken:', previewToken)  // ← add
+      console.log('[RENDERER] id:', id)
       setLoading(true);
       setError(null);
       try {
