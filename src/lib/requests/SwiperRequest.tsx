@@ -36,6 +36,7 @@ export interface CanonicalComponentsResponse {
   cta: CanonicalComponent[];
   contact: CanonicalComponent[];
   timeline: CanonicalComponent[];
+  footer: CanonicalComponent[];
 
 }
 
@@ -126,9 +127,9 @@ export const swiperComponentData = async (values: SwiperComponent) => {
   for (const [key, value] of Object.entries(values)) {
     if (value === null || value === undefined) continue;
     if (key === 'thumbnail_url') continue;
-    if (key === 'project_id') continue;        // ← always override below, never trust incoming value
-    if (key === 'client_email') continue;      // ← add
-    if (key === 'designer_email') continue;    // ← add
+    if (key === 'project_id') continue;        
+    if (key === 'client_email') continue;      
+    if (key === 'designer_email') continue;    
     if (key === 'is_canonical') continue;
 
     if (typeof value === 'object' && !Array.isArray(value)) {
