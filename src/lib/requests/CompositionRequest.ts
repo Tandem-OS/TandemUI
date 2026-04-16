@@ -108,7 +108,7 @@ export const postRestoreVersion = async (projectId: string, targetVersion: numbe
 
 export const getPublicCompose = async (id: string, token: string) => {
   const res = await fetch(
-    `${import.meta.env.VITE_API_BASE_URL}/preview/compose/${id}?token=${token}`
+    `${import.meta.env.VITE_BACKEND_API_URL}/preview/compose/${id}?token=${token}`
   )
   if (res.status === 401) throw Object.assign(new Error(), { response: { status: 401 } })
   if (!res.ok) throw new Error("Failed to load public composition")
