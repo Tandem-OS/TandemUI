@@ -35,6 +35,7 @@ export interface CanonicalComponentsResponse {
   testimonials: CanonicalComponent[];
   cta: CanonicalComponent[];
   contact: CanonicalComponent[];
+  timeline: CanonicalComponent[];
 
 }
 

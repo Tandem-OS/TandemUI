@@ -206,6 +206,17 @@ export interface ContactComposeSection {
   content_slots: Record<string, unknown>
   tokens: Record<string, string>
 }
+// ── Timeline
+export interface TimelineComposeSection {
+  position: number
+  category: 'timeline'
+  component_id: string
+  layout_structure: string
+  tags: string[]
+  content_slots: Record<string, unknown>
+  tokens: Record<string, string>
+}
+
 // ── Discriminated union 
 import type { NavComposeSection } from '@/components-lib/Nav/nav.types'
 import type { FeaturesComposeSection } from '@/components-lib/Features/features.types'
@@ -219,4 +230,5 @@ export type ComposeSection =
   | TestimonialsComposeSection
   | CTAComposeSection
   | ContactComposeSection
+  | TimelineComposeSection
 
