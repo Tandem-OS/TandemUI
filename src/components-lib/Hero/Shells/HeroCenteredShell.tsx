@@ -24,9 +24,8 @@ const HeroCenteredShell: React.FC<HeroShellProps> = ({ props, styles }) => {
   }
 
   const subheadingStyle: React.CSSProperties = {
-    color:   styles.subheading_color,
-    opacity: 0.8,
-    margin:  0,
+    color:  styles.subheading_color,
+    margin: 0,
   }
 
   return (
@@ -44,7 +43,6 @@ const HeroCenteredShell: React.FC<HeroShellProps> = ({ props, styles }) => {
         backgroundColor: styles.background,
       }}
     >
-      {/* Background image */}
       {hero_media && (
         <div
           aria-hidden="true"
@@ -60,7 +58,6 @@ const HeroCenteredShell: React.FC<HeroShellProps> = ({ props, styles }) => {
         />
       )}
 
-      {/* Content — centered */}
       <div style={{
         position:       'relative',
         zIndex:         10,
@@ -77,7 +74,7 @@ const HeroCenteredShell: React.FC<HeroShellProps> = ({ props, styles }) => {
           display:       'flex',
           flexDirection: 'column',
           alignItems:    'center',
-          gap:           '2rem',
+          gap:           '2rem', // structural chrome — fixed rhythm, not a token (confirmed by Syed)
         }}>
 
           <Wrap {...getAnim(0, animated)} data-testid="hero-title">

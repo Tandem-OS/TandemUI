@@ -1,28 +1,43 @@
 import { validateTimelineProps } from '@/components-lib/Timeline/timeline.validation'
 import { slotToTimelineProps } from '@/components-lib/Timeline/timeline.slotToProps'
 import { TimelineBase } from '@/components-lib/Timeline/TimelineBase'
-import type { TimelineLayoutStructure } from '@/components-lib/Timeline/timeline.types'
+import type { TimelineLayoutStructure, TimelineTokens } from '@/components-lib/Timeline/timeline.types'
 
 interface TimelineRendererProps {
   raw: {
     layout_structure: string
-    tokens: Record<string, any>
-    content_slots: Record<string, any>
+    tokens:           TimelineTokens
+    content_slots:    Record<string, unknown>
   }
 }
 
 export function TimelineRenderer({ raw }: TimelineRendererProps) {
   const validated = validateTimelineProps({
     layoutStructure: raw.layout_structure as TimelineLayoutStructure,
-    tokens: raw.tokens,
-    slot: raw.content_slots,
+    tokens:          raw.tokens,
+    slot:            raw.content_slots,
   })
+
+  if (!validated) {
+    console.error('[TimelineRenderer] validateTimelineProps returned null', {
+      layout_structure: raw.layout_structure,
+      hasTokens:        Boolean(raw.tokens),
+    })
+    return null
+  }
 
   const props = slotToTimelineProps(
     validated.layoutStructure,
     validated.tokens,
     validated.slot,
   )
+
+  if (!props) {
+    console.error('[TimelineRenderer] slotToTimelineProps returned null', {
+      layoutStructure: validated.layoutStructure,
+    })
+    return null
+  }
 
   return <TimelineBase {...props} />
 }

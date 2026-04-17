@@ -1,4 +1,5 @@
 import type { ContactFormEditorialShellProps } from '../contact.types';
+import { renderFormFields } from '../contact.shellUtils';
 
 export function ContactFormEditorialShell({ layoutStructure, slot, styles }: ContactFormEditorialShellProps) {
   if (layoutStructure !== 'form_editorial_split') {
@@ -13,10 +14,10 @@ export function ContactFormEditorialShell({ layoutStructure, slot, styles }: Con
       {/* Nav */}
       <nav className={`${styles.surface} w-full px-6 md:px-12 py-4`}>
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className={`${styles.heading} text-lg font-bold`}>{slot.nav_logo_text}</span>
+          <span className={styles.heading}>{slot.nav_logo_text}</span>
           <div className="flex items-center gap-8">
             {slot.nav_links.map((link, i) => (
-              <span key={i} className={`${styles.body} text-sm`}>{link}</span>
+              <span key={i} className={styles.body}>{link}</span>
             ))}
           </div>
         </div>
@@ -28,27 +29,10 @@ export function ContactFormEditorialShell({ layoutStructure, slot, styles }: Con
         {/* Left — Form */}
         <div className={`${styles.formSurface} rounded-xl p-8`}>
           <div className="flex flex-col gap-4">
-            {slot.form_fields.map((field, i) => (
-              <div key={i} className="flex flex-col gap-1">
-                <label className={`${styles.body} text-sm font-medium`}>{field.label}</label>
-                {field.type === 'textarea' ? (
-                  <textarea
-                    placeholder={field.placeholder}
-                    rows={4}
-                    className={`${styles.surface} w-full px-4 py-3 rounded-lg text-sm focus:outline-none resize-none`}
-                  />
-                ) : (
-                  <input
-                    type={field.type}
-                    placeholder={field.placeholder}
-                    className={`${styles.surface} w-full px-4 py-3 rounded-lg text-sm focus:outline-none`}
-                  />
-                )}
-              </div>
-            ))}
+            {renderFormFields(slot.form_fields, styles)}
           </div>
 
-          <button className={`${styles.action} w-full mt-6 px-6 py-3 font-medium`}>
+          <button className={`${styles.action} w-full mt-6`}>
             {slot.submit_button}
           </button>
         </div>
@@ -61,10 +45,10 @@ export function ContactFormEditorialShell({ layoutStructure, slot, styles }: Con
           <div className="flex flex-col gap-6 pt-8 border-t border-opacity-20">
             {slot.contact_footer_items.map((item, i) => (
               <div key={i}>
-                <p className={`${styles.subheading} text-xs font-semibold uppercase tracking-widest mb-1`}>
+                <p className={`${styles.mutedBody} uppercase tracking-widest mb-1`}>
                   {item.title}
                 </p>
-                <p className={`${styles.body} text-sm`}>{item.value}</p>
+                <p className={styles.body}>{item.value}</p>
               </div>
             ))}
           </div>

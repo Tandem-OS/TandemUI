@@ -1,13 +1,17 @@
 import type { ContactTokens } from './contact.types';
 
 export interface ContactStyles {
-  wrapper: string;
-  heading: string;
-  body: string;
-  action: string;
-  surface: string;
-  formSurface: string;
-  subheading: string;
+  wrapper:        string;
+  heading:        string;
+  sectionHeading: string;
+  body:           string;
+  mutedBody:      string;
+  eyebrow:        string;
+  label:          string;
+  meta:           string;
+  action:         string;
+  surface:        string;
+  formSurface:    string;
 }
 
 export function tokensToContactStyles(tokens: ContactTokens): ContactStyles {
@@ -16,12 +20,16 @@ export function tokensToContactStyles(tokens: ContactTokens): ContactStyles {
   }
 
   return {
-    wrapper:    `${tokens.background} ${tokens.spacing}`,
-    heading:    tokens['heading-scale'],
-    body:       `${tokens['text-role']} ${tokens['body-scale']}`,
-    action:     tokens['action-style'],
-    surface:    tokens.surface,
-    formSurface: tokens['form-surface'],
-    subheading: tokens['text-role'],
+    wrapper:        `${tokens.background} ${tokens.spacing}`,
+    heading:        tokens['heading-scale'],
+    sectionHeading: tokens['section-heading-scale'],
+    body:           `${tokens['text-role']} ${tokens['body-scale']}`,
+    mutedBody:      tokens['text-role'],
+    eyebrow:        tokens['eyebrow-scale'],
+    label:          tokens['label-scale'],
+    meta:           tokens['meta-scale'],
+    action:         tokens['action-style'],
+    surface:        tokens.surface,
+    formSurface:    tokens['form-surface'],
   };
 }

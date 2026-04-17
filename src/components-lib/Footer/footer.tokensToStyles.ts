@@ -1,13 +1,17 @@
 import type { FooterTokens } from './footer.types';
 
 export interface FooterStyles {
-  wrapper: string;
-  heading: string;
-  body: string;
-  action: string;
-  surface: string;
-  bottomBar: string;
-  subheading: string;
+  wrapper:        string;
+  heading:        string;
+  sectionHeading: string;
+  body:           string;
+  mutedBody:      string;
+  eyebrow:        string;
+  label:          string;
+  meta:           string;
+  action:         string;
+  bottomBar:      string;
+  overlayText:    string;
 }
 
 export function tokensToFooterStyles(tokens: FooterTokens): FooterStyles {
@@ -16,12 +20,16 @@ export function tokensToFooterStyles(tokens: FooterTokens): FooterStyles {
   }
 
   return {
-    wrapper:    `${tokens.background} ${tokens.spacing}`,
-    heading:    tokens['heading-scale'],
-    body:       `${tokens['text-role']} ${tokens['body-scale']}`,
-    action:     tokens['action-style'],
-    surface:    tokens.surface,
-    bottomBar:  tokens['bottom-bar'],
-    subheading: tokens['text-role'],
+    wrapper:        `${tokens.background} ${tokens.spacing}`,
+    heading:        tokens['heading-scale'],
+    sectionHeading: tokens['section-heading-scale'],
+    body:           `${tokens['text-role']} ${tokens['body-scale']}`,
+    mutedBody:      tokens['text-role'],
+    eyebrow:        tokens['eyebrow-scale'],
+    label:          tokens['label-scale'],
+    meta:           tokens['meta-scale'],
+    action:         tokens['action-style'],
+    bottomBar:      tokens['bottom-bar'],
+    overlayText:    tokens['overlay-text'],
   };
 }

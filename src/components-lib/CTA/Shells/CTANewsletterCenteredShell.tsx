@@ -19,9 +19,9 @@ export function CTANewsletterCenteredShell({ layoutStructure, slot, styles }: CT
           <input
             type="email"
             placeholder={slot.email_placeholder}
-            className="px-4 py-3 rounded-lg border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400 w-full sm:w-80"
+            className={`${styles.surface} px-4 py-3 rounded-lg w-full sm:w-80`}
           />
-          <button className={`${styles.action} px-6 py-3 whitespace-nowrap`}>
+          <button className={styles.action}>
             {slot.form_button}
           </button>
         </div>
@@ -33,11 +33,11 @@ export function CTANewsletterCenteredShell({ layoutStructure, slot, styles }: CT
                 key={i}
                 src={avatar}
                 alt={`User ${i + 1}`}
-                className="w-8 h-8 rounded-full border-2 border-white object-cover"
+                className="w-8 h-8 rounded-full object-cover"
               />
             ))}
           </div>
-          <p className={`${styles.footerText} text-sm`}>{slot.social_proof_text}</p>
+          <p className={styles.mutedBody}>{slot.social_proof_text}</p>
         </div>
       </div>
     </section>

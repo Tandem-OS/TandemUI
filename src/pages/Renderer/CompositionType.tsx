@@ -1,4 +1,14 @@
-// ── Nav — types owned by nav.types.ts ─────────────────────────────────────
+// ── Discriminated union 
+import type { NavComposeSection } from '@/components-lib/Nav/nav.types'
+import type { FeaturesComposeSection } from '@/components-lib/Features/features.types'
+import type { TestimonialsTokens } from '@/components-lib/Testimonials/testimonials.types'
+import type { CTATokens } from '@/components-lib/CTA/cta.types'
+import type { ContactTokens } from '@/components-lib/Contact/contact.types'
+import type { TimelineTokens } from '@/components-lib/Timeline/timeline.types'
+import type { FooterTokens } from '@/components-lib/Footer/footer.types'
+import type { FAQTokens } from '@/components-lib/FAQ/faq.types'
+
+// ── Nav — types owned by nav.types.ts 
 export type {
   NavLink,
   NavSlots,
@@ -7,7 +17,7 @@ export type {
   NavComposeSection,
 } from '@/components-lib/Nav/nav.types'
 
-// ── Features — types owned by features.types.ts ───────────────────────────
+// ── Features — types owned by features.types.ts 
 export type {
   FeaturesAction,
   FeaturesItem,
@@ -28,6 +38,11 @@ export interface ComposeSectionTokens {
   padding?: string
   link_size?: string
   btn_radius?: string
+   carousel_dot_active_color?:   string
+  carousel_dot_inactive_color?: string
+  carousel_arrow_color?:        string
+  carousel_arrow_border_color?: string
+  carousel_arrow_hover_bg?:     string
   [key: string]: string | undefined
 }
 
@@ -165,17 +180,25 @@ export interface PricingComposeSection {
   content_slots: PricingSlots
   tokens: PricingTokens
 }
-// ── FAQ 
+// ── FAQ
 export interface FAQComposeSection {
   position: number
   category: 'faq'
   component_id: string
   layout_structure?: string
   tags: string[]
-  content_slots: any
-  tokens: any
+  content_slots: Record<string, unknown>
+  tokens: FAQTokens
 }
-// ── Testimonials
+
+// ── Testimonials — types owned by testimonials.types.ts
+
+export type {
+  TestimonialsTokens,
+  TestimonialsProps,
+  TestimonialsShellProps,
+} from '@/components-lib/Testimonials/testimonials.types'
+
 export interface TestimonialsComposeSection {
   position: number
   category: 'testimonials'
@@ -183,9 +206,10 @@ export interface TestimonialsComposeSection {
   layout_structure: string
   tags: string[]
   content_slots: Record<string, unknown>
-  tokens: Record<string, string>
+  tokens: TestimonialsTokens
 }
 // ── CTA
+
 export interface CTAComposeSection {
   position: number
   category: 'cta'
@@ -193,7 +217,7 @@ export interface CTAComposeSection {
   layout_structure: string
   tags: string[]
   content_slots: Record<string, unknown>
-  tokens: Record<string, string>
+  tokens: CTATokens
 }
 
 // ── Contact
@@ -204,7 +228,7 @@ export interface ContactComposeSection {
   layout_structure: string
   tags: string[]
   content_slots: Record<string, unknown>
-  tokens: Record<string, string>
+  tokens: ContactTokens
 }
 // ── Timeline
 export interface TimelineComposeSection {
@@ -214,7 +238,7 @@ export interface TimelineComposeSection {
   layout_structure: string
   tags: string[]
   content_slots: Record<string, unknown>
-  tokens: Record<string, string>
+  tokens: TimelineTokens
 }
 
 // ── Footer
@@ -225,11 +249,9 @@ export interface FooterComposeSection {
   layout_structure: string
   tags: string[]
   content_slots: Record<string, unknown>
-  tokens: Record<string, string>
+  tokens: FooterTokens
 }
-// ── Discriminated union 
-import type { NavComposeSection } from '@/components-lib/Nav/nav.types'
-import type { FeaturesComposeSection } from '@/components-lib/Features/features.types'
+
 
 export type ComposeSection =
   | NavComposeSection

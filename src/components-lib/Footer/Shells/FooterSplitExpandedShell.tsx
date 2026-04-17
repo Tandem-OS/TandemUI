@@ -15,15 +15,15 @@ export function FooterSplitExpandedShell({ slot, styles }: FooterSplitExpandedSh
               alt={slot.brand_text}
               className="h-8 w-auto object-contain"
             />
-            <span className={`${styles.heading} font-semibold`}>{slot.brand_text}</span>
+            <span className={styles.heading}>{slot.brand_text}</span>
           </div>
 
           <nav className="flex flex-wrap items-center gap-6">
             {slot.primary_links.map((link: string, index: number) => (
-              <a 
+              <a
                 key={index}
                 href="#"
-                className={`${styles.body} opacity-80 hover:opacity-100 transition-opacity flex items-center gap-1`}
+                className={`${styles.mutedBody} transition-opacity flex items-center gap-1`}
               >
                 {slot.link_style === 'arrow_links' && (
                   <span aria-hidden="true">→</span>
@@ -33,7 +33,7 @@ export function FooterSplitExpandedShell({ slot, styles }: FooterSplitExpandedSh
             ))}
           </nav>
 
-          <a 
+          <a
             href="#"
             className={`${styles.action} px-6 py-2 rounded-lg whitespace-nowrap`}
           >
@@ -45,7 +45,7 @@ export function FooterSplitExpandedShell({ slot, styles }: FooterSplitExpandedSh
           <h3 className={`${styles.heading} mb-4`}>{slot.expanded_content_title}</h3>
           <ul className="flex flex-col gap-3">
             {slot.expanded_content_lines.map((line: string, index: number) => (
-              <li key={index} className={`${styles.body} opacity-80`}>
+              <li key={index} className={styles.mutedBody}>
                 {line}
               </li>
             ))}
@@ -53,13 +53,13 @@ export function FooterSplitExpandedShell({ slot, styles }: FooterSplitExpandedSh
         </div>
 
         <div className={`${styles.bottomBar} flex flex-col sm:flex-row items-center justify-between gap-4 py-6`}>
-          <p className={`${styles.body} opacity-60`}>{slot.copyright_text}</p>
+          <p className={styles.mutedBody}>{slot.copyright_text}</p>
           <nav className="flex flex-wrap items-center gap-6">
             {slot.bottom_links.map((link: string, index: number) => (
-              <a 
+              <a
                 key={index}
                 href="#"
-                className={`${styles.body} opacity-60 hover:opacity-100 transition-opacity`}
+                className={`${styles.mutedBody} transition-opacity`}
               >
                 {link}
               </a>

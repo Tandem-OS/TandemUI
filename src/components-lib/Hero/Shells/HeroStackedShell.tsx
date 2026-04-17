@@ -42,7 +42,7 @@ const HeroStackedShell: React.FC<HeroShellProps> = ({ props, styles }) => {
     display:       'flex',
     flexDirection: 'column',
     alignItems:    'center',
-    gap:           '2rem',
+    gap:           '2rem', // structural chrome — fixed rhythm, not a token (confirmed by Syed)
   }
 
   const headingStyle: React.CSSProperties = {
@@ -54,9 +54,8 @@ const HeroStackedShell: React.FC<HeroShellProps> = ({ props, styles }) => {
   }
 
   const subheadingStyle: React.CSSProperties = {
-    color:   styles.subheading_color,
-    opacity: 0.8,
-    margin:  0,
+    color:  styles.subheading_color,
+    margin: 0,
   }
 
   return (
@@ -66,7 +65,6 @@ const HeroStackedShell: React.FC<HeroShellProps> = ({ props, styles }) => {
       aria-label="Main hero content"
       style={sectionStyle}
     >
-      {/* Background image — shell-preferred: none, degrades cleanly */}
       {hero_media && (
         <div
           aria-hidden="true"
@@ -82,7 +80,6 @@ const HeroStackedShell: React.FC<HeroShellProps> = ({ props, styles }) => {
         />
       )}
 
-      {/* Content */}
       <div style={contentStyle}>
         <div style={innerStyle}>
 

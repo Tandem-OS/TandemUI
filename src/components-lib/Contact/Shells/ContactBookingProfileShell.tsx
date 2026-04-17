@@ -1,4 +1,5 @@
 import type { ContactBookingProfileShellProps } from '../contact.types';
+import { renderFormFields } from '../contact.shellUtils';
 
 export function ContactBookingProfileShell({ layoutStructure, slot, styles }: ContactBookingProfileShellProps) {
   if (layoutStructure !== 'booking_profile_split') {
@@ -22,39 +23,22 @@ export function ContactBookingProfileShell({ layoutStructure, slot, styles }: Co
           <p className={`${styles.body} mb-6`}>{slot.subheading}</p>
 
           <div className="flex flex-col gap-1">
-            <p className={`${styles.heading} text-sm font-semibold`}>{slot.contact_person_name}</p>
-            <p className={`${styles.subheading} text-sm`}>{slot.contact_person_role}</p>
+            <p className={styles.heading}>{slot.contact_person_name}</p>
+            <p className={styles.mutedBody}>{slot.contact_person_role}</p>
           </div>
 
           <img
             src={slot.decorative_icon_url}
             alt=""
             aria-hidden="true"
-            className="w-12 h-12 mt-8 opacity-60"
+            className="w-12 h-12 mt-8"
           />
         </div>
 
         {/* Right — Form */}
         <div className={`${styles.formSurface} rounded-xl p-8`}>
           <div className="flex flex-col gap-4">
-            {slot.form_fields.map((field, i) => (
-              <div key={i} className="flex flex-col gap-1">
-                <label className={`${styles.body} text-sm font-medium`}>{field.label}</label>
-                {field.type === 'textarea' ? (
-                  <textarea
-                    placeholder={field.placeholder}
-                    rows={4}
-                    className={`${styles.surface} w-full px-4 py-3 rounded-lg text-sm focus:outline-none resize-none`}
-                  />
-                ) : (
-                  <input
-                    type={field.type}
-                    placeholder={field.placeholder}
-                    className={`${styles.surface} w-full px-4 py-3 rounded-lg text-sm focus:outline-none`}
-                  />
-                )}
-              </div>
-            ))}
+            {renderFormFields(slot.form_fields, styles)}
           </div>
 
           <div className="flex items-start gap-3 mt-6">
@@ -63,15 +47,12 @@ export function ContactBookingProfileShell({ layoutStructure, slot, styles }: Co
               id="contact-checkbox"
               className="mt-1 flex-shrink-0"
             />
-            <label
-              htmlFor="contact-checkbox"
-              className={`${styles.body} text-sm`}
-            >
+            <label htmlFor="contact-checkbox" className={styles.body}>
               {slot.checkbox_label}
             </label>
           </div>
 
-          <button className={`${styles.action} w-full mt-6 px-6 py-3 font-medium`}>
+          <button className={`${styles.action} w-full mt-6`}>
             {slot.submit_button}
           </button>
         </div>

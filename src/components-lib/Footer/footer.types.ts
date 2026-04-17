@@ -16,6 +16,12 @@ export interface FooterTokens {
   'bottom-bar': string;
   'action-style': string;
   'heading-scale': string;
+  'section-heading-scale': string;
+  'eyebrow-scale': string;
+  'label-scale': string;
+  'meta-scale': string;
+  'overlay-text': string;
+
 }
 
 // ─── Shared
@@ -35,7 +41,7 @@ export type FooterLinkStyle = 'arrow_links' | 'plain_links';
 // ─── Inline Minimal Slot
 export interface FooterInlineMinimalSlot {
   footer_text: string;
-  footer_links: string[];
+  footer_links: { label: string; href: string }[];
   footer_variant: 'inline_minimal';
   background_image_url: string;
   background_image_alt: string;
@@ -113,10 +119,10 @@ export type FooterProps =
   | FooterInfoLinksBarProps;
 
 // ─── Shell props
-export type FooterInlineMinimalShellProps  = FooterInlineMinimalProps  & { styles: FooterStyles };
-export type FooterSplitExpandedShellProps  = FooterSplitExpandedProps  & { styles: FooterStyles };
-export type FooterMultiColumnShellProps    = FooterMultiColumnProps    & { styles: FooterStyles };
-export type FooterInfoLinksBarShellProps   = FooterInfoLinksBarProps   & { styles: FooterStyles };
+export type FooterInlineMinimalShellProps = FooterInlineMinimalProps & { styles: FooterStyles };
+export type FooterSplitExpandedShellProps = FooterSplitExpandedProps & { styles: FooterStyles };
+export type FooterMultiColumnShellProps = FooterMultiColumnProps & { styles: FooterStyles };
+export type FooterInfoLinksBarShellProps = FooterInfoLinksBarProps & { styles: FooterStyles };
 
 export type FooterShellProps =
   | FooterInlineMinimalShellProps

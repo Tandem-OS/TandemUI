@@ -1,12 +1,12 @@
 import { validateCTAProps } from '../../components-lib/CTA/cta.validation';
 import { slotToCTAProps } from '../../components-lib/CTA/cta.slotToProps';
 import { CTABase } from '../../components-lib/CTA/CTABase';
-import type { CTALayoutStructure } from '../../components-lib/CTA/cta.types';
+import type { CTALayoutStructure, CTATokens } from '../../components-lib/CTA/cta.types';
 
 interface CTARendererInput {
   layout_structure: string;
-  tokens: Record<string, string>;
-  content_slots: Record<string, unknown>;
+  tokens:           CTATokens;
+  content_slots:    Record<string, unknown>;
 }
 
 interface CTARendererProps {
@@ -16,15 +16,30 @@ interface CTARendererProps {
 export function CTARenderer({ raw }: CTARendererProps) {
   const validated = validateCTAProps({
     layoutStructure: raw.layout_structure as CTALayoutStructure,
-    tokens: raw.tokens,
-    slot: raw.content_slots,
+    tokens:          raw.tokens,
+    slot:            raw.content_slots,
   });
+
+  if (!validated) {
+    console.error('[CTARenderer] validateCTAProps returned null', {
+      layout_structure: raw.layout_structure,
+      hasTokens:        Boolean(raw.tokens),
+    })
+    return null;
+  }
 
   const props = slotToCTAProps(
     validated.layoutStructure,
     validated.tokens,
     validated.slot
   );
+
+  if (!props) {
+    console.error('[CTARenderer] slotToCTAProps returned null', {
+      layoutStructure: validated.layoutStructure,
+    })
+    return null;
+  }
 
   return <CTABase {...props} />;
 }

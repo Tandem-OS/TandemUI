@@ -12,7 +12,6 @@ interface FeaturesBaseProps {
   colors: FeaturesColors
 }
 
-// ── Variant config layer — structural defaults tied to each layout pattern
 const variantConfig: Record<string, {
   gridCols: string
   gridGap: string
@@ -45,7 +44,6 @@ const variantConfig: Record<string, {
   },
 }
 
-// ── Action variant styles — canonical shape from FeaturesAction.variant
 const actionVariantStyles: Record<string, React.CSSProperties> = {
   primary:   { fontWeight: 600 },
   secondary: { fontWeight: 400 },
@@ -78,6 +76,8 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
     )
   }
 
+  const descriptionColor = colors.description_color ?? colors.text_color
+
   const sectionStyle: React.CSSProperties = {
     backgroundColor: colors.background,
     color:           colors.text_color,
@@ -93,9 +93,8 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   }
 
   const subheadingStyle: React.CSSProperties = {
-    color:   colors.text_color,
-    opacity: 0.7,
-    margin:  '0 0 40px 0',
+    color:  descriptionColor,
+    margin: '0 0 40px 0',
   }
 
   const cardStyle: React.CSSProperties = {
@@ -143,7 +142,7 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
               <div key={i} style={{ marginBottom: cfg.itemMarginBottom }}>
                 <h3 style={{ color: colors.text_color }}>{item.title}</h3>
                 {item.description && (
-                  <p style={{ color: colors.text_color, opacity: 0.7 }}>{item.description}</p>
+                  <p style={{ color: descriptionColor }}>{item.description}</p>
                 )}
               </div>
             ))}
@@ -174,7 +173,7 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
             <div key={i} style={cardStyle}>
               <h3 style={{ ...headingStyle, fontSize: cfg.cardHeadingSize }}>{item.title}</h3>
               {item.description && (
-                <p style={{ color: colors.text_color, opacity: 0.7, margin: 0 }}>{item.description}</p>
+                <p style={{ color: descriptionColor, margin: 0 }}>{item.description}</p>
               )}
             </div>
           ))}
@@ -192,4 +191,4 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   return null
 }
 
-export default FeaturesBase 
+export default FeaturesBase

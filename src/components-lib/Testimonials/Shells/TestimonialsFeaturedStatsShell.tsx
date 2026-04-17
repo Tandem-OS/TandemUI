@@ -17,31 +17,31 @@ export function TestimonialsFeaturedStatsShell({ layoutStructure, slot, styles }
 
         <div className="flex justify-center gap-1 mb-6">
           {stars.map((state, i) => (
-            <span key={i} className={`${styles.accent} text-xl`}>
+            <span key={i} className={styles.accent}>
               {state === 'filled' ? '★' : '☆'}
             </span>
           ))}
         </div>
 
-        <blockquote className={`${styles.heading} text-center leading-snug mb-8`}>
+        <blockquote className={`${styles.heading} text-center mb-8`}>
           "{slot.quote}"
         </blockquote>
 
         <div className="flex items-center justify-center gap-3 mb-12">
-          <div className={`${styles.card} w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm`}>
+          <div className={`${styles.card} w-10 h-10 rounded-full flex items-center justify-center`}>
             {slot.author_avatar_text}
           </div>
           <div className="text-left">
-            <p className={`${styles.heading} text-sm`}>{authorLine}</p>
-            <p className={`${styles.subheading} text-xs`}>{slot.company_name}</p>
+            <p className={styles.heading}>{authorLine}</p>
+            <p className={styles.subheading}>{slot.company_name}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {slot.stats.map((stat, i) => (
             <div key={i} className={`${styles.card} text-center p-6 rounded-xl`}>
-              <p className={`${styles.heading} text-3xl mb-1`}>{stat.value}</p>
-              <p className={`${styles.subheading} text-sm`}>{stat.label}</p>
+              <p className={`${styles.heading} mb-1`}>{stat.value}</p>
+              <p className={styles.subheading}>{stat.label}</p>
             </div>
           ))}
         </div>

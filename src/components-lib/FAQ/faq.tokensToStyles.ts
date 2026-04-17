@@ -1,30 +1,21 @@
-import type { FAQStyles } from './faq.types'
+import type { FAQTokens, FAQStyles } from './faq.types'
 
-export function faqTokensToStyles(tokens: any): FAQStyles {
+export function faqTokensToStyles(tokens: FAQTokens): FAQStyles {
+  if (!tokens) {
+    throw new Error('faqTokensToStyles: tokens is required');
+  }
+
   return {
-    padding: tokens?.padding,
-    background: tokens?.background,
-
-    border_color: tokens?.border_color,
-
-    question_size: tokens?.question_size,
-    answer_size: tokens?.answer_size,
-
-    heading_size: tokens?.heading_size,
-    heading_weight: tokens?.heading_weight,
-
-    text_color: tokens?.text_color,
-    icon_color: tokens?.icon_color,
-
-    panel_radius: tokens?.panel_radius,
-    panel_padding: tokens?.panel_padding,
-    panel_background: tokens?.panel_background,
-    panel_border: tokens?.panel_border,
-
-    link_color: tokens?.link_color,
-    tag_color: tokens?.tag_color,
-    supporting_text_color: tokens?.supporting_text_color,
-
-    item_gap: tokens?.item_gap,
+    wrapper:        `${tokens.background} ${tokens.spacing}`,
+    heading:        tokens['heading-scale'],
+    sectionHeading: tokens['section-heading-scale'],
+    body:           `${tokens['text-role']} ${tokens['body-scale']}`,
+    mutedBody:      tokens['text-role'],
+    eyebrow:        tokens['eyebrow-scale'],
+    label:          tokens['label-scale'],
+    meta:           tokens['meta-scale'],
+    action:         tokens['action-style'],
+    surface:        tokens.surface,
+    divider:        tokens.divider,
   }
 }

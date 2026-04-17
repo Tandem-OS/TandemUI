@@ -14,7 +14,8 @@ export function resolveNavStyles(tokens: NavTokens): NavStyles {
       btnText: tokens.btn_primary_color,
       btnRadius: tokens.btn_radius,
       btnHoverBg: isOutline ? tokens.text_color : tokens.btn_primary_bg,
-      btnHoverText: isOutline ? tokens.background : tokens.btn_primary_color,
+        pillBg:     tokens.pill_bg,
+
     },
 
     // Layout tokens 

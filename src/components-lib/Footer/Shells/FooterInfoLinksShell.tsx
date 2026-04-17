@@ -11,9 +11,9 @@ export function FooterInfoLinksShell({ slot, styles }: FooterInfoLinksBarShellPr
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 py-12 border-b border-current border-opacity-20">
           {slot.info_columns.map((column, index: number) => (
             <div key={index} className="flex flex-col gap-3">
-              <h4 className={`${styles.heading} font-semibold`}>{column.heading}</h4>
+              <h4 className={styles.heading}>{column.heading}</h4>
               {column.lines && column.lines.map((line: string, lineIndex: number) => (
-                <p key={lineIndex} className={`${styles.body} opacity-70 leading-relaxed`}>
+                <p key={lineIndex} className={styles.mutedBody}>
                   {line}
                 </p>
               ))}
@@ -24,7 +24,7 @@ export function FooterInfoLinksShell({ slot, styles }: FooterInfoLinksBarShellPr
                       key={iconIndex}
                       src={iconUrl}
                       alt=""
-                      className="h-10 w-auto object-contain opacity-80"
+                      className="h-10 w-auto object-contain"
                     />
                   ))}
                 </div>
@@ -35,10 +35,10 @@ export function FooterInfoLinksShell({ slot, styles }: FooterInfoLinksBarShellPr
 
         <nav className="flex flex-wrap gap-8 py-10 border-b border-current border-opacity-20">
           {slot.large_links.map((link: string, index: number) => (
-            <a 
+            <a
               key={index}
               href="#"
-              className={`${styles.heading} opacity-80 hover:opacity-100 transition-opacity`}
+              className={`${styles.heading} transition-opacity`}
             >
               {link}
             </a>
@@ -47,10 +47,10 @@ export function FooterInfoLinksShell({ slot, styles }: FooterInfoLinksBarShellPr
 
         <div className="flex flex-wrap items-center gap-6 py-6 border-b border-current border-opacity-20">
           {slot.legal_links.map((link: string, index: number) => (
-            <a 
+            <a
               key={index}
               href="#"
-              className={`${styles.body} opacity-60 hover:opacity-100 transition-opacity`}
+              className={`${styles.mutedBody} transition-opacity`}
             >
               {link}
             </a>
@@ -65,12 +65,12 @@ export function FooterInfoLinksShell({ slot, styles }: FooterInfoLinksBarShellPr
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between py-4">
           <div className="flex items-center gap-6">
-            <span className={`${styles.body} opacity-60`}>{slot.copyright_left}</span>
-            <span className={`${styles.body} opacity-60`}>{slot.copyright_right}</span>
+            <span className={styles.mutedBody}>{slot.copyright_left}</span>
+            <span className={styles.mutedBody}>{slot.copyright_right}</span>
           </div>
-          <a 
+          <a
             href="#"
-            className={`${styles.body} opacity-80 hover:opacity-100 transition-opacity`}
+            className={`${styles.mutedBody} transition-opacity`}
           >
             {slot.bottom_bar_cta}
           </a>

@@ -72,15 +72,15 @@ const NavBase: React.FC<NavBaseProps> = ({
     ...variantConfig,
   }
 
-  // ── Derive behavior from DB tags — no hardcoding ──────────
+  // ── Derive behavior from DB tags — no hardcoding 
   const isPill = tags.includes('pill_links')
   const isCenteredLogo = tags.includes('centered_logo')
 const layoutVariant = isCenteredLogo ? 'centered-logo' : (layout_structure ?? '')
 
-  // ── Safe links ─────────────────────────────────────────────
+  // ── Safe links 
   const safeLinks = links ?? []
 
-  // ── Styles — all from tokens, no fallbacks ────────────────
+  // ── Styles — all from tokens, no fallbacks 
   const containerStyle: React.CSSProperties = {
     backgroundColor: colors.background,
     padding: padding,
@@ -151,7 +151,7 @@ const layoutVariant = isCenteredLogo ? 'centered-logo' : (layout_structure ?? ''
           style={{
             ...linkStyle,
             ...(isPill ? {
-              backgroundColor: 'rgba(0,0,0,0.06)',
+              backgroundColor: colors.pillBg,
               padding: vc.pillPadding,
               borderRadius: vc.pillRadius,
             } : {}),
@@ -177,7 +177,7 @@ const layoutVariant = isCenteredLogo ? 'centered-logo' : (layout_structure ?? ''
     </a>
   ) : null
 
-  // ── Layouts ───────────────────────────────────────────────
+  // ── Layouts 
   const SplitLayout = (
     <div style={innerContainerStyle}>
       {LogoEl}

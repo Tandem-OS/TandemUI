@@ -24,33 +24,35 @@ export interface FeaturesSlots {
 }
 
 export interface FeaturesTokens {
-  background?: string
-  text_color?: string
-  card_bg?: string
-  card_radius?: string
-  padding?: string
-  heading_size?: string
-  heading_weight?: string
+  background?:        string
+  text_color?:        string
+  card_bg?:           string
+  card_radius?:       string
+  padding?:           string
+  heading_size?:      string
+  heading_weight?:    string
+  description_color?: string
   [key: string]: string | undefined
 }
 
 export interface FeaturesColors {
-  background?: string
-  text_color?: string
-  card_bg?: string
-  card_radius?: string
-  padding?: string
-  heading_size?: string
-  heading_weight?: string
+  background?:        string
+  text_color?:        string
+  card_bg?:           string
+  card_radius?:       string
+  padding?:           string
+  heading_size?:      string
+  heading_weight?:    string
+  description_color?: string
 }
 
-// ── DB section shape ───────────────────────────────────────────────────────
+// ── DB section shape
 export interface FeaturesComposeSection {
-  position: number
-  category: 'features'
-  component_id: string
+  position:          number
+  category:          'features'
+  component_id:      string
   layout_structure?: string
-  tags: string[]
-  content_slots: FeaturesSlots
-  tokens: FeaturesTokens
+  tags:              string[]
+  content_slots:     FeaturesSlots
+  tokens:            FeaturesTokens
 }

@@ -8,13 +8,17 @@ export type TestimonialsLayoutStructure =
 
 // ─── Tokens (semantic strings from DB)
 export interface TestimonialsTokens {
-  spacing: string;
-  surface: string;
-  'text-role': string;
-  background: string;
-  'body-scale': string;
-  'action-style': string;
-  'heading-scale': string;
+  spacing:                 string;
+  surface:                 string;
+  'text-role':             string;
+  background:              string;
+  'body-scale':            string;
+  'action-style':          string;
+  'heading-scale':         string;
+  'section-heading-scale': string;
+  'eyebrow-scale':         string;
+  'label-scale':           string;
+  'meta-scale':            string;
 }
 
 // ─── Video Grid
@@ -77,7 +81,7 @@ export interface TestimonialsCarouselSlot {
   carousel_indicators: string[];
 }
 
-// ─── DB contract props (used by validateTestimonialsProps, slotToTestimonialsProps, TestimonialsBase)
+// ─── DB contract props
 export interface TestimonialsVideoGridProps {
   layoutStructure: 'video-grid';
   tokens: TestimonialsTokens;
@@ -108,7 +112,7 @@ export type TestimonialsProps =
   | TestimonialsNotesProps
   | TestimonialsCarouselProps;
 
-// ─── Shell props (render-time — TestimonialsBase adds styles before passing to shells)
+// ─── Shell props
 export type TestimonialsVideoGridShellProps      = TestimonialsVideoGridProps      & { styles: TestimonialsStyles };
 export type TestimonialsFeaturedStatsShellProps  = TestimonialsFeaturedStatsProps  & { styles: TestimonialsStyles };
 export type TestimonialsNotesShellProps          = TestimonialsNotesProps          & { styles: TestimonialsStyles };

@@ -27,7 +27,7 @@ const HeroImmersiveShell: React.FC<HeroShellProps> = ({ props, styles }) => {
     fontSize:     styles.heading_size,
     fontWeight:   styles.heading_weight,
     color:        styles.heading_color,
-    marginBottom: '2.5rem',
+    marginBottom: '2.5rem', // structural chrome — fixed rhythm, not a token (confirmed by Syed)
     marginTop:    0,
     wordBreak:    'break-word',
   }
@@ -46,7 +46,6 @@ const HeroImmersiveShell: React.FC<HeroShellProps> = ({ props, styles }) => {
         overflow:   'hidden',
       }}
     >
-      {/* Slideshow background — shell-preferred */}
       {slides.map((src, i) => (
         <div
           key={src}
@@ -65,7 +64,6 @@ const HeroImmersiveShell: React.FC<HeroShellProps> = ({ props, styles }) => {
         />
       ))}
 
-      {/* Fallback bg color when no media */}
       {slides.length === 0 && styles.background && (
         <div
           aria-hidden="true"
@@ -73,7 +71,6 @@ const HeroImmersiveShell: React.FC<HeroShellProps> = ({ props, styles }) => {
         />
       )}
 
-      {/* Content — anchored bottom-left */}
       <div style={{ position: 'relative', zIndex: 10, width: '100%', padding: styles.padding }}>
         <div style={{ maxWidth: '48rem' }}>
 
@@ -96,7 +93,6 @@ const HeroImmersiveShell: React.FC<HeroShellProps> = ({ props, styles }) => {
           )}
         </div>
 
-        {/* Carousel controls — only when multiple slides */}
         {slides.length > 1 && (
           <div style={{ position: 'absolute', bottom: '2.5rem', right: '2.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <div role="tablist" aria-label="Slide indicators" style={{ display: 'flex', gap: '8px' }}>
@@ -111,11 +107,13 @@ const HeroImmersiveShell: React.FC<HeroShellProps> = ({ props, styles }) => {
                     width:           i === activeSlide ? '24px' : '8px',
                     height:          '8px',
                     borderRadius:    '9999px',
-                    backgroundColor: i === activeSlide ? '#ffffff' : 'rgba(255,255,255,0.4)',
-                    border:          'none',
-                    padding:         0,
-                    cursor:          'pointer',
-                    transition:      'width 300ms, background-color 300ms',
+                    backgroundColor: i === activeSlide
+                      ? styles.carousel_dot_active_color
+                      : styles.carousel_dot_inactive_color,
+                    border:     'none',
+                    padding:    0,
+                    cursor:     'pointer',
+                    transition: 'width 300ms, background-color 300ms',
                   }}
                 />
               ))}
@@ -130,16 +128,16 @@ const HeroImmersiveShell: React.FC<HeroShellProps> = ({ props, styles }) => {
                     width:           '40px',
                     height:          '40px',
                     borderRadius:    '9999px',
-                    border:          '1px solid rgba(255,255,255,0.4)',
+                    border:          `1px solid ${styles.carousel_arrow_border_color}`,
                     backgroundColor: 'transparent',
-                    color:           '#ffffff',
+                    color:           styles.carousel_arrow_color,
                     display:         'flex',
                     alignItems:      'center',
                     justifyContent:  'center',
                     cursor:          'pointer',
                     transition:      'background-color 200ms',
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)')}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = styles.carousel_arrow_hover_bg ?? 'transparent')}
                   onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

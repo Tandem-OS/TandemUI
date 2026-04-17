@@ -14,14 +14,12 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
 
   const [isAnnual, setIsAnnual] = useState(false)
 
-  // ─── Section ───────────────────────────────────────────────────────────────
   const sectionStyle: React.CSSProperties = {
     width:           '100%',
     backgroundColor: styles.background,
     padding:         styles.padding,
   }
 
-  // ─── Heading ───────────────────────────────────────────────────────────────
   const headingStyle: React.CSSProperties = {
     fontSize:   styles.heading_size,
     fontWeight: styles.heading_weight,
@@ -36,7 +34,6 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
     margin:    '1rem 0 0',
   }
 
-  // ─── Grid ──────────────────────────────────────────────────────────────────
   const gridStyle: React.CSSProperties = {
     display:             'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
@@ -45,7 +42,6 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
     margin:              '0 auto',
   }
 
-  // ─── Plan renderer ─────────────────────────────────────────────────────────
   const renderPlan = (plan: PricingPlan) => {
     const price = isAnnual ? plan.price_annual : plan.price_monthly
 
@@ -107,21 +103,17 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
       margin:   '0.25rem 0 0',
     }
 
-    // Fix 2: use || not ?? — plan.id can be '' (empty string) from adapter,
-    // which is not nullish so ?? never falls back to plan.name
     const planKey = plan.id || plan.name
 
     return (
       <div key={planKey} style={cardStyle}>
 
-        {/* Badge — Fix 3: only render when plan is actually featured AND badge exists */}
         {plan.is_featured && plan.featured_badge && (
           <div style={badgeStyle}>
             {plan.featured_badge}
           </div>
         )}
 
-        {/* Plan name + description */}
         <div>
           <p style={planNameStyle}>{plan.name}</p>
           {plan.description && (
@@ -129,7 +121,6 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
           )}
         </div>
 
-        {/* Price */}
         <div>
           {price ? (
             <div>
@@ -148,7 +139,6 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
           )}
         </div>
 
-        {/* Features */}
         <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {plan.features.map((feature, i) => (
             <li key={i} style={{ color: styles.feature_color, fontSize: '0.875rem', display: 'flex', gap: '0.5rem' }}>
@@ -158,7 +148,6 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
           ))}
         </ul>
 
-        {/* CTA */}
         {plan.action && renderPricingAction(plan.action, styles)}
 
       </div>
@@ -172,7 +161,6 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
       aria-label="Pricing plans"
       style={sectionStyle}
     >
-      {/* Header */}
       {(pricing_heading || pricing_subheading) && (
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           {pricing_heading && <h2 style={headingStyle}>{pricing_heading}</h2>}
@@ -180,7 +168,6 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
         </div>
       )}
 
-      {/* Billing toggle */}
       {pricing_billing_toggle && (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -199,8 +186,8 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
                 border:          'none',
                 cursor:          'pointer',
                 backgroundColor: isAnnual
-                  ? (styles.toggle_active   ?? '#000')
-                  : (styles.toggle_inactive ?? '#ccc'),
+                  ? styles.toggle_active
+                  : styles.toggle_inactive,
                 position:        'relative',
                 transition:      'background-color 200ms',
               }}
@@ -212,7 +199,7 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
                 width:           '20px',
                 height:          '20px',
                 borderRadius:    '9999px',
-                backgroundColor: '#ffffff',
+                backgroundColor: '#ffffff', // flag for Syed — needs toggle_thumb_color token
                 transition:      'left 200ms',
               }} />
             </button>
@@ -228,13 +215,10 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
         </div>
       )}
 
-      {/* Plans grid */}
       <div style={gridStyle}>
         {pricing_plans.map(renderPlan)}
       </div>
 
-      {/* Logos — Fix 5: logos are text strings, apply logos_color as color on <span>.
-          Previous impl used filter: opacity(0.6) regardless of token value — token had no effect. */}
       {pricing_logos && pricing_logos.length > 0 && (
         <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '3rem', flexWrap: 'wrap' }}>
           {pricing_logos.map((logo, i) => (
@@ -245,7 +229,6 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
                 color:      styles.logos_color,
                 fontSize:   '0.875rem',
                 fontWeight: 500,
-                opacity:    0.7,
               }}
             >
               {logo}

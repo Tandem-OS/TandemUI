@@ -21,9 +21,9 @@ export function TimelineVerticalShell({ slot, styles }: TimelineVerticalEditoria
                 {/* Dot on spine */}
                 <div className="absolute -left-8 top-1 w-3 h-3 rounded-full bg-current opacity-60 -translate-x-1" />
 
-                <p className={`${styles.body} opacity-50 mb-1`}>{item.year}</p>
+                <p className={`${styles.mutedBody} mb-1`}>{item.year}</p>
                 <h3 className={`${styles.heading} mb-2`}>{item.title}</h3>
-                <p className={`${styles.subheading} opacity-80 leading-relaxed`}>
+                <p className={styles.body}>
                   {item.description}
                 </p>
               </div>
