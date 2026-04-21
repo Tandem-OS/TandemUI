@@ -120,6 +120,8 @@ const normalizeLayout = (category: string, layout: string): string => {
     testimonials: 'video-grid',
     cta: 'hero-footer',
     contact: 'split_form_grid',
+    timeline: 'vertical_editorial',
+    footer: 'inline_minimal',
 
 
   };
@@ -132,6 +134,8 @@ const normalizeLayout = (category: string, layout: string): string => {
     testimonials: ['video-grid', 'featured-stats', 'notes', 'carousel'],
     cta: ['hero-footer', 'announcement-faq', 'newsletter-centered', 'search-footer'],
     contact: ['split_form_grid', 'booking_profile_split', 'full_page_split', 'form_editorial_split'],
+    timeline: ['vertical_editorial', 'alternating_media'],
+    footer: ['inline_minimal', 'split_expanded', 'multi_column', 'info_links_bar'],
 
 
   };
@@ -276,6 +280,8 @@ const Swiper: React.FC = () => {
         ...(componentsMap['testimonials'] ?? []),
         ...(componentsMap['cta'] ?? []),
         ...(componentsMap['contact'] ?? []),
+        ...(componentsMap['timeline'] ?? []),
+        ...(componentsMap['footer'] ?? []),
 
 
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
