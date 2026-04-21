@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import type { TestimonialsCarouselProps } from '../testimonials.types';
+import type { TestimonialsCarouselShellProps } from '../testimonials.types';
 import { renderStars, formatAuthorLine } from '../testimonials.shellUtils';
 
-export function TestimonialsCarouselShell({ layoutStructure, slot }: TestimonialsCarouselProps) {
+export function TestimonialsCarouselShell({ layoutStructure, slot, styles }: TestimonialsCarouselShellProps) {
   if (layoutStructure !== 'carousel') {
     throw new Error(
       `TestimonialsCarouselShell: expected "carousel", received "${layoutStructure}"`
@@ -23,29 +23,29 @@ export function TestimonialsCarouselShell({ layoutStructure, slot }: Testimonial
   }
 
   return (
-    <section className="w-full py-16 px-6 md:px-12 bg-white">
+    <section className={`${styles.wrapper} w-full px-6 md:px-12`}>
       <div className="max-w-3xl mx-auto flex flex-col items-center text-center">
 
         <div className="flex justify-center gap-1 mb-6">
           {stars.map((state, i) => (
-            <span key={i} className={state === 'filled' ? 'text-yellow-400 text-xl' : 'text-gray-300 text-xl'}>
+            <span key={i} className={`${styles.accent} text-xl`}>
               {state === 'filled' ? '★' : '☆'}
             </span>
           ))}
         </div>
 
-        <blockquote className="text-2xl md:text-3xl font-medium text-gray-900 leading-snug mb-8">
+        <blockquote className={`${styles.heading} leading-snug mb-8`}>
           "{slot.quote}"
         </blockquote>
 
-        <p className="text-sm font-semibold text-gray-900 mb-1">{authorLine}</p>
-        <p className="text-xs text-gray-500 mb-8">{slot.author_supporting_text}</p>
+        <p className={`${styles.heading} text-sm mb-1`}>{authorLine}</p>
+        <p className={`${styles.subheading} text-xs mb-8`}>{slot.author_supporting_text}</p>
 
         <div className="flex items-center gap-6">
           <button
             onClick={handlePrev}
             aria-label={slot.carousel_controls.left_control}
-            className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+            className="w-9 h-9 rounded-full border flex items-center justify-center transition-colors"
           >
             ‹
           </button>
@@ -57,7 +57,7 @@ export function TestimonialsCarouselShell({ layoutStructure, slot }: Testimonial
                 onClick={() => setActiveIndex(i)}
                 aria-label={`Go to testimonial ${i + 1}`}
                 className={`w-2 h-2 rounded-full transition-colors ${
-                  i === activeIndex ? 'bg-gray-900' : 'bg-gray-300'
+                  i === activeIndex ? styles.card : styles.subheading
                 }`}
               />
             ))}
@@ -66,13 +66,13 @@ export function TestimonialsCarouselShell({ layoutStructure, slot }: Testimonial
           <button
             onClick={handleNext}
             aria-label={slot.carousel_controls.right_control}
-            className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+            className="w-9 h-9 rounded-full border flex items-center justify-center transition-colors"
           >
             ›
           </button>
         </div>
 
-        <p className="text-xs text-gray-400 mt-4">
+        <p className={`${styles.subheading} text-xs mt-4`}>
           {activeIndex + 1} / {total}
         </p>
 

@@ -13,6 +13,7 @@ const NavCenteredShell: React.FC<NavShellProps> = ({
     logo,
     links,
     cta,
+    layout,
     tags,
     styles,
     animated: resolvedAnimated,
@@ -24,7 +25,7 @@ const NavCenteredShell: React.FC<NavShellProps> = ({
       logo={logo}
       links={links}
       cta={cta}
-      layout_structure={section.layout_structure}
+      layout_structure={layout}
       tags={tags}
       colors={styles.colors}
       padding={styles.padding}

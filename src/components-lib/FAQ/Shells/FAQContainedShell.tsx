@@ -84,7 +84,7 @@ const FAQContainedShell: React.FC<FAQShellProps> = ({ props, styles }) => {
         {faq_items.map((item, index) => (
           <Wrap key={`${item.question}-${index}`} {...getAnim(index * 0.05, animated)}>
             <details
-              open
+              open={item.is_expanded === true}
               data-testid="faq-item"
               aria-label={`FAQ item ${index + 1}`}
               style={{
@@ -119,8 +119,8 @@ const FAQContainedShell: React.FC<FAQShellProps> = ({ props, styles }) => {
         ))}
 
         {bottom_support_link && bottom_support_text ? (
-          
-           <a href={bottom_support_link}
+
+          <a href={bottom_support_link}
             style={{
               marginTop: '1.5rem',
               fontSize: styles.answer_size,

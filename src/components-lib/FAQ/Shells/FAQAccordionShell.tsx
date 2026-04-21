@@ -44,7 +44,7 @@ const FAQAccordionShell: React.FC<FAQShellProps> = ({ props, styles }) => {
         {faq_items.map((item, index) => (
           <Wrap key={`${item.question}-${index}`} {...getAnim(index * 0.05, animated)}>
             <details
-              open
+              open={item.is_expanded === true}
               data-testid="faq-item"
               aria-label={`FAQ item ${index + 1}`}
               style={{

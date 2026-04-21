@@ -2,12 +2,12 @@ import React from 'react'
 import HeroBase from '@/components-lib/Hero/HeroBase'
 import type { HeroComposeSection } from '@/pages/Renderer/CompositionType'
 
-// ── Props ─────────────────────────────────────────────────────
+// ── Props 
 interface HeroRendererProps {
   sections: HeroComposeSection[]
 }
 
-// ── HeroRenderer (pure) ───────────────────────────────────────
+// ── HeroRenderer (pure) 
 const HeroRenderer: React.FC<HeroRendererProps> = ({ sections }) => {
   if (sections.length === 0) return null
 

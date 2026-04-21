@@ -1,10 +1,12 @@
+import type { TestimonialsStyles } from './testimonials.tokensToStyles';
+
 export type TestimonialsLayoutStructure =
   | 'video-grid'
   | 'featured-stats'
   | 'notes'
   | 'carousel';
 
-// ─── Tokens (semantic strings from DB) ───────────────────────────────────────
+// ─── Tokens (semantic strings from DB)
 export interface TestimonialsTokens {
   spacing: string;
   surface: string;
@@ -15,7 +17,7 @@ export interface TestimonialsTokens {
   'heading-scale': string;
 }
 
-// ─── Video Grid ───────────────────────────────────────────────────────────────
+// ─── Video Grid
 export interface TestimonialsVideoItem {
   title: string;
   speakers: string[];
@@ -30,7 +32,7 @@ export interface TestimonialsVideoGridSlot {
   testimonials: TestimonialsVideoItem[];
 }
 
-// ─── Featured Stats ───────────────────────────────────────────────────────────
+// ─── Featured Stats
 export interface TestimonialsStat {
   label: string;
   value: string;
@@ -46,7 +48,7 @@ export interface TestimonialsFeaturedStatsSlot {
   stats: TestimonialsStat[];
 }
 
-// ─── Notes ────────────────────────────────────────────────────────────────────
+// ─── Notes
 export interface TestimonialsNoteItem {
   quote: string;
   author_name: string;
@@ -59,7 +61,7 @@ export interface TestimonialsNotesSlot {
   testimonial_notes: TestimonialsNoteItem[];
 }
 
-// ─── Carousel ─────────────────────────────────────────────────────────────────
+// ─── Carousel
 export interface TestimonialsCarouselControls {
   left_control: string;
   right_control: string;
@@ -75,7 +77,7 @@ export interface TestimonialsCarouselSlot {
   carousel_indicators: string[];
 }
 
-// ─── Union Props per shell ────────────────────────────────────────────────────
+// ─── DB contract props (used by validateTestimonialsProps, slotToTestimonialsProps, TestimonialsBase)
 export interface TestimonialsVideoGridProps {
   layoutStructure: 'video-grid';
   tokens: TestimonialsTokens;
@@ -105,3 +107,15 @@ export type TestimonialsProps =
   | TestimonialsFeaturedStatsProps
   | TestimonialsNotesProps
   | TestimonialsCarouselProps;
+
+// ─── Shell props (render-time — TestimonialsBase adds styles before passing to shells)
+export type TestimonialsVideoGridShellProps      = TestimonialsVideoGridProps      & { styles: TestimonialsStyles };
+export type TestimonialsFeaturedStatsShellProps  = TestimonialsFeaturedStatsProps  & { styles: TestimonialsStyles };
+export type TestimonialsNotesShellProps          = TestimonialsNotesProps          & { styles: TestimonialsStyles };
+export type TestimonialsCarouselShellProps       = TestimonialsCarouselProps       & { styles: TestimonialsStyles };
+
+export type TestimonialsShellProps =
+  | TestimonialsVideoGridShellProps
+  | TestimonialsFeaturedStatsShellProps
+  | TestimonialsNotesShellProps
+  | TestimonialsCarouselShellProps;

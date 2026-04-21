@@ -16,11 +16,11 @@ export function tokensToTestimonialsStyles(tokens: TestimonialsTokens): Testimon
   }
 
   return {
-    wrapper: `bg-[${tokens.background}] ${tokens.spacing}`,
+    wrapper: `${tokens.background} ${tokens.spacing}`,
     heading: tokens['heading-scale'],
     subheading: tokens['text-role'],
     body: `${tokens['text-role']} ${tokens['body-scale']}`,
-    card: `bg-[${tokens.surface}]`,
+    card: tokens.surface,
     accent: tokens['text-role'],
     action: tokens['action-style'],
   };

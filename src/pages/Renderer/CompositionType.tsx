@@ -17,7 +17,7 @@ export type {
   FeaturesComposeSection,
 } from '@/components-lib/Features/features.types'
 
-// ── Hero ──────────────────────────────────────────────────────────────────
+// ── Hero 
 export interface ComposeSectionTokens {
   background?: string
   heading_color?: string
@@ -185,6 +185,48 @@ export interface TestimonialsComposeSection {
   content_slots: Record<string, unknown>
   tokens: Record<string, string>
 }
+// ── CTA
+export interface CTAComposeSection {
+  position: number
+  category: 'cta'
+  component_id: string
+  layout_structure: string
+  tags: string[]
+  content_slots: Record<string, unknown>
+  tokens: Record<string, string>
+}
+
+// ── Contact
+export interface ContactComposeSection {
+  position: number
+  category: 'contact'
+  component_id: string
+  layout_structure: string
+  tags: string[]
+  content_slots: Record<string, unknown>
+  tokens: Record<string, string>
+}
+// ── Timeline
+export interface TimelineComposeSection {
+  position: number
+  category: 'timeline'
+  component_id: string
+  layout_structure: string
+  tags: string[]
+  content_slots: Record<string, unknown>
+  tokens: Record<string, string>
+}
+
+// ── Footer
+export interface FooterComposeSection {
+  position: number
+  category: 'footer'
+  component_id: string
+  layout_structure: string
+  tags: string[]
+  content_slots: Record<string, unknown>
+  tokens: Record<string, string>
+}
 // ── Discriminated union 
 import type { NavComposeSection } from '@/components-lib/Nav/nav.types'
 import type { FeaturesComposeSection } from '@/components-lib/Features/features.types'
@@ -195,4 +237,9 @@ export type ComposeSection =
   | FeaturesComposeSection
   | PricingComposeSection
   | FAQComposeSection
-  | TestimonialsComposeSection 
+  | TestimonialsComposeSection
+  | CTAComposeSection
+  | ContactComposeSection
+  | TimelineComposeSection
+  | FooterComposeSection
+

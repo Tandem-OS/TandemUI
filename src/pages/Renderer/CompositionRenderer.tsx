@@ -7,6 +7,11 @@ import FeaturesRenderer from '@/pages/Renderer/FeaturesRenderer'
 import PricingRenderer from '@/pages/Renderer/PricingRenderer'
 import FAQRenderer from '@/pages/Renderer/FAQRenderer'
 import { TestimonialsRenderer } from '@/pages/Renderer/TestimonialsRenderer'
+import { CTARenderer } from '@/pages/Renderer/CTARenderer'
+import { ContactRenderer } from '@/pages/Renderer/ContactRenderer'
+import { TimelineRenderer } from '@/pages/Renderer/TimelineRenderer'
+import { FooterRenderer } from '@/pages/Renderer/FooterRenderer'
+
 
 
 // ── Types from their own files ────────────────────────────────
@@ -77,6 +82,50 @@ const CompositionRenderer: React.FC = () => {
           case 'testimonials':
             return (
               <TestimonialsRenderer
+                key={section.component_id}
+                raw={{
+                  layout_structure: section.layout_structure,
+                  tokens: section.tokens,
+                  content_slots: section.content_slots,
+                }}
+              />
+            )
+          case 'cta':
+            return (
+              <CTARenderer
+                key={section.component_id}
+                raw={{
+                  layout_structure: section.layout_structure,
+                  tokens: section.tokens,
+                  content_slots: section.content_slots,
+                }}
+              />
+            )
+          case 'contact':
+            return (
+              <ContactRenderer
+                key={section.component_id}
+                raw={{
+                  layout_structure: section.layout_structure,
+                  tokens: section.tokens,
+                  content_slots: section.content_slots,
+                }}
+              />
+            )
+          case 'timeline':
+            return (
+              <TimelineRenderer
+                key={section.component_id}
+                raw={{
+                  layout_structure: section.layout_structure,
+                  tokens: section.tokens,
+                  content_slots: section.content_slots,
+                }}
+              />
+            )
+                case 'footer':
+            return (
+              <FooterRenderer
                 key={section.component_id}
                 raw={{
                   layout_structure: section.layout_structure,
