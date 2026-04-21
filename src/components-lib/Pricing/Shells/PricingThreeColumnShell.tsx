@@ -15,92 +15,92 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
   const [isAnnual, setIsAnnual] = useState(false)
 
   const sectionStyle: React.CSSProperties = {
-    width:           '100%',
+    width: '100%',
     backgroundColor: styles.background,
-    padding:         styles.padding,
+    padding: styles.padding,
   }
 
   const headingStyle: React.CSSProperties = {
-    fontSize:   styles.heading_size,
+    fontSize: styles.heading_size,
     fontWeight: styles.heading_weight,
-    color:      styles.heading_color,
-    margin:     0,
-    textAlign:  'center',
+    color: styles.heading_color,
+    margin: 0,
+    textAlign: 'center',
   }
 
   const subheadingStyle: React.CSSProperties = {
-    color:     styles.subheading_color,
+    color: styles.subheading_color,
     textAlign: 'center',
-    margin:    '1rem 0 0',
+    margin: '1rem 0 0',
   }
 
   const gridStyle: React.CSSProperties = {
-    display:             'grid',
+    display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
-    gap:                 '1.5rem',
-    maxWidth:            '72rem',
-    margin:              '0 auto',
+    gap: '1.5rem',
+    maxWidth: '72rem',
+    margin: '0 auto',
   }
 
   const renderPlan = (plan: PricingPlan) => {
     const price = isAnnual ? plan.price_annual : plan.price_monthly
 
     const cardStyle: React.CSSProperties = {
-      display:         'flex',
-      flexDirection:   'column',
+      display: 'flex',
+      flexDirection: 'column',
       backgroundColor: plan.is_featured
         ? (styles.featured_card_bg ?? styles.card_bg)
         : styles.card_bg,
-      borderRadius:    styles.card_radius,
-      border:          plan.is_featured
+      borderRadius: styles.card_radius,
+      border: plan.is_featured
         ? `2px solid ${styles.featured_card_border ?? styles.card_border}`
         : `1px solid ${styles.card_border}`,
-      boxShadow:       styles.card_shadow,
-      padding:         styles.card_padding ?? '2rem',
-      gap:             '1.5rem',
+      boxShadow: styles.card_shadow,
+      padding: styles.card_padding ?? '2rem',
+      gap: '1.5rem',
     }
 
     const badgeStyle: React.CSSProperties = {
-      alignSelf:       'flex-start',
-      fontSize:        '0.75rem',
-      fontWeight:      600,
-      padding:         '0.25rem 0.75rem',
-      borderRadius:    '9999px',
+      alignSelf: 'flex-start',
+      fontSize: '0.75rem',
+      fontWeight: 600,
+      padding: '0.25rem 0.75rem',
+      borderRadius: '9999px',
       backgroundColor: styles.badge_bg,
-      color:           styles.badge_color,
+      color: styles.badge_color,
     }
 
     const planNameStyle: React.CSSProperties = {
-      margin:     0,
+      margin: 0,
       fontWeight: 600,
-      color:      plan.is_featured
+      color: plan.is_featured
         ? (styles.featured_btn_color ?? styles.heading_color)
         : styles.heading_color,
     }
 
     const descriptionStyle: React.CSSProperties = {
-      margin:   '0.5rem 0 0',
-      color:    styles.body_color,
+      margin: '0.5rem 0 0',
+      color: styles.body_color,
       fontSize: '0.875rem',
     }
 
     const priceStyle: React.CSSProperties = {
-      margin:     0,
-      fontSize:   '2rem',
+      margin: 0,
+      fontSize: '2rem',
       fontWeight: 700,
-      color:      styles.price_color,
+      color: styles.price_color,
     }
 
     const priceSuffixStyle: React.CSSProperties = {
-      fontSize:   '0.875rem',
-      color:      styles.price_suffix_color,
+      fontSize: '0.875rem',
+      color: styles.price_suffix_color,
       marginLeft: '0.25rem',
     }
 
     const currencyLabelStyle: React.CSSProperties = {
       fontSize: '0.75rem',
-      color:    styles.currency_label_color ?? styles.body_color,
-      margin:   '0.25rem 0 0',
+      color: styles.currency_label_color ?? styles.body_color,
+      margin: '0.25rem 0 0',
     }
 
     const planKey = plan.id || plan.name
@@ -180,27 +180,27 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
               aria-label="Toggle billing period"
               onClick={() => setIsAnnual(a => !a)}
               style={{
-                width:           '48px',
-                height:          '26px',
-                borderRadius:    '9999px',
-                border:          'none',
-                cursor:          'pointer',
+                width: '48px',
+                height: '26px',
+                borderRadius: '9999px',
+                border: 'none',
+                cursor: 'pointer',
                 backgroundColor: isAnnual
                   ? styles.toggle_active
                   : styles.toggle_inactive,
-                position:        'relative',
-                transition:      'background-color 200ms',
+                position: 'relative',
+                transition: 'background-color 200ms',
               }}
             >
               <span style={{
-                position:        'absolute',
-                top:             '3px',
-                left:            isAnnual ? '25px' : '3px',
-                width:           '20px',
-                height:          '20px',
-                borderRadius:    '9999px',
-                backgroundColor: '#ffffff', // flag for Syed — needs toggle_thumb_color token
-                transition:      'left 200ms',
+                position: 'absolute',
+                top: '3px',
+                left: isAnnual ? '25px' : '3px',
+                width: '20px',
+                height: '20px',
+                borderRadius: '9999px',
+                backgroundColor: styles.toggle_thumb_color,
+                transition: 'left 200ms',
               }} />
             </button>
             <span style={{ color: isAnnual ? styles.toggle_active_text : styles.toggle_inactive_text, fontSize: '0.875rem' }}>
@@ -226,8 +226,8 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
               key={i}
               aria-hidden="true"
               style={{
-                color:      styles.logos_color,
-                fontSize:   '0.875rem',
+                color: styles.logos_color,
+                fontSize: '0.875rem',
                 fontWeight: 500,
               }}
             >

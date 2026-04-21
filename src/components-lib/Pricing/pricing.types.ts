@@ -80,8 +80,8 @@ export interface PricingStyles {
   toggle_active?:           string
   toggle_inactive?:         string
   toggle_active_text?:      string
-  toggle_inactive_text?:    string
-
+toggle_inactive_text?:    string
+toggle_thumb_color?:      string
   // ─── Misc 
   billing_note_color?:      string
   footer_note_color?:       string

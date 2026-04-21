@@ -25,7 +25,9 @@ export function CTAAnnouncementFAQShell({ layoutStructure, slot, styles }: CTAAn
   return (
     <div className="w-full">
       {/* Announcement Panel */}
-      <div className={`${styles.wrapper} px-6 py-16 text-center`}>
+      <div
+        className="px-6 py-16 text-center"
+        style={{ backgroundColor: styles.wrapperBg }}      >
         <div className="max-w-3xl mx-auto">
           <p className={`${styles.mutedBody} mb-4 uppercase tracking-widest`}>
             {slot.eyebrow}

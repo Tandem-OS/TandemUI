@@ -98,7 +98,15 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({ section, highlighted = 
   return (
     <div
       className={[
-        'relative h-40 sm:h-48 md:h-64 overflow-hidden bg-background-muted',
+        section.category === 'nav'
+          ? 'relative h-16 sm:h-20 overflow-hidden bg-background-muted'
+          : section.category === 'faq'
+            ? 'relative h-36 sm:h-40 md:h-44 overflow-hidden bg-background-muted'
+            : section.category === 'timeline'
+              ? 'relative h-52 sm:h-64 md:h-80 overflow-hidden bg-background-muted'
+              : section.category === 'footer'
+                ? 'relative h-20 sm:h-24 overflow-hidden bg-background-muted'
+                : 'relative h-40 sm:h-48 md:h-64 overflow-hidden bg-background-muted',
         highlighted
           ? 'ring-2 ring-accent-default transition-shadow duration-700'
           : '',

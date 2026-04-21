@@ -20,65 +20,37 @@ import StartFromIdea from './components/StartFromIdea';
 import SectionCard from './components/SectionCard';
 import Heading from '../../components/demos/typography/Heading';
 import Para from '../../common-components/Para';
+
 // Import constants
-import { dummyScrapedData, quickSuggestions, processingSteps } from './constants';
+import { quickSuggestions, processingSteps } from './constants';
+
+// Redux
 import { useSelector, useDispatch } from 'react-redux';
-import type { AppDispatch } from '@/store';
-import type { RootState } from '@/store';
+import type { AppDispatch, RootState } from '@/store';
 import { pollForThumbnails } from '@/features/composition/compositionSlice';
-import { createScraper } from '@/lib/requests/ScraperRequest';
+import {
+    scrapeUrl,
+    setScrapedDataFromIdea,
+    addToLayoutPlan,
+    updateLayoutPlan,
+} from '@/features/scraper/scraperSlice';
 import { useNavigate } from 'react-router-dom';
 import Toast from '@/common-components/Toast';
 import { selectActiveOrPreviewSchema } from '@/features/composition/compositionSelectors';
-// Custom hook for taste profile
-const useTasteProfile = () => {
-    const [profile, setProfile] = useState(() => {
-        const saved = localStorage.getItem('tasteProfile');
-        return saved ? JSON.parse(saved) : {};
-    });
 
-    const updateTaste = (action: 'like' | 'dislike', section: any) => {
-        const key = `${section.tone}_${section.layout_structure}`;
-        setProfile((prev: any) => {
-            const updated = {
-                ...prev,
-                [key]: (prev[key] || 0) + (action === 'like' ? 1 : -1)
-            };
-            localStorage.setItem('tasteProfile', JSON.stringify(updated));
-            return updated;
-        });
-    };
-
-    const scoreSections = (sections: any[]) => {
-        return sections.map(section => ({
-            ...section,
-            tasteScore: profile[`${section.tone}_${section.layout_structure}`] || 0
-        })).sort((a, b) => b.tasteScore - a.tasteScore);
-    };
-
-    const clearTaste = () => {
-        setProfile({});
-        localStorage.removeItem('tasteProfile');
-    };
-
-    return { profile, updateTaste, scoreSections, clearTaste };
-};
+// Extracted hook
+import { useTasteProfile } from '@/hooks/useTasteProfile';
 
 const ScraperIntelligencePage = () => {
+    // ── Pure UI state (not scraper-related) ───────────────────────────────────
     const [currentStep, setCurrentStep] = useState('welcome');
     const [inputValue, setInputValue] = useState('');
     const [isDesignerMode, setIsDesignerMode] = useState(false);
-    const [scrapedData, setScrapedData] = useState<typeof dummyScrapedData | null>(null);
     const [processingStep, setProcessingStep] = useState(0);
     const [userFeedback, setUserFeedback] = useState<{ [key: string]: 'like' | 'dislike' }>({});
-    const [layoutPlan, setLayoutPlan] = useState<any[]>(() => {
-        const saved = localStorage.getItem('layoutPlan');
-        return saved ? JSON.parse(saved) : [];
-    });
     const [toastMessage, setToastMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [chatContext, setChatContext] = useState<any>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
-    const [sectionCount, setSectionCount] = useState<number | null>(null);
     const [compositionId, setCompositionId] = useState<string | null>(null);
     const [refinedSections, setRefinedSections] = useState<Set<string>>(new Set());
 
@@ -87,22 +59,42 @@ const ScraperIntelligencePage = () => {
         setTimeout(() => setRefinedSections(new Set()), 2500);
     };
 
-    const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
+    // ── Slice state ───────────────────────────────────────────────────────────
+    const scrapedData = useSelector((state: RootState) => state.scraper.scrapedData);
+    const scraperStatus = useSelector((state: RootState) => state.scraper.status);
+    const scraperError = useSelector((state: RootState) => state.scraper.error);
+    const layoutPlan = useSelector((state: RootState) => state.scraper.layoutPlan ?? []);
 
-    const navigate = useNavigate();
-    const dispatch = useDispatch<AppDispatch>();
-
-
-    // const clientEmail = useSelector((state: RootState) => state.auth.user.email)!;
+    // ── Auth / project selectors ──────────────────────────────────────────────
     const email = useSelector((state: RootState) => state.auth.user.email);
     const userRole = useSelector((state: RootState) => state.auth.user.role);
     const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
     const projectId = useSelector((state: RootState) => state.project.projectId);
 
-    // Save layout plan to localStorage whenever it changes
+    // ── Hooks ─────────────────────────────────────────────────────────────────
+    const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
+    const navigate = useNavigate();
+    const dispatch = useDispatch<AppDispatch>();
+
+    // ── Composition schema ────────────────────────────────────────────────────
+    const pageSchema = useSelector(selectActiveOrPreviewSchema);
+    const activeSections = compositionId && pageSchema?.sections
+        ? pageSchema.sections
+        : (scrapedData?.sections ?? []);
+
+    // ── Sync scraper status → currentStep ────────────────────────────────────
     useEffect(() => {
-        localStorage.setItem('layoutPlan', JSON.stringify(layoutPlan));
-    }, [layoutPlan]);
+        if (scraperStatus === 'success' && currentStep === 'processing') {
+            setCurrentStep('results');
+        }
+        if (scraperStatus === 'error' && currentStep === 'processing') {
+            if (scraperError) {
+                showToast(scraperError, 'error');
+            }
+            setCurrentStep('error');
+            setTimeout(() => navigate(-1), 3000);
+        }
+    }, [scraperStatus, scraperError]);
 
     useEffect(() => {
         if (userRole === 'Designer') {
@@ -111,92 +103,59 @@ const ScraperIntelligencePage = () => {
             handleModeToggle(false);
         }
     }, [userRole]);
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);
     };
 
-const pageSchema = useSelector(selectActiveOrPreviewSchema);
-    const activeSections = compositionId && pageSchema?.sections
-        ? pageSchema.sections
-        : (scrapedData?.sections ?? []);
-
     const handleStartScraping = async (url: string) => {
-        try {
-            setCurrentStep("processing");
-            setProcessingStep(0);
+        const payload =
+            userRole === 'Designer' && email && projectId
+                ? { designer_email: email, client_email: null, project_id: projectId, role: 'designer', url }
+                : userRole === 'Client' && designerEmail && projectId
+                    ? { designer_email: designerEmail, role: 'client', project_id: projectId, client_email: email!, url }
+                    : null;
 
-            const payload =
-                userRole === "Designer" && email && projectId
-                    ? { designer_email: email, client_email: null, project_id: projectId, role: "designer", url }
-                    : userRole === "Client" && designerEmail && projectId
-                        ? { designer_email: designerEmail, role: "client", project_id: projectId, client_email: email, url }
-                        : null;
+        if (!payload) return;
 
-            if (!payload) return;
+        setCurrentStep('processing');
+        setProcessingStep(0);
 
-            const scraperPromise = createScraper(payload);
-
-            const processingPromise = (async () => {
-                for (let i = 0; i < processingSteps.length; i++) {
-                    setProcessingStep(i);
-                    await new Promise((resolve) => setTimeout(resolve, 800));
-                }
-            })();
-
-            const [response] = await Promise.all([scraperPromise, processingPromise]);
-
-            const data = response?.data ? { ...response.data, url } : { ...dummyScrapedData, url };
-            const scoredSections = scoreSections(data.sections);
-
-            setScrapedData({ ...data, sections: scoredSections });
-            setSectionCount(scoredSections.length);
-            setCurrentStep("results");
-        } catch (error: any) {
-            console.error("Error during scraping:", error);
-
-            if (error.response?.status === 429) {
-                setToastMessage({
-                    message: error.response.data.message || "Daily scraping limit reached.",
-                    type: "error",
-                });
-
-                setCurrentStep("error");
-
-                setTimeout(() => {
-                    navigate(-1);
-                }, 3000);
-            } else {
-                setToastMessage({
-                    message: "An unexpected error occurred. Please try again.",
-                    type: "error",
-                });
-                setCurrentStep("error");
+        const processingAnimation = (async () => {
+            for (let i = 0; i < processingSteps.length; i++) {
+                setProcessingStep(i);
+                await new Promise((resolve) => setTimeout(resolve, 800));
             }
-        }
-    };
+        })();
 
+        await Promise.all([
+            dispatch(scrapeUrl(payload)),
+            processingAnimation,
+        ]);
+    };
 
     const handleSectionFeedback = (sectionId: string, feedback: 'like' | 'dislike') => {
         setUserFeedback(prev => ({ ...prev, [sectionId]: feedback }));
     };
 
     const handleAddToLayout = (section: any) => {
-        setLayoutPlan(prev => [...prev, section]);
+        dispatch(addToLayoutPlan(section));
         showToast('Section added to layout plan!');
     };
 
     const handleUpdateLayoutPlan = (sections: any[]) => {
-        setLayoutPlan(sections);
+        dispatch(updateLayoutPlan(sections));
     };
 
-    const handleGenerateLayout = (sections: any[], compositionId: string) => {
-        setCompositionId(compositionId);
-        setScrapedData({
+    const handleGenerateLayout = (sections: any[], newCompositionId: string) => {
+        setCompositionId(newCompositionId);
+        dispatch(setScrapedDataFromIdea({
             url: 'Generated from idea',
-            analyzedAt: new Date(),
-            sections: scoreSections(sections)
-        });
+            analyzedAt: new Date().toISOString(),
+            sections: scoreSections(sections),
+        }));
         setCurrentStep('results');
         showToast('Layout generated successfully!');
     };
@@ -205,8 +164,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
         setChatContext(context);
     };
 
-    // ✅ UPDATED: Handle mode toggle with fade transition
-
     const handleModeToggle = async (mode: boolean) => {
         setIsTransitioning(true);
         await new Promise(resolve => setTimeout(resolve, 150));
@@ -214,6 +171,7 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
         setIsTransitioning(false);
     };
 
+    const sectionCount = scrapedData?.sections.length ?? null;
     const isFeedbackComplete = scrapedData && Object.keys(userFeedback).length === scrapedData.sections.length;
     const likeCount = Object.values(userFeedback).filter(f => f === 'like').length;
 
@@ -265,9 +223,8 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
-                                className="flex items-center gap-lg lg:gap-md justify-center flex-col lg:flex-row "
+                                className="flex items-center gap-lg lg:gap-md justify-center flex-col lg:flex-row"
                             >
-                                {/* ✅ UPDATED: Enhanced buttons with hover/press feedback */}
                                 <motion.button
                                     onClick={() => setCurrentStep('input')}
                                     whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" }}
@@ -277,7 +234,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                     <motion.div
                                         whileHover={{ rotate: 15 }}
                                         transition={{ type: "spring", stiffness: 400 }}
-
                                     >
                                         <FaGlobe className="text-icon-md" />
                                     </motion.div>
@@ -287,7 +243,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                 <StartFromIdea onGenerateLayout={handleGenerateLayout} />
                             </motion.div>
 
-                            {/* Taste Profile Indicator */}
                             {Object.keys(profile).length > 0 && (
                                 <motion.div
                                     initial={{ opacity: 0 }}
@@ -320,10 +275,8 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                         className="min-h-screen"
                     >
                         <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
-                            {/* Left: Input Area */}
                             <div className="bg-background-primary lg:border-r border-border-default p-md sm:p-lg flex flex-col justify-center">
                                 <div className="max-w-xl mx-auto w-full space-y-lg sm:space-y-xl">
-                                    {/* Back Button */}
                                     <button
                                         onClick={() => setCurrentStep('welcome')}
                                         className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-sm text-para-sm"
@@ -331,11 +284,9 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                         <FaArrowLeftLong /> Back to home
                                     </button>
 
-                                    {/* ✅ UPDATED: Mode Toggle with fade transition */}
                                     <div className="flex items-center justify-center">
                                         <div className="bg-background-secondary rounded-full p-1 flex">
                                             <button
-                                                // onClick={() => handleModeToggle(false)}
                                                 className={`flex items-center justify-center gap-xs sm:gap-sm px-md sm:px-lg py-xs sm:py-sm rounded-full text-para-sm sm:text-para-md font-medium transition-all ${!isDesignerMode
                                                     ? 'bg-accent-default text-accent-foreground shadow-lg'
                                                     : 'text-text-secondary hover:text-text-primary'
@@ -346,7 +297,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                                 <span className="sm:hidden">Client</span>
                                             </button>
                                             <button
-                                                // onClick={() => handleModeToggle(true)}
                                                 className={`flex items-center justify-center gap-xs sm:gap-sm px-md sm:px-lg py-xs sm:py-sm rounded-full text-para-sm sm:text-para-md font-medium transition-all ${isDesignerMode
                                                     ? 'bg-accent-default text-accent-foreground shadow-lg'
                                                     : 'text-text-secondary hover:text-text-primary'
@@ -359,7 +309,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                         </div>
                                     </div>
 
-                                    {/* Main Input */}
                                     <div className="text-center space-y-sm sm:space-y-md">
                                         <Heading level="h3" align="center">
                                             Enter a website to analyze
@@ -369,7 +318,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                         </Para>
                                     </div>
 
-                                    {/* ✅ UPDATED: URL Input with autoFocus */}
                                     <div className="space-y-sm">
                                         <div className="relative">
                                             <input
@@ -396,7 +344,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                         </div>
                                     </div>
 
-                                    {/* Quick Suggestions */}
                                     <div className="space-y-sm">
                                         <Para size="sm" color="secondary" align="center">
                                             Popular examples:
@@ -418,7 +365,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                 </div>
                             </div>
 
-                            {/* Right: Preview/Info */}
                             <div className="bg-background-secondary flex-col gap-lg p-md sm:p-lg flex items-center justify-center min-h-[50vh] lg:min-h-full">
                                 <motion.div
                                     animate={{ rotate: isDesignerMode ? 180 : 0 }}
@@ -440,7 +386,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                         transition={{ duration: 0.3 }}
                                         className="text-center space-y-md sm:space-y-lg max-w-lg"
                                     >
-
                                         <div className="space-y-sm">
                                             <Heading level="h4" align="center">
                                                 {isDesignerMode ? 'Designer Mode Active' : 'Client Mode Active'}
@@ -498,7 +443,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                             className="bg-background-primary-2 backdrop-blur-lg border-2 border-border-default rounded-2xl sm:rounded-3xl p-lg sm:p-xl shadow-md max-w-lg w-full"
                         >
                             <div className="text-center space-y-lg sm:space-y-xl">
-                                {/* Animated Logo */}
                                 <div className="relative">
                                     <div className="w-20 h-20 sm:w-24 sm:h-24 border-4 border-border-muted border-t-accent-default rounded-full animate-spin mx-auto"></div>
                                     <div className="absolute inset-0 flex items-center justify-center">
@@ -506,7 +450,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                     </div>
                                 </div>
 
-                                {/* Status Text */}
                                 <div>
                                     <Heading level="h3" align="center">
                                         Analyzing Website
@@ -516,8 +459,7 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                     </Para>
                                 </div>
 
-                                {/* ✅ UPDATED: Progress Steps with final completion message */}
-                                <div className="space-y-sm ">
+                                <div className="space-y-sm">
                                     {processingSteps.map((step, index) => (
                                         <motion.div
                                             key={index}
@@ -526,11 +468,7 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                             transition={{ delay: index * 0.1 }}
                                             className="flex items-center gap-sm sm:gap-md justify-between border-b border-border-default"
                                         >
-                                            <motion.div
-                                                animate={{
-                                                    scale: index === processingStep ? 1.02 : 1
-                                                }}
-                                            >
+                                            <motion.div animate={{ scale: index === processingStep ? 1.02 : 1 }}>
                                                 <Para
                                                     size="sm"
                                                     color={index === processingStep ? 'primary' : index < processingStep ? 'secondary' : 'tertiary'}
@@ -540,7 +478,8 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                                     {index === processingSteps.length - 1 && index === processingStep
                                                         ? sectionCount !== null
                                                             ? `Complete! Found ${sectionCount} sections`
-                                                            : 'Complete! Sections ready' : step
+                                                            : 'Complete! Sections ready'
+                                                        : step
                                                     }
                                                 </Para>
                                             </motion.div>
@@ -567,7 +506,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                     </motion.div>
                 )}
 
-
                 {/* Results Screen */}
                 {currentStep === 'results' && scrapedData && (
                     <motion.div
@@ -576,7 +514,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                         animate={{ opacity: 1 }}
                         className="h-screen flex flex-col"
                     >
-                        {/* Header */}
                         <header className="bg-background-primary/80 backdrop-blur-md border-b border-border-default sticky top-0 z-30 flex-shrink-0">
                             <div className="max-w-screen-xl mx-auto px-sm sm:px-md lg:px-lg py-sm sm:py-md">
                                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-sm">
@@ -592,7 +529,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                     <div className="flex items-center gap-xs sm:gap-sm">
                                         <StartFromIdea onGenerateLayout={handleGenerateLayout} />
 
-                                        {/* Hero preview button — only shown when we have a compositionId */}
                                         {compositionId && (
                                             <motion.button
                                                 whileHover={{ scale: 1.03 }}
@@ -601,10 +537,7 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                                     dispatch(pollForThumbnails({ compositionId: compositionId! }));
                                                     navigate(`/dashboard/client/swiper/compose/${compositionId}`);
                                                 }}
-
-                                                className="flex items-center gap-xs px-sm sm:px-md py-xs sm:py-sm rounded-lg
-                                        bg-accent-default text-accent-foreground text-para-xs sm:text-para-sm
-                                        font-medium hover:bg-accent-hover transition-colors"
+                                                className="flex items-center gap-xs px-sm sm:px-md py-xs sm:py-sm rounded-lg bg-accent-default text-accent-foreground text-para-xs sm:text-para-sm font-medium hover:bg-accent-hover transition-colors"
                                             >
                                                 <FaEye className="text-icon-sm" />
                                                 <span className="hidden sm:inline">Preview Hero</span>
@@ -631,15 +564,12 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                             </div>
                         </header>
 
-                        {/* Main Content Area */}
                         <main className="max-w-screen-xl mx-auto px-sm sm:px-md lg:px-lg w-full flex-grow overflow-hidden">
                             <div className="grid grid-cols-1 lg:grid-cols-5 lg:gap-lg h-full">
 
-                                {/* Left Sticky Column for Chat */}
                                 <aside className="hidden lg:block lg:col-span-2 h-full py-lg">
                                     <div className="sticky top-24 h-[calc(100vh-8rem)] flex flex-col gap-md">
 
-                                        {/* ✅ UPDATED: Enhanced Taste Memory Box */}
                                         {Object.keys(profile).length > 0 && (
                                             <motion.div
                                                 initial={{ opacity: 0, y: -10 }}
@@ -656,11 +586,7 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                                                     "0 0 0 10px rgba(99, 102, 241, 0)"
                                                                 ]
                                                             } : {}}
-                                                            transition={{
-                                                                duration: 2,
-                                                                repeat: Infinity,
-                                                                ease: "easeInOut"
-                                                            }}
+                                                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                                                         >
                                                             <FaLightbulb className="text-white text-xs" />
                                                         </motion.div>
@@ -683,8 +609,6 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                                     <Para size="xs" color="secondary">
                                                         {Object.values(profile).filter((v: any) => v > 0).length} likes • {Object.values(profile).filter((v: any) => v < 0).length} dislikes
                                                     </Para>
-
-                                                    {/* Top 2 preferences */}
                                                     <div className="flex flex-wrap gap-xs">
                                                         {Object.entries(profile)
                                                             .filter(([_, value]: [string, any]) => value > 0)
@@ -701,20 +625,18 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                             </motion.div>
                                         )}
 
-                                        {/* Chat Panel - Takes remaining space */}
                                         <div className="flex-1 min-h-0">
                                             <ChatPanel
                                                 context={chatContext}
                                                 compositionId={compositionId}
                                                 sections={activeSections.map((s: any) => s.category ?? s.section_type).filter(Boolean)}
-
-                                                onRefineComplete={handleRefineComplete} />
+                                                onRefineComplete={handleRefineComplete}
+                                            />
                                         </div>
                                     </div>
                                 </aside>
-                                {/* Right Scrollable Column for Sections */}
+
                                 <div className="lg:col-span-3 h-full overflow-y-auto custom-scrollbar py-lg">
-                                    {/* ✅ UPDATED: Apply fade transition when switching modes */}
                                     <AnimatePresence mode="wait">
                                         <motion.div
                                             key={isTransitioning ? 'transitioning' : isDesignerMode ? 'designer' : 'client'}
@@ -746,14 +668,13 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                                                     </div>
                                                 </motion.div>
                                             )}
-                                            {/* ChatPanel for Mobile View - Appears as a regular component in the flow */}
                                             <div className="lg:hidden">
                                                 <ChatPanel
                                                     context={chatContext}
                                                     compositionId={compositionId}
                                                     sections={activeSections.map((s: any) => s.category ?? s.section_type).filter(Boolean)}
-
-                                                    onRefineComplete={handleRefineComplete} />
+                                                    onRefineComplete={handleRefineComplete}
+                                                />
                                             </div>
                                         </motion.div>
                                     </AnimatePresence>
@@ -765,7 +686,7 @@ const pageSchema = useSelector(selectActiveOrPreviewSchema);
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div >
+        </div>
     );
 };
 
