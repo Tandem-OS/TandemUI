@@ -173,7 +173,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 <div className="w-full h-full overflow-hidden">
                     <motion.img
                         src={component.thumbnail_url}
-                        alt={component.title}
+                        alt={component.title ?? undefined}
                         className="w-full h-full object-cover"
                         animate={isCardHovered && !isMobile && !isShaking ? { scale: 1.05 } : { scale: 1 }}
                         transition={{ duration: 0.3 }}
@@ -186,7 +186,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 `}>
                     <div>
                         <h3 className={`text-white ${isMobile ? 'text-para-md' : 'text-para-lg'} font-semibold mb-xs`}>
-                            {component.title}
+                            {component.title ??''}
                         </h3>
                         <p className={`text-white/90 ${isMobile ? 'text-para-xs' : 'text-para-sm'}`}>
                             {component.vibe}

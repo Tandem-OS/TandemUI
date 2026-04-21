@@ -543,7 +543,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
                             whileTap={{ scale: 0.98 }}
                             className="flex-1 px-lg py-md bg-gradient-to-r from-accent-default to-indigo-600 hover:from-accent-hover hover:to-indigo-700 rounded-lg font-semibold text-para-sm text-white transition-all flex items-center justify-center gap-sm shadow-lg"
                         >
-                            Back To Dashboard
+                            Generate & Refine
                             <FiArrowRight className="text-icon-sm" />
                         </motion.button>
 

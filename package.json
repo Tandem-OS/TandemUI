@@ -16,7 +16,7 @@
     "test:run": "vitest run",
     "test:components": "vitest run src/components-lib/**/*.test.tsx",
     "validate:components": "npm run lint:components && npm run test:components",
-    "prepare": "husky",
+    "prepare": "command -v husky >/dev/null 2>&1 && husky || true",
     "start": "serve -s dist -l 8080"
   },
   "dependencies": {

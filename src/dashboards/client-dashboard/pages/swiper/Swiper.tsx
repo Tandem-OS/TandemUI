@@ -8,6 +8,8 @@ import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
 import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
+import { selectCompositionId } from '@/features/composition/compositionSelectors';
+
 import {
   type SwipeAction,
   type ComponentPreview,
@@ -56,7 +58,9 @@ import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import Modal from '@/common-components/Modal';
 import { useNavigate } from 'react-router-dom';
 import TransitionMoment from './components/TransitionMoment';
-
+import {
+  submitComposition,
+} from '@/features/composition/compositionSlice';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
@@ -253,6 +257,8 @@ const Swiper: React.FC = () => {
     kingOfHill,
     // isKingOfHillPending
   } = useSelector((state: RootState) => state.swiper);
+  const compositionId = useSelector(selectCompositionId);
+const projectId = useSelector((state: RootState) => state.project.projectId);
 
   const currentRoundData = roundsData[currentRound];
   const allRoundsComplete = !currentRoundData || currentRoundData.completed;
@@ -524,8 +530,8 @@ const Swiper: React.FC = () => {
             // Required — backend 422s if any of these are missing
             component_id: component.component_id,
             project_id: component.project_id,
-            client_email: component.client_email,       // now available from mapper fix above
-            designer_email: component.designer_email,   // now available from mapper fix above
+            client_email: component.client_email,
+            designer_email: component.designer_email,
             session_id: sessionId,
             thumbnail_url: component.thumbnail_url || null,
 
@@ -564,21 +570,21 @@ const Swiper: React.FC = () => {
         }
         saveSuccess = false;
       }
-
-      if (saveSuccess) {
-        setTimeout(() => {
-          dispatch(endKingOfHill());
-          setIsSummaryReady(true)
-          const shouldShowPreview = (snapRound + 1) % 2 === 0 && !snapIsLastRound;
-
-          if (shouldShowPreview) {
-            dispatch(setShouldAskForPreview(true));
-          } else if (!isLastRound) {
-            dispatch(moveToNextRound());
-            setTimeout(() => dispatch(unlockTransition()), 1000);
-          }
-        }, 1000);
-      }
+if (saveSuccess) {
+  setTimeout(() => {
+    dispatch(endKingOfHill());
+    const shouldShowPreview = (snapRound + 1) % 2 === 0 && !snapIsLastRound;
+    if (shouldShowPreview) {
+      dispatch(setShouldAskForPreview(true));
+    } else if (!isLastRound) {
+      dispatch(moveToNextRound());
+      setTimeout(() => dispatch(unlockTransition()), 1000);
+    } else {
+      // Last round KOH complete and saved — now safe to show summary
+      setIsSummaryReady(true);
+    }
+  }, 1000);
+}
     }
   }, [dispatch, kingOfHill, currentRound, currentRoundData, isLastRound]);
 
@@ -771,27 +777,26 @@ const Swiper: React.FC = () => {
 
     dispatch(resetSwiper());
   }, [dispatch]);
-
-  const handleGenerateLayout = useCallback(async () => {
-    // Collect one winner_id per KOH session (one per category)
-    const winnerIds = kingOfHillSessions
-      .map(s => s.final_winner_id)
-      .filter((id): id is string => !!id);
-
-    // project_id lives on every component — grab from first available round
-    const projectId = roundsData[0]?.components[0]?.project_id ?? '';
-
-    if (!winnerIds.length || !projectId) {
-      console.error('handleGenerateLayout: missing winnerIds or projectId', { winnerIds, projectId });
-      return;
-    }
+const handleGenerateLayout = useCallback(async () => {
+  const winnerIds = kingOfHillSessions
+    .map(s => s.final_winner_id)
+    .filter((id): id is string => !!id);
 
 
-    // Navigate to the Compose Result Screen
-    // thumbnails will still be polling in the background via Redux
-    navigate(`/dashboard/client`);
+if (!winnerIds.length || !projectId) {
+  console.error('handleGenerateLayout: missing winnerIds or projectId', { winnerIds, projectId });
+  return;
+}
 
-  }, [dispatch, navigate, kingOfHillSessions, roundsData]);
+  const result = await dispatch(submitComposition({ winnerIds, projectId })).unwrap();
+
+  if (result.compositionId) {
+    navigate(`/dashboard/client/swiper/refine/${result.compositionId}`);
+  } else {
+    console.error('[Swiper] handleGenerateLayout: compositionId missing after submit');
+  }
+}, [dispatch, navigate, kingOfHillSessions, roundsData,projectId, compositionId]);
+
   const handleTransitionComplete = useCallback(() => {
     setShowTransition(false);
     handleGenerateLayout();
