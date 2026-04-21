@@ -5,11 +5,12 @@ const ALLOWED_LAYOUTS: string[] = ['accordion', 'contained', 'centered-support',
 const REQUIRED_SLOTS: string[] = ['faq_items']
 
 const OPTIONAL_SLOTS: string[] = [
-  'faq_heading',
+  'section_heading',
   'section_tag',
   'supporting_text',
   'bottom_support_link',
   'bottom_support_text',
+  'faq_animated',
 ]
 
 const ALLOWED_SLOTS: Set<string> = new Set([...REQUIRED_SLOTS, ...OPTIONAL_SLOTS])
@@ -69,8 +70,14 @@ export function validateFAQPayload(
     faqItems.forEach((item: unknown, index: number) => {
       if (!item || typeof item !== 'object') {
         errors.push(`faq_items[${index}] is not a valid object`)
-      } else if (!('question' in item) || typeof (item as any).question !== 'string' || (item as any).question.trim() === '') {
+        return
+      }
+      const i = item as Record<string, unknown>
+      if (typeof i.question !== 'string' || i.question.trim() === '') {
         errors.push(`faq_items[${index}] is missing a valid "question" string`)
+      }
+      if ('is_expanded' in i && typeof i.is_expanded !== 'boolean') {
+        errors.push(`faq_items[${index}] "is_expanded" must be a boolean if present`)
       }
     })
   }

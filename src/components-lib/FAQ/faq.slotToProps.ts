@@ -12,13 +12,19 @@ export function faqSlotToProps(slots: any): FAQProps | null {
   }
 
   return {
-    faq_items: items,
+    faq_items: items.map((item: any) => ({
+      question: item.question,
+      answer: item.answer,
+      is_expanded: item.is_expanded === true,
+    })),
 
-    section_heading: slots.faq_heading,
+    section_heading: slots.section_heading,
     section_tag: slots.section_tag,
     supporting_text: slots.supporting_text,
 
     bottom_support_link: slots.bottom_support_link,
     bottom_support_text: slots.bottom_support_text,
+
+    faq_animated: slots.faq_animated === true,
   }
 }

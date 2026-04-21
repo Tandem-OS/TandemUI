@@ -1,7 +1,7 @@
 import api from "@/lib/requests/Axios";
 import { store } from "@/store";
 
-// ─── Canonical types ──────────────────────────────────────────────────────────
+// ─── Canonical types 
 export const TANDEM_CANONICAL_PROJECT_ID = "00000000-0000-0000-0000-000000000000";
 
 export interface CanonicalComponent {
@@ -30,10 +30,15 @@ export interface CanonicalComponentsResponse {
   hero: CanonicalComponent[];
   nav: CanonicalComponent[];
   features: CanonicalComponent[];
-  pricing:CanonicalComponent[];
-   faq: CanonicalComponent[];
+  pricing: CanonicalComponent[];
+  faq: CanonicalComponent[];
+  testimonials: CanonicalComponent[];
+  cta: CanonicalComponent[];
+  contact: CanonicalComponent[];
+  timeline: CanonicalComponent[];
+  footer: CanonicalComponent[];
+
 }
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface SwiperRoundSummary {
   choices: any[];
@@ -89,12 +94,11 @@ interface KingOfMatches {
   behavioral_signals: {};
 }
 
-// ─── Canonical fetch ──────────────────────────────────────────────────────────
+// ─── Canonical fetch 
 export const getCanonicalComponents = async (): Promise<CanonicalComponentsResponse> => {
   const response = await api.get("/swiper/canonical");
   return response.data;
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const swiperData = async (values: SwiperRoundSummary) => {
   const clientEmail = store.getState().auth.user.email!;
@@ -123,9 +127,9 @@ export const swiperComponentData = async (values: SwiperComponent) => {
   for (const [key, value] of Object.entries(values)) {
     if (value === null || value === undefined) continue;
     if (key === 'thumbnail_url') continue;
-    if (key === 'project_id') continue;        // ← always override below, never trust incoming value
-    if (key === 'client_email') continue;      // ← add
-    if (key === 'designer_email') continue;    // ← add
+    if (key === 'project_id') continue;        
+    if (key === 'client_email') continue;      
+    if (key === 'designer_email') continue;    
     if (key === 'is_canonical') continue;
 
     if (typeof value === 'object' && !Array.isArray(value)) {

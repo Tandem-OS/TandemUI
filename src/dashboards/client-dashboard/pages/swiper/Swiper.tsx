@@ -117,6 +117,12 @@ const normalizeLayout = (category: string, layout: string): string => {
     features: 'grid',
     pricing: 'grid',
     faq: 'accordion',
+    testimonials: 'video-grid',
+    cta: 'hero-footer',
+    contact: 'split_form_grid',
+    timeline: 'vertical_editorial',
+    footer: 'inline_minimal',
+
 
   };
   const known: Record<string, string[]> = {
@@ -125,6 +131,12 @@ const normalizeLayout = (category: string, layout: string): string => {
     features: ['grid', 'list', 'split'],
     pricing: ['three-column', 'stacked', 'grid'],
     faq: ['accordion', 'contained', 'centered-support', 'minimal'],
+    testimonials: ['video-grid', 'featured-stats', 'notes', 'carousel'],
+    cta: ['hero-footer', 'announcement-faq', 'newsletter-centered', 'search-footer'],
+    contact: ['split_form_grid', 'booking_profile_split', 'full_page_split', 'form_editorial_split'],
+    timeline: ['vertical_editorial', 'alternating_media'],
+    footer: ['inline_minimal', 'split_expanded', 'multi_column', 'info_links_bar'],
+
 
   };
   console.log('[normalizeLayout] called with:', { category, layout });
@@ -265,6 +277,12 @@ const Swiper: React.FC = () => {
         ...(componentsMap['features'] ?? []),
         ...(componentsMap['pricing'] ?? []),
         ...(componentsMap['faq'] ?? []),
+        ...(componentsMap['testimonials'] ?? []),
+        ...(componentsMap['cta'] ?? []),
+        ...(componentsMap['contact'] ?? []),
+        ...(componentsMap['timeline'] ?? []),
+        ...(componentsMap['footer'] ?? []),
+
 
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
 
