@@ -1,39 +1,38 @@
 import React from 'react'
-import componentRegistry from '@/registry/ComponentRegistry'
-import { featuresSlotsToProps } from '@/components-lib/Features/FeaturesSlotsToProps'
-import { featuresTokensToColors } from '@/components-lib/Features/FeaturesTokensToColors'
-import type { FeaturesComposeSection } from '@/pages/Renderer/CompositionType'
+import FeaturesGalleryShell from '@/components-lib/Features/Shells/FeaturesGalleryShell'
+import FeaturesStatsShell from '@/components-lib/Features/Shells/FeaturesStatsShell'
+import { resolveFeaturesLayout } from '@/components-lib/Features/features.layoutResolver'
+import type { FeaturesComposeSection } from '@/components-lib/Features/features.types'
 
+// ── Props 
 interface FeaturesRendererProps {
   sections: FeaturesComposeSection[]
 }
 
+const shellMap = {
+  gallery: FeaturesGalleryShell,
+  stats:   FeaturesStatsShell,
+} as const
+
+// ── FeaturesRenderer 
 const FeaturesRenderer: React.FC<FeaturesRendererProps> = ({ sections }) => {
-  if (sections.length === 0) return null
+  if (!sections.length) return null
 
   return (
     <>
       {sections.map((section, i) => {
-        const colors = featuresTokensToColors(section.tokens)
-        const props  = featuresSlotsToProps(section.content_slots)
-        const Component = componentRegistry[section.component_id]
+        const layout = resolveFeaturesLayout(section.content_slots.features_variant)
 
-        if (!Component) {
-          console.error(`[FeaturesRenderer] Unknown component_id: "${section.component_id}"`)
-          return (
-            <section key={section.component_id ?? i} style={{ padding: '2rem', color: 'red' }}>
-              [FeaturesRenderer] Unknown component: "{section.component_id}"
-            </section>
+        if (!layout) {
+          console.error(
+            `[FeaturesRenderer] Unknown variant "${section.content_slots.features_variant}" ` +
+            `at position ${section.position}`
           )
+          return null
         }
 
-        return (
-          <Component
-            key={section.component_id ?? i}
-            {...props}
-            colors={colors}
-          />
-        )
+        const Shell = shellMap[layout]
+        return <Shell key={section.component_id ?? i} section={section} />
       })}
     </>
   )

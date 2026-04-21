@@ -1,5 +1,7 @@
-import type { FeaturesSlots } from '@/pages/Renderer/CompositionType';
-export type { FeaturesSlots }
+// ── Features Slots → Props
+
+import type { FeaturesSlots, FeaturesItem, FeaturesAction } from './features.types'
+export type { FeaturesSlots, FeaturesItem, FeaturesAction }
 
 export function featuresSlotsToProps(raw: FeaturesSlots) {
   return {
@@ -10,5 +12,5 @@ export function featuresSlotsToProps(raw: FeaturesSlots) {
     features_media:            raw.features_media,
     features_primary_action:   raw.features_primary_action,
     features_secondary_action: raw.features_secondary_action,
-  };
+  }
 }

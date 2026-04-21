@@ -3,6 +3,14 @@ import NavRenderer from '@/pages/Renderer/NavRenderer';
 import HeroRenderer from '@/pages/Renderer/HeroRenderer';
 import FeaturesRenderer from '@/pages/Renderer/FeaturesRenderer';
 import PricingRenderer from '@/pages/Renderer/PricingRenderer';
+import FAQRenderer from '@/pages/Renderer/FAQRenderer'
+import { TestimonialsRenderer } from '@/pages/Renderer/TestimonialsRenderer';
+import { CTARenderer } from '@/pages/Renderer/CTARenderer'
+import { ContactRenderer } from '@/pages/Renderer/ContactRenderer';
+import { TimelineRenderer } from '@/pages/Renderer/TimelineRenderer';
+import { FooterRenderer } from '@/pages/Renderer/FooterRenderer';
+
+
 import type {
   ComposeSection,
   NavComposeSection,
@@ -27,6 +35,58 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({ section, highlighted = 
         return <FeaturesRenderer sections={[section as FeaturesComposeSection]} />;
       case 'pricing':
         return <PricingRenderer sections={[section as PricingComposeSection]} />;
+      case 'faq':
+        return <FAQRenderer sections={[section]} />
+      case 'testimonials':
+        return (
+          <TestimonialsRenderer
+            raw={{
+              layout_structure: section.layout_structure,
+              tokens: section.tokens,
+              content_slots: section.content_slots,
+            }}
+          />
+        );
+      case 'cta':
+        return (
+          <CTARenderer
+            raw={{
+              layout_structure: section.layout_structure,
+              tokens: section.tokens,
+              content_slots: section.content_slots,
+            }}
+          />
+        )
+      case 'contact':
+        return (
+          <ContactRenderer
+            raw={{
+              layout_structure: section.layout_structure,
+              tokens: section.tokens,
+              content_slots: section.content_slots,
+            }}
+          />
+        );
+      case 'timeline':
+        return (
+          <TimelineRenderer
+            raw={{
+              layout_structure: section.layout_structure,
+              tokens: section.tokens,
+              content_slots: section.content_slots,
+            }}
+          />
+        );
+      case 'footer':
+        return (
+          <FooterRenderer
+            raw={{
+              layout_structure: section.layout_structure,
+              tokens: section.tokens,
+              content_slots: section.content_slots,
+            }}
+          />
+        );
       default: {
         const _exhaustive: never = section;
         console.error(`[SectionPreview] Unhandled category: "${(_exhaustive as any).category}"`);

@@ -1,56 +1,56 @@
 import React from 'react'
-import type { FeaturesColors, FeaturesItem, FeaturesAction } from '@/pages/Renderer/CompositionType'
+import type { FeaturesColors, FeaturesItem, FeaturesAction } from './features.types'
 
 interface FeaturesBaseProps {
-  features_heading?: string;
-  features_subheading?: string;
-  features_variant?: string;
-  features_items: FeaturesItem[];
-  features_media?: string;
-  features_primary_action?: FeaturesAction;
-  features_secondary_action?: FeaturesAction;
-  colors: FeaturesColors;
+  features_heading?: string
+  features_subheading?: string
+  features_variant?: string
+  features_items: FeaturesItem[]
+  features_media?: string
+  features_primary_action?: FeaturesAction
+  features_secondary_action?: FeaturesAction
+  colors: FeaturesColors
 }
 
 // ── Variant config layer — structural defaults tied to each layout pattern
 const variantConfig: Record<string, {
-  gridCols: string;
-  gridGap: string;
-  cardPadding: string;
-  itemMarginBottom: string;
-  actionsGap: string;
-  actionsMarginTop: string;
-  headerMarginBottom: string;
-  cardHeadingSize: string;
+  gridCols: string
+  gridGap: string
+  cardPadding: string
+  itemMarginBottom: string
+  actionsGap: string
+  actionsMarginTop: string
+  headerMarginBottom: string
+  cardHeadingSize: string
 }> = {
   gallery: {
-    gridCols:          '1fr 1fr',
-    gridGap:           '60px',
-    cardPadding:       '0px',
-    itemMarginBottom:  '16px',
-    actionsGap:        '16px',
-    actionsMarginTop:  '32px',
-    headerMarginBottom:'48px',
-    cardHeadingSize:   'inherit',
+    gridCols:           '1fr 1fr',
+    gridGap:            '60px',
+    cardPadding:        '0px',
+    itemMarginBottom:   '16px',
+    actionsGap:         '16px',
+    actionsMarginTop:   '32px',
+    headerMarginBottom: '48px',
+    cardHeadingSize:    'inherit',
   },
   stats: {
-    gridCols:          'repeat(auto-fit, minmax(240px, 1fr))',
-    gridGap:           '24px',
-    cardPadding:       '28px',
-    itemMarginBottom:  '0px',
-    actionsGap:        '16px',
-    actionsMarginTop:  '48px',
-    headerMarginBottom:'48px',
-    cardHeadingSize:   '1.1rem',
+    gridCols:           'repeat(auto-fit, minmax(240px, 1fr))',
+    gridGap:            '24px',
+    cardPadding:        '28px',
+    itemMarginBottom:   '0px',
+    actionsGap:         '16px',
+    actionsMarginTop:   '48px',
+    headerMarginBottom: '48px',
+    cardHeadingSize:    '1.1rem',
   },
-};
+}
 
 // ── Action variant styles — canonical shape from FeaturesAction.variant
 const actionVariantStyles: Record<string, React.CSSProperties> = {
   primary:   { fontWeight: 600 },
   secondary: { fontWeight: 400 },
   ghost:     { fontWeight: 400, textDecoration: 'underline' },
-};
+}
 
 const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   features_heading,
@@ -62,60 +62,59 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   features_secondary_action,
   colors,
 }) => {
-  const cfg = features_variant ? variantConfig[features_variant] : undefined;
+  const cfg = features_variant ? variantConfig[features_variant] : undefined
 
   if (!cfg) {
     console.error(
       `[FeaturesBase] Unsupported or missing features_variant: "${features_variant}". ` +
       `Supported variants: ${Object.keys(variantConfig).join(', ')}`
-    );
+    )
     return (
       <section style={{ padding: colors.padding, backgroundColor: colors.background }}>
         <p style={{ color: 'red' }}>
           [FeaturesBase] Unknown variant: "{features_variant}"
         </p>
       </section>
-    );
+    )
   }
 
-  // ── Token layer — themeable values from canonical config
   const sectionStyle: React.CSSProperties = {
     backgroundColor: colors.background,
     color:           colors.text_color,
     padding:         colors.padding,
     boxSizing:       'border-box',
-  };
+  }
 
   const headingStyle: React.CSSProperties = {
     fontSize:   colors.heading_size,
     fontWeight: colors.heading_weight,
     color:      colors.text_color,
     margin:     '0 0 12px 0',
-  };
+  }
 
   const subheadingStyle: React.CSSProperties = {
     color:   colors.text_color,
     opacity: 0.7,
     margin:  '0 0 40px 0',
-  };
+  }
 
   const cardStyle: React.CSSProperties = {
     backgroundColor: colors.card_bg,
     borderRadius:    colors.card_radius,
     padding:         cfg.cardPadding,
-  };
+  }
 
   const SectionHeader = () => (
     <div style={{ marginBottom: cfg.headerMarginBottom }}>
       {features_heading    && <h2 style={headingStyle}>{features_heading}</h2>}
       {features_subheading && <p style={subheadingStyle}>{features_subheading}</p>}
     </div>
-  );
+  )
 
   const renderAction = (action: FeaturesAction) => {
     const variantStyle = action.variant
       ? (actionVariantStyles[action.variant] ?? {})
-      : {};
+      : {}
     return (
       <a
         href={action.target}
@@ -124,15 +123,15 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
       >
         {action.label}
       </a>
-    );
-  };
+    )
+  }
 
   const Actions = () => (
     <div style={{ display: 'flex', gap: cfg.actionsGap, marginTop: cfg.actionsMarginTop }}>
       {features_primary_action   && renderAction(features_primary_action)}
       {features_secondary_action && renderAction(features_secondary_action)}
     </div>
-  );
+  )
 
   if (features_variant === 'gallery') {
     return (
@@ -161,7 +160,7 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
           )}
         </div>
       </section>
-    );
+    )
   }
 
   if (features_variant === 'stats') {
@@ -186,13 +185,11 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
           </div>
         )}
       </section>
-    );
+    )
   }
 
-  // This line is unreachable — cfg guard above catches all unknown variants
-  // If we ever reach here something is wrong with variantConfig keys
-  console.error(`[FeaturesBase] Reached unreachable branch for variant: "${features_variant}"`);
-  return null;
-};
+  console.error(`[FeaturesBase] Reached unreachable branch for variant: "${features_variant}"`)
+  return null
+}
 
-export default FeaturesBase
+export default FeaturesBase 
