@@ -41,8 +41,13 @@ import { selectActiveOrPreviewSchema } from '@/features/composition/compositionS
 // Extracted hook
 import { useTasteProfile } from '@/hooks/useTasteProfile';
 
+// Tokens
+import { layoutTokens } from '@/design-system/tokens/layout';
+
+const t = layoutTokens.scraper;
+
 const ScraperIntelligencePage = () => {
-    // ── Pure UI state (not scraper-related) ───────────────────────────────────
+    // ── Pure UI state ─────────────────────────────────────────────────────────
     const [currentStep, setCurrentStep] = useState('welcome');
     const [inputValue, setInputValue] = useState('');
     const [isDesignerMode, setIsDesignerMode] = useState(false);
@@ -176,7 +181,7 @@ const ScraperIntelligencePage = () => {
     const likeCount = Object.values(userFeedback).filter(f => f === 'like').length;
 
     return (
-        <div className="min-h-screen bg-background-primary text-text-primary">
+        <div className={t.root}>
             <AnimatePresence>
                 {toastMessage && (
                     <Toast message={toastMessage.message} type={toastMessage.type} />
@@ -191,16 +196,16 @@ const ScraperIntelligencePage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="min-h-screen flex items-center justify-center p-sm sm:p-md"
+                        className={t.welcomeScreen}
                     >
-                        <div className="text-center max-w-2xl space-y-lg sm:space-y-xl w-full">
+                        <div className={t.welcomeInner}>
                             <motion.div
                                 initial={{ scale: 0.8, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="flex justify-center"
+                                className={t.welcomeIconWrapper}
                             >
-                                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-accent-default to-purple-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-2xl">
+                                <div className={t.welcomeIcon}>
                                     <FaLightbulb className="text-accent-foreground text-3xl sm:text-4xl animate-pulse" />
                                 </div>
                             </motion.div>
@@ -209,7 +214,7 @@ const ScraperIntelligencePage = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.3 }}
-                                className="space-y-sm"
+                                className={t.welcomeTextBlock}
                             >
                                 <Heading level="h2" align="center">
                                     Tandem Reveal
@@ -223,13 +228,13 @@ const ScraperIntelligencePage = () => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
-                                className="flex items-center gap-lg lg:gap-md justify-center flex-col lg:flex-row"
+                                className={t.welcomeActions}
                             >
                                 <motion.button
                                     onClick={() => setCurrentStep('input')}
                                     whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" }}
                                     whileTap={{ scale: 0.95 }}
-                                    className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-lg py-md rounded-xl font-medium hover:from-indigo-600 hover:to-purple-700 shadow-lg hover:shadow-xl flex items-center gap-sm text-para-lg will-change-transform"
+                                    className={t.welcomePrimaryBtn}
                                 >
                                     <motion.div
                                         whileHover={{ rotate: 15 }}
@@ -247,7 +252,7 @@ const ScraperIntelligencePage = () => {
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    className="flex items-center justify-center gap-sm"
+                                    className={t.welcomeTasteRow}
                                 >
                                     <Para size="sm" color="secondary">Taste profile active</Para>
                                     <button
@@ -255,7 +260,7 @@ const ScraperIntelligencePage = () => {
                                             clearTaste();
                                             showToast('Taste profile cleared');
                                         }}
-                                        className="text-accent-default hover:text-accent-hover underline text-para-sm"
+                                        className={t.welcomeClearBtn}
                                     >
                                         Clear preferences
                                     </button>
@@ -272,36 +277,26 @@ const ScraperIntelligencePage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="min-h-screen"
+                        className={t.inputScreen}
                     >
-                        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
-                            <div className="bg-background-primary lg:border-r border-border-default p-md sm:p-lg flex flex-col justify-center">
-                                <div className="max-w-xl mx-auto w-full space-y-lg sm:space-y-xl">
+                        <div className={t.inputGrid}>
+                            <div className={t.inputLeft}>
+                                <div className={t.inputLeftInner}>
                                     <button
                                         onClick={() => setCurrentStep('welcome')}
-                                        className="text-text-secondary hover:text-text-primary transition-colors flex items-center gap-sm text-para-sm"
+                                        className={t.inputBackBtn}
                                     >
                                         <FaArrowLeftLong /> Back to home
                                     </button>
 
-                                    <div className="flex items-center justify-center">
-                                        <div className="bg-background-secondary rounded-full p-1 flex">
-                                            <button
-                                                className={`flex items-center justify-center gap-xs sm:gap-sm px-md sm:px-lg py-xs sm:py-sm rounded-full text-para-sm sm:text-para-md font-medium transition-all ${!isDesignerMode
-                                                    ? 'bg-accent-default text-accent-foreground shadow-lg'
-                                                    : 'text-text-secondary hover:text-text-primary'
-                                                    }`}
-                                            >
+                                    <div className={t.inputToggleWrapper}>
+                                        <div className={t.inputToggleInner}>
+                                            <button className={!isDesignerMode ? t.inputToggleBtnActive : t.inputToggleBtnInactive}>
                                                 <FaUser className="text-icon-sm" />
                                                 <span className="hidden sm:inline">Client View</span>
                                                 <span className="sm:hidden">Client</span>
                                             </button>
-                                            <button
-                                                className={`flex items-center justify-center gap-xs sm:gap-sm px-md sm:px-lg py-xs sm:py-sm rounded-full text-para-sm sm:text-para-md font-medium transition-all ${isDesignerMode
-                                                    ? 'bg-accent-default text-accent-foreground shadow-lg'
-                                                    : 'text-text-secondary hover:text-text-primary'
-                                                    }`}
-                                            >
+                                            <button className={isDesignerMode ? t.inputToggleBtnActive : t.inputToggleBtnInactive}>
                                                 <FaPalette className="text-icon-sm" />
                                                 <span className="hidden sm:inline">Designer View</span>
                                                 <span className="sm:hidden">Designer</span>
@@ -309,7 +304,7 @@ const ScraperIntelligencePage = () => {
                                         </div>
                                     </div>
 
-                                    <div className="text-center space-y-sm sm:space-y-md">
+                                    <div className={t.inputTextBlock}>
                                         <Heading level="h3" align="center">
                                             Enter a website to analyze
                                         </Heading>
@@ -318,14 +313,14 @@ const ScraperIntelligencePage = () => {
                                         </Para>
                                     </div>
 
-                                    <div className="space-y-sm">
-                                        <div className="relative">
+                                    <div className={t.inputFieldWrapper}>
+                                        <div className={t.inputFieldInner}>
                                             <input
                                                 type="text"
                                                 value={inputValue}
                                                 onChange={(e) => setInputValue(e.target.value)}
                                                 placeholder="Enter website URL (e.g., stripe.com)"
-                                                className="w-full px-md sm:px-lg py-sm sm:py-md bg-background-secondary border-2 border-border-default rounded-lg sm:rounded-xl text-text-primary placeholder:text-text-tertiary focus:outline-none focus:border-accent-default transition-all text-base sm:text-lg pr-12 sm:pr-14"
+                                                className={t.inputField}
                                                 onKeyPress={(e) => {
                                                     if (e.key === 'Enter' && inputValue.trim()) {
                                                         handleStartScraping(inputValue);
@@ -336,7 +331,7 @@ const ScraperIntelligencePage = () => {
                                             {inputValue.trim() && (
                                                 <motion.button
                                                     onClick={() => handleStartScraping(inputValue)}
-                                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent-default text-accent-foreground p-2 sm:p-3 rounded-lg hover:bg-accent-hover hover:shadow-lg transition-all"
+                                                    className={t.inputSubmitBtn}
                                                 >
                                                     <FaArrowRight className="text-icon-sm" />
                                                 </motion.button>
@@ -344,7 +339,7 @@ const ScraperIntelligencePage = () => {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-sm">
+                                    <div className={t.inputSuggestionsWrapper}>
                                         <Para size="sm" color="secondary" align="center">
                                             Popular examples:
                                         </Para>
@@ -355,7 +350,7 @@ const ScraperIntelligencePage = () => {
                                                     whileHover={{ scale: 1.02 }}
                                                     whileTap={{ scale: 0.98 }}
                                                     onClick={() => handleStartScraping(suggestion.url)}
-                                                    className="px-sm sm:px-md py-xs sm:py-sm bg-background-secondary border border-border-default rounded-lg text-para-xs sm:text-para-sm text-text-primary hover:border-accent-default hover:bg-accent-subtle transition-all"
+                                                    className={t.inputSuggestionBtn}
                                                 >
                                                     {suggestion.name}
                                                 </motion.button>
@@ -365,16 +360,16 @@ const ScraperIntelligencePage = () => {
                                 </div>
                             </div>
 
-                            <div className="bg-background-secondary flex-col gap-lg p-md sm:p-lg flex items-center justify-center min-h-[50vh] lg:min-h-full">
+                            <div className={t.inputRight}>
                                 <motion.div
                                     animate={{ rotate: isDesignerMode ? 180 : 0 }}
                                     transition={{ duration: 0.5 }}
-                                    className="w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br from-accent-default to-purple-600 rounded-full flex items-center justify-center mx-auto shadow-2xl"
+                                    className={t.inputRightIcon}
                                 >
                                     {isDesignerMode ? (
-                                        <FaCode className="text-white text-4xl sm:text-5xl" />
+                                        <FaCode className={t.inputRightIconInner} />
                                     ) : (
-                                        <FaUser className="text-white text-4xl sm:text-5xl" />
+                                        <FaUser className={t.inputRightIconInner} />
                                     )}
                                 </motion.div>
                                 <AnimatePresence mode="wait">
@@ -384,9 +379,9 @@ const ScraperIntelligencePage = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -20 }}
                                         transition={{ duration: 0.3 }}
-                                        className="text-center space-y-md sm:space-y-lg max-w-lg"
+                                        className={t.inputRightContent}
                                     >
-                                        <div className="space-y-sm">
+                                        <div className={t.inputRightTextBlock}>
                                             <Heading level="h4" align="center">
                                                 {isDesignerMode ? 'Designer Mode Active' : 'Client Mode Active'}
                                             </Heading>
@@ -397,8 +392,8 @@ const ScraperIntelligencePage = () => {
                                                 }
                                             </Para>
                                         </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-sm sm:gap-md text-left">
-                                            <div className="bg-background-primary rounded-lg sm:rounded-xl p-sm sm:p-md">
+                                        <div className={t.inputRightGrid}>
+                                            <div className={t.inputRightCard}>
                                                 <Heading level="h6" className="mb-xs">
                                                     {isDesignerMode ? 'Technical View' : 'Visual Focus'}
                                                 </Heading>
@@ -409,7 +404,7 @@ const ScraperIntelligencePage = () => {
                                                     }
                                                 </Para>
                                             </div>
-                                            <div className="bg-background-primary rounded-lg sm:rounded-xl p-sm sm:p-md">
+                                            <div className={t.inputRightCard}>
                                                 <Heading level="h6" className="mb-xs">
                                                     {isDesignerMode ? 'Dev Tools' : 'Feedback'}
                                                 </Heading>
@@ -435,22 +430,22 @@ const ScraperIntelligencePage = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="min-h-screen flex items-center justify-center p-sm sm:p-md"
+                        className={t.processingScreen}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="bg-background-primary-2 backdrop-blur-lg border-2 border-border-default rounded-2xl sm:rounded-3xl p-lg sm:p-xl shadow-md max-w-lg w-full"
+                            className={t.processingCard}
                         >
-                            <div className="text-center space-y-lg sm:space-y-xl">
-                                <div className="relative">
-                                    <div className="w-20 h-20 sm:w-24 sm:h-24 border-4 border-border-muted border-t-accent-default rounded-full animate-spin mx-auto"></div>
-                                    <div className="absolute inset-0 flex items-center justify-center">
+                            <div className={t.processingCardInner}>
+                                <div className={t.processingSpinnerWrapper}>
+                                    <div className={t.processingSpinner}></div>
+                                    <div className={t.processingSpinnerIcon}>
                                         <FaGlobe className="text-accent-default text-2xl sm:text-3xl animate-pulse" />
                                     </div>
                                 </div>
 
-                                <div>
+                                <div className={t.processingTextBlock}>
                                     <Heading level="h3" align="center">
                                         Analyzing Website
                                     </Heading>
@@ -466,7 +461,7 @@ const ScraperIntelligencePage = () => {
                                             initial={{ opacity: 0, x: -20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: index * 0.1 }}
-                                            className="flex items-center gap-sm sm:gap-md justify-between border-b border-border-default"
+                                            className={t.processingStepRow}
                                         >
                                             <motion.div animate={{ scale: index === processingStep ? 1.02 : 1 }}>
                                                 <Para
@@ -483,17 +478,17 @@ const ScraperIntelligencePage = () => {
                                                     }
                                                 </Para>
                                             </motion.div>
-                                            <div className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center">
+                                            <div className={t.processingStepIconWrapper}>
                                                 {index < processingStep ? (
                                                     <motion.div
                                                         initial={{ scale: 0 }}
                                                         animate={{ scale: 1 }}
-                                                        className="w-5 h-5 sm:w-6 sm:h-6 bg-emerald-500 rounded-full flex items-center justify-center"
+                                                        className={t.processingStepDone}
                                                     >
-                                                        <FaCheck className="text-white text-xs" />
+                                                        <FaCheck className={t.processingStepDoneIcon} />
                                                     </motion.div>
                                                 ) : index === processingStep ? (
-                                                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-accent-default rounded-full animate-pulse"></div>
+                                                    <div className={t.processingStepActive}></div>
                                                 ) : (
                                                     <FaCircle className="text-border-muted text-xs sm:text-sm" />
                                                 )}
@@ -512,13 +507,13 @@ const ScraperIntelligencePage = () => {
                         key="results"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="h-screen flex flex-col"
+                        className={t.resultsScreen}
                     >
-                        <header className="bg-background-primary/80 backdrop-blur-md border-b border-border-default sticky top-0 z-30 flex-shrink-0">
-                            <div className="max-w-screen-xl mx-auto px-sm sm:px-md lg:px-lg py-sm sm:py-md">
-                                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-sm">
-                                    <div className="flex items-center gap-sm sm:gap-lg">
-                                        <button onClick={() => setCurrentStep('input')} className="text-text-secondary flex gap-2 items-center leading-none hover:text-text-primary transition-colors text-para-sm">
+                        <header className={t.resultsHeader}>
+                            <div className={t.resultsHeaderInner}>
+                                <div className={t.resultsHeaderRow}>
+                                    <div className={t.resultsHeaderLeft}>
+                                        <button onClick={() => setCurrentStep('input')} className={t.resultsBackBtn}>
                                             <FaArrowLeftLong /> Back
                                         </button>
                                         <div>
@@ -526,7 +521,7 @@ const ScraperIntelligencePage = () => {
                                             <Para size="sm" color="secondary">{scrapedData.sections.length} sections found on {scrapedData.url}</Para>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-xs sm:gap-sm">
+                                    <div className={t.resultsHeaderRight}>
                                         <StartFromIdea onGenerateLayout={handleGenerateLayout} />
 
                                         {compositionId && (
@@ -537,7 +532,7 @@ const ScraperIntelligencePage = () => {
                                                     dispatch(pollForThumbnails({ compositionId: compositionId! }));
                                                     navigate(`/dashboard/client/swiper/compose/${compositionId}`);
                                                 }}
-                                                className="flex items-center gap-xs px-sm sm:px-md py-xs sm:py-sm rounded-lg bg-accent-default text-accent-foreground text-para-xs sm:text-para-sm font-medium hover:bg-accent-hover transition-colors"
+                                                className={t.resultsPreviewBtn}
                                             >
                                                 <FaEye className="text-icon-sm" />
                                                 <span className="hidden sm:inline">Preview Hero</span>
@@ -545,16 +540,12 @@ const ScraperIntelligencePage = () => {
                                             </motion.button>
                                         )}
 
-                                        <div className="bg-background-secondary rounded-full p-0.5 sm:p-1 flex">
-                                            <button
-                                                className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${!isDesignerMode ? 'bg-accent-default text-accent-foreground' : 'text-text-secondary hover:text-text-primary'}`}
-                                            >
+                                        <div className={t.resultsToggleWrapper}>
+                                            <button className={!isDesignerMode ? t.resultsToggleBtnActive : t.resultsToggleBtnInactive}>
                                                 <FaUser className="inline mr-xs text-icon-sm" />
                                                 <span className="hidden sm:inline">Client</span>
                                             </button>
-                                            <button
-                                                className={`px-sm sm:px-md py-xs sm:py-sm rounded-full text-para-xs sm:text-para-sm font-medium transition-all ${isDesignerMode ? 'bg-accent-default text-accent-foreground' : 'text-text-secondary hover:text-text-primary'}`}
-                                            >
+                                            <button className={isDesignerMode ? t.resultsToggleBtnActive : t.resultsToggleBtnInactive}>
                                                 <FaPalette className="inline mr-xs text-icon-sm" />
                                                 <span className="hidden sm:inline">Designer</span>
                                             </button>
@@ -564,22 +555,20 @@ const ScraperIntelligencePage = () => {
                             </div>
                         </header>
 
-                        <main className="max-w-screen-xl mx-auto px-sm sm:px-md lg:px-lg w-full flex-grow overflow-hidden">
-                            <div className="grid grid-cols-1 lg:grid-cols-5 lg:gap-lg h-full">
-
-                                <aside className="hidden lg:block lg:col-span-2 h-full py-lg">
-                                    <div className="sticky top-24 h-[calc(100vh-8rem)] flex flex-col gap-md">
-
+                        <main className={t.resultsMain}>
+                            <div className={t.resultsGrid}>
+                                <aside className={t.resultsAside}>
+                                    <div className={t.resultsAsideInner}>
                                         {Object.keys(profile).length > 0 && (
                                             <motion.div
                                                 initial={{ opacity: 0, y: -10 }}
                                                 animate={{ opacity: 1, y: 0 }}
-                                                className="bg-background-secondary border border-border-default rounded-xl p-md"
+                                                className={t.resultsTasteCard}
                                             >
-                                                <div className="flex items-center justify-between mb-sm">
-                                                    <div className="flex items-center gap-sm">
+                                                <div className={t.resultsTasteCardHeader}>
+                                                    <div className={t.resultsTasteCardHeaderLeft}>
                                                         <motion.div
-                                                            className="w-6 h-6 bg-accent-default rounded-full flex items-center justify-center"
+                                                            className={t.resultsTasteIconWrapper}
                                                             animate={likeCount >= 3 ? {
                                                                 boxShadow: [
                                                                     "0 0 0 0px rgba(99, 102, 241, 0.4)",
@@ -588,7 +577,7 @@ const ScraperIntelligencePage = () => {
                                                             } : {}}
                                                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                                                         >
-                                                            <FaLightbulb className="text-white text-xs" />
+                                                            <FaLightbulb className={t.resultsTasteIconInner} />
                                                         </motion.div>
                                                         <Heading level="h6" className="text-accent-default">
                                                             {likeCount >= 3 ? 'Your taste profile is evolving' : 'Learning your taste...'}
@@ -599,13 +588,13 @@ const ScraperIntelligencePage = () => {
                                                             clearTaste();
                                                             showToast('Taste profile cleared');
                                                         }}
-                                                        className="text-para-xs text-text-tertiary hover:text-accent-default transition-colors"
+                                                        className={t.resultsTasteClearBtn}
                                                     >
                                                         Reset
                                                     </button>
                                                 </div>
 
-                                                <div className="space-y-xs">
+                                                <div className={t.resultsTasteBody}>
                                                     <Para size="xs" color="secondary">
                                                         {Object.values(profile).filter((v: any) => v > 0).length} likes • {Object.values(profile).filter((v: any) => v < 0).length} dislikes
                                                     </Para>
@@ -615,7 +604,7 @@ const ScraperIntelligencePage = () => {
                                                             .sort(([, a]: [string, any], [, b]: [string, any]) => b - a)
                                                             .slice(0, 2)
                                                             .map(([key, value]: [string, any]) => (
-                                                                <div key={key} className="px-xs py-1 bg-accent-subtle dark:bg-transparent text-accent-default rounded text-para-xs">
+                                                                <div key={key} className={t.resultsTasteTag}>
                                                                     {key.replace('_', ' ')} +{value}
                                                                 </div>
                                                             ))
@@ -625,7 +614,7 @@ const ScraperIntelligencePage = () => {
                                             </motion.div>
                                         )}
 
-                                        <div className="flex-1 min-h-0">
+                                        <div className={t.resultsChatWrapper}>
                                             <ChatPanel
                                                 context={chatContext}
                                                 compositionId={compositionId}
@@ -636,7 +625,7 @@ const ScraperIntelligencePage = () => {
                                     </div>
                                 </aside>
 
-                                <div className="lg:col-span-3 h-full overflow-y-auto custom-scrollbar py-lg">
+                                <div className={t.resultsSectionsCol}>
                                     <AnimatePresence mode="wait">
                                         <motion.div
                                             key={isTransitioning ? 'transitioning' : isDesignerMode ? 'designer' : 'client'}
@@ -644,7 +633,7 @@ const ScraperIntelligencePage = () => {
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
                                             transition={{ duration: 0.2 }}
-                                            className="flex flex-col gap-lg"
+                                            className={t.resultsSectionsInner}
                                         >
                                             {(activeSections as any[]).map((section) => (
                                                 <SectionCard
@@ -660,15 +649,15 @@ const ScraperIntelligencePage = () => {
                                                 />
                                             ))}
                                             {isFeedbackComplete && !isDesignerMode && (
-                                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-lg text-center">
-                                                    <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl sm:rounded-2xl p-lg sm:p-xl text-white max-w-2xl mx-auto">
+                                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={t.resultsFeedbackComplete}>
+                                                    <div className={t.resultsFeedbackCard}>
                                                         <Heading level="h3" color="light" align="center" className="mb-sm sm:mb-md">Your taste profile is building!</Heading>
                                                         <Para size="lg" color="light" align="center" className="mb-md sm:mb-lg opacity-90">We've learned what you like. Ready to see more personalized suggestions?</Para>
-                                                        <button className="bg-white text-indigo-600 px-lg sm:px-xl py-sm sm:py-md rounded-lg sm:rounded-xl font-semibold hover:bg-gray-100 transition-colors">Explore Component Library</button>
+                                                        <button className={t.resultsFeedbackBtn}>Explore Component Library</button>
                                                     </div>
                                                 </motion.div>
                                             )}
-                                            <div className="lg:hidden">
+                                            <div className={t.resultsMobileChatWrapper}>
                                                 <ChatPanel
                                                     context={chatContext}
                                                     compositionId={compositionId}

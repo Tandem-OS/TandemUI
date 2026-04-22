@@ -3,15 +3,16 @@ import DesignerDashSidebar from './components/DesignerDashSidebar';
 import DesignerDashTopbar from './components/DesignerDashTopbar';
 import DesignerDashMain from './components/DesignerDashMain';
 import Drawer from '../../common-components/Drawer';
+import { layoutTokens } from "@/design-system/tokens/layout";
 
 const DesignerDashboardLayout: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen">
+    <div className={layoutTokens.designerDashboard.root}>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:block">
+      <div className={layoutTokens.designerDashboard.sidebar}>
         <DesignerDashSidebar 
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -23,13 +24,13 @@ const DesignerDashboardLayout: React.FC = () => {
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         position="left"
-        width="w-64"
+        width={layoutTokens.designerDashboard.drawerWidth}
       >
         <DesignerDashSidebar onNavigate={() => setIsMobileMenuOpen(false)} />
       </Drawer>
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={layoutTokens.designerDashboard.content}>
         {/* Topbar */}
         <DesignerDashTopbar 
           onMenuClick={() => setIsMobileMenuOpen(true)}

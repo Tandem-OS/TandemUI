@@ -6,23 +6,18 @@ import LoginForm from '../form/LoginForm';
 import ResetPasswordForm from '../form/ResetPasswordForm';
 import NewPasswordForm from '../form/NewPasswordForm';
 import FloatingShapesBackground from '../../animations-components/FloatingShapesBackground';
-import { pageVariants } from "../../../lib/animations/variants";
 import SimpleHeader from '../../Headers/SimpleHeader/SimpleHeader';
 import GoogleLogin from '../form/GoogleLogin';
 import MagicLinkLogin from '@/components/auth/form/components/MagicLink';
 import ContactDesignerMessage from '@/components/auth/form/components/ContactDesignerMessage';
+import { layoutTokens } from "@/design-system/tokens/layout";
+import { pageVariants, pageTransition } from "@/lib/animations/variants";
 
 export type AuthVariant = 'split' | 'centered';
 
 interface AuthLayoutProps {
     variant?: AuthVariant;
 }
-
-const pageTransition = {
-    type: "tween" as const,
-    ease: "anticipate" as const,
-    duration: 0.3,
-};
 
 const routes = [
     { path: '/', element: LoginForm, key: 'login' },
@@ -34,19 +29,16 @@ const routes = [
     { path: 'magic-link-message', element: ContactDesignerMessage, key: 'magicLinkMessage' },
 ];
 
-const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
+const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = layoutTokens.auth.defaultVariant }) => {
     const location = useLocation();
     const isCentered = variant === 'centered';
 
     const backgroundProps = isCentered
-        ? {
-            bgGradient: 'white',
-            shapeColor: 'blue',
-        }
-        : {
-            bgGradient: 'bg-accent-default',
-            shapeColor: '#1f2937',
-        };
+        ? { bgGradient: layoutTokens.auth.bgGradientCentered, shapeColor: layoutTokens.auth.shapeColorCentered }
+        : { bgGradient: layoutTokens.auth.bgGradientSplit, shapeColor: layoutTokens.auth.shapeColorSplit };
+
+    const containerClasses = isCentered ? layoutTokens.auth.containerCentered : layoutTokens.auth.containerSplit;
+    const backgroundClasses = isCentered ? layoutTokens.auth.backgroundCentered : layoutTokens.auth.backgroundSplit;
 
     const AnimatedRoutes = () => (
         <AnimatePresence mode="wait">
@@ -57,7 +49,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
                         path={path}
                         element={
                             <motion.div
-                                className="w-full flex justify-center items-center"
+                                className={layoutTokens.auth.animatedRoute}
                                 initial="initial"
                                 animate="in"
                                 exit="out"
@@ -73,9 +65,6 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
         </AnimatePresence>
     );
 
-    const containerClasses = `relative min-h-screen flex ${isCentered ? '' : 'bg-background-secondary'}`;
-    const backgroundClasses = `absolute inset-0 ${isCentered ? '' : 'hidden lg:block'}`;
-
     const FormWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
         <>
             <FloatingShapesBackground
@@ -90,15 +79,15 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ variant = 'split' }) => {
         <div className={containerClasses}>
             <FormWrapper>
                 {isCentered ? (
-                    <div className="absolute inset-0 flex justify-center items-center z-20">
-                        <div className="w-full h-full flex justify-center items-center p-lg bg-transparent backdrop-blur-sm rounded-lg shadow-lg">
+                    <div className={layoutTokens.auth.formWrapperCentered}>
+                        <div className={layoutTokens.auth.formInnerCentered}>
                             <AnimatedRoutes />
                         </div>
                     </div>
                 ) : (
-                    <div className="flex flex-col flex-1 px-sm lg:px-none z-10">
+                    <div className={layoutTokens.auth.formWrapperSplit}>
                         <SimpleHeader />
-                        <div className="flex-1 flex justify-center items-center">
+                        <div className={layoutTokens.auth.formInnerSplit}>
                             <AnimatedRoutes />
                         </div>
                     </div>

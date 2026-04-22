@@ -7,41 +7,36 @@ import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 import { useNavigate } from 'react-router-dom';
 import SuccessAnimation from '../animations-components/SuccessAnimation';
 import Heading from '../demos/typography/Heading';
+import { layoutTokens } from '@/design-system/tokens/layout';
+
+const t = layoutTokens.onboardComplete;
 
 const OnboardComplete: React.FC = () => {
     const navigate = useNavigate();
     const [showContent, setShowContent] = useState(false);
 
-    // Show content after initial animation
     React.useEffect(() => {
-        const timer = setTimeout(() => {
-            setShowContent(true);
-        }, 800);
-
+        const timer = setTimeout(() => setShowContent(true), 800);
         return () => clearTimeout(timer);
     }, []);
 
     return (
-        <div className="relative min-h-screen flex bg-background-secondary transition-colors overflow-hidden">
-
-            <div className="flex-1 flex flex-col z-10">
+        <div className={t.root}>
+            <div className={t.inner}>
                 <SimpleHeader />
-
-                <div className="flex-1 flex items-center justify-center px-lg">
+                <div className={t.centerWrapper}>
                     <motion.div
                         variants={containerVariant}
                         initial="initial"
                         animate="animate"
-                        className="w-full max-w-3xl mx-auto relative"
+                        className={t.card}
                     >
-                        <div className="relative min-h-[500px] z-10 text-center flex flex-col items-center justify-start">
-                            {/* Confetti Animation */}
+                        <div className={t.contentArea}>
                             <SuccessAnimation
                                 showConfetti={true}
                                 confettiCount={80}
                                 confettiDuration={4000}
                             />
-                            {/* Icon with animation */}
                             <motion.div
                                 initial={{ scale: 0, rotate: -180 }}
                                 animate={{ scale: 1, rotate: 0 }}
@@ -52,17 +47,13 @@ const OnboardComplete: React.FC = () => {
                                     delay: 0.2
                                 }}
                                 className="mb-md"
-                                style={{
-                                    willChange: 'transform',
-                                    transformOrigin: 'center'
-                                }}
+                                style={t.motionStyle}
                             >
-                                <div className="w-24 h-24 bg-accent-subtle dark:bg-gray-500/25 rounded-full flex items-center justify-center">
+                                <div className={t.iconWrapper}>
                                     <FaRocket className="text-icon-2xl text-accent-default" />
                                 </div>
                             </motion.div>
 
-                            {/* Title with bounce animation */}
                             <motion.div
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
@@ -72,20 +63,14 @@ const OnboardComplete: React.FC = () => {
                                     damping: 15,
                                     delay: 0.4
                                 }}
-                                
-                                style={{
-                                    willChange: 'transform, opacity',
-                                    transformOrigin: 'center'
-                                }}
+                                style={t.motionStyle}
                             >
-
                                 <Heading level="h1">
                                     Let's Build
                                 </Heading>
                             </motion.div>
 
-                            {/* Content wrapper with reserved space */}
-                            <div className="min-h-[100px] flex flex-col justify-start">
+                            <div className={t.contentReserved}>
                                 <AnimatePresence>
                                     {showContent && (
                                         <motion.div
@@ -96,10 +81,7 @@ const OnboardComplete: React.FC = () => {
                                                 duration: 0.5,
                                                 ease: [0.25, 0.46, 0.45, 0.94]
                                             }}
-                                            style={{
-                                                willChange: 'transform, opacity',
-                                                transformOrigin: 'center'
-                                            }}
+                                            style={t.motionStyle}
                                         >
                                             <p className="text-h3-sm md:text-h1-sm text-text-secondary mb-md font-semibold">
                                                 Your Vision starts here.
@@ -112,8 +94,7 @@ const OnboardComplete: React.FC = () => {
                                 </AnimatePresence>
                             </div>
 
-                            {/* Buttons */}
-                            <div className="min-h-[60px] flex items-center mt-lg lg:mt-none">
+                            <div className={t.buttonsRow}>
                                 <AnimatePresence>
                                     {showContent && (
                                         <motion.div
@@ -125,13 +106,9 @@ const OnboardComplete: React.FC = () => {
                                                 delay: 0.2,
                                                 ease: [0.25, 0.46, 0.45, 0.94]
                                             }}
-                                            style={{
-                                                willChange: 'transform, opacity',
-                                                transformOrigin: 'center'
-                                            }}
+                                            style={t.motionStyle}
                                         >
-                                            <div className="flex flex-col sm:flex-row gap-sm justify-center items-center">
-                                                {/* Primary button with subtle pulse animation */}
+                                            <div className={t.buttonsInner}>
                                                 <motion.div
                                                     animate={{
                                                         scale: [1, 1.02, 1],
@@ -144,10 +121,7 @@ const OnboardComplete: React.FC = () => {
                                                         repeatDelay: 1,
                                                         ease: [0.4, 0, 0.6, 1]
                                                     }}
-                                                    style={{
-                                                        willChange: 'transform, opacity',
-                                                        transformOrigin: 'center'
-                                                    }}
+                                                    style={t.motionStyle}
                                                 >
                                                     <SimpleButton
                                                         variant="solid"
