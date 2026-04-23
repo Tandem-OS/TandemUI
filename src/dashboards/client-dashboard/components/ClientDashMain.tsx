@@ -32,8 +32,11 @@ const ClientDashMain = () => {
                 <Route path="/onboard/onboard-compelete" element={<OnboardComplete />} />
                 <Route path="/swiper" element={<Swiper />} />
                 <Route path="/swiper/compose" element={<ScraperIntelligencePage />} />
-                <Route path="/swiper/compose/:id" element={<CompositionRenderer />} />
-                <Route path="/swiper/refine/:id" element={<RefineCanvas />} />
+                <Route path="/swiper/compose/:id" element={
+                    <div className="w-full overflow-x-hidden">
+                        <CompositionRenderer />
+                    </div>
+                } />                <Route path="/swiper/refine/:id" element={<RefineCanvas />} />
 
             </Routes>
         </>

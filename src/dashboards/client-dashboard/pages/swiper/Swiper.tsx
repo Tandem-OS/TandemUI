@@ -778,24 +778,24 @@ if (saveSuccess) {
     dispatch(resetSwiper());
   }, [dispatch]);
 const handleGenerateLayout = useCallback(async () => {
-  const winnerIds = kingOfHillSessions
-    .map(s => s.final_winner_id)
-    .filter((id): id is string => !!id);
+//   const winnerIds = kingOfHillSessions
+//     .map(s => s.final_winner_id)
+//     .filter((id): id is string => !!id);
 
 
-if (!winnerIds.length || !projectId) {
-  console.error('handleGenerateLayout: missing winnerIds or projectId', { winnerIds, projectId });
-  return;
-}
+// if (!winnerIds.length || !projectId) {
+//   console.error('handleGenerateLayout: missing winnerIds or projectId', { winnerIds, projectId });
+//   return;
+// }
 
-  const result = await dispatch(submitComposition({ winnerIds, projectId })).unwrap();
+//   const result = await dispatch(submitComposition({ winnerIds, projectId })).unwrap();
 
-  if (result.compositionId) {
-    navigate(`/dashboard/client/swiper/refine/${result.compositionId}`);
-  } else {
-    console.error('[Swiper] handleGenerateLayout: compositionId missing after submit');
-  }
-}, [dispatch, navigate, kingOfHillSessions, roundsData,projectId, compositionId]);
+//   if (result.compositionId) {
+    navigate(`/dashboard/client/swiper/compose`);
+  // } else {
+  //   console.error('[Swiper] handleGenerateLayout: compositionId missing after submit');
+  // }
+});
 
   const handleTransitionComplete = useCallback(() => {
     setShowTransition(false);

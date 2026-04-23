@@ -22,7 +22,7 @@ const FAQContainedShell: React.FC<FAQShellProps> = ({ props, styles }) => {
       aria-label="Frequently asked questions"
       className={`${styles.wrapper} w-full flex flex-col`}
     >
-      <div className={`${styles.surface} max-w-3xl w-full mx-auto flex flex-col rounded-xl border p-8`}>
+<div className={`${styles.surface} max-w-3xl w-full mx-auto flex flex-col rounded-xl border p-4 md:p-8`}>
 
         {section_tag && (
           <span className={`${styles.mutedBody} uppercase tracking-widest mb-2`}>

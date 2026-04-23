@@ -15,7 +15,7 @@ export function ContactFormEditorialShell({ layoutStructure, slot, styles }: Con
       <nav className={`${styles.surface} w-full px-6 md:px-12 py-4`}>
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <span className={styles.heading}>{slot.nav_logo_text}</span>
-          <div className="flex items-center gap-8">
+<div className="hidden md:flex items-center gap-8">
             {slot.nav_links.map((link, i) => (
               <span key={i} className={styles.body}>{link}</span>
             ))}
@@ -27,7 +27,7 @@ export function ContactFormEditorialShell({ layoutStructure, slot, styles }: Con
       <div className="max-w-6xl mx-auto px-6 md:px-12 py-16 grid grid-cols-1 md:grid-cols-2 gap-16">
 
         {/* Left — Form */}
-        <div className={`${styles.formSurface} rounded-xl p-8`}>
+<div className={`${styles.formSurface} rounded-xl p-4 md:p-8`}>
           <div className="flex flex-col gap-4">
             {renderFormFields(slot.form_fields, styles)}
           </div>

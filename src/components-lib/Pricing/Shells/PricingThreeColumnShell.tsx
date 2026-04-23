@@ -34,14 +34,6 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
     margin: '1rem 0 0',
   }
 
-  const gridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '1.5rem',
-    maxWidth: '72rem',
-    margin: '0 auto',
-  }
-
   const renderPlan = (plan: PricingPlan) => {
     const price = isAnnual ? plan.price_annual : plan.price_monthly
 
@@ -107,38 +99,26 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
 
     return (
       <div key={planKey} style={cardStyle}>
-
         {plan.is_featured && plan.featured_badge && (
-          <div style={badgeStyle}>
-            {plan.featured_badge}
-          </div>
+          <div style={badgeStyle}>{plan.featured_badge}</div>
         )}
-
         <div>
           <p style={planNameStyle}>{plan.name}</p>
-          {plan.description && (
-            <p style={descriptionStyle}>{plan.description}</p>
-          )}
+          {plan.description && <p style={descriptionStyle}>{plan.description}</p>}
         </div>
-
         <div>
           {price ? (
             <div>
               <p style={priceStyle}>
                 {price}
-                {plan.price_suffix && (
-                  <span style={priceSuffixStyle}>{plan.price_suffix}</span>
-                )}
+                {plan.price_suffix && <span style={priceSuffixStyle}>{plan.price_suffix}</span>}
               </p>
-              {plan.currency_label && (
-                <p style={currencyLabelStyle}>{plan.currency_label}</p>
-              )}
+              {plan.currency_label && <p style={currencyLabelStyle}>{plan.currency_label}</p>}
             </div>
           ) : (
             <p style={{ ...priceStyle, fontSize: '1.5rem' }}>—</p>
           )}
         </div>
-
         <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           {plan.features.map((feature, i) => (
             <li key={i} style={{ color: styles.feature_color, fontSize: '0.875rem', display: 'flex', gap: '0.5rem' }}>
@@ -147,9 +127,7 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
             </li>
           ))}
         </ul>
-
         {plan.action && renderPricingAction(plan.action, styles)}
-
       </div>
     )
   }
@@ -162,15 +140,15 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
       style={sectionStyle}
     >
       {(pricing_heading || pricing_subheading) && (
-        <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div className="text-center" style={{ marginBottom: '3rem' }}>
           {pricing_heading && <h2 style={headingStyle}>{pricing_heading}</h2>}
           {pricing_subheading && <p style={subheadingStyle}>{pricing_subheading}</p>}
         </div>
       )}
 
       {pricing_billing_toggle && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="flex flex-col items-center" style={{ gap: '0.5rem', marginBottom: '2rem' }}>
+          <div className="flex items-center" style={{ gap: '1rem' }}>
             <span style={{ color: isAnnual ? styles.toggle_inactive_text : styles.toggle_active_text, fontSize: '0.875rem' }}>
               Monthly
             </span>
@@ -185,9 +163,7 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
                 borderRadius: '9999px',
                 border: 'none',
                 cursor: 'pointer',
-                backgroundColor: isAnnual
-                  ? styles.toggle_active
-                  : styles.toggle_inactive,
+                backgroundColor: isAnnual ? styles.toggle_active : styles.toggle_inactive,
                 position: 'relative',
                 transition: 'background-color 200ms',
               }}
@@ -215,28 +191,20 @@ const PricingThreeColumnShell: React.FC<PricingShellProps> = ({ props, styles })
         </div>
       )}
 
-      <div style={gridStyle}>
+      {/* mobile: 1 col, tablet: 2 cols, desktop: 3 cols */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mx-auto" style={{ gap: '1.5rem', maxWidth: '72rem' }}>
         {pricing_plans.map(renderPlan)}
       </div>
 
       {pricing_logos && pricing_logos.length > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '3rem', flexWrap: 'wrap' }}>
+        <div className="flex flex-wrap justify-center" style={{ gap: '2rem', marginTop: '3rem' }}>
           {pricing_logos.map((logo, i) => (
-            <span
-              key={i}
-              aria-hidden="true"
-              style={{
-                color: styles.logos_color,
-                fontSize: '0.875rem',
-                fontWeight: 500,
-              }}
-            >
+            <span key={i} aria-hidden="true" style={{ color: styles.logos_color, fontSize: '0.875rem', fontWeight: 500 }}>
               {logo}
             </span>
           ))}
         </div>
       )}
-
     </section>
   )
 }

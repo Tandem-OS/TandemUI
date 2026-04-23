@@ -19,7 +19,7 @@ export const layoutTokens = {
         animatedRoute: "w-full flex justify-center items-center"
     },
     clientDashboard: {
-        root: "min-h-screen bg-background-secondary-2",
+        root: "min-h-screen bg-background-secondary-2 overflow-x-hidden",
         content: "flex flex-col flex-1"
     },
     designerDashboard: {

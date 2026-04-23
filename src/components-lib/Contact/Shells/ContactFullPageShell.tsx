@@ -19,12 +19,12 @@ export function ContactFullPageShell({ layoutStructure, slot, styles }: ContactF
             alt="Logo"
             className="w-8 h-8 object-contain"
           />
-          <div className="flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-8">
             {slot.nav_links.map((link, i) => (
               <span key={i} className={styles.body}>{link}</span>
             ))}
           </div>
-          <button className={styles.action}>
+          <button className={`${styles.action} hidden md:inline-block`}>
             {slot.nav_action}
           </button>
         </div>
@@ -58,7 +58,7 @@ export function ContactFullPageShell({ layoutStructure, slot, styles }: ContactF
         </div>
 
         {/* Right — Form */}
-        <div className={`${styles.formSurface} rounded-xl p-8`}>
+        <div className={`${styles.formSurface} rounded-xl p-4 md:p-8`}>
           <div className="flex flex-col gap-4">
             {renderFormFields(slot.form_fields, styles)}
           </div>

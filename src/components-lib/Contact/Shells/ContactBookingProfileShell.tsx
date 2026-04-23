@@ -36,7 +36,7 @@ export function ContactBookingProfileShell({ layoutStructure, slot, styles }: Co
         </div>
 
         {/* Right — Form */}
-        <div className={`${styles.formSurface} rounded-xl p-8`}>
+        <div className={`${styles.formSurface} rounded-xl p-4 md:p-8`}>
           <div className="flex flex-col gap-4">
             {renderFormFields(slot.form_fields, styles)}
           </div>

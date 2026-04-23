@@ -34,7 +34,7 @@ export function ContactSplitFormShell({ layoutStructure, slot, styles }: Contact
         </div>
 
         {/* Right — Form */}
-        <div className={`${styles.formSurface} rounded-xl p-8`}>
+<div className={`${styles.formSurface} rounded-xl p-4 md:p-8`}>
           <h3 className={`${styles.heading} mb-6`}>{slot.form_title}</h3>
 
           <div className="flex flex-col gap-4">

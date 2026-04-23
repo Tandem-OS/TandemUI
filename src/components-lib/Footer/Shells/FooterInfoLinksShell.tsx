@@ -33,7 +33,7 @@ export function FooterInfoLinksShell({ slot, styles }: FooterInfoLinksBarShellPr
           ))}
         </div>
 
-        <nav className="flex flex-wrap gap-8 py-10 border-b border-current border-opacity-20">
+<nav className="flex flex-col md:flex-row flex-wrap gap-4 md:gap-8 py-10 border-b border-current border-opacity-20">
           {slot.large_links.map((link: string, index: number) => (
             <a
               key={index}

@@ -27,13 +27,9 @@ export function CTAHeroFooterShell({ layoutStructure, slot, styles }: CTAHeroFoo
             />
             <span className={styles.heading}>{slot.logo_text}</span>
           </div>
-          <h2 className={`${styles.heading} mb-4`}>
-            {slot.hero_headline}
-          </h2>
+          <h2 className={`${styles.heading} mb-4`}>{slot.hero_headline}</h2>
           <p className={`${styles.body} mb-8`}>{slot.hero_subheading}</p>
-          <button className={styles.action}>
-            {slot.primary_action}
-          </button>
+          <button className={styles.action}>{slot.primary_action}</button>
         </div>
       </div>
 
@@ -51,9 +47,7 @@ export function CTAHeroFooterShell({ layoutStructure, slot, styles }: CTAHeroFoo
               aria-label={slot.newsletter_label}
               className={`${styles.surface} px-4 py-2 rounded-lg w-full sm:w-72`}
             />
-            <button className={styles.action}>
-              {slot.newsletter_button}
-            </button>
+            <button className={styles.action}>{slot.newsletter_button}</button>
           </div>
         </div>
       </div>
@@ -61,16 +55,14 @@ export function CTAHeroFooterShell({ layoutStructure, slot, styles }: CTAHeroFoo
       {/* Footer */}
       <div className={`${styles.footerWrapper} border-t px-6 py-12`}>
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-10">
             {slot.footer_columns.map((col, i) => (
               <div key={i}>
                 <h4 className={`${styles.heading} mb-4`}>{col.heading}</h4>
                 <ul className="space-y-2">
                   {col.links.map((link, j) => (
                     <li key={j}>
-                      <a href="#" className={styles.mutedBody}>
-                        {link}
-                      </a>
+                      <a href="#" className={styles.mutedBody}>{link}</a>
                     </li>
                   ))}
                 </ul>
@@ -81,12 +73,7 @@ export function CTAHeroFooterShell({ layoutStructure, slot, styles }: CTAHeroFoo
             <p className={styles.footerText}>{slot.footer_bottom_text}</p>
             <div className="flex items-center gap-3">
               {slot.social_icons.map((icon, i) => (
-                <img
-                  key={i}
-                  src={icon}
-                  alt={`Social icon ${i + 1}`}
-                  className="w-8 h-8 rounded-full object-cover"
-                />
+                <img key={i} src={icon} alt={`Social icon ${i + 1}`} className="w-8 h-8 rounded-full object-cover" />
               ))}
             </div>
           </div>
