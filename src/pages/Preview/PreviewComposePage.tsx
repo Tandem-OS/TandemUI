@@ -57,7 +57,7 @@ const PreviewComposePage = () => {
   }
 
   return (
-    <CompositionRenderer />
+  <CompositionRenderer compositionId={compositionId} />
   )
 }
 

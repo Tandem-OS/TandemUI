@@ -28,12 +28,7 @@ import { quickSuggestions, processingSteps } from './constants';
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
 import { pollForThumbnails } from '@/features/composition/compositionSlice';
-import {
-    scrapeUrl,
-    setScrapedDataFromIdea,
-    addToLayoutPlan,
-    updateLayoutPlan,
-} from '@/features/scraper/scraperSlice';
+
 import { useNavigate } from 'react-router-dom';
 import Toast from '@/common-components/Toast';
 import { selectActiveOrPreviewSchema } from '@/features/composition/compositionSelectors';
@@ -44,6 +39,13 @@ import { useTasteProfile } from '@/hooks/useTasteProfile';
 // Tokens
 import { layoutTokens } from '@/design-system/tokens/layout';
 
+import {
+    scrapeUrl,
+    setScrapedDataFromIdea,
+    addToLayoutPlan,
+    updateLayoutPlan,
+    resetScraper,
+} from '@/features/scraper/scraperSlice';
 const t = layoutTokens.scraper;
 
 const ScraperIntelligencePage = () => {
@@ -76,18 +78,18 @@ const ScraperIntelligencePage = () => {
     const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
     const projectId = useSelector((state: RootState) => state.project.projectId);
 
-    // ── Hooks ─────────────────────────────────────────────────────────────────
+    // ── Hooks 
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
 
-    // ── Composition schema ────────────────────────────────────────────────────
+    // ── Composition schema 
     const pageSchema = useSelector(selectActiveOrPreviewSchema);
     const activeSections = compositionId && pageSchema?.sections
         ? pageSchema.sections
         : (scrapedData?.sections ?? []);
 
-    // ── Sync scraper status → currentStep ────────────────────────────────────
+    // ── Sync scraper status → currentStep 
     useEffect(() => {
         if (scraperStatus === 'success' && currentStep === 'processing') {
             setCurrentStep('results');
@@ -108,8 +110,11 @@ const ScraperIntelligencePage = () => {
             handleModeToggle(false);
         }
     }, [userRole]);
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Reset scraper on mount 
+    useEffect(() => {
+        dispatch(resetScraper());
+    }, []);
+    // ── Helpers 
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);

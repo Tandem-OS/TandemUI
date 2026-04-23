@@ -77,10 +77,10 @@ export const submitComposition = createAsyncThunk(
       activePollPromise?.abort();
       activePollPromise = dispatch(pollForThumbnails({ compositionId: data.composition_id }));
 
-     return {
-  compositionId: data.composition_id,
-  pageSchema: data.page_schema,
-};
+      return {
+        compositionId: data.composition_id,
+        pageSchema: data.page_schema,
+      };
     } catch (err: any) {
       return rejectWithValue(
         err?.response?.data?.detail ?? err.message ?? 'Failed to submit composition'
@@ -189,9 +189,10 @@ export const pollForThumbnails = createAsyncThunk(
       if (signal.aborted) return rejectWithValue('Polling cancelled');
 
       try {
+
         const data = await getCompose(payload.compositionId);
-        if (data.thumbnails !== null) {
-          return { thumbnails: data.thumbnails as Thumbnails, pageSchema: data.page_schema };
+        if (data.page_schema) {
+          return { thumbnails: data.thumbnails ?? null, pageSchema: data.page_schema };
         }
       } catch (err: any) {
         return rejectWithValue(
@@ -215,13 +216,13 @@ const initialState: CompositionState = {
   thumbnailStatus: 'idle',
   thumbnailError: null,
   isRefining: false,
-  versions: {                    
+  versions: {
     versions: [],
     currentVersion: null,
     status: 'idle',
     restoreStatus: 'idle',
   },
-  lastUpdatedCategories: [],         
+  lastUpdatedCategories: [],
 };
 
 const compositionSlice = createSlice({
@@ -262,13 +263,13 @@ const compositionSlice = createSlice({
         state.thumbnailError = null;
         state.thumbnails = null;
       })
-.addCase(submitComposition.fulfilled, (state, action) => {
-  state.compositionId = action.payload.compositionId;
-  if (action.payload.pageSchema) {
-    state.pageSchema = action.payload.pageSchema;
-  }
-  state.lastUpdatedCategories = [];
-})
+      .addCase(submitComposition.fulfilled, (state, action) => {
+        state.compositionId = action.payload.compositionId;
+        if (action.payload.pageSchema) {
+          state.pageSchema = action.payload.pageSchema;
+        }
+        state.lastUpdatedCategories = [];
+      })
       .addCase(submitComposition.rejected, (state, action) => {
         state.thumbnailStatus = 'error';
         state.thumbnailError = action.payload as string;

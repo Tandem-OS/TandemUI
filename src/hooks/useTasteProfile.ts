@@ -27,11 +27,14 @@ export function useTasteProfile() {
 
     const scoreSections = (sections: ScrapedSection[]): ScrapedSection[] => {
         return sections
-            .map((section) => ({
-                ...section,
-                tasteScore:
-                    profile[`${section.tone}_${section.layout_structure}`] ?? 0,
-            }))
+            .map((section) => {
+                const tone = section.tone ?? section.metadata?.tone;
+                const layout_structure = section.layout_structure ?? section.metadata?.layout_structure;
+                return {
+                    ...section,
+                    tasteScore: profile[`${tone}_${layout_structure}`] ?? 0,
+                };
+            })
             .sort((a, b) => (b.tasteScore ?? 0) - (a.tasteScore ?? 0));
     };
 

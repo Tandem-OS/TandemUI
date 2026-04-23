@@ -35,18 +35,18 @@ const RefineCanvas: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const storedId = useSelector(selectCompositionId);
- 
+
   const lastUpdatedCategories = useSelector(selectLastUpdatedCategories);
   const projectId = useSelector((state: RootState) => state.project.projectId);
 
   const compositionId = storedId ?? id ?? null;
-const activeSchema = useSelector(selectActiveOrPreviewSchema);
-const isPreviewingHistory = useSelector(selectIsPreviewingHistory);
+  const activeSchema = useSelector(selectActiveOrPreviewSchema);
+  const isPreviewingHistory = useSelector(selectIsPreviewingHistory);
   useEffect(() => {
     if (!activeSchema && compositionId) {
       dispatch(pollForThumbnails({ compositionId }));
     }
-  }, []);
+  }, [activeSchema, compositionId, dispatch]);
 
   if (!activeSchema) return <Spinner />;
 
