@@ -46,7 +46,7 @@ export interface AiComposePipelineResponse {
   thumbnails: CompositionThumbnails | null;
 }
 
-const COMPOSE_ENDPOINT = '/compose' 
+const COMPOSE_ENDPOINT = '/compose'
 
 export const postCompose = async (payload: ComposePayload): Promise<ComposeResponse> => {
   const response = await api.post(`${COMPOSE_ENDPOINT}`, payload);
@@ -105,3 +105,12 @@ export const postRestoreVersion = async (projectId: string, targetVersion: numbe
   });
   return response.data;
 };
+
+export const getPublicCompose = async (id: string, token: string) => {
+  const res = await fetch(
+    `${import.meta.env.VITE_BACKEND_API_URL}/preview/compose/${id}?token=${token}`
+  )
+  if (res.status === 401) throw Object.assign(new Error(), { response: { status: 401 } })
+  if (!res.ok) throw new Error("Failed to load public composition")
+  return res.json()
+}
