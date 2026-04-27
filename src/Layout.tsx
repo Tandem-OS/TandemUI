@@ -8,11 +8,12 @@ import DashboardRoutes from "@/dashboards/DasHboardRoutes"
 import ProtectedRoute from "@/routes/ProtectedRoutes"
 import ScraperIntelligencePage from "./pages/scraper/ScraperIntelligencePage"
 import PreviewComposePage from "@/pages/Preview/PreviewComposePage"
+import { layoutTokens } from "@/design-system/tokens/layout"
 
 
 const Layout = () => {
     return (
-        <main>
+        <main className={layoutTokens.layout.root}>
             <Routes>
                 <Route path={`${ROUTES.AUTH}/*`} element={<AuthLayout variant="split" />} />
                 <Route path={ROUTES.PREVIEW_COMPOSE} element={<PreviewComposePage />} />

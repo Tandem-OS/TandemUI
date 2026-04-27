@@ -13,11 +13,14 @@ import { createProject, getProjectByClientEmail } from '@/lib/requests/ProjectRe
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import Toast from '@/common-components/Toast';
+import { layoutTokens } from '@/design-system/tokens/layout';
+
+const t = layoutTokens.onboarding;
 
 // Types
 interface OnboardingFormData {
     projectName: string;
-    logo: string | null; // logo_url
+    logo: string | null;
     logoPreview?: string;
     logo_metadata?: {
         name: string;
@@ -39,7 +42,6 @@ interface Option {
     label: string;
 }
 
-// Constants
 const initialFormData: OnboardingFormData = {
     projectName: '',
     logo: null,
@@ -67,17 +69,11 @@ const OPTIONS = {
     ]
 };
 
-// Utility functions
 const getButtonClass = (isSelected: boolean, disabled = false) =>
-    `transition-all ${isSelected
-        ? 'border-accent-default bg-accent-subtle/20 text-accent-default'
-        : 'border-border-default hover:border-border-focus text-text-secondary'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
+    `${t.selectionBtnBase} ${isSelected ? t.selectionBtnSelected : t.selectionBtnUnselected} ${disabled ? t.selectionBtnDisabled : ''}`;
 
 const getDropzoneClass = (isDragActive: boolean) =>
-    `relative border-2 border-dashed rounded-lg p-lg text-center transition-all ${isDragActive
-        ? 'border-accent-default bg-accent-subtle'
-        : 'border-border-muted hover:border-border-default'
-    }`;
+    `${t.dropzoneBase} ${isDragActive ? t.dropzoneActive : t.dropzoneInactive}`;
 
 const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastStep }: any) => (
     <motion.div variants={fadeInLeft} className="mb-lg">
@@ -176,40 +172,38 @@ const OnboardingForm: React.FC = () => {
     const designer_email = useSelector((state: RootState) => state.auth.user.designerEmail);
 
     const fetchForm = async (client_email: string) => {
-    setLoading(true);
-    try {
-        const response = await getProjectByClientEmail({ client_email });
-        const data = response?.data?.data;
+        setLoading(true);
+        try {
+            const response = await getProjectByClientEmail({ client_email });
+            const data = response?.data?.data;
 
-        let logoValue: string | null = null;
+            let logoValue: string | null = null;
 
-        if (data?.source_url) {
-            // Use source_url as "logo" for preview in FileUpload
-            logoValue = data.source_url;
-        } else if (data?.logo_metadata?.preview_base64) {
-            // fallback for old projects
-            logoValue = data.logo_metadata.preview_base64;
+            if (data?.source_url) {
+                logoValue = data.source_url;
+            } else if (data?.logo_metadata?.preview_base64) {
+                logoValue = data.logo_metadata.preview_base64;
+            }
+
+            const transformed = {
+                projectName: data?.project_name || '',
+                logo: logoValue,
+                logo_metadata: data?.logo_metadata || null,
+                projectType: data?.project_type || '',
+                businessDescription: data?.business_description || '',
+                budget: data?.budget || '',
+                notReadyToShare: data?.not_ready_to_share || false,
+                notes: data?.notes || '',
+            };
+
+            setFormData(transformed);
+        } catch (err) {
+            console.error("Error loading form data:", err);
+            setFormData(initialFormData);
+        } finally {
+            setLoading(false);
         }
-
-        const transformed = {
-            projectName: data?.project_name || '',
-            logo: logoValue,               // either URL or Base64
-            logo_metadata: data?.logo_metadata || null,
-            projectType: data?.project_type || '',
-            businessDescription: data?.business_description || '',
-            budget: data?.budget || '',
-            notReadyToShare: data?.not_ready_to_share || false,
-            notes: data?.notes || '',
-        };
-
-        setFormData(transformed);
-    } catch (err) {
-        console.error("Error loading form data:", err);
-        setFormData(initialFormData);
-    } finally {
-        setLoading(false);
-    }
-};
+    };
 
     useEffect(() => {
         if (client_email) {
@@ -219,11 +213,7 @@ const OnboardingForm: React.FC = () => {
 
     useEffect(() => {
         if (!toastMessage) return;
-
-        const timer = setTimeout(() => {
-            setToastMessage(null);
-        }, 3000);
-
+        const timer = setTimeout(() => setToastMessage(null), 3000);
         return () => clearTimeout(timer);
     }, [toastMessage]);
 
@@ -268,18 +258,12 @@ const OnboardingForm: React.FC = () => {
 
     const navigater = async (next: boolean) => {
         if (!next) {
-            if (currentScreen > 1) {
-                setCurrentScreen(currentScreen - 1);
-            }
+            if (currentScreen > 1) setCurrentScreen(currentScreen - 1);
             return;
         }
 
-        // Final submission - direct alert, no animation for last screen
         if (currentScreen === totalScreens) {
-            console.log("Onboarding data:", formData);
-
             const { projectName, logo, projectType, businessDescription, budget, notReadyToShare, notes } = formData;
-
             const payload = {
                 designer_email: designer_email ?? "",
                 client_email,
@@ -293,26 +277,19 @@ const OnboardingForm: React.FC = () => {
             };
 
             try {
-                console.log(payload)
                 const result = await createProject(payload);
-                if (result.status === 200) {
-                    navigate("onboard-compelete");
-                }
+                if (result.status === 200) navigate("onboard-compelete");
             } catch (error) {
                 console.error("Project creation failed:", error);
             }
-
             return;
         }
 
-        // Forward navigation
         setButtonState('saving');
         setTimeout(() => {
             setButtonState('saved');
             setTimeout(() => {
-                if (currentScreen < totalScreens) {
-                    setCurrentScreen(currentScreen + 1);
-                }
+                if (currentScreen < totalScreens) setCurrentScreen(currentScreen + 1);
                 setButtonState('default');
             }, 500);
         }, 1000);
@@ -338,10 +315,10 @@ const OnboardingForm: React.FC = () => {
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
                         <FileUpload
-                            file={formData.logo}                  // File object for new uploads
-                            previewUrl={formData.logoPreview}     // Pass Supabase URL here
+                            file={formData.logo}
+                            previewUrl={formData.logoPreview}
                             onFile={(file: File) => {
-                                const MAX_LOGO_SIZE = 25 * 1024 * 1024; // 25 MB
+                                const MAX_LOGO_SIZE = 25 * 1024 * 1024;
                                 if (file.size > MAX_LOGO_SIZE) {
                                     setToastMessage({
                                         message: "Logo exceeds 25 MB limit. Please choose a smaller file.",
@@ -349,11 +326,10 @@ const OnboardingForm: React.FC = () => {
                                     });
                                     return;
                                 }
-                                handleFile(file); // Make sure handleFile also updates formData.logoPreview
+                                handleFile(file);
                             }}
                         />
-
-                        <p className="text-para-sm text-gray-500 mt-2">
+                        <p className={t.logoHint}>
                             Recommended: PNG or JPG, size ≤ 25MB. Ideal dimensions: 1024x1024 or 512x512 pixels.
                         </p>
                     </motion.div>
@@ -437,7 +413,6 @@ const OnboardingForm: React.FC = () => {
     const currentScreenData = screens[currentScreen - 1];
 
     return (
-
         <>
             <AnimatePresence>
                 {toastMessage && (
@@ -446,16 +421,14 @@ const OnboardingForm: React.FC = () => {
             </AnimatePresence>
 
             {loading ? (
-                <div className="flex justify-center items-center min-h-[300px]">
+                <div className={t.loadingWrapper}>
                     Loading
                 </div>
-            ) :
-                <div className="relative min-h-screen flex bg-background-secondary transition-colors">
-                    <div className="flex-1 flex flex-col px-lg z-10">
-
+            ) : (
+                <div className={t.root}>
+                    <div className={t.inner}>
                         <SimpleHeader />
-
-                        <div className="flex-1 flex items-center justify-center max-md:mb-md">
+                        <div className={t.centerWrapper}>
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={currentScreen}
@@ -463,7 +436,7 @@ const OnboardingForm: React.FC = () => {
                                     initial="initial"
                                     animate="animate"
                                     exit="exit"
-                                    className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
+                                    className={t.card}
                                 >
                                     <ScreenHeader
                                         title={currentScreenData.title}
@@ -504,8 +477,8 @@ const OnboardingForm: React.FC = () => {
                             </AnimatePresence>
                         </div>
                     </div>
-                </div >
-            }
+                </div>
+            )}
         </>
     );
 };

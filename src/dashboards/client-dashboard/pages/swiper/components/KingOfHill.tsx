@@ -3,11 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaCheck, FaCrown, FaFire } from 'react-icons/fa';
 import { type ComponentPreview, type KingOfHillBehavioralSignal } from '../swiper.types';
 
-// Audio files
 import swipeAudio from "@/assets/audio/swipeAudio.mp3";
 import clickAudio from "@/assets/audio/clickAudio.mp3";
 
-// Audio player helper
 const playAudio = (audioSrc: string, volumePercent: number = 100) => {
     try {
         const audio = new Audio(audioSrc);
@@ -44,10 +42,8 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
     const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
 
-    // Track when component renders
     const componentRenderTime = useRef<number>(Date.now());
 
-    // Play swipe audio when challenger changes
     useEffect(() => {
         if (challenger && previousChallengerId !== null && challenger.component_id !== previousChallengerId && isInitialized) {
             playAudio(swipeAudio, 70);
@@ -64,18 +60,14 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     const handleSelection = useCallback((winnerId: string, loserId: string) => {
         if (isAnimating || isTransitioning || selectedCard !== null) return;
 
-        // Play click audio
         playAudio(clickAudio, 40);
 
         const selectionTime = Date.now();
         onAnimationStart();
         setSelectedCard(winnerId);
         setIsTransitioning(true);
-
-        // Add shake animation to winner
         setShakeWinner(winnerId);
 
-        // Remove shake after animation
         setTimeout(() => {
             setShakeWinner(null);
         }, 400);
@@ -83,7 +75,6 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
         const winnerComponent = winnerId === defender.component_id ? defender : challenger;
         const loserComponent = loserId === defender.component_id ? defender : challenger;
 
-        // Behavioral signals for King of the Hill
         const signals: KingOfHillBehavioralSignal = {
             hesitation_ms: selectionTime - componentRenderTime.current,
             view_duration_ms: selectionTime - selectionStartTime,
@@ -91,7 +82,6 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
             action_source: 'button'
         };
 
-        // Log behavioral signal for debugging
         console.log(`[KING OF THE HILL - Match ${matchNumber}] Selection:`, {
             winner: winnerComponent.title,
             loser: loserComponent.title,
@@ -99,7 +89,6 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
             view_duration: `${(signals.view_duration_ms / 1000).toFixed(2)}s`
         });
 
-        // Delay before transitioning to next match
         setTimeout(() => {
             onSelect(winnerComponent, loserComponent, signals);
             setSelectedCard(null);
@@ -108,7 +97,6 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
         }, 1000);
     }, [defender, challenger, onSelect, selectionStartTime, matchNumber, isTransitioning, selectedCard, onAnimationStart, onAnimationComplete]);
 
-    // Enhanced Card Component with better visual hierarchy
     const BattleCard = ({
         component,
         isDefender,
@@ -130,7 +118,6 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     component.component_id === defender.component_id ? challenger.component_id : defender.component_id
                 )}
                 disabled={isTransitioning}
-                // Only animate if this card is shaking
                 animate={
                     isShaking
                         ? {
@@ -138,7 +125,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                             rotate: isMobile ? [0, -4, 4, -2, 2, 0] : [0, -8, 8, -6, 6, -3, 3, 0],
                             scale: isMobile ? [1, 1.03, 1, 1.02, 1, 1] : [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
                         }
-                        : undefined  // Don't animate if not shaking
+                        : undefined
                 }
                 transition={
                     isShaking
@@ -158,7 +145,6 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 onMouseEnter={() => !isTransitioning && !isMobile && setIsCardHovered(true)}
                 onMouseLeave={() => !isMobile && setIsCardHovered(false)}
             >
-                {/* Defender Badge - Only animate on initial render */}
                 {isDefender && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -171,7 +157,6 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     </motion.div>
                 )}
 
-                {/* Challenger Badge - Only animate on initial render */}
                 {!isDefender && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -184,20 +169,16 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     </motion.div>
                 )}
 
-                {/* Image with hover scale - Only animate on hover */}
-                <motion.div
-                    className="w-full h-full"
-                    animate={isCardHovered && !isMobile && !isShaking ? { scale: 1.05 } : { scale: 1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <img
+
+                <div className="w-full h-full overflow-hidden">
+                    <motion.img
                         src={component.thumbnail_url}
                         alt={component.title ?? undefined}
                         className="w-full h-full object-cover"
+                        animate={isCardHovered && !isMobile && !isShaking ? { scale: 1.05 } : { scale: 1 }}
+                        transition={{ duration: 0.3 }}
                     />
-                </motion.div>
-
-                {/* Enhanced gradient overlay - Static, no animation */}
+                </div>
                 <div className={`
                     absolute bottom-0 left-0 right-0 
                     bg-gradient-to-t from-black/80 via-black/40 to-transparent 
@@ -213,7 +194,6 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     </div>
                 </div>
 
-                {/* Winner Overlay - Show after shake completes */}
                 <AnimatePresence>
                     {isWinner && (
                         <motion.div
@@ -223,20 +203,20 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                             transition={{ duration: 0.2 }}
                             className="absolute inset-0 bg-accent-default/15 flex items-center justify-center"
                         >
-                            {isShaking && <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: "spring", stiffness: 200, damping: 25 }}
-                                className="bg-white rounded-full p-md shadow-xl"
-                            >
-                                <FaCheck className="text-accent-default text-icon-xl" />
-                            </motion.div>
-                            }
+                            {isShaking && (
+                                <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                                    className="bg-white rounded-full p-md shadow-xl"
+                                >
+                                    <FaCheck className="text-accent-default text-icon-xl" />
+                                </motion.div>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* Hover Overlay - No Blur */}
                 <AnimatePresence>
                     {isCardHovered && !selectedCard && !isMobile && (
                         <motion.div
@@ -263,10 +243,10 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     return (
         <div className="w-full h-full flex items-center justify-center px-sm lg:px-lg">
             <div className="w-full max-w-7xl mx-auto h-full flex items-center">
-                {/* Desktop Layout - Side by Side */}
-                <div className="hidden lg:flex w-full gap-lg items-center justify-center">
+                {/* Desktop Layout */}
+                <div className="hidden lg:flex w-full gap-lg items-start justify-center">
                     {/* Defender Card */}
-                    <div className="flex-1 max-w-lg h-full max-h-[550px]">
+                    <div className="flex-1 max-w-2xl aspect-[4/3] rounded-xl" style={{ isolation: 'isolate', overflow: 'clip' }}>
                         <BattleCard
                             component={defender}
                             side="left"
@@ -274,8 +254,8 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                         />
                     </div>
 
-                    {/* Simple VS Badge */}
-                    <div className="flex-shrink-0 flex flex-col items-center justify-center">
+                    {/* VS Badge */}
+                    <div className="flex-shrink-0 flex flex-col items-center justify-center self-center">
                         <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -286,21 +266,15 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                         </motion.div>
                     </div>
 
-                    {/* Challenger Card with AnimatePresence */}
-                    <div className="flex-1 max-w-lg h-full max-h-[550px]">
+                    {/* Challenger Card */}
+                    <div className="flex-1 max-w-2xl aspect-[4/3] overflow-hidden rounded-xl" style={{ isolation: 'isolate' }}>
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={challenger.component_id}
                                 initial={{ opacity: 0, y: 50 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{
-                                    opacity: 0,
-                                    y: -50,
-                                    transition: { duration: 0.3 }
-                                }}
-                                transition={{
-                                    duration: 0.3
-                                }}
+                                exit={{ opacity: 0, y: -50, transition: { duration: 0.3 } }}
+                                transition={{ duration: 0.3 }}
                                 className="w-full h-full"
                             >
                                 <BattleCard
@@ -313,9 +287,8 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     </div>
                 </div>
 
-                {/* Mobile Layout - Optimized Stacked View */}
+                {/* Mobile Layout */}
                 <div className="lg:hidden flex flex-col w-full h-full gap-sm" style={{ maxHeight: 'calc(100vh - 140px)' }}>
-                    {/* Top Card - Defender */}
                     <div className="flex-1 min-h-0" style={{ maxHeight: '42%' }}>
                         <BattleCard
                             component={defender}
@@ -325,7 +298,6 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                         />
                     </div>
 
-                    {/* Mobile VS Divider */}
                     <div className="flex items-center justify-center py-xs">
                         <motion.div
                             initial={{ scale: 0 }}
@@ -337,21 +309,14 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                         </motion.div>
                     </div>
 
-                    {/* Bottom Card - Challenger with AnimatePresence */}
                     <div className="flex-1 min-h-0" style={{ maxHeight: '42%' }}>
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={challenger.component_id}
                                 initial={{ opacity: 0, y: 50 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{
-                                    opacity: 0,
-                                    y: -50,
-                                    transition: { duration: 0.3 }
-                                }}
-                                transition={{
-                                    duration: 0.3
-                                }}
+                                exit={{ opacity: 0, y: -50, transition: { duration: 0.3 } }}
+                                transition={{ duration: 0.3 }}
                                 className="w-full h-full"
                             >
                                 <BattleCard

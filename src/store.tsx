@@ -5,6 +5,7 @@ import storage from 'redux-persist/lib/storage'; // defaults to localStorage
 import swiperReducer from "@/features/swiper/swiperSlice";
 import projectReducer from "@/features/project/projectSlice";
 import compositionReducer from '@/features/composition/compositionSlice'; 
+import scraperReducer from '@/features/scraper/scraperSlice';
 
 
 const persistConfig = {
@@ -18,6 +19,8 @@ const rootReducer = combineReducers({
   swiper: swiperReducer,
   project: projectReducer,
   composition: compositionReducer,
+  scraper: scraperReducer,
+
   // add other reducers here later
 });
 

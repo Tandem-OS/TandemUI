@@ -75,16 +75,13 @@ export interface PricingStyles {
   btn_primary_color?:       string
   featured_btn_bg?:         string
   featured_btn_color?:      string
-  btn_outline_color?:       string
-  btn_outline_border?:      string
-  btn_radius?:              string
 
   // ─── Toggle 
   toggle_active?:           string
   toggle_inactive?:         string
   toggle_active_text?:      string
-  toggle_inactive_text?:    string
-
+toggle_inactive_text?:    string
+toggle_thumb_color?:      string
   // ─── Misc 
   billing_note_color?:      string
   footer_note_color?:       string

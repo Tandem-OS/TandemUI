@@ -12,7 +12,7 @@ import OnboardingForm from "@/components/intake-form/OnboardingForm";
 import OnboardComplete from "@/components/onboard-completed/OnboardComplete";
 import ScraperIntelligencePage from "@/pages/scraper/ScraperIntelligencePage";
 import CompositionRenderer from "@/pages/Renderer/CompositionRenderer";
-
+import RefineCanvas from '@/dashboards/client-dashboard/pages/Refine/RefineCanvas';
 
 
 const ClientDashMain = () => {
@@ -32,7 +32,12 @@ const ClientDashMain = () => {
                 <Route path="/onboard/onboard-compelete" element={<OnboardComplete />} />
                 <Route path="/swiper" element={<Swiper />} />
                 <Route path="/swiper/compose" element={<ScraperIntelligencePage />} />
-                <Route path="/swiper/compose/:id" element={<CompositionRenderer />} />
+                <Route path="/swiper/compose/:id" element={
+                    <div className="w-full overflow-x-hidden">
+                        <CompositionRenderer />
+                    </div>
+                } />                <Route path="/swiper/refine/:id" element={<RefineCanvas />} />
+
             </Routes>
         </>
 

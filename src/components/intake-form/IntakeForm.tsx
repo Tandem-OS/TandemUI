@@ -1,4 +1,3 @@
-// IntakeForm
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -18,19 +17,16 @@ import { type IntakeFormData, type ButtonState } from '@/components/intake-form/
 import { submitIntakeStep, getIntakeByClientEmail } from '@/lib/requests/IntakeRequest';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
+import { layoutTokens } from '@/design-system/tokens/layout';
+
+const t = layoutTokens.intakeForm;
 
 const getButtonClass = (isSelected: boolean, disabled = false) =>
-    `transition-all ${isSelected
-        ? 'border-accent-default bg-accent-subtle/20 text-accent-default'
-        : 'border-border-default hover:border-border-focus text-text-secondary'} ${disabled ? 'disabled:opacity-50' : ''}`;
+    `${t.selectionBtnBase} ${isSelected ? t.selectionBtnSelected : t.selectionBtnUnselected} ${disabled ? t.selectionBtnDisabled : ''}`;
 
 const getDropzoneClass = (isDragActive: boolean) =>
-    `relative border-2 border-dashed rounded-lg p-lg text-center transition-all ${isDragActive
-        ? 'border-accent-default bg-accent-subtle'
-        : 'border-border-muted hover:border-border-default'
-    }`;
+    `${t.dropzoneBase} ${isDragActive ? t.dropzoneActive : t.dropzoneInactive}`;
 
-// ScreenHeader Component
 const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastStep }: any) => (
     <motion.div variants={fadeInLeft} className="mb-lg">
         <div className='flex justify-between items-start gap-sm'>
@@ -51,7 +47,6 @@ const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastSte
     </motion.div>
 );
 
-// FileUpload Component
 const FileUpload = ({ file, onFile }: any) => {
     const [dragActive, setDragActive] = useState(false);
 
@@ -114,7 +109,6 @@ const IntakeForm: React.FC = () => {
         setLoading(true);
         try {
             const response = await getIntakeByClientEmail({ client_email: clientEmail });
-
             const data = response?.data?.data;
             if (data) {
                 const transformed = {
@@ -133,41 +127,35 @@ const IntakeForm: React.FC = () => {
                 setLoading(false);
             } else {
                 setFormData(initialFormData);
-                setLoading(false)
+                setLoading(false);
             }
         } catch (err) {
             console.error("Error loading form data:", err);
             setFormData(initialFormData);
-            setLoading(false)
+            setLoading(false);
         }
-        setLoading(false)
-    }
+        setLoading(false);
+    };
 
     const clientEmail = useSelector((state: RootState) => state.auth.user.email)!;
     const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
 
     useEffect(() => {
-
-        if (clientEmail) {
-            fetchForm(clientEmail);
-        }
+        if (clientEmail) fetchForm(clientEmail);
     }, [clientEmail]);
 
     const totalScreens = 5;
-    const canSkip = currentScreen > 1; // First screen cannot be skipped
+    const canSkip = currentScreen > 1;
 
     const updateForm = (updates: Partial<IntakeFormData>) =>
         setFormData(prev => ({ ...prev, ...updates }));
 
-    const handleFile = (file: File) => {
-        updateForm({ brandGuide: file });
-    };
+    const handleFile = (file: File) => updateForm({ brandGuide: file });
 
     const handleVibeComplete = (winners: string[]) => {
         updateForm({ tones: winners });
         setVibeSelectionComplete(true);
         setShowVibeResults(true);
-        console.log(winners)
     };
 
     const handleVibeRetake = () => {
@@ -176,14 +164,11 @@ const IntakeForm: React.FC = () => {
         updateForm({ tones: [] });
     };
 
-    // Handle feedback submission
     const handleFeedbackSubmit = (rating: number, message: string) => {
         console.log('Feedback submitted:', { rating, message, stageName: 'Intake Form', projectId: 1 });
-        // Navigate to dashboard
         navigateHook('/dashboard/client');
     };
 
-    // Handle feedback skip
     const handleFeedbackSkip = () => {
         console.log('Feedback skipped for Intake Form');
         navigateHook('/dashboard/client');
@@ -191,22 +176,15 @@ const IntakeForm: React.FC = () => {
 
     const navigateScreen = async (next: boolean) => {
         if (!next) {
-            if (currentScreen > 1) {
-                setCurrentScreen(currentScreen - 1);
-            }
+            if (currentScreen > 1) setCurrentScreen(currentScreen - 1);
             return;
         }
 
-        // Check if first screen is complete
-        if (currentScreen === 1 && !vibeSelectionComplete) {
-            return;
-        }
+        if (currentScreen === 1 && !vibeSelectionComplete) return;
 
-        // Final submission - show feedback
         if (currentScreen === totalScreens) {
             try {
                 alert('Intake form submitted successfully!');
-                console.log(formData)
                 const { ...rest } = formData;
                 const payload = {
                     ...rest,
@@ -218,35 +196,25 @@ const IntakeForm: React.FC = () => {
                     custom_colors: formData.customColors,
                     current_site_url: formData.currentSiteUrl,
                     additional_details: formData.additionalDetails,
-                    dead_line:formData.deadline,
+                    dead_line: formData.deadline,
                     not_sure_deadline: formData.notSureDeadline,
                 };
-
                 await submitIntakeStep(payload);
                 alert('Intake form submitted successfully!');
                 navigateHook("/dashboard/client");
-
             } catch (error) {
                 console.error('Error submitting intake form:', error);
                 alert('Submission failed. Please try again.');
             }
-            return; // Stop here regardless
+            return;
         }
 
-        // Forward navigation
         setButtonState('saving');
         try {
             const {
-                tones,
-                keyFeatures,
-                inspirationUrls,
-                colorStrategy,
-                customColors,
-                currentSiteUrl,
-                additionalDetails,
-                deadline,
-                notSureDeadline,
-                brandGuide
+                tones, keyFeatures, inspirationUrls, colorStrategy,
+                customColors, currentSiteUrl, additionalDetails,
+                deadline, notSureDeadline, brandGuide
             } = formData;
 
             const payload = {
@@ -271,18 +239,17 @@ const IntakeForm: React.FC = () => {
                     : null,
             };
 
-            await submitIntakeStep(payload); // Only proceed if this succeeds
+            await submitIntakeStep(payload);
 
             setButtonState('saved');
             setTimeout(() => {
                 setCurrentScreen(currentScreen + 1);
                 setButtonState('default');
             }, 500);
-
         } catch (err) {
             console.error("Intake submission failed", err);
             alert("Something went wrong while saving this step. Please try again.");
-            setButtonState('default'); // Reset so user can retry
+            setButtonState('default');
         }
     };
 
@@ -310,8 +277,6 @@ const IntakeForm: React.FC = () => {
                         <p className="text-para-sm text-text-tertiary mb-md">
                             Quickly select common options or type your own below.
                         </p>
-
-                        {/* Suggested Chips */}
                         <div className="mb-md">
                             <div className="flex flex-wrap gap-xs">
                                 {suggestedPageChips.map((feature) => {
@@ -323,15 +288,12 @@ const IntakeForm: React.FC = () => {
                                             onClick={() => {
                                                 const currentFeatures = formData.keyFeatures.trim();
                                                 const featuresArray = currentFeatures ? currentFeatures.split('\n').filter(f => f.trim()) : [];
-
                                                 if (isSelected) {
-                                                    // Remove the feature
                                                     const updatedFeatures = featuresArray.filter(f =>
                                                         !f.toLowerCase().includes(feature.toLowerCase())
                                                     );
                                                     updateForm({ keyFeatures: updatedFeatures.join('\n') });
                                                 } else {
-                                                    // Add the feature
                                                     featuresArray.push(feature);
                                                     updateForm({ keyFeatures: featuresArray.join('\n') });
                                                 }
@@ -347,8 +309,6 @@ const IntakeForm: React.FC = () => {
                                 })}
                             </div>
                         </div>
-
-                        {/* Visual Separator */}
                         <div className="relative my-md">
                             <div className="absolute inset-0 flex items-center">
                                 <div className="w-full border-t border-border-muted"></div>
@@ -359,8 +319,6 @@ const IntakeForm: React.FC = () => {
                                 </span>
                             </div>
                         </div>
-
-                        {/* Textarea */}
                         <div>
                             <label className="block mb-xs text-para-sm text-text-secondary">
                                 Your selected features and custom additions
@@ -477,7 +435,6 @@ const IntakeForm: React.FC = () => {
                                 placeholder="https://your-current-site.com"
                                 variant='filled'
                                 icon={<FaLink />}
-
                             />
                         </div>
                     </motion.div>
@@ -531,8 +488,7 @@ const IntakeForm: React.FC = () => {
                                 rows={5}
                                 className="w-full bg-background-primary text-text-primary rounded-lg py-sm px-md border border-border-default focus:border-border-focus outline-none transition-all resize-none"
                             />
-                            <span className={`absolute bottom-sm right-md text-para-sm ${formData.additionalDetails.length > 450 ? 'text-text-warning' : 'text-text-tertiary'
-                                }`}>
+                            <span className={`absolute bottom-sm right-md text-para-sm ${formData.additionalDetails.length > 450 ? 'text-text-warning' : 'text-text-tertiary'}`}>
                                 {formData.additionalDetails.length}/500
                             </span>
                         </div>
@@ -543,21 +499,19 @@ const IntakeForm: React.FC = () => {
     ];
 
     const currentScreenData = screens[currentScreen - 1];
-
-    // Check if we should hide the header (first screen with results showing or feedback screen)
     const shouldHideHeader = (currentScreen === 1 && showVibeResults) || showFeedback;
+
     return (
         <>
             {loading ? (
-                <div className="flex justify-center items-center min-h-[300px]">
+                <div className={t.loadingWrapper}>
                     Loading
                 </div>
-            ) :
-                <div className="relative min-h-screen flex bg-background-secondary transition-colors">
-                    <div className="flex-1 flex flex-col z-10">
+            ) : (
+                <div className={t.root}>
+                    <div className={t.inner}>
                         <SimpleHeader />
-
-                        <div className="flex-1 flex items-center justify-center px-lg max-md:mb-md">
+                        <div className={t.centerWrapper}>
                             <AnimatePresence mode="wait">
                                 {showFeedback ? (
                                     <motion.div
@@ -566,7 +520,7 @@ const IntakeForm: React.FC = () => {
                                         initial="initial"
                                         animate="animate"
                                         exit="exit"
-                                        className="w-full max-w-lg mx-auto"
+                                        className={t.feedbackWrapper}
                                     >
                                         <FiveStarFeedback
                                             question="How was the intake process?"
@@ -582,7 +536,7 @@ const IntakeForm: React.FC = () => {
                                         initial="initial"
                                         animate="animate"
                                         exit="exit"
-                                        className="w-full max-w-3xl mx-auto bg-background-primary rounded-2xl px-lg md:px-xl py-lg shadow-xl transition-colors border border-border-default"
+                                        className={t.card}
                                     >
                                         {!shouldHideHeader && (
                                             <ScreenHeader
@@ -629,7 +583,7 @@ const IntakeForm: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            }
+            )}
         </>
     );
 };

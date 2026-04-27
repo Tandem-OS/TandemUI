@@ -46,17 +46,18 @@ const HeroStackedShell: React.FC<HeroShellProps> = ({ props, styles }) => {
   }
 
   const headingStyle: React.CSSProperties = {
-    fontSize:   styles.heading_size,
-    fontWeight: styles.heading_weight,
-    color:      styles.heading_color,
-    margin:     0,
-    wordBreak:  'break-word',
+    fontSize:     `clamp(2rem, 8vw, ${styles.heading_size})`,
+    fontWeight:   styles.heading_weight,
+    color:        styles.heading_color,
+    margin:       0,
+    wordBreak:    'break-word',
+    overflowWrap: 'break-word',
+    hyphens:      'auto',
   }
 
   const subheadingStyle: React.CSSProperties = {
-    color:   styles.subheading_color,
-    opacity: 0.8,
-    margin:  0,
+    color:  styles.subheading_color,
+    margin: 0,
   }
 
   return (
@@ -66,7 +67,6 @@ const HeroStackedShell: React.FC<HeroShellProps> = ({ props, styles }) => {
       aria-label="Main hero content"
       style={sectionStyle}
     >
-      {/* Background image — shell-preferred: none, degrades cleanly */}
       {hero_media && (
         <div
           aria-hidden="true"
@@ -82,7 +82,6 @@ const HeroStackedShell: React.FC<HeroShellProps> = ({ props, styles }) => {
         />
       )}
 
-      {/* Content */}
       <div style={contentStyle}>
         <div style={innerStyle}>
 

@@ -50,13 +50,11 @@ export function renderHeroAction(
         whiteSpace:      'nowrap',
         transition:      'background-color 200ms, color 200ms, border-color 200ms',
         backgroundColor: isPrimary ? styles.btn_primary_bg
-                       : isOutline ? 'transparent'
                        : 'transparent',
         color:           isPrimary ? styles.btn_primary_color
-                       : isOutline ? styles.btn_outline_color
                        : styles.heading_color,
         borderColor:     isPrimary ? styles.btn_primary_bg
-                       : isOutline ? (styles.btn_outline_border ?? styles.btn_outline_color)
+                       : isOutline ? styles.btn_outline_border
                        : 'transparent',
         ...vs,
       }}

@@ -11,7 +11,7 @@ export const selectIsGenerating    = (s: RootState) => s.composition.thumbnailSt
 export const selectThumbnailsReady = (s: RootState) => s.composition.thumbnailStatus === 'ready';
 export const selectThumbnailFailed = (s: RootState) => s.composition.thumbnailStatus === 'error';
 
-// ─── Page Schema ──────────────────────────────────────────────────────────────
+// ─── Page Schema 
 
 // Raw live schema — use only when you explicitly need the active composition,
 // never for rendering the canvas.
@@ -29,7 +29,7 @@ export const selectIsPreviewingHistory = (s: RootState) => s.composition.isPrevi
 export const selectActiveOrPreviewSchema = (s: RootState) =>
   s.composition.previewSchema ?? s.composition.pageSchema;
 
-// ─── Refine / Versions ───────────────────────────────────────────────────────
+// ─── Refine / Versions 
 
 export const selectIsRefining            = (s: RootState) => s.composition.isRefining;
 export const selectVersions              = (s: RootState) => s.composition.versions.versions;

@@ -1,24 +1,7 @@
-// Renamed from NavTokensToColors → resolveNavStyles
-// Handles spacing, sizing, and layout — not just colors
-// NavBase reads from this output — zero inline literals
+// ── Resolve Nav Styles 
 
-import type { NavTokens, NavColors } from '@/pages/Renderer/CompositionType'
-export type { NavColors, NavTokens }
-
-export interface NavStyles {
-  // Color tokens
-  colors: NavColors
-
-  // Layout tokens — themeable per project
-  padding?: string
-  linkSize?: string
-  linkGap?: string
-  logoHeight?: string
-  linkWeight?: string
-  btnPadding?: string
-  btnWeight?: string
-  containerMaxWidth?: string
-}
+import type { NavTokens, NavColors, NavStyles } from './nav.types'
+export type { NavColors, NavTokens, NavStyles }
 
 export function resolveNavStyles(tokens: NavTokens): NavStyles {
   const isOutline = tokens.btn_primary_bg === 'transparent'
@@ -31,10 +14,11 @@ export function resolveNavStyles(tokens: NavTokens): NavStyles {
       btnText: tokens.btn_primary_color,
       btnRadius: tokens.btn_radius,
       btnHoverBg: isOutline ? tokens.text_color : tokens.btn_primary_bg,
-      btnHoverText: isOutline ? tokens.background : tokens.btn_primary_color,
+        pillBg:     tokens.pill_bg,
+
     },
 
-    // Layout tokens — all from DB, none hardcoded
+    // Layout tokens 
     padding: tokens.padding,
     linkSize: tokens.link_size,
     linkGap: tokens.link_gap,

@@ -8,6 +8,8 @@ import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
 import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
+import { selectCompositionId } from '@/features/composition/compositionSelectors';
+
 import {
   type SwipeAction,
   type ComponentPreview,
@@ -56,13 +58,14 @@ import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import Modal from '@/common-components/Modal';
 import { useNavigate } from 'react-router-dom';
 import TransitionMoment from './components/TransitionMoment';
-
+import {
+  submitComposition,
+} from '@/features/composition/compositionSlice';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
 const KOH_SNAP_KEY = 'tandem_koh_snap';
-
 
 // Animation variants
 const animations: { [key: string]: Variants | any } = {
@@ -117,12 +120,28 @@ const normalizeLayout = (category: string, layout: string): string => {
     nav: 'split_nav',
     features: 'grid',
     pricing: 'grid',
+    faq: 'accordion',
+    testimonials: 'video-grid',
+    cta: 'hero-footer',
+    contact: 'split_form_grid',
+    timeline: 'vertical_editorial',
+    footer: 'inline_minimal',
+
+
   };
   const known: Record<string, string[]> = {
     hero: ['stacked', 'centered', 'split', 'immersive', 'minimal', 'video_bg'],
     nav: ['split_nav', 'centered', 'minimal', 'wide', 'sidebar', 'mega_menu'],
     features: ['grid', 'list', 'split'],
     pricing: ['three-column', 'stacked', 'grid'],
+    faq: ['accordion', 'contained', 'centered-support', 'minimal'],
+    testimonials: ['video-grid', 'featured-stats', 'notes', 'carousel'],
+    cta: ['hero-footer', 'announcement-faq', 'newsletter-centered', 'search-footer'],
+    contact: ['split_form_grid', 'booking_profile_split', 'full_page_split', 'form_editorial_split'],
+    timeline: ['vertical_editorial', 'alternating_media'],
+    footer: ['inline_minimal', 'split_expanded', 'multi_column', 'info_links_bar'],
+
+
   };
   console.log('[normalizeLayout] called with:', { category, layout });
   const cat = category.toLowerCase();
@@ -211,6 +230,7 @@ const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetr
 );
 
 const Swiper: React.FC = () => {
+  const [isSummaryReady, setIsSummaryReady] = useState(false)
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
@@ -237,6 +257,8 @@ const Swiper: React.FC = () => {
     kingOfHill,
     // isKingOfHillPending
   } = useSelector((state: RootState) => state.swiper);
+  const compositionId = useSelector(selectCompositionId);
+const projectId = useSelector((state: RootState) => state.project.projectId);
 
   const currentRoundData = roundsData[currentRound];
   const allRoundsComplete = !currentRoundData || currentRoundData.completed;
@@ -260,6 +282,13 @@ const Swiper: React.FC = () => {
         ...(componentsMap['nav'] ?? []),
         ...(componentsMap['features'] ?? []),
         ...(componentsMap['pricing'] ?? []),
+        ...(componentsMap['faq'] ?? []),
+        ...(componentsMap['testimonials'] ?? []),
+        ...(componentsMap['cta'] ?? []),
+        ...(componentsMap['contact'] ?? []),
+        ...(componentsMap['timeline'] ?? []),
+        ...(componentsMap['footer'] ?? []),
+
 
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
 
@@ -366,9 +395,8 @@ const Swiper: React.FC = () => {
         });
 
         setKingOfHillSessions(roundsDataPrepopulated);
-        setKingOfHillSessions(roundsDataPrepopulated);
         setRoundCompleted(true);
-
+        setIsSummaryReady(true)
       } catch (err) {
         console.error("Failed to prepopulate swiper data:", err);
       }
@@ -498,20 +526,20 @@ const Swiper: React.FC = () => {
         }
 
         for (const component of sessionSummary.components) {
-          const payload = {
+          const componentPayload = {
             // Required — backend 422s if any of these are missing
             component_id: component.component_id,
             project_id: component.project_id,
-            client_email: component.client_email,       // now available from mapper fix above
-            designer_email: component.designer_email,   // now available from mapper fix above
+            client_email: component.client_email,
+            designer_email: component.designer_email,
             session_id: sessionId,
-            thumbnail_url: component.thumbnail_url ?? '',
+            thumbnail_url: component.thumbnail_url || null,
 
             // Optional
             id: component.id,
-            title: component.title ?? '',
-            description: component.description ?? '',
-            category: (component.category ?? '').toLowerCase(),
+            title: component.title ?? undefined,
+            description: component.description ?? undefined,
+            category: component.category?.toLowerCase(), // backend stores lowercase
             layout_structure: normalizeLayout(
               component.category ?? '',
               component.layout_structure ?? ''
@@ -524,7 +552,7 @@ const Swiper: React.FC = () => {
             vibe: component.vibe,
             is_canonical: component.is_canonical ?? false,
           };
-          await swiperComponentData(payload);
+          await swiperComponentData(componentPayload);
         }
 
         saveSuccess = true;
@@ -542,20 +570,21 @@ const Swiper: React.FC = () => {
         }
         saveSuccess = false;
       }
-
-      if (saveSuccess) {
-        setTimeout(() => {
-          dispatch(endKingOfHill());
-          const shouldShowPreview = (snapRound + 1) % 2 === 0 && !snapIsLastRound;
-
-          if (shouldShowPreview) {
-            dispatch(setShouldAskForPreview(true));
-          } else if (!isLastRound) {
-            dispatch(moveToNextRound());
-            setTimeout(() => dispatch(unlockTransition()), 1000);
-          }
-        }, 1000);
-      }
+if (saveSuccess) {
+  setTimeout(() => {
+    dispatch(endKingOfHill());
+    const shouldShowPreview = (snapRound + 1) % 2 === 0 && !snapIsLastRound;
+    if (shouldShowPreview) {
+      dispatch(setShouldAskForPreview(true));
+    } else if (!isLastRound) {
+      dispatch(moveToNextRound());
+      setTimeout(() => dispatch(unlockTransition()), 1000);
+    } else {
+      // Last round KOH complete and saved — now safe to show summary
+      setIsSummaryReady(true);
+    }
+  }, 1000);
+}
     }
   }, [dispatch, kingOfHill, currentRound, currentRoundData, isLastRound]);
 
@@ -600,7 +629,7 @@ const Swiper: React.FC = () => {
             catch (err) { console.error("❌ Failed to mark round completed:", err); }
           }
 
-          // ── KOH Gate (Dylan rule — locked March 3) ───────────────────────
+          // ── KOH Gate (Dylan rule — locked March 3) 
           // liked >= 2  → KOH fires with liked components only
           // liked === 1 → auto-winner, create session + POST /component directly
           // liked === 0 → no preference, advance with no /component call
@@ -628,7 +657,7 @@ const Swiper: React.FC = () => {
               dispatch(startKingOfHill(likedComponents));
 
             } else if (likedComponents.length === 1) {
-              // ── Auto-winner ───────────────────────────────────────────────
+              // ── Auto-winner 
               // 1 liked — no KOH UI. Create minimal session → get session_id → POST /component.
               const winner = likedComponents[0];
               try {
@@ -656,8 +685,8 @@ const Swiper: React.FC = () => {
                   content_slots: winner.content_slots,
                   tokens: winner.tokens,
                   is_canonical: winner.is_canonical ?? false,
-                  title: winner.title ?? '',
-                  description: winner.description ?? '',
+                  title: winner.title ?? undefined,
+                  description: winner.description ?? undefined,
                   tone: winner.tone,
                   intent: winner.intent,
                   tags: winner.tags,
@@ -667,10 +696,22 @@ const Swiper: React.FC = () => {
               } catch (err) {
                 console.error("❌ Failed to post auto-winner component:", err);
               }
-
+              const autoSession: KingOfHillSession = {
+                round_number: currentRound + 1,
+                category: currentRoundData?.category ?? '',
+                components: [winner],
+                matches: [],
+                final_winner_id: winner.component_id,
+                session_duration_ms: 0,
+                started_at: Date.now(),
+                completed_at: Date.now(),
+              }
+              setKingOfHillSessions(prev => [...prev, autoSession]);
               if (!isLastRound) {
                 dispatch(moveToNextRound());
                 setTimeout(() => dispatch(unlockTransition()), 1000);
+              } else {
+                setIsSummaryReady(true);
               }
 
             } else {
@@ -679,6 +720,8 @@ const Swiper: React.FC = () => {
               if (!isLastRound) {
                 dispatch(moveToNextRound());
                 setTimeout(() => dispatch(unlockTransition()), 1000);
+              } else {
+                setIsSummaryReady(true);
               }
             }
 
@@ -734,27 +777,26 @@ const Swiper: React.FC = () => {
 
     dispatch(resetSwiper());
   }, [dispatch]);
-
-  const handleGenerateLayout = useCallback(async () => {
-    // Collect one winner_id per KOH session (one per category)
-    const winnerIds = kingOfHillSessions
-      .map(s => s.final_winner_id)
-      .filter((id): id is string => !!id);
-
-    // project_id lives on every component — grab from first available round
-    const projectId = roundsData[0]?.components[0]?.project_id ?? '';
-
-    if (!winnerIds.length || !projectId) {
-      console.error('handleGenerateLayout: missing winnerIds or projectId', { winnerIds, projectId });
-      return;
-    }
+const handleGenerateLayout = useCallback(async () => {
+//   const winnerIds = kingOfHillSessions
+//     .map(s => s.final_winner_id)
+//     .filter((id): id is string => !!id);
 
 
-    // Navigate to the Compose Result Screen
-    // thumbnails will still be polling in the background via Redux
-    navigate(`/dashboard/client`);
+// if (!winnerIds.length || !projectId) {
+//   console.error('handleGenerateLayout: missing winnerIds or projectId', { winnerIds, projectId });
+//   return;
+// }
 
-  }, [dispatch, navigate, kingOfHillSessions, roundsData]);
+//   const result = await dispatch(submitComposition({ winnerIds, projectId })).unwrap();
+
+//   if (result.compositionId) {
+    navigate(`/dashboard/client/swiper/compose`);
+  // } else {
+  //   console.error('[Swiper] handleGenerateLayout: compositionId missing after submit');
+  // }
+});
+
   const handleTransitionComplete = useCallback(() => {
     setShowTransition(false);
     handleGenerateLayout();
@@ -829,14 +871,20 @@ const Swiper: React.FC = () => {
             onComplete={handleTransitionComplete}
           />
         )}
-        <SwiperSummary
-          userChoices={userChoices}
-          roundsData={roundsData}
-          totalRounds={totalRounds}
-          kingOfHillSessions={kingOfHillSessions}
-          onStartOver={handleStartOver}
-          onGenerateLayout={handleRequestGenerate}
-        />
+        {isSummaryReady ? (
+          <SwiperSummary
+            userChoices={userChoices}
+            roundsData={roundsData}
+            totalRounds={totalRounds}
+            kingOfHillSessions={kingOfHillSessions}
+            onStartOver={handleStartOver}
+            onGenerateLayout={handleRequestGenerate}
+          />
+        ) : (
+          <div className="min-h-screen flex items-center justify-center">
+            <p>Preparing session summary...</p>
+          </div>
+        )}
       </>
     );
   }

@@ -16,19 +16,20 @@ const HeroSplitShell: React.FC<HeroShellProps> = ({ props, styles }) => {
   const Wrap = resolveWrap(animated)
 
   const headingStyle: React.CSSProperties = {
-    fontSize: styles.heading_size,
-    fontWeight: styles.heading_weight,
-    color: styles.heading_color,
+    fontSize:     `clamp(2rem, 8vw, ${styles.heading_size})`,
+    fontWeight:   styles.heading_weight,
+    color:        styles.heading_color,
     marginBottom: '1.5rem',
-    marginTop: 0,
-    wordBreak: 'break-word',
+    marginTop:    0,
+    wordBreak:    'break-word',
+    overflowWrap: 'break-word',
+    hyphens:      'auto',
   }
 
   const subheadingStyle: React.CSSProperties = {
-    color: styles.subheading_color,
-    opacity: 0.8,
+    color:        styles.subheading_color,
     marginBottom: '2.5rem',
-    marginTop: 0,
+    marginTop:    0,
   }
 
   return (
@@ -37,31 +38,29 @@ const HeroSplitShell: React.FC<HeroShellProps> = ({ props, styles }) => {
       role="banner"
       aria-label="Main hero content"
       style={{
-        position: 'relative',
-        width: '100%',
+        position:  'relative',
+        width:     '100%',
         minHeight: '100vh',
-        display: 'flex',
+        display:   'flex',
         alignItems: 'center',
-        overflow: 'hidden',
+        overflow:  'hidden',
       }}
     >
-      {/* Background image — shell-preferred */}
       {hero_media && (
         <div
           aria-hidden="true"
           data-testid="hero-image-container"
           style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `url(${hero_media})`,
-            backgroundSize: 'cover',
+            position:           'absolute',
+            inset:              0,
+            backgroundImage:    `url(${hero_media})`,
+            backgroundSize:     'cover',
             backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
+            backgroundRepeat:   'no-repeat',
           }}
         />
       )}
 
-      {/* Fallback bg color when no media */}
       {!hero_media && styles.background && (
         <div
           aria-hidden="true"
@@ -69,7 +68,6 @@ const HeroSplitShell: React.FC<HeroShellProps> = ({ props, styles }) => {
         />
       )}
 
-      {/* Content — left-anchored */}
       <div style={{ position: 'relative', zIndex: 10, width: '100%', padding: styles.padding }}>
         <div style={{ maxWidth: '40rem', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
 
@@ -91,7 +89,7 @@ const HeroSplitShell: React.FC<HeroShellProps> = ({ props, styles }) => {
               aria-label="Call to action"
             >
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                {hero_primary_action && renderHeroAction(hero_primary_action, styles)}
+                {hero_primary_action   && renderHeroAction(hero_primary_action,   styles)}
                 {hero_secondary_action && renderHeroAction(hero_secondary_action, styles)}
               </div>
             </Wrap>
