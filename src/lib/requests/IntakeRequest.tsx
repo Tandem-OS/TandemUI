@@ -1,11 +1,19 @@
 import api from "@/lib/requests/Axios";
+import { store } from "@/store";
+
+const projectId = store.getState().project.projectId;
 
 interface IntakeGetClientEmail {
   client_email: string;
 }
 
 export const submitIntakeStep = async (partialData: any) => {
-  return await api.post("/intake", partialData);
+
+  const payload = {
+    ...partialData,
+    project_id: projectId
+  };
+  return await api.post("/intake", payload);
 };
 
 export const getIntakeByClientEmail = async (value: IntakeGetClientEmail) => {
