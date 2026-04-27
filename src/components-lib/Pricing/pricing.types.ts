@@ -73,6 +73,9 @@ export interface PricingStyles {
   // ─── CTA 
   btn_primary_bg?:          string
   btn_primary_color?:       string
+  btn_radius?:              string
+  btn_outline_color?:       string
+  btn_outline_border?:      string
   featured_btn_bg?:         string
   featured_btn_color?:      string
 

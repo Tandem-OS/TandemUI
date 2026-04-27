@@ -24,10 +24,12 @@ function validateTokens(tokens: unknown): TestimonialsTokens {
   }
   const t = tokens as Record<string, unknown>;
 
-  const requiredKeys: (keyof TestimonialsTokens)[] = [
-    'spacing', 'surface', 'text-role', 'background',
-    'body-scale', 'action-style', 'heading-scale',
-  ];
+ const requiredKeys: (keyof TestimonialsTokens)[] = [
+  'spacing', 'surface', 'text-role', 'background',
+  'body-scale', 'action-style', 'heading-scale',
+  'section-heading-scale', 'eyebrow-scale', 'label-scale', 'meta-scale',
+];
+
 
   for (const key of requiredKeys) {
     if (typeof t[key] !== 'string' || !(t[key] as string).trim()) {
@@ -35,15 +37,19 @@ function validateTokens(tokens: unknown): TestimonialsTokens {
     }
   }
 
-  return {
-    spacing: t['spacing'] as string,
-    surface: t['surface'] as string,
-    'text-role': t['text-role'] as string,
-    background: t['background'] as string,
-    'body-scale': t['body-scale'] as string,
-    'action-style': t['action-style'] as string,
-    'heading-scale': t['heading-scale'] as string,
-  };
+return {
+  spacing: t['spacing'] as string,
+  surface: t['surface'] as string,
+  'text-role': t['text-role'] as string,
+  background: t['background'] as string,
+  'body-scale': t['body-scale'] as string,
+  'action-style': t['action-style'] as string,
+  'heading-scale': t['heading-scale'] as string,
+  'section-heading-scale': t['section-heading-scale'] as string,
+  'eyebrow-scale': t['eyebrow-scale'] as string,
+  'label-scale': t['label-scale'] as string,
+  'meta-scale': t['meta-scale'] as string,
+};
 }
 
 function validateVideoItem(item: unknown, index: number): TestimonialsVideoItem {

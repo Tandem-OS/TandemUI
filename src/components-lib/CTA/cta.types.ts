@@ -26,7 +26,7 @@ export interface CTATokens {
 // ─── Shared 
 export interface CTAFooterColumn {
   heading: string;
-  links: string[];
+links: { label: string; href: string }[];
 }
 
 export interface CTAFAQItem {

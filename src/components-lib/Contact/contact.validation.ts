@@ -27,6 +27,7 @@ function validateTokens(tokens: unknown): ContactTokens {
   const requiredKeys: (keyof ContactTokens)[] = [
     'spacing', 'surface', 'text-role', 'background',
     'body-scale', 'action-style', 'form-surface', 'heading-scale',
+    'section-heading-scale', 'eyebrow-scale', 'label-scale', 'meta-scale',
   ];
 
   for (const key of requiredKeys) {
@@ -44,7 +45,12 @@ function validateTokens(tokens: unknown): ContactTokens {
     'action-style': t['action-style'] as string,
     'form-surface': t['form-surface'] as string,
     'heading-scale': t['heading-scale'] as string,
+    'section-heading-scale': t['section-heading-scale'] as string,
+    'eyebrow-scale': t['eyebrow-scale'] as string,
+    'label-scale': t['label-scale'] as string,
+    'meta-scale': t['meta-scale'] as string,
   };
+
 }
 
 function validateFormField(field: unknown, index: number): ContactFormField {

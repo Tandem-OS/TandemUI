@@ -8,7 +8,6 @@ import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
 import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
-import { selectCompositionId } from '@/features/composition/compositionSelectors';
 
 import {
   type SwipeAction,
@@ -58,9 +57,7 @@ import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import Modal from '@/common-components/Modal';
 import { useNavigate } from 'react-router-dom';
 import TransitionMoment from './components/TransitionMoment';
-import {
-  submitComposition,
-} from '@/features/composition/compositionSlice';
+
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
@@ -257,8 +254,7 @@ const Swiper: React.FC = () => {
     kingOfHill,
     // isKingOfHillPending
   } = useSelector((state: RootState) => state.swiper);
-  const compositionId = useSelector(selectCompositionId);
-const projectId = useSelector((state: RootState) => state.project.projectId);
+
 
   const currentRoundData = roundsData[currentRound];
   const allRoundsComplete = !currentRoundData || currentRoundData.completed;
@@ -778,24 +774,9 @@ if (saveSuccess) {
     dispatch(resetSwiper());
   }, [dispatch]);
 const handleGenerateLayout = useCallback(async () => {
-//   const winnerIds = kingOfHillSessions
-//     .map(s => s.final_winner_id)
-//     .filter((id): id is string => !!id);
-
-
-// if (!winnerIds.length || !projectId) {
-//   console.error('handleGenerateLayout: missing winnerIds or projectId', { winnerIds, projectId });
-//   return;
-// }
-
-//   const result = await dispatch(submitComposition({ winnerIds, projectId })).unwrap();
-
-//   if (result.compositionId) {
     navigate(`/dashboard/client/swiper/compose`);
-  // } else {
-  //   console.error('[Swiper] handleGenerateLayout: compositionId missing after submit');
-  // }
-});
+  
+},[navigate]);
 
   const handleTransitionComplete = useCallback(() => {
     setShowTransition(false);

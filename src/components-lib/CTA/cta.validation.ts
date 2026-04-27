@@ -24,11 +24,12 @@ function validateTokens(tokens: unknown): CTATokens {
   }
   const t = tokens as Record<string, unknown>;
 
-  const requiredKeys: (keyof CTATokens)[] = [
-    'spacing', 'surface', 'text-role', 'background',
-    'body-scale', 'footer-text', 'action-style',
-    'heading-scale', 'footer-background',
-  ];
+ const requiredKeys: (keyof CTATokens)[] = [
+  'spacing', 'surface', 'text-role', 'background',
+  'body-scale', 'footer-text', 'action-style',
+  'heading-scale', 'footer-background',
+  'section-heading-scale', 'eyebrow-scale', 'label-scale', 'meta-scale',
+];
 
   for (const key of requiredKeys) {
     if (typeof t[key] !== 'string' || !(t[key] as string).trim()) {
@@ -36,17 +37,21 @@ function validateTokens(tokens: unknown): CTATokens {
     }
   }
 
-  return {
-    spacing: t['spacing'] as string,
-    surface: t['surface'] as string,
-    'text-role': t['text-role'] as string,
-    background: t['background'] as string,
-    'body-scale': t['body-scale'] as string,
-    'footer-text': t['footer-text'] as string,
-    'action-style': t['action-style'] as string,
-    'heading-scale': t['heading-scale'] as string,
-    'footer-background': t['footer-background'] as string,
-  };
+ return {
+  spacing: t['spacing'] as string,
+  surface: t['surface'] as string,
+  'text-role': t['text-role'] as string,
+  background: t['background'] as string,
+  'body-scale': t['body-scale'] as string,
+  'footer-text': t['footer-text'] as string,
+  'action-style': t['action-style'] as string,
+  'heading-scale': t['heading-scale'] as string,
+  'footer-background': t['footer-background'] as string,
+  'section-heading-scale': t['section-heading-scale'] as string,
+  'eyebrow-scale': t['eyebrow-scale'] as string,
+  'label-scale': t['label-scale'] as string,
+  'meta-scale': t['meta-scale'] as string,
+};
 }
 
 function validateFooterColumn(col: unknown, index: number): CTAFooterColumn {
@@ -57,8 +62,14 @@ function validateFooterColumn(col: unknown, index: number): CTAFooterColumn {
   if (typeof c.heading !== 'string' || !c.heading.trim()) throw new Error(`${ctx}: heading is required`);
   if (!Array.isArray(c.links) || c.links.length === 0) throw new Error(`${ctx}: links must be a non-empty array`);
 
-  return { heading: c.heading, links: c.links as string[] };
-}
+const links = c.links.map((link: unknown, li: number) => {
+  if (!link || typeof link !== 'object') throw new Error(`${ctx}.links[${li}]: must be an object`);
+  const l = link as Record<string, unknown>;
+  if (typeof l.label !== 'string' || !l.label.trim()) throw new Error(`${ctx}.links[${li}]: label is required`);
+  if (typeof l.href !== 'string' || !l.href.trim()) throw new Error(`${ctx}.links[${li}]: href is required`);
+  return { label: l.label, href: l.href };
+});
+return { heading: c.heading, links };}
 
 function validateFAQItem(item: unknown, ctx: string): CTAFAQItem {
   if (!item || typeof item !== 'object') throw new Error(`${ctx}: must be an object`);

@@ -27,7 +27,7 @@ export interface FooterTokens {
 // ─── Shared
 export interface FooterColumn {
   heading: string;
-  links: string[];
+links: { label: string; href: string }[];
 }
 
 export interface FooterInfoColumn {

@@ -29,6 +29,8 @@ function validateTokens(tokens: unknown): FooterTokens {
   const requiredKeys: (keyof FooterTokens)[] = [
     'spacing', 'surface', 'text-role', 'background',
     'body-scale', 'bottom-bar', 'action-style', 'heading-scale',
+    'section-heading-scale', 'eyebrow-scale', 'label-scale', 'meta-scale',
+    'overlay-text',
   ];
 
   for (const key of requiredKeys) {
@@ -36,16 +38,20 @@ function validateTokens(tokens: unknown): FooterTokens {
       throw new Error(`FooterTokens: "${key}" is required`);
     }
   }
-
   return {
-    spacing:         t['spacing'] as string,
-    surface:         t['surface'] as string,
-    'text-role':     t['text-role'] as string,
-    background:      t['background'] as string,
-    'body-scale':    t['body-scale'] as string,
-    'bottom-bar':    t['bottom-bar'] as string,
-    'action-style':  t['action-style'] as string,
+    spacing: t['spacing'] as string,
+    surface: t['surface'] as string,
+    'text-role': t['text-role'] as string,
+    background: t['background'] as string,
+    'body-scale': t['body-scale'] as string,
+    'bottom-bar': t['bottom-bar'] as string,
+    'action-style': t['action-style'] as string,
     'heading-scale': t['heading-scale'] as string,
+    'section-heading-scale': t['section-heading-scale'] as string,
+    'eyebrow-scale': t['eyebrow-scale'] as string,
+    'label-scale': t['label-scale'] as string,
+    'meta-scale': t['meta-scale'] as string,
+    'overlay-text': t['overlay-text'] as string,
   };
 }
 
@@ -57,7 +63,14 @@ function validateFooterColumn(column: unknown, index: number): FooterColumn {
   if (typeof c.heading !== 'string' || !c.heading.trim()) throw new Error(`${ctx}: heading is required`);
   if (!Array.isArray(c.links) || c.links.length === 0) throw new Error(`${ctx}: links must be a non-empty array`);
 
-  return { heading: c.heading, links: c.links as string[] };
+  const links = c.links.map((link: unknown, li: number) => {
+    if (!link || typeof link !== 'object') throw new Error(`${ctx}.links[${li}]: must be an object`);
+    const l = link as Record<string, unknown>;
+    if (typeof l.label !== 'string' || !l.label.trim()) throw new Error(`${ctx}.links[${li}]: label is required`);
+    if (typeof l.href !== 'string' || !l.href.trim()) throw new Error(`${ctx}.links[${li}]: href is required`);
+    return { label: l.label, href: l.href };
+  });
+  return { heading: c.heading, links };
 }
 
 function validateFooterInfoColumn(column: unknown, index: number): FooterInfoColumn {
@@ -68,8 +81,8 @@ function validateFooterInfoColumn(column: unknown, index: number): FooterInfoCol
   if (typeof c.heading !== 'string' || !c.heading.trim()) throw new Error(`${ctx}: heading is required`);
 
   return {
-    heading:     c.heading,
-    lines:       Array.isArray(c.lines) ? c.lines as string[] : undefined,
+    heading: c.heading,
+    lines: Array.isArray(c.lines) ? c.lines as string[] : undefined,
     icon_blocks: Array.isArray(c.icon_blocks) ? c.icon_blocks as string[] : undefined,
   };
 }
@@ -90,9 +103,14 @@ function validateInlineMinimalSlot(slot: unknown): FooterInlineMinimalSlot {
     throw new Error('FooterInlineMinimalSlot: footer_links must be a non-empty array');
 
   return {
-    footer_text:          s.footer_text,
-    footer_links:         s.footer_links as string[],
-    footer_variant:       'inline_minimal',
+    footer_text: s.footer_text,
+    footer_links: (s.footer_links as unknown[]).map((link: unknown, li: number) => {
+      if (!link || typeof link !== 'object') throw new Error(`footer_links[${li}]: must be an object`);
+      const l = link as Record<string, unknown>;
+      if (typeof l.label !== 'string' || !l.label.trim()) throw new Error(`footer_links[${li}]: label is required`);
+      if (typeof l.href !== 'string' || !l.href.trim()) throw new Error(`footer_links[${li}]: href is required`);
+      return { label: l.label, href: l.href };
+    }), footer_variant: 'inline_minimal',
     background_image_url: s.background_image_url,
     background_image_alt: s.background_image_alt,
   };
@@ -130,15 +148,15 @@ function validateSplitExpandedSlot(slot: unknown): FooterSplitExpandedSlot {
   }
 
   return {
-    brand_text:             s.brand_text,
-    link_style:             s.link_style as FooterLinkStyle,
-    bottom_links:           s.bottom_links as string[],
-    logo_icon_url:          s.logo_icon_url,
-    primary_links:          s.primary_links as string[],
-    copyright_text:         s.copyright_text,
-    footer_variant:         'split_expanded',
-    primary_action:         s.primary_action,
-    background_color:       s.background_color,
+    brand_text: s.brand_text,
+    link_style: s.link_style as FooterLinkStyle,
+    bottom_links: s.bottom_links as string[],
+    logo_icon_url: s.logo_icon_url,
+    primary_links: s.primary_links as string[],
+    copyright_text: s.copyright_text,
+    footer_variant: 'split_expanded',
+    primary_action: s.primary_action,
+    background_color: s.background_color,
     expanded_content_lines: s.expanded_content_lines as string[],
     expanded_content_title: s.expanded_content_title,
   };
@@ -166,12 +184,12 @@ function validateMultiColumnSlot(slot: unknown): FooterMultiColumnSlot {
     throw new Error('FooterMultiColumnSlot: footer_columns must be a non-empty array');
 
   return {
-    logo_text:          s.logo_text,
-    logo_icon_url:      s.logo_icon_url,
-    footer_columns:     s.footer_columns.map((c, i) => validateFooterColumn(c, i)),
-    footer_variant:     'multi_column',
-    background_color:   s.background_color,
-    brand_description:  s.brand_description,
+    logo_text: s.logo_text,
+    logo_icon_url: s.logo_icon_url,
+    footer_columns: s.footer_columns.map((c, i) => validateFooterColumn(c, i)),
+    footer_variant: 'multi_column',
+    background_color: s.background_color,
+    brand_description: s.brand_description,
     footer_bottom_link: s.footer_bottom_link,
     footer_bottom_text: s.footer_bottom_text,
   };
@@ -201,13 +219,13 @@ function validateInfoLinksBarSlot(slot: unknown): FooterInfoLinksBarSlot {
     throw new Error('FooterInfoLinksBarSlot: info_columns must be a non-empty array');
 
   return {
-    large_links:      s.large_links as string[],
-    legal_links:      s.legal_links as string[],
-    info_columns:     s.info_columns.map((c, i) => validateFooterInfoColumn(c, i)),
-    bottom_bar_cta:   s.bottom_bar_cta,
-    copyright_left:   s.copyright_left,
-    footer_variant:   'info_links_bar',
-    copyright_right:  s.copyright_right,
+    large_links: s.large_links as string[],
+    legal_links: s.legal_links as string[],
+    info_columns: s.info_columns.map((c, i) => validateFooterInfoColumn(c, i)),
+    bottom_bar_cta: s.bottom_bar_cta,
+    copyright_left: s.copyright_left,
+    footer_variant: 'info_links_bar',
+    copyright_right: s.copyright_right,
     background_color: s.background_color,
     bottom_bar_color: s.bottom_bar_color,
   };
