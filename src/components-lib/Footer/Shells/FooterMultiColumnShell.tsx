@@ -31,13 +31,10 @@ export function FooterMultiColumnShell({ slot, styles }: FooterMultiColumnShellP
                   {column.heading}
                 </h4>
                 <ul className="flex flex-col gap-2">
-                  {column.links.map((link: string, linkIndex: number) => (
+                  {column.links.map((link, linkIndex: number) => (
                     <li key={linkIndex}>
-                      <a
-                        href="#"
-                        className={`${styles.mutedBody} transition-opacity`}
-                      >
-                        {link}
+                      <a href={link.href} className={`${styles.mutedBody} transition-opacity`}>
+                        {link.label}
                       </a>
                     </li>
                   ))}

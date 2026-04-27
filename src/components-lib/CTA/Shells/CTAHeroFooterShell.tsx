@@ -62,7 +62,7 @@ export function CTAHeroFooterShell({ layoutStructure, slot, styles }: CTAHeroFoo
                 <ul className="space-y-2">
                   {col.links.map((link, j) => (
                     <li key={j}>
-                      <a href="#" className={styles.mutedBody}>{link}</a>
+                      <a href={link.href} className={styles.mutedBody}>{link.label}</a>
                     </li>
                   ))}
                 </ul>
