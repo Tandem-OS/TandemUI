@@ -16,17 +16,19 @@ const HeroSplitShell: React.FC<HeroShellProps> = ({ props, styles }) => {
   const Wrap = resolveWrap(animated)
 
   const headingStyle: React.CSSProperties = {
-    fontSize:     styles.heading_size,
+    fontSize:     `clamp(2rem, 8vw, ${styles.heading_size})`,
     fontWeight:   styles.heading_weight,
     color:        styles.heading_color,
-    marginBottom: '1.5rem', // structural chrome — fixed rhythm, not a token (confirmed by Syed)
+    marginBottom: '1.5rem',
     marginTop:    0,
     wordBreak:    'break-word',
+    overflowWrap: 'break-word',
+    hyphens:      'auto',
   }
 
   const subheadingStyle: React.CSSProperties = {
     color:        styles.subheading_color,
-    marginBottom: '2.5rem', // structural chrome — fixed rhythm, not a token (confirmed by Syed)
+    marginBottom: '2.5rem',
     marginTop:    0,
   }
 

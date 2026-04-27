@@ -42,15 +42,17 @@ const HeroStackedShell: React.FC<HeroShellProps> = ({ props, styles }) => {
     display:       'flex',
     flexDirection: 'column',
     alignItems:    'center',
-    gap:           '2rem', // structural chrome — fixed rhythm, not a token (confirmed by Syed)
+    gap:           '2rem',
   }
 
   const headingStyle: React.CSSProperties = {
-    fontSize:   styles.heading_size,
-    fontWeight: styles.heading_weight,
-    color:      styles.heading_color,
-    margin:     0,
-    wordBreak:  'break-word',
+    fontSize:     `clamp(2rem, 8vw, ${styles.heading_size})`,
+    fontWeight:   styles.heading_weight,
+    color:        styles.heading_color,
+    margin:       0,
+    wordBreak:    'break-word',
+    overflowWrap: 'break-word',
+    hyphens:      'auto',
   }
 
   const subheadingStyle: React.CSSProperties = {
