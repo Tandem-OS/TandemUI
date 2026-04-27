@@ -30,7 +30,6 @@ function validateTokens(tokens: unknown): FooterTokens {
     'spacing', 'surface', 'text-role', 'background',
     'body-scale', 'bottom-bar', 'action-style', 'heading-scale',
     'section-heading-scale', 'eyebrow-scale', 'label-scale', 'meta-scale',
-    'overlay-text',
   ];
 
   for (const key of requiredKeys) {
@@ -51,7 +50,6 @@ function validateTokens(tokens: unknown): FooterTokens {
     'eyebrow-scale': t['eyebrow-scale'] as string,
     'label-scale': t['label-scale'] as string,
     'meta-scale': t['meta-scale'] as string,
-    'overlay-text': t['overlay-text'] as string,
   };
 }
 

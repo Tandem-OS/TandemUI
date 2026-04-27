@@ -63,18 +63,40 @@ export const getAllProjectCompose = async (): Promise<ComposeResponse> => {
   const response = await api.get(`${COMPOSE_ENDPOINT}?project_id${projectId}`);
   return response.data;
 };
-// ─── Refine ───────────────────────────────────────────────────────────────────
-
+// ─── Refine 
 export interface RefinePayload {
   composition_id: string;
   sections: string[];
   user_instruction: string;
+  image_file?: File;
 }
-
 export const postRefine = async (payload: RefinePayload): Promise<RefineResponse> => {
-  const response = await api.patch(`${COMPOSE_ENDPOINT}/refine`, payload);
+  const formData = new FormData();
+  formData.append("composition_id", payload.composition_id);
+  formData.append("sections", JSON.stringify(payload.sections));
+  formData.append("user_instruction", payload.user_instruction);
+
+  if (payload.image_file) {
+    formData.append("image_file", payload.image_file);
+  }
+
+  const response = await api.patch(`${COMPOSE_ENDPOINT}/refine`, formData, {
+    headers: {
+      // Remove Content-Type so browser sets multipart boundary automatically
+      "Content-Type": undefined,
+    },
+  });
+
   return response.data;
 };
+export interface RefinePayload {
+  composition_id: string;
+  sections: string[];
+  user_instruction: string;
+  image_file?: File;
+
+}
+
 
 export const callAiComposePipeline = async (
   values: CallAiComposePipeline

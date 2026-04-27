@@ -2,9 +2,11 @@ import { useState, useEffect, useRef, memo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaComments, FaTimes, FaPaperPlane, FaCheck } from 'react-icons/fa';
+import { FiPaperclip } from 'react-icons/fi';
 import { mockChatResponses, chatPrompts } from '../constants';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
+
 import {
     refineComposition,
     fetchVersions,
@@ -273,8 +275,11 @@ const ChatPanel = ({
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
+    const [selectedImage, setSelectedImage] = useState<File | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
     const processedContextRef = useRef<Set<string>>(new Set());
 
     const dispatch = useDispatch<AppDispatch>();
@@ -345,7 +350,7 @@ const ChatPanel = ({
         }
     };
 
-    const handleSendMessage = async (message: string) => {
+    const handleSendMessage = async (message: string, imageFile?: File) => {
         if (!message.trim()) return;
 
         const userMessage: ChatMessage = {
@@ -364,6 +369,7 @@ const ChatPanel = ({
                     compositionId,
                     sections: Array.from(selectedSections),
                     userInstruction: message.trim(),
+                    imageFile: imageFile ?? selectedImage ?? undefined,
                 })).unwrap();
 
                 setMessages(prev => [...prev, {
@@ -376,6 +382,7 @@ const ChatPanel = ({
 
                 onRefineComplete?.(Array.from(selectedSections));
                 setSelectedSections(new Set());
+                setSelectedImage(null);
 
                 if (resolvedProjectId) dispatch(fetchVersions(resolvedProjectId));
             } catch (err: any) {
@@ -590,11 +597,46 @@ const ChatPanel = ({
             </div>
 
             {/* Input */}
+            {/* Input */}
             <div className="p-sm sm:p-md border-t border-border-default flex-shrink-0">
+                {selectedImage && (
+                    <div className="flex items-center gap-xs px-sm py-xs bg-accent-subtle border border-accent-default rounded-lg text-para-xs text-accent-default mb-xs">
+                        <FiPaperclip className="text-[10px] flex-shrink-0" />
+                        <span className="truncate">{selectedImage.name}</span>
+                        <button
+                            type="button"
+                            onClick={() => setSelectedImage(null)}
+                            className="ml-auto flex-shrink-0 hover:text-text-primary transition-colors"
+                        >
+                            <FaTimes className="text-[10px]" />
+                        </button>
+                    </div>
+                )}
                 <form
-                    onSubmit={(e) => { e.preventDefault(); handleSendMessage(inputValue); }}
+                    onSubmit={(e) => { e.preventDefault(); handleSendMessage(inputValue, selectedImage ?? undefined); }}
                     className="flex gap-sm"
                 >
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
+                        className="hidden"
+                        onChange={(e) => setSelectedImage(e.target.files?.[0] ?? null)}
+                    />
+                    <motion.button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isRefining || isPreviewingHistory}
+                        whileHover={!isRefining && !isPreviewingHistory ? { scale: 1.05 } : {}}
+                        whileTap={!isRefining && !isPreviewingHistory ? { scale: 0.95 } : {}}
+                        className={`p-sm rounded-lg border transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 ${selectedImage
+                            ? 'bg-accent-subtle border-accent-default text-accent-default'
+                            : 'bg-background-secondary border-border-default text-text-secondary hover:border-accent-default hover:text-text-primary'
+                            }`}
+                        title={selectedImage ? selectedImage.name : 'Attach image'}
+                    >
+                        <FiPaperclip className="text-icon-sm" />
+                    </motion.button>
                     <input
                         type="text"
                         value={inputValue}

@@ -20,7 +20,7 @@ export interface FooterTokens {
   'eyebrow-scale': string;
   'label-scale': string;
   'meta-scale': string;
-  'overlay-text': string;
+'overlay-text'?: string;
 
 }
 

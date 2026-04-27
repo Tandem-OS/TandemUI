@@ -43,21 +43,18 @@ import {
 import SuccessAnimation from '@/components/animations-components/SuccessAnimation';
 import {
   fetchRoundCompleted,
-  fetchRoundCompletedData,
   saveRoundCompleted,
   swiperComponentData,
   swiperData,
   swiperKingOfHillMatchesData,
   swiperKingOfHillSessionData,
   getCanonicalComponents,
-  // TANDEM_CANONICAL_PROJECT_ID,      
   type CanonicalComponent,
 } from '@/lib/requests/SwiperRequest';
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import Modal from '@/common-components/Modal';
 import { useNavigate } from 'react-router-dom';
 import TransitionMoment from './components/TransitionMoment';
-
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
@@ -86,7 +83,6 @@ const animations: { [key: string]: Variants | any } = {
   button: { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 } }
 };
 
-// NEW: Maps canonical backend shape → ComponentPreview shape the swiper expects
 const mapCanonicalToPreview = (component: CanonicalComponent): ComponentPreview => ({
   id: component.id,
   component_id: component.component_id,
@@ -109,7 +105,7 @@ const mapCanonicalToPreview = (component: CanonicalComponent): ComponentPreview 
   tokens: typeof component.tokens === 'string'
     ? JSON.parse(component.tokens)
     : component.tokens ?? {},
-})
+});
 
 const normalizeLayout = (category: string, layout: string): string => {
   const fallbacks: Record<string, string> = {
@@ -123,8 +119,6 @@ const normalizeLayout = (category: string, layout: string): string => {
     contact: 'split_form_grid',
     timeline: 'vertical_editorial',
     footer: 'inline_minimal',
-
-
   };
   const known: Record<string, string[]> = {
     hero: ['stacked', 'centered', 'split', 'immersive', 'minimal', 'video_bg'],
@@ -137,8 +131,6 @@ const normalizeLayout = (category: string, layout: string): string => {
     contact: ['split_form_grid', 'booking_profile_split', 'full_page_split', 'form_editorial_split'],
     timeline: ['vertical_editorial', 'alternating_media'],
     footer: ['inline_minimal', 'split_expanded', 'multi_column', 'info_links_bar'],
-
-
   };
   console.log('[normalizeLayout] called with:', { category, layout });
   const cat = category.toLowerCase();
@@ -227,13 +219,11 @@ const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetr
 );
 
 const Swiper: React.FC = () => {
-  const [isSummaryReady, setIsSummaryReady] = useState(false)
+  const [isSummaryReady, setIsSummaryReady] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
   const [roundCompleted, setRoundCompleted] = useState(false);
-
-
   const [showTransition, setShowTransition] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
@@ -252,9 +242,7 @@ const Swiper: React.FC = () => {
     isInitialLoading,
     loadingError,
     kingOfHill,
-    // isKingOfHillPending
   } = useSelector((state: RootState) => state.swiper);
-
 
   const currentRoundData = roundsData[currentRound];
   const allRoundsComplete = !currentRoundData || currentRoundData.completed;
@@ -264,14 +252,12 @@ const Swiper: React.FC = () => {
     : 0;
   const isAnyModalOpen = showExitModal || showPreviewModal || shouldAskForPreview;
 
-  // CHANGED: loadData now fetches real canonical data from backend
   const loadData = useCallback(async () => {
     try {
       dispatch(startLoading());
       setKingOfHillSessions([]);
 
       const data = await getCanonicalComponents();
-
       const componentsMap = data ?? {};
       const flatComponents: ComponentPreview[] = [
         ...(componentsMap['hero'] ?? []),
@@ -284,8 +270,6 @@ const Swiper: React.FC = () => {
         ...(componentsMap['contact'] ?? []),
         ...(componentsMap['timeline'] ?? []),
         ...(componentsMap['footer'] ?? []),
-
-
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
 
       if (!flatComponents.length) {
@@ -294,7 +278,6 @@ const Swiper: React.FC = () => {
       }
 
       dispatch(loadDataSuccess(flatComponents));
-
     } catch (error) {
       dispatch(loadDataFailure(error instanceof Error ? error.message : 'Failed to load content'));
     }
@@ -315,91 +298,14 @@ const Swiper: React.FC = () => {
       try {
         const statusResult = await fetchRoundCompleted();
         if (!statusResult.data.round_completed) return;
-        const summaryResult = await fetchRoundCompletedData();
-        const data = summaryResult.data.data;
-        const { swipes, king_of_hill_sessions, king_of_hill_matches, components } = data;
-
-        const componentsMap = components.reduce((acc: any, c: any) => {
-          acc[c.component_id] = c;
-          return acc;
-        }, {});
-
-        const maxRound = Math.max(...king_of_hill_sessions.map((s: any) => s.round_number ?? 0));
-        const currentSessionSessions = king_of_hill_sessions.filter(
-          (s: any) => s.round_number === maxRound || king_of_hill_sessions.length <= 4
-        );
-
-        const roundsDataPrepopulated = currentSessionSessions.map((session: any, sessionIndex: number) => {
-          const sessionMatches = king_of_hill_matches
-            .filter((m: any) => m.session_id === session.id)
-            .map((m: any, matchIndex: number) => ({
-              id: `${session.id}-match-${matchIndex}-${Math.random()}`,
-              challenger_id: m.challenger_id,
-              defender_id: m.defender_id,
-              winner_id: m.winner_id,
-              match_duration_ms: m.match_duration_ms,
-              behavioral_signals: { ...m.behavioral_signals, match_number: matchIndex + 1 },
-              match_number: matchIndex + 1
-            }));
-
-          const sessionComponentIds = Array.from(
-            new Set(sessionMatches.flatMap((m: any) => [m.challenger_id, m.defender_id]))
-          );
-
-          const sessionComponents = sessionComponentIds
-            .map((id: any, compIndex) => ({
-              ...componentsMap[id],
-              key: `${session.id}-component-${id}-${compIndex}-${Math.random()}`
-            }))
-            .filter(Boolean);
-
-          return {
-            key: `round-${session.id}-${sessionIndex}-${Math.random()}`,
-            round_number: session.round_number,
-            category: session.category,
-            components: sessionComponents,
-            matches: sessionMatches,
-            final_winner_id: sessionMatches.length ? sessionMatches[sessionMatches.length - 1].winner_id : null,
-            session_duration_ms: session.completed_at - session.started_at,
-            started_at: session.started_at,
-            completed_at: session.completed_at
-          };
-        });
-
-        const swipesWithComponents = swipes.map((s: any, swipeIndex: number) => ({
-          ...s,
-          key: `swipe-${s.id || swipeIndex}-${Math.random()}`,
-          component: componentsMap[s.component_id]
-            ? { ...componentsMap[s.component_id], key: `swipe-${s.id || swipeIndex}-${s.component_id}-${Math.random()}` }
-            : null
-        }));
-
-        swipesWithComponents.forEach((s: any) => {
-          s.choices.forEach((choice: any) => {
-            dispatch(addUserChoice({
-              choice: {
-                component_id: choice.component_id,
-                category: choice.category,
-                vibe: choice.vibe,
-                action: choice.action,
-                timestamp: Date.now(),
-                behavioral_signals: choice.behavioral_signals || {},
-              },
-              isAnyModalOpen: false
-            }));
-          });
-        });
-
-        setKingOfHillSessions(roundsDataPrepopulated);
-        setRoundCompleted(true);
-        setIsSummaryReady(true)
+        navigate('/dashboard/client/scraper');
       } catch (err) {
         console.error("Failed to prepopulate swiper data:", err);
       }
     };
-
     prepopulateFromBackend();
   }, [dispatch]);
+
   useEffect(() => {
     if (isInitialLoading) return;
     const raw = sessionStorage.getItem(KOH_SNAP_KEY);
@@ -413,6 +319,7 @@ const Swiper: React.FC = () => {
       sessionStorage.removeItem(KOH_SNAP_KEY);
     }
   }, [isInitialLoading]);
+
   const handleRetry = useCallback(async () => {
     dispatch(setRetrying(true));
     await loadData();
@@ -523,19 +430,16 @@ const Swiper: React.FC = () => {
 
         for (const component of sessionSummary.components) {
           const componentPayload = {
-            // Required — backend 422s if any of these are missing
             component_id: component.component_id,
             project_id: component.project_id,
             client_email: component.client_email,
             designer_email: component.designer_email,
             session_id: sessionId,
             thumbnail_url: component.thumbnail_url || null,
-
-            // Optional
             id: component.id,
             title: component.title ?? undefined,
             description: component.description ?? undefined,
-            category: component.category?.toLowerCase(), // backend stores lowercase
+            category: component.category?.toLowerCase(),
             layout_structure: normalizeLayout(
               component.category ?? '',
               component.layout_structure ?? ''
@@ -560,30 +464,28 @@ const Swiper: React.FC = () => {
         alert("Try again Save unsuccssfull");
         setLoading(false);
         dispatch(endKingOfHill());
-
         if (currentRoundData?.components) {
           dispatch(startKingOfHill(currentRoundData.components));
         }
         saveSuccess = false;
       }
-if (saveSuccess) {
-  setTimeout(() => {
-    dispatch(endKingOfHill());
-    const shouldShowPreview = (snapRound + 1) % 2 === 0 && !snapIsLastRound;
-    if (shouldShowPreview) {
-      dispatch(setShouldAskForPreview(true));
-    } else if (!isLastRound) {
-      dispatch(moveToNextRound());
-      setTimeout(() => dispatch(unlockTransition()), 1000);
-    } else {
-      // Last round KOH complete and saved — now safe to show summary
-      setIsSummaryReady(true);
-    }
-  }, 1000);
-}
+
+      if (saveSuccess) {
+        setTimeout(() => {
+          dispatch(endKingOfHill());
+          const shouldShowPreview = (snapRound + 1) % 2 === 0 && !snapIsLastRound;
+          if (shouldShowPreview) {
+            dispatch(setShouldAskForPreview(true));
+          } else if (!isLastRound) {
+            dispatch(moveToNextRound());
+            setTimeout(() => dispatch(unlockTransition()), 1000);
+          } else {
+            setIsSummaryReady(true);
+          }
+        }, 1000);
+      }
     }
   }, [dispatch, kingOfHill, currentRound, currentRoundData, isLastRound]);
-
 
   useEffect(() => {
     if (showRoundCompletion && !kingOfHill.isActive) {
@@ -625,11 +527,6 @@ if (saveSuccess) {
             catch (err) { console.error("❌ Failed to mark round completed:", err); }
           }
 
-          // ── KOH Gate (Dylan rule — locked March 3) 
-          // liked >= 2  → KOH fires with liked components only
-          // liked === 1 → auto-winner, create session + POST /component directly
-          // liked === 0 → no preference, advance with no /component call
-
           const likedComponentIds = new Set(
             roundChoices
               .filter(c => c.action === "like" || c.action === "super-like")
@@ -653,16 +550,12 @@ if (saveSuccess) {
               dispatch(startKingOfHill(likedComponents));
 
             } else if (likedComponents.length === 1) {
-              // ── Auto-winner 
-              // 1 liked — no KOH UI. Create minimal session → get session_id → POST /component.
               const winner = likedComponents[0];
               try {
                 const sessionRes = await swiperKingOfHillSessionData({
                   round_number: currentRound + 1,
                   category: currentRoundData?.category ?? "",
                   final_winner_id: winner.component_id,
-                  // challenger_id:       winner.component_id,
-                  // defender_id:         null,
                   session_duration_ms: 0,
                   started_at: Date.now(),
                   completed_at: Date.now(),
@@ -688,10 +581,10 @@ if (saveSuccess) {
                   tags: winner.tags,
                   vibe: winner.vibe,
                 });
-
               } catch (err) {
                 console.error("❌ Failed to post auto-winner component:", err);
               }
+
               const autoSession: KingOfHillSession = {
                 round_number: currentRound + 1,
                 category: currentRoundData?.category ?? '',
@@ -701,7 +594,7 @@ if (saveSuccess) {
                 session_duration_ms: 0,
                 started_at: Date.now(),
                 completed_at: Date.now(),
-              }
+              };
               setKingOfHillSessions(prev => [...prev, autoSession]);
               if (!isLastRound) {
                 dispatch(moveToNextRound());
@@ -711,8 +604,6 @@ if (saveSuccess) {
               }
 
             } else {
-              // ── No preference ─────────────────────────────────────────────
-              // 0 liked — advance with no /component call
               if (!isLastRound) {
                 dispatch(moveToNextRound());
                 setTimeout(() => dispatch(unlockTransition()), 1000);
@@ -740,6 +631,7 @@ if (saveSuccess) {
       setKingOfHillSessions([]);
     };
   }, []);
+
   const handleAnimationStart = useCallback(() => dispatch(setAnimating(true)), [dispatch]);
   const handleAnimationComplete = useCallback(() => dispatch(setAnimating(false)), [dispatch]);
   const handleExit = useCallback(() => {
@@ -767,16 +659,12 @@ if (saveSuccess) {
 
   const handleStartOver = useCallback(() => {
     sessionStorage.removeItem(KOH_SNAP_KEY);
-
-
-
-
     dispatch(resetSwiper());
   }, [dispatch]);
-const handleGenerateLayout = useCallback(async () => {
+
+  const handleGenerateLayout = useCallback(async () => {
     navigate(`/dashboard/client/swiper/compose`);
-  
-},[navigate]);
+  }, [navigate]);
 
   const handleTransitionComplete = useCallback(() => {
     setShowTransition(false);
@@ -786,6 +674,7 @@ const handleGenerateLayout = useCallback(async () => {
   const handleRequestGenerate = useCallback(() => {
     setShowTransition(true);
   }, []);
+
   if (isInitialLoading) {
     return (
       <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>

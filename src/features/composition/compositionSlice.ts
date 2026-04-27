@@ -92,7 +92,7 @@ export const submitComposition = createAsyncThunk(
 export const refineComposition = createAsyncThunk(
   'composition/refine',
   async (
-    payload: { compositionId: string; sections: string[]; userInstruction: string },
+    payload: { compositionId: string; sections: string[]; userInstruction: string; imageFile?: File },
     { rejectWithValue }
   ) => {
     try {
@@ -100,6 +100,8 @@ export const refineComposition = createAsyncThunk(
         composition_id: payload.compositionId,
         sections: payload.sections,
         user_instruction: payload.userInstruction,
+        image_file: payload.imageFile,
+
       });
       return {
         compositionId: data.composition_id,
