@@ -223,7 +223,7 @@ const Swiper: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
-  const [roundCompleted, setRoundCompleted] = useState(false);
+  const [roundCompleted] = useState(false);
   const [showTransition, setShowTransition] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);

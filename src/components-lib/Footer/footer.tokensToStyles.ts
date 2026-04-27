@@ -30,6 +30,6 @@ export function tokensToFooterStyles(tokens: FooterTokens): FooterStyles {
     meta:           tokens['meta-scale'],
     action:         tokens['action-style'],
     bottomBar:      tokens['bottom-bar'],
-    overlayText:    tokens['overlay-text'],
+overlayText: tokens['overlay-text'] ?? '',
   };
 }
