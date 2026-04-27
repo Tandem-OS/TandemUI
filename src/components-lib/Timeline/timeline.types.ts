@@ -13,6 +13,10 @@ export interface TimelineTokens {
   'body-scale': string;
   'action-style': string;
   'heading-scale': string;
+  'section-heading-scale': string;
+  'eyebrow-scale':         string;
+  'label-scale':           string;
+  'meta-scale':            string;
 }
 
 // ─── Shared

@@ -26,15 +26,15 @@ export function TestimonialsVideoGridShell({ layoutStructure, slot, styles }: Te
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
-                    <span className="text-gray-900 text-lg ml-1">▶</span>
+                    <span className="ml-1">▶</span>
                   </div>
                 </div>
               </div>
 
               <div className="p-5">
-                <h3 className={`${styles.heading} text-base mb-2`}>{item.title}</h3>
-                <p className={`${styles.body} text-sm mb-4`}>{item.description}</p>
-                <p className={`${styles.subheading} text-xs font-medium`}>
+                <h3 className={`${styles.heading} mb-2`}>{item.title}</h3>
+                <p className={`${styles.body} mb-4`}>{item.description}</p>
+                <p className={styles.mutedBody}>
                   {formatSpeakers(item.speakers, item.speaker_label)}
                 </p>
               </div>

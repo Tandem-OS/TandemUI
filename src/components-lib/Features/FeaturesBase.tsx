@@ -12,9 +12,7 @@ interface FeaturesBaseProps {
   colors: FeaturesColors
 }
 
-// ── Variant config layer — structural defaults tied to each layout pattern
 const variantConfig: Record<string, {
-  gridCols: string
   gridGap: string
   cardPadding: string
   itemMarginBottom: string
@@ -24,7 +22,6 @@ const variantConfig: Record<string, {
   cardHeadingSize: string
 }> = {
   gallery: {
-    gridCols:           '1fr 1fr',
     gridGap:            '60px',
     cardPadding:        '0px',
     itemMarginBottom:   '16px',
@@ -34,7 +31,6 @@ const variantConfig: Record<string, {
     cardHeadingSize:    'inherit',
   },
   stats: {
-    gridCols:           'repeat(auto-fit, minmax(240px, 1fr))',
     gridGap:            '24px',
     cardPadding:        '28px',
     itemMarginBottom:   '0px',
@@ -45,7 +41,6 @@ const variantConfig: Record<string, {
   },
 }
 
-// ── Action variant styles — canonical shape from FeaturesAction.variant
 const actionVariantStyles: Record<string, React.CSSProperties> = {
   primary:   { fontWeight: 600 },
   secondary: { fontWeight: 400 },
@@ -78,6 +73,8 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
     )
   }
 
+  const descriptionColor = colors.description_color ?? colors.text_color
+
   const sectionStyle: React.CSSProperties = {
     backgroundColor: colors.background,
     color:           colors.text_color,
@@ -93,9 +90,8 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   }
 
   const subheadingStyle: React.CSSProperties = {
-    color:   colors.text_color,
-    opacity: 0.7,
-    margin:  '0 0 40px 0',
+    color:  descriptionColor,
+    margin: '0 0 40px 0',
   }
 
   const cardStyle: React.CSSProperties = {
@@ -127,7 +123,7 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   }
 
   const Actions = () => (
-    <div style={{ display: 'flex', gap: cfg.actionsGap, marginTop: cfg.actionsMarginTop }}>
+    <div className="flex flex-wrap" style={{ gap: cfg.actionsGap, marginTop: cfg.actionsMarginTop }}>
       {features_primary_action   && renderAction(features_primary_action)}
       {features_secondary_action && renderAction(features_secondary_action)}
     </div>
@@ -136,21 +132,22 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   if (features_variant === 'gallery') {
     return (
       <section style={sectionStyle}>
-        <div style={{ display: 'grid', gridTemplateColumns: cfg.gridCols, gap: cfg.gridGap, alignItems: 'center' }}>
+        {/* mobile: stack, md+: two columns */}
+        <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: cfg.gridGap, alignItems: 'center' }}>
           <div>
             <SectionHeader />
             {features_items.map((item, i) => (
               <div key={i} style={{ marginBottom: cfg.itemMarginBottom }}>
                 <h3 style={{ color: colors.text_color }}>{item.title}</h3>
                 {item.description && (
-                  <p style={{ color: colors.text_color, opacity: 0.7 }}>{item.description}</p>
+                  <p style={{ color: descriptionColor }}>{item.description}</p>
                 )}
               </div>
             ))}
             <Actions />
           </div>
           {features_media && (
-            <div>
+            <div className="order-first md:order-last">
               <img
                 src={features_media}
                 alt={features_heading ?? 'Feature media'}
@@ -166,21 +163,22 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   if (features_variant === 'stats') {
     return (
       <section style={sectionStyle}>
-        <div style={{ textAlign: 'center' }}>
+        <div className="text-center">
           <SectionHeader />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: cfg.gridCols, gap: cfg.gridGap }}>
+        {/* mobile: 1 col, tablet: 2 cols, desktop: auto-fit via 4 cols */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap: cfg.gridGap }}>
           {features_items.map((item, i) => (
             <div key={i} style={cardStyle}>
               <h3 style={{ ...headingStyle, fontSize: cfg.cardHeadingSize }}>{item.title}</h3>
               {item.description && (
-                <p style={{ color: colors.text_color, opacity: 0.7, margin: 0 }}>{item.description}</p>
+                <p style={{ color: descriptionColor, margin: 0 }}>{item.description}</p>
               )}
             </div>
           ))}
         </div>
         {(features_primary_action || features_secondary_action) && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: cfg.actionsMarginTop }}>
+          <div className="flex justify-center" style={{ marginTop: cfg.actionsMarginTop }}>
             <Actions />
           </div>
         )}
@@ -192,4 +190,4 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   return null
 }
 
-export default FeaturesBase 
+export default FeaturesBase

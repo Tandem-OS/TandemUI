@@ -16,6 +16,10 @@ export interface ContactTokens {
   'action-style': string;
   'form-surface': string;
   'heading-scale': string;
+  'section-heading-scale': string;
+  'eyebrow-scale':         string;
+  'label-scale':           string;
+  'meta-scale':            string;
 }
 
 // ─── Shared
@@ -115,10 +119,10 @@ export type ContactProps =
   | ContactFormEditorialProps;
 
 // ─── Shell props 
-export type ContactSplitFormShellProps       = ContactSplitFormProps       & { styles: ContactStyles };
-export type ContactBookingProfileShellProps  = ContactBookingProfileProps  & { styles: ContactStyles };
-export type ContactFullPageShellProps        = ContactFullPageProps        & { styles: ContactStyles };
-export type ContactFormEditorialShellProps   = ContactFormEditorialProps   & { styles: ContactStyles };
+export type ContactSplitFormShellProps = ContactSplitFormProps & { styles: ContactStyles };
+export type ContactBookingProfileShellProps = ContactBookingProfileProps & { styles: ContactStyles };
+export type ContactFullPageShellProps = ContactFullPageProps & { styles: ContactStyles };
+export type ContactFormEditorialShellProps = ContactFormEditorialProps & { styles: ContactStyles };
 
 export type ContactShellProps =
   | ContactSplitFormShellProps

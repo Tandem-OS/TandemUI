@@ -17,6 +17,10 @@ export interface CTATokens {
   'action-style': string;
   'heading-scale': string;
   'footer-background': string;
+  'section-heading-scale': string;
+  'eyebrow-scale':         string;
+  'label-scale':           string;
+  'meta-scale':            string;
 }
 
 // ─── Shared 

@@ -1,5 +1,5 @@
-import React from 'react'
-import { useSelector } from 'react-redux'
+import React, { useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import {
   selectActiveOrPreviewSchema,
 } from '@/features/composition/compositionSelectors'
@@ -13,13 +13,24 @@ import { CTARenderer } from '@/pages/Renderer/CTARenderer'
 import { ContactRenderer } from '@/pages/Renderer/ContactRenderer'
 import { TimelineRenderer } from '@/pages/Renderer/TimelineRenderer'
 import { FooterRenderer } from '@/pages/Renderer/FooterRenderer'
+import type { AppDispatch } from '@/store'
+import { pollForThumbnails } from '@/features/composition/compositionSlice'
 import type { NavComposeSection } from '@/components-lib/Nav/nav.types'
 import type { FeaturesComposeSection } from '@/components-lib/Features/features.types'
 import type { ComposeSection, HeroComposeSection, PricingComposeSection } from '@/pages/Renderer/CompositionType'
 
-const CompositionRenderer: React.FC = () => {
-  const activeSchema = useSelector(selectActiveOrPreviewSchema)
+interface Props {
+  compositionId?: string | null
+}
 
+const CompositionRenderer: React.FC<Props> = ({ compositionId }) => {
+  const dispatch = useDispatch<AppDispatch>()
+  const activeSchema = useSelector(selectActiveOrPreviewSchema)
+  useEffect(() => {
+    if (!activeSchema && compositionId) {
+      dispatch(pollForThumbnails({ compositionId }))
+    }
+  }, [activeSchema, compositionId, dispatch])
   if (!activeSchema) return (
     <div className="min-h-screen flex items-center justify-center bg-background-primary">
       <div className="w-10 h-10 border-4 border-border-muted border-t-accent-default rounded-full animate-spin" />

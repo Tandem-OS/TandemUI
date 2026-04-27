@@ -29,12 +29,12 @@ export function TimelineAlternatingMediaShell({ slot, styles }: TimelineAlternat
                 {/* Text side */}
                 <div className="w-full md:w-1/2 flex flex-col gap-4">
                   {item.eyebrow && (
-                    <p className={`${styles.body} opacity-50 uppercase tracking-widest text-sm`}>
+                    <p className={`${styles.mutedBody} uppercase tracking-widest`}>
                       {item.eyebrow}
                     </p>
                   )}
                   <h3 className={styles.heading}>{item.title}</h3>
-                  <p className={`${styles.subheading} opacity-80 leading-relaxed`}>
+                  <p className={styles.body}>
                     {item.description}
                   </p>
                 </div>

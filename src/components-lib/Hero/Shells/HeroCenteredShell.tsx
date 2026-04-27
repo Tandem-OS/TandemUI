@@ -16,17 +16,18 @@ const HeroCenteredShell: React.FC<HeroShellProps> = ({ props, styles }) => {
   const Wrap     = resolveWrap(animated)
 
   const headingStyle: React.CSSProperties = {
-    fontSize:   styles.heading_size,
-    fontWeight: styles.heading_weight,
-    color:      styles.heading_color,
-    margin:     0,
-    wordBreak:  'break-word',
+    fontSize:     `clamp(2rem, 8vw, ${styles.heading_size})`,
+    fontWeight:   styles.heading_weight,
+    color:        styles.heading_color,
+    margin:       0,
+    wordBreak:    'break-word',
+    overflowWrap: 'break-word',
+    hyphens:      'auto',
   }
 
   const subheadingStyle: React.CSSProperties = {
-    color:   styles.subheading_color,
-    opacity: 0.8,
-    margin:  0,
+    color:  styles.subheading_color,
+    margin: 0,
   }
 
   return (
@@ -44,7 +45,6 @@ const HeroCenteredShell: React.FC<HeroShellProps> = ({ props, styles }) => {
         backgroundColor: styles.background,
       }}
     >
-      {/* Background image */}
       {hero_media && (
         <div
           aria-hidden="true"
@@ -60,7 +60,6 @@ const HeroCenteredShell: React.FC<HeroShellProps> = ({ props, styles }) => {
         />
       )}
 
-      {/* Content — centered */}
       <div style={{
         position:       'relative',
         zIndex:         10,

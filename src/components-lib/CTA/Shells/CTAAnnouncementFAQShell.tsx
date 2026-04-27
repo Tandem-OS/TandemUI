@@ -25,21 +25,23 @@ export function CTAAnnouncementFAQShell({ layoutStructure, slot, styles }: CTAAn
   return (
     <div className="w-full">
       {/* Announcement Panel */}
-      <div className={`${styles.wrapper} px-6 py-16 text-center`}>
+      <div
+        className="px-6 py-16 text-center"
+        style={{ backgroundColor: styles.wrapperBg }}      >
         <div className="max-w-3xl mx-auto">
-          <p className={`${styles.footerText} text-sm font-medium mb-4 uppercase tracking-widest`}>
+          <p className={`${styles.mutedBody} mb-4 uppercase tracking-widest`}>
             {slot.eyebrow}
           </p>
-          <h2 className={`${styles.heading} mb-6 leading-tight`}>
+          <h2 className={`${styles.heading} mb-6`}>
             {slot.section_heading}
           </h2>
           <p className={`${styles.body} mb-10`}>{slot.section_subheading}</p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className={`${styles.action} px-8 py-3`}>
+            <button className={styles.action}>
               {slot.primary_action}
             </button>
-            <button className="px-8 py-3 border border-gray-600 text-white font-semibold rounded-lg hover:border-gray-400 transition-colors">
+            <button className={styles.action}>
               {slot.secondary_action}
             </button>
           </div>
@@ -55,23 +57,23 @@ export function CTAAnnouncementFAQShell({ layoutStructure, slot, styles }: CTAAn
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-0">
             {slot.faq_columns.map((col, ci) => (
-              <div key={ci} className="divide-y divide-gray-100">
+              <div key={ci}>
                 {col.items.map((item, ii) => {
                   const key = `${ci}-${ii}`;
                   const isOpen = expandedItems[key];
                   return (
-                    <div key={ii} className="py-4">
+                    <div key={ii} className="py-4 border-b">
                       <button
                         onClick={() => toggleItem(key)}
                         className="w-full flex items-center justify-between text-left gap-4"
                       >
-                        <span className={`${styles.body} text-sm font-medium`}>{item.question}</span>
-                        <span className="text-gray-400 text-lg flex-shrink-0">
+                        <span className={styles.body}>{item.question}</span>
+                        <span className={`${styles.mutedBody} flex-shrink-0`}>
                           {isOpen ? '−' : '+'}
                         </span>
                       </button>
                       {isOpen && (
-                        <p className={`${styles.body} mt-3 text-sm leading-relaxed`}>
+                        <p className={`${styles.mutedBody} mt-3`}>
                           {item.answer}
                         </p>
                       )}

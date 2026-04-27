@@ -17,9 +17,9 @@ export function FooterMultiColumnShell({ slot, styles }: FooterMultiColumnShellP
                 alt={slot.logo_text}
                 className="h-8 w-auto object-contain"
               />
-              <span className={`${styles.heading} font-semibold`}>{slot.logo_text}</span>
+              <span className={styles.heading}>{slot.logo_text}</span>
             </div>
-            <p className={`${styles.body} opacity-70 leading-relaxed`}>
+            <p className={styles.mutedBody}>
               {slot.brand_description}
             </p>
           </div>
@@ -27,15 +27,15 @@ export function FooterMultiColumnShell({ slot, styles }: FooterMultiColumnShellP
           <div className="md:col-span-4 grid grid-cols-2 sm:grid-cols-4 gap-8">
             {slot.footer_columns.map((column, index: number) => (
               <div key={index} className="flex flex-col gap-3">
-                <h4 className={`${styles.heading} text-sm font-semibold`}>
+                <h4 className={styles.heading}>
                   {column.heading}
                 </h4>
                 <ul className="flex flex-col gap-2">
                   {column.links.map((link: string, linkIndex: number) => (
                     <li key={linkIndex}>
-                      <a 
+                      <a
                         href="#"
-                        className={`${styles.body} opacity-70 hover:opacity-100 transition-opacity`}
+                        className={`${styles.mutedBody} transition-opacity`}
                       >
                         {link}
                       </a>
@@ -49,10 +49,10 @@ export function FooterMultiColumnShell({ slot, styles }: FooterMultiColumnShellP
         </div>
 
         <div className={`${styles.bottomBar} flex flex-col sm:flex-row items-center justify-between gap-4 py-6`}>
-          <p className={`${styles.body} opacity-60`}>{slot.footer_bottom_text}</p>
-          <a 
+          <p className={styles.mutedBody}>{slot.footer_bottom_text}</p>
+          <a
             href="#"
-            className={`${styles.body} opacity-60 hover:opacity-100 transition-opacity`}
+            className={`${styles.mutedBody} transition-opacity`}
           >
             {slot.footer_bottom_link}
           </a>

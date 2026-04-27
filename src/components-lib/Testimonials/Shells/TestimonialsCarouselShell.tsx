@@ -28,18 +28,18 @@ export function TestimonialsCarouselShell({ layoutStructure, slot, styles }: Tes
 
         <div className="flex justify-center gap-1 mb-6">
           {stars.map((state, i) => (
-            <span key={i} className={`${styles.accent} text-xl`}>
+            <span key={i} className={styles.accent}>
               {state === 'filled' ? '★' : '☆'}
             </span>
           ))}
         </div>
 
-        <blockquote className={`${styles.heading} leading-snug mb-8`}>
+        <blockquote className={`${styles.heading} mb-8`}>
           "{slot.quote}"
         </blockquote>
 
-        <p className={`${styles.heading} text-sm mb-1`}>{authorLine}</p>
-        <p className={`${styles.subheading} text-xs mb-8`}>{slot.author_supporting_text}</p>
+        <p className={`${styles.heading} mb-1`}>{authorLine}</p>
+        <p className={`${styles.subheading} mb-8`}>{slot.author_supporting_text}</p>
 
         <div className="flex items-center gap-6">
           <button
@@ -72,7 +72,7 @@ export function TestimonialsCarouselShell({ layoutStructure, slot, styles }: Tes
           </button>
         </div>
 
-        <p className={`${styles.subheading} text-xs mt-4`}>
+        <p className={`${styles.subheading} mt-4`}>
           {activeIndex + 1} / {total}
         </p>
 

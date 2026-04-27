@@ -10,7 +10,7 @@ import {
 import type { PageSchema } from '@/lib/requests/CompositionRequest';
 
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types 
 
 export interface Thumbnails {
   desktop: string;
@@ -53,14 +53,14 @@ export interface CompositionState {
   // NOTE: html_snapshot intentionally excluded — large string, per SMA spec
 }
 
-// ─── Polling Config ───────────────────────────────────────────────────────────
+// ─── Polling Config 
 
 const POLL_INTERVAL_MS = 3000;
 const MAX_POLL_ATTEMPTS = 20;
 let activePollPromise: { abort: () => void } | null = null;
 
 
-// ─── Async Thunks ─────────────────────────────────────────────────────────────
+// ─── Async Thunks 
 
 export const submitComposition = createAsyncThunk(
   'composition/submit',
@@ -79,6 +79,7 @@ export const submitComposition = createAsyncThunk(
 
       return {
         compositionId: data.composition_id,
+        pageSchema: data.page_schema,
       };
     } catch (err: any) {
       return rejectWithValue(
@@ -188,9 +189,10 @@ export const pollForThumbnails = createAsyncThunk(
       if (signal.aborted) return rejectWithValue('Polling cancelled');
 
       try {
+
         const data = await getCompose(payload.compositionId);
-        if (data.thumbnails !== null) {
-          return { thumbnails: data.thumbnails as Thumbnails, pageSchema: data.page_schema };
+        if (data.page_schema) {
+          return { thumbnails: data.thumbnails ?? null, pageSchema: data.page_schema };
         }
       } catch (err: any) {
         return rejectWithValue(
@@ -203,7 +205,7 @@ export const pollForThumbnails = createAsyncThunk(
   }
 );
 
-// ─── Slice ────────────────────────────────────────────────────────────────────
+// ─── Slice 
 
 const initialState: CompositionState = {
   compositionId: null,
@@ -214,13 +216,13 @@ const initialState: CompositionState = {
   thumbnailStatus: 'idle',
   thumbnailError: null,
   isRefining: false,
-  versions: {                    // ← add from here
+  versions: {
     versions: [],
     currentVersion: null,
     status: 'idle',
     restoreStatus: 'idle',
   },
-  lastUpdatedCategories: [],         // ← added
+  lastUpdatedCategories: [],
 };
 
 const compositionSlice = createSlice({
@@ -263,6 +265,10 @@ const compositionSlice = createSlice({
       })
       .addCase(submitComposition.fulfilled, (state, action) => {
         state.compositionId = action.payload.compositionId;
+        if (action.payload.pageSchema) {
+          state.pageSchema = action.payload.pageSchema;
+        }
+        state.lastUpdatedCategories = [];
       })
       .addCase(submitComposition.rejected, (state, action) => {
         state.thumbnailStatus = 'error';

@@ -20,63 +20,24 @@ const FAQContainedShell: React.FC<FAQShellProps> = ({ props, styles }) => {
     <section
       data-testid="faq-section"
       aria-label="Frequently asked questions"
-      style={{
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: styles.background,
-        padding: styles.padding,
-      }}
+      className={`${styles.wrapper} w-full flex flex-col`}
     >
-      <div
-        style={{
-          maxWidth: '48rem',
-          width: '100%',
-          margin: '0 auto',
-          backgroundColor: styles.panel_background,
-          padding: styles.panel_padding,
-          borderRadius: styles.panel_radius,
-          border: `1px solid ${styles.panel_border}`,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: styles.item_gap,
-        }}
-      >
+<div className={`${styles.surface} max-w-3xl w-full mx-auto flex flex-col rounded-xl border p-4 md:p-8`}>
+
         {section_tag && (
-          <span
-            style={{
-              fontSize: '0.75rem',
-              fontWeight: 500,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: styles.tag_color,
-            }}
-          >
+          <span className={`${styles.mutedBody} uppercase tracking-widest mb-2`}>
             {section_tag}
           </span>
         )}
 
         {section_heading && (
-          <h2
-            style={{
-              fontSize: styles.heading_size,
-              fontWeight: styles.heading_weight,
-              color: styles.text_color,
-              marginBottom: '0.5rem',
-            }}
-          >
+          <h2 className={`${styles.heading} mb-2`}>
             {section_heading}
           </h2>
         )}
 
         {supporting_text && (
-          <p
-            style={{
-              fontSize: styles.answer_size,
-              color: styles.supporting_text_color,
-              marginBottom: '1.5rem',
-            }}
-          >
+          <p className={`${styles.mutedBody} mb-6`}>
             {supporting_text}
           </p>
         )}
@@ -87,30 +48,14 @@ const FAQContainedShell: React.FC<FAQShellProps> = ({ props, styles }) => {
               open={item.is_expanded === true}
               data-testid="faq-item"
               aria-label={`FAQ item ${index + 1}`}
-              style={{
-                borderBottom: `1px solid ${styles.border_color}`,
-                paddingBottom: '0.75rem',
-              }}
+              className={`${styles.divider} border-b pb-3`}
             >
-              <summary
-                style={{
-                  cursor: 'pointer',
-                  fontSize: styles.question_size,
-                  color: styles.text_color,
-                }}
-              >
+              <summary className={`${styles.body} cursor-pointer`}>
                 {item.question}
               </summary>
 
               {item.answer && (
-                <p
-                  style={{
-                    marginTop: '0.5rem',
-                    fontSize: styles.answer_size,
-                    color: styles.text_color,
-                    opacity: 0.85,
-                  }}
-                >
+                <p className={`${styles.mutedBody} mt-2`}>
                   {item.answer}
                 </p>
               )}
@@ -118,19 +63,11 @@ const FAQContainedShell: React.FC<FAQShellProps> = ({ props, styles }) => {
           </Wrap>
         ))}
 
-        {bottom_support_link && bottom_support_text ? (
-
-          <a href={bottom_support_link}
-            style={{
-              marginTop: '1.5rem',
-              fontSize: styles.answer_size,
-              color: styles.link_color,
-              textDecoration: 'underline',
-            }}
-          >
+        {bottom_support_link && bottom_support_text && (
+          <a href={bottom_support_link} className={`${styles.action} mt-6`}>
             {bottom_support_text}
           </a>
-        ) : null}
+        )}
 
       </div>
     </section>

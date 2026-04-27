@@ -25,15 +25,11 @@ export function CTAHeroFooterShell({ layoutStructure, slot, styles }: CTAHeroFoo
               alt={slot.logo_text}
               className="w-10 h-10 rounded-full object-cover"
             />
-            <span className="text-white text-xl font-bold">{slot.logo_text}</span>
+            <span className={styles.heading}>{slot.logo_text}</span>
           </div>
-          <h2 className={`${styles.heading} mb-4 leading-tight`}>
-            {slot.hero_headline}
-          </h2>
+          <h2 className={`${styles.heading} mb-4`}>{slot.hero_headline}</h2>
           <p className={`${styles.body} mb-8`}>{slot.hero_subheading}</p>
-          <button className={`${styles.action} px-8 py-3`}>
-            {slot.primary_action}
-          </button>
+          <button className={styles.action}>{slot.primary_action}</button>
         </div>
       </div>
 
@@ -41,52 +37,43 @@ export function CTAHeroFooterShell({ layoutStructure, slot, styles }: CTAHeroFoo
       <div className={`${styles.footerWrapper} px-6 py-12`}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start justify-between gap-8">
           <div className="max-w-sm">
-            <h3 className={`${styles.heading} text-xl mb-2`}>{slot.newsletter_heading}</h3>
-            <p className={`${styles.footerText} text-sm`}>{slot.newsletter_text}</p>
+            <h3 className={`${styles.heading} mb-2`}>{slot.newsletter_heading}</h3>
+            <p className={styles.footerText}>{slot.newsletter_text}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <input
               type="email"
               placeholder={slot.newsletter_placeholder}
               aria-label={slot.newsletter_label}
-              className="px-4 py-2 rounded-lg bg-gray-800 text-white placeholder-gray-500 border border-gray-700 focus:outline-none focus:border-gray-500 w-full sm:w-72"
+              className={`${styles.surface} px-4 py-2 rounded-lg w-full sm:w-72`}
             />
-            <button className={`${styles.action} px-6 py-2 whitespace-nowrap`}>
-              {slot.newsletter_button}
-            </button>
+            <button className={styles.action}>{slot.newsletter_button}</button>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className={`${styles.footerWrapper} border-t border-gray-800 px-6 py-12`}>
+      <div className={`${styles.footerWrapper} border-t px-6 py-12`}>
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-10">
             {slot.footer_columns.map((col, i) => (
               <div key={i}>
-                <h4 className={`${styles.heading} font-semibold mb-4`}>{col.heading}</h4>
+                <h4 className={`${styles.heading} mb-4`}>{col.heading}</h4>
                 <ul className="space-y-2">
                   {col.links.map((link, j) => (
                     <li key={j}>
-                      <a href="#" className={`${styles.footerText} text-sm hover:text-white transition-colors`}>
-                        {link}
-                      </a>
+                      <a href="#" className={styles.mutedBody}>{link}</a>
                     </li>
                   ))}
                 </ul>
               </div>
             ))}
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-gray-800">
-            <p className={`${styles.footerText} text-sm`}>{slot.footer_bottom_text}</p>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t">
+            <p className={styles.footerText}>{slot.footer_bottom_text}</p>
             <div className="flex items-center gap-3">
               {slot.social_icons.map((icon, i) => (
-                <img
-                  key={i}
-                  src={icon}
-                  alt={`Social icon ${i + 1}`}
-                  className="w-8 h-8 rounded-full object-cover opacity-70 hover:opacity-100 transition-opacity"
-                />
+                <img key={i} src={icon} alt={`Social icon ${i + 1}`} className="w-8 h-8 rounded-full object-cover" />
               ))}
             </div>
           </div>

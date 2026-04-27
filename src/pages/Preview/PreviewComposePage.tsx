@@ -2,6 +2,9 @@ import { useEffect, useState } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import CompositionRenderer from "@/pages/Renderer/CompositionRenderer"
 import { validateToken } from "@/lib/requests/PreviewTokenRequest"
+import { layoutTokens } from "@/design-system/tokens/layout"
+
+const t = layoutTokens.preview
 
 type TokenState = "validating" | "valid" | "invalid" | "expired"
 
@@ -37,16 +40,16 @@ const PreviewComposePage = () => {
 
   if (tokenState === "validating") {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#fff" }}>
-        <span style={{ color: "#999", fontSize: "14px" }}>Loading preview...</span>
+      <div className={t.loadingWrapper}>
+        <span className={t.loadingText}>Loading preview...</span>
       </div>
     )
   }
 
   if (tokenState === "invalid" || tokenState === "expired") {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "#fff" }}>
-        <span style={{ color: "#999", fontSize: "14px" }}>
+      <div className={t.errorWrapper}>
+        <span className={t.errorText}>
           {tokenState === "expired" ? "Preview token expired." : "Invalid preview token."}
         </span>
       </div>
@@ -54,7 +57,7 @@ const PreviewComposePage = () => {
   }
 
   return (
-      <CompositionRenderer />
+  <CompositionRenderer compositionId={compositionId} />
   )
 }
 

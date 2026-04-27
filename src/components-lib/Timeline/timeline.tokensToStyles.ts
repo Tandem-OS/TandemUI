@@ -1,12 +1,14 @@
 import type { TimelineTokens } from './timeline.types';
 
 export interface TimelineStyles {
-  wrapper: string;
-  heading: string;
-  body: string;
-  action: string;
-  surface: string;
-  subheading: string;
+  wrapper:        string;
+  heading:        string;
+  sectionHeading: string;
+  body:           string;
+  mutedBody:      string;
+  eyebrow:        string;
+  label:          string;
+  meta:           string;
 }
 
 export function tokensToTimelineStyles(tokens: TimelineTokens): TimelineStyles {
@@ -15,11 +17,13 @@ export function tokensToTimelineStyles(tokens: TimelineTokens): TimelineStyles {
   }
 
   return {
-    wrapper:    `${tokens.background} ${tokens.spacing}`,
-    heading:    tokens['heading-scale'],
-    body:       `${tokens['text-role']} ${tokens['body-scale']}`,
-    action:     tokens['action-style'],
-    surface:    tokens.surface,
-    subheading: tokens['text-role'],
+    wrapper:        `${tokens.background} ${tokens.spacing}`,
+    heading:        tokens['heading-scale'],
+    sectionHeading: tokens['section-heading-scale'],
+    body:           `${tokens['text-role']} ${tokens['body-scale']}`,
+    mutedBody:      tokens['text-role'],
+    eyebrow:        tokens['eyebrow-scale'],
+    label:          tokens['label-scale'],
+    meta:           tokens['meta-scale'],
   };
 }

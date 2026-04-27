@@ -29,12 +29,15 @@ import Para from '../../../common-components/Para';
 
 interface LayoutSection {
     id: string;
-    section_type: string;
-    layout_structure: string;
-    metadata: {
-        insight: string;
-        intent: string;
-        tone: string;
+    section_type?: string
+    layout_structure?: string;
+    metadata?: {
+        insight?: string;
+        intent?: string;
+        tone?: string;
+        layout_structure?: string;
+        section_type?: string;
+        tags?: string[];
     };
     preview?: string;
 }

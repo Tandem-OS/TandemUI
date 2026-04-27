@@ -222,4 +222,14 @@ export const smoothExpand: Variants = {
         scaleY: 0,
         transformOrigin: 'top'
     }
+    
+};
+/**
+ * Page transition config
+ * Used with pageVariants for route-based animations
+ */
+export const pageTransition: Transition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.3,
 };
