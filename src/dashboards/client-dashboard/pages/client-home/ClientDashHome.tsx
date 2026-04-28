@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import type { RootState } from '@/store';
 import { useSelector } from 'react-redux';
 import { getProjectByClientEmail } from '@/lib/requests/ProjectRequest';
-import { setProjectId } from '@/features/project/projectSlice';
+import { setProjectId, setProjectStatus, clearProjectId, clearProjectStatus } from '@/features/project/projectSlice';
 
 import {
   RiCheckLine,
@@ -36,7 +36,17 @@ interface StatusCardProps {
   onClick?: () => void;
   delay?: number;
 }
-
+const STATUS_PROGRESS: Record<string, number> = {
+  intake: 10,
+  scraping: 20,
+  swiping: 35,
+  embedded: 45,
+  composing: 55,
+  refining: 65,
+  revisions: 75,
+  completed: 90,
+  handoff: 100,
+};
 const StatusCard: React.FC<StatusCardProps> = ({
   title,
   status,
@@ -206,7 +216,6 @@ const ClientDashHome: React.FC = () => {
     // Enable content after DOM settles
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        setTimeout(() => setProgress(65), 800);
       });
     });
 
@@ -238,14 +247,30 @@ const ClientDashHome: React.FC = () => {
 
   const clientName = useSelector((state: RootState) => state.auth.user.name)!;
   const client_email = useSelector((state: RootState) => state.auth.user.email)!;
+  const projectStatus = useSelector((state: RootState) => state.project.status);
 
-  const fetchProject = async () => {
-    const result = await getProjectByClientEmail({ client_email });
-    if (result.status === 200 && result.data.data?.id) {
-      dispatch(setProjectId(result.data.data?.id));
+const fetchProject = async () => {
+  dispatch(clearProjectStatus());
+  setProgress(0);
+  const result = await getProjectByClientEmail({ client_email });
+  if (result.status === 200 && result.data.data?.id) {
+    dispatch(setProjectId(result.data.data.id));
+    const status = result.data.data.status;
+    if (status) {
+      dispatch(setProjectStatus(status));
     }
+  } else {
+    dispatch(clearProjectId());
+    dispatch(clearProjectStatus());
   }
-
+};
+  useEffect(() => {
+    if (projectStatus) {
+      const pct = STATUS_PROGRESS[projectStatus] ?? 0;
+      const timer = setTimeout(() => setProgress(pct), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [projectStatus]);
   useEffect(() => {
     fetchProject()
   }, [])

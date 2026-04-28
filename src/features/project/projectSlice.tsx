@@ -3,10 +3,12 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 
 type ProjectState = {
   projectId: string | null;
+  status: string | null;
 };
 
 const initialState: ProjectState = {
   projectId: null,
+  status: null,
 };
 
 const projectSlice = createSlice({
@@ -19,8 +21,14 @@ const projectSlice = createSlice({
     clearProjectId(state) {
       state.projectId = null;
     },
+    setProjectStatus(state, action: PayloadAction<string>) {
+      state.status = action.payload;
+    },
+    clearProjectStatus(state) {
+      state.status = null;
+    },
   },
 });
 
-export const { setProjectId, clearProjectId } = projectSlice.actions;
+export const { setProjectId, clearProjectId, setProjectStatus, clearProjectStatus } = projectSlice.actions;
 export default projectSlice.reducer;
