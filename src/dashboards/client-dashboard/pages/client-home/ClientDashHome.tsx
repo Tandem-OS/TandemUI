@@ -47,6 +47,7 @@ const STATUS_PROGRESS: Record<string, number> = {
   completed: 90,
   handoff: 100,
 };
+const PIPELINE_ORDER = ['intake', 'scraping', 'swiping', 'embedded', 'composing', 'refining', 'revisions', 'completed', 'handoff'];
 const StatusCard: React.FC<StatusCardProps> = ({
   title,
   status,
@@ -225,21 +226,22 @@ const ClientDashHome: React.FC = () => {
       }
     };
   }, []);
+  const projectStatus = useSelector((state: RootState) => state.project.status);
+const stageIndex = PIPELINE_ORDER.indexOf(projectStatus ?? '');
+const isAtOrBeyond = (stage: string) => stageIndex >= PIPELINE_ORDER.indexOf(stage);
+ const quickActions = [
+  { icon: RiEditLine, label: 'Edit Intake Form', color: 'from-blue-500 to-cyan-500', href: 'intake', disabled: projectStatus !== 'intake' },
+  { icon: RiPaletteLine, label: 'Update Preferences', color: 'from-purple-500 to-pink-500', disabled: !isAtOrBeyond('swiping') },
+  { icon: RiMessage3Line, label: 'Submit Feedback', color: 'from-emerald-500 to-teal-500', disabled: !isAtOrBeyond('refining') },
+  { icon: RiStarLine, label: 'Testimonial', color: 'from-amber-500 to-orange-500', disabled: !isAtOrBeyond('completed') }
+];
 
-  const quickActions = [
-    { icon: RiEditLine, label: 'Edit Intake Form', color: 'from-blue-500 to-cyan-500', href: 'intake' },
-    { icon: RiPaletteLine, label: 'Update Preferences', color: 'from-purple-500 to-pink-500' },
-    { icon: RiMessage3Line, label: 'Submit Feedback', color: 'from-emerald-500 to-teal-500' },
-    { icon: RiStarLine, label: 'Testimonial', color: 'from-amber-500 to-orange-500', disabled: true }
-  ];
-
-  const statusItems = [
-    { title: "Intake Submitted", status: "completed" as const, icon: <RiFileTextLine />, action: "View", route: '/client-dashboard/intake', delay: 0 },
-    { title: "Preferences Swiped", status: "completed" as const, icon: <RiPaletteLine />, action: "View", route: 'swiper', delay: 0.1 },
-    { title: "Feedback Pending", status: "pending" as const, icon: <RiMessage3Line />, action: "Submit", route: '/client-dashboard/feedback', delay: 0.2 },
-    { title: "Design Approval", status: "pending" as const, icon: <RiCheckDoubleLine />, action: "Review", route: '/client-dashboard/approval', delay: 0.3 }
-  ];
-
+ const statusItems = [
+  { title: "Intake Submitted", status: (isAtOrBeyond('intake') ? "completed" : "pending") as 'completed' | 'pending', icon: <RiFileTextLine />, action: "View", route: '/client-dashboard/intake', delay: 0, disabled: !isAtOrBeyond('intake') },
+  { title: "Preferences Swiped", status: (isAtOrBeyond('swiping') ? "completed" : "pending") as 'completed' | 'pending', icon: <RiPaletteLine />, action: "View", route: 'swiper', delay: 0.1, disabled: !isAtOrBeyond('swiping') },
+  { title: "Feedback Pending", status: (isAtOrBeyond('refining') ? "completed" : "pending") as 'completed' | 'pending', icon: <RiMessage3Line />, action: "Submit", route: '/client-dashboard/feedback', delay: 0.2, disabled: !isAtOrBeyond('refining') },
+  { title: "Design Approval", status: (isAtOrBeyond('revisions') ? "completed" : "pending") as 'completed' | 'pending', icon: <RiCheckDoubleLine />, action: "Review", route: '/client-dashboard/approval', delay: 0.3, disabled: !isAtOrBeyond('revisions') }
+];
   const scrapperButton = [
     { icon: RiLinkM, label: 'Capture & Create', color: 'from-blue-500 to-cyan-500', href: 'scraper', disabled: false },
   ];
@@ -247,7 +249,6 @@ const ClientDashHome: React.FC = () => {
 
   const clientName = useSelector((state: RootState) => state.auth.user.name)!;
   const client_email = useSelector((state: RootState) => state.auth.user.email)!;
-  const projectStatus = useSelector((state: RootState) => state.project.status);
 
 const fetchProject = async () => {
   dispatch(clearProjectStatus());
@@ -538,16 +539,16 @@ const fetchProject = async () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {statusItems.map((item) => (
-              <StatusCard
-                key={item.title}
-                title={item.title}
-                status={item.status}
-                icon={item.icon}
-                action={item.action}
-                onClick={() => navigate(item.route)}
-                delay={item.delay}
-              />
-            ))}
+  <StatusCard
+    key={item.title}
+    title={item.title}
+    status={item.status}
+    icon={item.icon}
+    action={item.disabled ? undefined : item.action}
+    onClick={item.disabled ? undefined : () => navigate(item.route)}
+    delay={item.delay}
+  />
+))}
           </div>
         </motion.div>
 
