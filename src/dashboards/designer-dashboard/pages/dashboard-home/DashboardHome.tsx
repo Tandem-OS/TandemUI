@@ -201,14 +201,12 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) 
 
       {/* Dots overlay — sits on top of bar, absolutely positioned */}
       <div className="absolute top-0 left-0 right-0 h-[14px] flex items-center justify-between">
-        {PIPELINE_ORDER.map((stage, idx) => {
-          const isColored = idx <= currentIdx;
+        {PIPELINE_ORDER.map((stage) => {
           return (
             <div
               key={stage}
-              className={`w-[10px] h-[10px] rounded-full z-10 flex-shrink-0
-                ${isColored ? 'bg-white' : 'bg-gray-300'}
-              `}
+           className="w-[10px] h-[10px] rounded-full z-10 flex-shrink-0 bg-white"
+
             />
           );
         })}
