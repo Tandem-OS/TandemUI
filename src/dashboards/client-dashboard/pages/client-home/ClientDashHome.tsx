@@ -216,7 +216,7 @@ const ClientDashHome: React.FC = () => {
     }
 
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {});
+      requestAnimationFrame(() => { });
     });
 
     return () => {
@@ -291,12 +291,21 @@ const ClientDashHome: React.FC = () => {
       disabled: !isCardActive('intake'),
     },
     {
+      title: 'Scraping',
+      status: getCardStatus('scraping'),
+      icon: <RiLinkM />,
+      action: 'View',
+      route: '/dashboard/client/scraper',
+      delay: 0.1,
+      disabled: !isCardActive('scraping'),
+    },
+    {
       title: 'Preferences Swiped',
       status: getCardStatus('swiping'),
       icon: <RiPaletteLine />,
       action: 'View',
       route: 'swiper',
-      delay: 0.1,
+      delay: 0.2,
       disabled: !isCardActive('swiping'),
     },
     {
@@ -305,7 +314,7 @@ const ClientDashHome: React.FC = () => {
       icon: <RiMessage3Line />,
       action: 'Submit',
       route: '/client-dashboard/feedback',
-      delay: 0.2,
+      delay: 0.3,
       disabled: !isCardActive('refining'),
     },
     {
@@ -314,7 +323,7 @@ const ClientDashHome: React.FC = () => {
       icon: <RiCheckDoubleLine />,
       action: 'Review',
       route: '/client-dashboard/approval',
-      delay: 0.3,
+      delay: 0.4,
       disabled: !isCardActive('revisions'),
     },
   ];
@@ -584,7 +593,7 @@ const ClientDashHome: React.FC = () => {
             Project Status
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
             {statusItems.map((item) => (
               <StatusCard
                 key={item.title}
