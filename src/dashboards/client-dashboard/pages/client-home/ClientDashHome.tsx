@@ -36,6 +36,7 @@ interface StatusCardProps {
   onClick?: () => void;
   delay?: number;
 }
+
 const STATUS_PROGRESS: Record<string, number> = {
   intake: 10,
   scraping: 20,
@@ -47,7 +48,9 @@ const STATUS_PROGRESS: Record<string, number> = {
   completed: 90,
   handoff: 100,
 };
+
 const PIPELINE_ORDER = ['intake', 'scraping', 'swiping', 'embedded', 'composing', 'refining', 'revisions', 'completed', 'handoff'];
+
 const StatusCard: React.FC<StatusCardProps> = ({
   title,
   status,
@@ -204,20 +207,16 @@ const ClientDashHome: React.FC = () => {
 
   // Prevent scroll issues on mount
   useEffect(() => {
-    // Force scroll to top
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
 
-    // Disable scroll restoration
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
 
-    // Enable content after DOM settles
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-      });
+      requestAnimationFrame(() => {});
     });
 
     return () => {
@@ -226,44 +225,123 @@ const ClientDashHome: React.FC = () => {
       }
     };
   }, []);
+
   const projectStatus = useSelector((state: RootState) => state.project.status);
 
-const quickActions = [
-  { icon: RiEditLine, label: 'Edit Intake Form', color: 'from-blue-500 to-cyan-500', href: 'intake', disabled: projectStatus !== null && projectStatus !== 'intake' },
-  { icon: RiPaletteLine, label: 'Update Preferences', color: 'from-purple-500 to-pink-500', disabled: projectStatus !== 'swiping' },
-  { icon: RiMessage3Line, label: 'Submit Feedback', color: 'from-emerald-500 to-teal-500', disabled: projectStatus !== 'refining' },
-  { icon: RiStarLine, label: 'Testimonial', color: 'from-amber-500 to-orange-500', disabled: projectStatus !== 'completed' }
-];
+  // ─── Gating helpers ───────────────────────────────────────────────────────
+  const isStageCompleted = (stage: string): boolean => {
+    if (!projectStatus) return false;
+    return PIPELINE_ORDER.indexOf(stage) < PIPELINE_ORDER.indexOf(projectStatus);
+  };
 
-const statusItems = [
-  { title: "Intake Submitted", status: (projectStatus === 'intake' ? "completed" : "pending") as 'completed' | 'pending', icon: <RiFileTextLine />, action: "View", route: '/dashboard/client/intake', delay: 0, disabled: projectStatus !== null && projectStatus !== 'intake' },
-  { title: "Preferences Swiped", status: (projectStatus === 'swiping' ? "completed" : "pending") as 'completed' | 'pending', icon: <RiPaletteLine />, action: "View", route: 'swiper', delay: 0.1, disabled: projectStatus !== 'swiping' },
-  { title: "Feedback Pending", status: (projectStatus === 'refining' ? "completed" : "pending") as 'completed' | 'pending', icon: <RiMessage3Line />, action: "Submit", route: '/client-dashboard/feedback', delay: 0.2, disabled: projectStatus !== 'refining' },
-  { title: "Design Approval", status: (projectStatus === 'revisions' ? "completed" : "pending") as 'completed' | 'pending', icon: <RiCheckDoubleLine />, action: "Review", route: '/client-dashboard/approval', delay: 0.3, disabled: projectStatus !== 'revisions' }
-];
+  const isCurrentStage = (stage: string): boolean => projectStatus === stage;
+
+  const isNextStage = (stage: string): boolean => {
+    if (!projectStatus) return stage === 'intake';
+    const currentIdx = PIPELINE_ORDER.indexOf(projectStatus);
+    return PIPELINE_ORDER.indexOf(stage) === currentIdx + 1;
+  };
+
+  const getCardStatus = (stage: string): 'completed' | 'pending' => {
+    return isStageCompleted(stage) || isCurrentStage(stage) ? 'completed' : 'pending';
+  };
+
+  const isCardActive = (stage: string): boolean => {
+    return isCurrentStage(stage) || isNextStage(stage);
+  };
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const quickActions = [
+    {
+      icon: RiEditLine,
+      label: 'Edit Intake Form',
+      color: 'from-blue-500 to-cyan-500',
+      href: 'intake',
+      // Active only at null (no project yet) or current stage is intake
+      disabled: !(projectStatus === null || isCurrentStage('intake')),
+    },
+    {
+      icon: RiPaletteLine,
+      label: 'Update Preferences',
+      color: 'from-purple-500 to-pink-500',
+      disabled: !(isCurrentStage('swiping') || isNextStage('swiping')),
+    },
+    {
+      icon: RiMessage3Line,
+      label: 'Submit Feedback',
+      color: 'from-emerald-500 to-teal-500',
+      disabled: !(isCurrentStage('refining') || isNextStage('refining')),
+    },
+    {
+      icon: RiStarLine,
+      label: 'Testimonial',
+      color: 'from-amber-500 to-orange-500',
+      disabled: !(isCurrentStage('completed') || isNextStage('completed')),
+    },
+  ];
+
+  const statusItems = [
+    {
+      title: 'Intake Submitted',
+      status: getCardStatus('intake'),
+      icon: <RiFileTextLine />,
+      action: 'View',
+      route: '/dashboard/client/intake',
+      delay: 0,
+      disabled: !isCardActive('intake'),
+    },
+    {
+      title: 'Preferences Swiped',
+      status: getCardStatus('swiping'),
+      icon: <RiPaletteLine />,
+      action: 'View',
+      route: 'swiper',
+      delay: 0.1,
+      disabled: !isCardActive('swiping'),
+    },
+    {
+      title: 'Feedback Pending',
+      status: getCardStatus('refining'),
+      icon: <RiMessage3Line />,
+      action: 'Submit',
+      route: '/client-dashboard/feedback',
+      delay: 0.2,
+      disabled: !isCardActive('refining'),
+    },
+    {
+      title: 'Design Approval',
+      status: getCardStatus('revisions'),
+      icon: <RiCheckDoubleLine />,
+      action: 'Review',
+      route: '/client-dashboard/approval',
+      delay: 0.3,
+      disabled: !isCardActive('revisions'),
+    },
+  ];
+
   const scrapperButton = [
     { icon: RiLinkM, label: 'Capture & Create', color: 'from-blue-500 to-cyan-500', href: 'scraper', disabled: false },
   ];
 
-
   const clientName = useSelector((state: RootState) => state.auth.user.name)!;
   const client_email = useSelector((state: RootState) => state.auth.user.email)!;
 
-const fetchProject = async () => {
-  dispatch(clearProjectStatus());
-  setProgress(0);
-  const result = await getProjectByClientEmail({ client_email });
-  if (result.status === 200 && result.data.data?.id) {
-    dispatch(setProjectId(result.data.data.id));
-    const status = result.data.data.status;
-    if (status) {
-      dispatch(setProjectStatus(status));
-    }
-  } else {
-    dispatch(clearProjectId());
+  const fetchProject = async () => {
     dispatch(clearProjectStatus());
-  }
-};
+    setProgress(0);
+    const result = await getProjectByClientEmail({ client_email });
+    if (result.status === 200 && result.data.data?.id) {
+      dispatch(setProjectId(result.data.data.id));
+      const status = result.data.data.status;
+      if (status) {
+        dispatch(setProjectStatus(status));
+      }
+    } else {
+      dispatch(clearProjectId());
+      dispatch(clearProjectStatus());
+    }
+  };
+
   useEffect(() => {
     if (projectStatus) {
       const pct = STATUS_PROGRESS[projectStatus] ?? 0;
@@ -271,9 +349,10 @@ const fetchProject = async () => {
       return () => clearTimeout(timer);
     }
   }, [projectStatus]);
+
   useEffect(() => {
-    fetchProject()
-  }, [])
+    fetchProject();
+  }, []);
 
   return (
     <div className="min-h-screen overflow-x-hidden">
@@ -332,14 +411,8 @@ const fetchProject = async () => {
                   )}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{
-                    duration: 0.5,
-                    delay: index * 0.1
-                  }}
-                  whileHover={!action.disabled ? {
-                    y: -8,
-                    transition: { duration: 0.2 }
-                  } : {}}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={!action.disabled ? { y: -8, transition: { duration: 0.2 } } : {}}
                 >
                   {!action.disabled && (
                     <motion.div
@@ -365,9 +438,7 @@ const fetchProject = async () => {
 
                   <p className={clsx(
                     'text-xs sm:text-sm font-semibold text-center relative z-10',
-                    action.disabled
-                      ? 'text-text-tertiary'
-                      : 'text-text-secondary'
+                    action.disabled ? 'text-text-tertiary' : 'text-text-secondary'
                   )}>
                     {action.label}
                   </p>
@@ -420,10 +491,7 @@ const fetchProject = async () => {
 
                 {/* Progress Ring */}
                 <div className="relative w-32 h-32 mx-auto mb-6">
-                  <svg
-                    className="w-full h-full transform -rotate-90"
-                    viewBox="0 0 128 128"
-                  >
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 128 128">
                     <defs>
                       <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stopColor="#3B82F6" />
@@ -431,31 +499,15 @@ const fetchProject = async () => {
                         <stop offset="100%" stopColor="#EC4899" />
                       </linearGradient>
                     </defs>
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r="56"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      fill="none"
-                      className="text-border-muted"
-                    />
+                    <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="none" className="text-border-muted" />
                     <motion.circle
-                      cx="64"
-                      cy="64"
-                      r="56"
+                      cx="64" cy="64" r="56"
                       stroke="url(#progressGradient)"
-                      strokeWidth="8"
-                      fill="none"
-                      strokeLinecap="round"
+                      strokeWidth="8" fill="none" strokeLinecap="round"
                       strokeDasharray={351.86}
                       initial={{ strokeDashoffset: 351.86 }}
                       animate={{ strokeDashoffset: 351.86 * (1 - progress / 100) }}
-                      transition={{
-                        duration: 2,
-                        delay: 0.5,
-                        ease: "easeInOut"
-                      }}
+                      transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -467,9 +519,7 @@ const fetchProject = async () => {
                     >
                       {progress}%
                     </motion.span>
-                    <span className="text-para-sm text-text-tertiary font-medium">
-                      done
-                    </span>
+                    <span className="text-para-sm text-text-tertiary font-medium">done</span>
                   </div>
                 </div>
 
@@ -494,9 +544,7 @@ const fetchProject = async () => {
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                />
+                <motion.div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <RiSparklingLine className="text-lg sm:text-xl relative z-10" />
                 <span className="relative z-10">Continue Project</span>
                 <motion.div
@@ -538,16 +586,16 @@ const fetchProject = async () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {statusItems.map((item) => (
-  <StatusCard
-    key={item.title}
-    title={item.title}
-    status={item.status}
-    icon={item.icon}
-    action={item.disabled ? undefined : item.action}
-    onClick={item.disabled ? undefined : () => navigate(item.route)}
-    delay={item.delay}
-  />
-))}
+              <StatusCard
+                key={item.title}
+                title={item.title}
+                status={item.status}
+                icon={item.icon}
+                action={item.disabled ? undefined : item.action}
+                onClick={item.disabled ? undefined : () => navigate(item.route)}
+                delay={item.delay}
+              />
+            ))}
           </div>
         </motion.div>
 
@@ -584,14 +632,8 @@ const fetchProject = async () => {
                     )}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{
-                      duration: 0.5,
-                      delay: index * 0.1
-                    }}
-                    whileHover={!action.disabled ? {
-                      y: -8,
-                      transition: { duration: 0.2 }
-                    } : {}}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    whileHover={!action.disabled ? { y: -8, transition: { duration: 0.2 } } : {}}
                   >
                     {!action.disabled && (
                       <motion.div
@@ -617,9 +659,7 @@ const fetchProject = async () => {
 
                     <p className={clsx(
                       'text-xs sm:text-sm font-semibold text-center relative z-10',
-                      action.disabled
-                        ? 'text-text-tertiary'
-                        : 'text-text-secondary'
+                      action.disabled ? 'text-text-tertiary' : 'text-text-secondary'
                     )}>
                       {action.label}
                     </p>
@@ -637,7 +677,6 @@ const fetchProject = async () => {
                   </motion.button>
                 );
 
-                // Wrap with Link if not disabled and has href
                 return !action.disabled && action.href ? (
                   <Link to={action.href} key={action.label} className="contents">
                     {button}
