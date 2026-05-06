@@ -67,7 +67,7 @@ const initialState: ScraperState = {
 export const scrapeUrl = createAsyncThunk<
   ScrapedData,
   ScrapePayload,
-  { rejectValue: string }
+  { rejectValue: any }
 >(
   'scraper/scrapeUrl',
   async (payload, { rejectWithValue }) => {
@@ -78,6 +78,15 @@ export const scrapeUrl = createAsyncThunk<
       }
       return { ...response.data, url: payload.url } as ScrapedData;
     } catch (error: any) {
+      if (
+        error.response?.status === 403 &&
+        error.response?.data?.code === 'USAGE_LIMIT_REACHED'
+      ) {
+        return rejectWithValue({
+          status: 403,
+          ...error.response.data,
+        });
+      }
       if (error.response?.status === 429) {
         return rejectWithValue(
           error.response.data?.message ?? 'Daily scraping limit reached.'
@@ -151,7 +160,10 @@ const scraperSlice = createSlice({
       })
       .addCase(scrapeUrl.rejected, (state, action) => {
         state.status = 'error';
-        state.error = action.payload ?? 'Unknown error';
+        state.error =
+          typeof action.payload === 'string'
+            ? action.payload
+            : action.payload?.message ?? null;
       });
   },
 });

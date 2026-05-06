@@ -149,16 +149,19 @@ const ScraperIntelligencePage = () => {
         } catch (err: any) {
 
             // 🔥 Billing Gate Intercept (SCRAPER)
+            const status = err?.response?.status ?? err?.status;
+            const data = err?.response?.data ?? err;
+
             if (
-                err?.response?.status === 403 &&
-                err?.response?.data?.code === "USAGE_LIMIT_REACHED"
+                status === 403 &&
+                data?.code === "USAGE_LIMIT_REACHED" &&
+                data?.usage_type === "scraper_run"
             ) {
-                setBillingGateData(err.response.data);
+                setBillingGateData(data);
                 setShowBillingGateModal(true);
-                setCurrentStep('input'); // stay on page
+                setCurrentStep('input');
                 return;
             }
-
             console.error("❌ Scraper failed:", err);
         }
     };

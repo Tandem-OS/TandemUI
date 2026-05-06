@@ -19,6 +19,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { layoutTokens } from '@/design-system/tokens/layout';
 import BillingGateModal from '@/common-components/BillingGateModal';
+import Toast from '@/common-components/Toast';
 
 const t = layoutTokens.intakeForm;
 
@@ -107,6 +108,10 @@ const IntakeForm: React.FC = () => {
     const [showFeedback] = useState(false);
     const [showBillingGateModal, setShowBillingGateModal] = useState(false);
     const [billingGateData, setBillingGateData] = useState<any>(null);
+    const [toastMessage, setToastMessage] = useState<{
+        message: string;
+        type: 'success' | 'error';
+    } | null>(null);
 
     const fetchForm = async (clientEmail: string) => {
         setLoading(true);
@@ -149,6 +154,16 @@ const IntakeForm: React.FC = () => {
 
     const totalScreens = 5;
     const canSkip = currentScreen > 1;
+    const showToast = (
+        message: string,
+        type: 'success' | 'error' = 'success'
+    ) => {
+        setToastMessage({ message, type });
+
+        setTimeout(() => {
+            setToastMessage(null);
+        }, 3000);
+    };
 
     const updateForm = (updates: Partial<IntakeFormData>) =>
         setFormData(prev => ({ ...prev, ...updates }));
@@ -176,7 +191,6 @@ const IntakeForm: React.FC = () => {
         console.log('Feedback skipped for Intake Form');
         navigateHook('/dashboard/client');
     };
-
     const navigateScreen = async (next: boolean) => {
         if (!next) {
             if (currentScreen > 1) setCurrentScreen(currentScreen - 1);
@@ -187,10 +201,7 @@ const IntakeForm: React.FC = () => {
 
         if (currentScreen === totalScreens) {
             try {
-                alert('Intake form submitted successfully!');
-                const { ...rest } = formData;
                 const payload = {
-                    ...rest,
                     designer_email: designerEmail,
                     client_email: clientEmail,
                     key_features: formData.keyFeatures,
@@ -201,15 +212,16 @@ const IntakeForm: React.FC = () => {
                     additional_details: formData.additionalDetails,
                     dead_line: formData.deadline,
                     not_sure_deadline: formData.notSureDeadline,
-
                     is_last_stage: true
                 };
-                await submitIntakeStep(payload);
-                alert('Intake form submitted successfully!');
-                navigateHook("/dashboard/client");
-            } catch (error: any) {
 
-                // 🔥 Billing Gate Intercept (INTAKE)
+                await submitIntakeStep(payload);
+                showToast('Intake form submitted successfully!', 'success');
+
+                setTimeout(() => {
+                    navigateHook("/dashboard/client");
+                }, 1200);
+            } catch (error: any) {
                 if (
                     error?.response?.status === 403 &&
                     error?.response?.data?.code === "USAGE_LIMIT_REACHED"
@@ -220,12 +232,13 @@ const IntakeForm: React.FC = () => {
                 }
 
                 console.error('Error submitting intake form:', error);
-                alert('Submission failed. Please try again.');
+                showToast('Submission failed. Please try again.', 'error');
             }
             return;
         }
 
         setButtonState('saving');
+
         try {
             const {
                 tones, keyFeatures, inspirationUrls, colorStrategy,
@@ -264,8 +277,6 @@ const IntakeForm: React.FC = () => {
                 setButtonState('default');
             }, 500);
         } catch (err: any) {
-
-            // 🔥 Billing Gate Intercept (INTAKE)
             if (
                 err?.response?.status === 403 &&
                 err?.response?.data?.code === "USAGE_LIMIT_REACHED"
@@ -277,7 +288,10 @@ const IntakeForm: React.FC = () => {
             }
 
             console.error("Intake submission failed", err);
-            alert("Something went wrong while saving this step. Please try again.");
+            showToast(
+                "Something went wrong while saving this step. Please try again.",
+                'error'
+            );
             setButtonState('default');
         }
     };
@@ -532,6 +546,15 @@ const IntakeForm: React.FC = () => {
 
     return (
         <>
+            <AnimatePresence>
+                {toastMessage && (
+                    <Toast
+                        message={toastMessage.message}
+                        type={toastMessage.type}
+                    />
+                )}
+            </AnimatePresence>
+
             {loading ? (
                 <div className={t.loadingWrapper}>
                     Loading
@@ -591,6 +614,7 @@ const IntakeForm: React.FC = () => {
                                                     Back
                                                 </SimpleButton>
                                             )}
+
                                             {(currentScreen > 1 || vibeSelectionComplete) && (
                                                 <SimpleButton
                                                     variant="solid"
@@ -609,11 +633,11 @@ const IntakeForm: React.FC = () => {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
-
                         </div>
                     </div>
                 </div>
             )}
+
             {billingGateData && (
                 <BillingGateModal
                     isOpen={showBillingGateModal}
