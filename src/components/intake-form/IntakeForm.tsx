@@ -18,6 +18,7 @@ import { submitIntakeStep, getIntakeByClientEmail } from '@/lib/requests/IntakeR
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { layoutTokens } from '@/design-system/tokens/layout';
+import BillingGateModal from '@/common-components/BillingGateModal';
 
 const t = layoutTokens.intakeForm;
 
@@ -104,6 +105,8 @@ const IntakeForm: React.FC = () => {
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
+    const [showBillingGateModal, setShowBillingGateModal] = useState(false);
+    const [billingGateData, setBillingGateData] = useState<any>(null);
 
     const fetchForm = async (clientEmail: string) => {
         setLoading(true);
@@ -198,11 +201,24 @@ const IntakeForm: React.FC = () => {
                     additional_details: formData.additionalDetails,
                     dead_line: formData.deadline,
                     not_sure_deadline: formData.notSureDeadline,
+
+                    is_last_stage: true
                 };
                 await submitIntakeStep(payload);
                 alert('Intake form submitted successfully!');
                 navigateHook("/dashboard/client");
-            } catch (error) {
+            } catch (error: any) {
+
+                // 🔥 Billing Gate Intercept (INTAKE)
+                if (
+                    error?.response?.status === 403 &&
+                    error?.response?.data?.code === "USAGE_LIMIT_REACHED"
+                ) {
+                    setBillingGateData(error.response.data);
+                    setShowBillingGateModal(true);
+                    return;
+                }
+
                 console.error('Error submitting intake form:', error);
                 alert('Submission failed. Please try again.');
             }
@@ -237,6 +253,7 @@ const IntakeForm: React.FC = () => {
                         lastModified: brandGuide.lastModified,
                     }
                     : null,
+                is_last_stage: false
             };
 
             await submitIntakeStep(payload);
@@ -246,7 +263,19 @@ const IntakeForm: React.FC = () => {
                 setCurrentScreen(currentScreen + 1);
                 setButtonState('default');
             }, 500);
-        } catch (err) {
+        } catch (err: any) {
+
+            // 🔥 Billing Gate Intercept (INTAKE)
+            if (
+                err?.response?.status === 403 &&
+                err?.response?.data?.code === "USAGE_LIMIT_REACHED"
+            ) {
+                setBillingGateData(err.response.data);
+                setShowBillingGateModal(true);
+                setButtonState('default');
+                return;
+            }
+
             console.error("Intake submission failed", err);
             alert("Something went wrong while saving this step. Please try again.");
             setButtonState('default');
@@ -580,9 +609,25 @@ const IntakeForm: React.FC = () => {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+
                         </div>
                     </div>
                 </div>
+            )}
+            {billingGateData && (
+                <BillingGateModal
+                    isOpen={showBillingGateModal}
+                    usageType={billingGateData.usage_type}
+                    currentCount={billingGateData.current_count}
+                    limit={billingGateData.limit}
+                    onUpgrade={() => {
+                        console.log("Upgrade clicked");
+                    }}
+                    onSecondary={() => {
+                        setShowBillingGateModal(false);
+                    }}
+                    onClose={() => setShowBillingGateModal(false)}
+                />
             )}
         </>
     );

@@ -6,7 +6,7 @@ import { FiPaperclip } from 'react-icons/fi';
 import { mockChatResponses, chatPrompts } from '../constants';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
-
+import BillingGateModal from '@/common-components/BillingGateModal';
 import {
     refineComposition,
     fetchVersions,
@@ -276,6 +276,8 @@ const ChatPanel = ({
     const [isTyping, setIsTyping] = useState(false);
     const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const [showBillingGateModal, setShowBillingGateModal] = useState(false);
+    const [billingGateData, setBillingGateData] = useState<any>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -345,8 +347,20 @@ const ChatPanel = ({
             })).unwrap();
             dispatch(clearPreview());
             onRestoreComplete?.(result.newCompositionId);
-        } catch {
-            // restoreStatus in Redux will be 'error' — UI reads from there
+        } catch (err: any) {
+
+            // 🔥 Billing Gate Intercept (VERSION RESTORE)
+            if (
+                err?.code === "USAGE_LIMIT_REACHED" ||
+                err?.response?.data?.code === "USAGE_LIMIT_REACHED"
+            ) {
+                const data = err?.response?.data ?? err;
+                setBillingGateData(data);
+                setShowBillingGateModal(true);
+                return;
+            }
+
+            console.error("Restore failed:", err);
         }
     };
 
@@ -386,10 +400,21 @@ const ChatPanel = ({
 
                 if (resolvedProjectId) dispatch(fetchVersions(resolvedProjectId));
             } catch (err: any) {
+
+                // 🔥 Billing Gate Intercept (REFINE)
+                if (
+                    err?.response?.status === 403 &&
+                    err?.response?.data?.code === "USAGE_LIMIT_REACHED"
+                ) {
+                    setBillingGateData(err.response.data);
+                    setShowBillingGateModal(true);
+                    return;
+                }
+
                 setMessages(prev => [...prev, {
                     id: (Date.now() + 1).toString(),
                     type: 'assistant',
-                    message: err ?? 'Something went wrong. Please try again.',
+                    message: 'Something went wrong. Please try again.',
                     timestamp: new Date(),
                 }]);
             } finally {
@@ -669,8 +694,29 @@ const ChatPanel = ({
         </div>
     );
 
-    if (isDesktop) return ChatInterface;
+if (isDesktop) {
+    return (
+        <>
+            {ChatInterface}
 
+            {billingGateData && (
+                <BillingGateModal
+                    isOpen={showBillingGateModal}
+                    usageType={billingGateData.usage_type}
+                    currentCount={billingGateData.current_count}
+                    limit={billingGateData.limit}
+                    onUpgrade={() => {
+                        console.log("Upgrade clicked");
+                    }}
+                    onSecondary={() => {
+                        setShowBillingGateModal(false);
+                    }}
+                    onClose={() => setShowBillingGateModal(false)}
+                />
+            )}
+        </>
+    );
+}
     return (
         <>
             <AnimatePresence>
@@ -710,6 +756,21 @@ const ChatPanel = ({
                     </>
                 )}
             </AnimatePresence>
+            {billingGateData && (
+                <BillingGateModal
+                    isOpen={showBillingGateModal}
+                    usageType={billingGateData.usage_type}
+                    currentCount={billingGateData.current_count}
+                    limit={billingGateData.limit}
+                    onUpgrade={() => {
+                        console.log("Upgrade clicked");
+                    }}
+                    onSecondary={() => {
+                        setShowBillingGateModal(false);
+                    }}
+                    onClose={() => setShowBillingGateModal(false)}
+                />
+            )}
         </>
     );
 };

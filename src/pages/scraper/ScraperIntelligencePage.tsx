@@ -23,7 +23,7 @@ import Para from '../../common-components/Para';
 
 // Import constants
 import { quickSuggestions, processingSteps } from './constants';
-
+import BillingGateModal from '@/common-components/BillingGateModal';
 // Redux
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
@@ -82,7 +82,8 @@ const ScraperIntelligencePage = () => {
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
-
+    const [showBillingGateModal, setShowBillingGateModal] = useState(false);
+    const [billingGateData, setBillingGateData] = useState<any>(null);
     // ── Composition schema 
     const pageSchema = useSelector(selectActiveOrPreviewSchema);
     const activeSections = compositionId && pageSchema?.sections
@@ -140,10 +141,26 @@ const ScraperIntelligencePage = () => {
             }
         })();
 
-        await Promise.all([
-            dispatch(scrapeUrl(payload)),
-            processingAnimation,
-        ]);
+        try {
+            await Promise.all([
+                dispatch(scrapeUrl(payload)).unwrap(),
+                processingAnimation,
+            ]);
+        } catch (err: any) {
+
+            // 🔥 Billing Gate Intercept (SCRAPER)
+            if (
+                err?.response?.status === 403 &&
+                err?.response?.data?.code === "USAGE_LIMIT_REACHED"
+            ) {
+                setBillingGateData(err.response.data);
+                setShowBillingGateModal(true);
+                setCurrentStep('input'); // stay on page
+                return;
+            }
+
+            console.error("❌ Scraper failed:", err);
+        }
     };
 
     const handleSectionFeedback = (sectionId: string, feedback: 'like' | 'dislike') => {
@@ -680,6 +697,21 @@ const ScraperIntelligencePage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            {billingGateData && (
+                <BillingGateModal
+                    isOpen={showBillingGateModal}
+                    usageType={billingGateData.usage_type}
+                    currentCount={billingGateData.current_count}
+                    limit={billingGateData.limit}
+                    onUpgrade={() => {
+                        console.log("Upgrade clicked");
+                    }}
+                    onSecondary={() => {
+                        setShowBillingGateModal(false);
+                    }}
+                    onClose={() => setShowBillingGateModal(false)}
+                />
+            )}
         </div>
     );
 };

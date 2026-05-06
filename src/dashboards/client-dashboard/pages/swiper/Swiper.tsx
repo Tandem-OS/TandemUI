@@ -8,7 +8,7 @@ import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
 import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
-
+import BillingGateModal from '@/common-components/BillingGateModal';
 import {
   type SwipeAction,
   type ComponentPreview,
@@ -60,6 +60,7 @@ import TransitionMoment from './components/TransitionMoment';
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
 const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
 const KOH_SNAP_KEY = 'tandem_koh_snap';
+
 
 // Animation variants
 const animations: { [key: string]: Variants | any } = {
@@ -227,7 +228,8 @@ const Swiper: React.FC = () => {
   const [showTransition, setShowTransition] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
-
+  const [showBillingGateModal, setShowBillingGateModal] = useState(false);
+  const [billingGateData, setBillingGateData] = useState<any>(null);
   const {
     currentRound,
     roundsData,
@@ -518,10 +520,12 @@ const Swiper: React.FC = () => {
           };
 
           const result = await swiperData(payload);
+
           if (result.status !== 200) {
             throw new Error("swiperData response not OK");
           }
 
+          // Mark round complete (backend)
           if (isLastRound) {
             try { await saveRoundCompleted(); }
             catch (err) { console.error("❌ Failed to mark round completed:", err); }
@@ -560,6 +564,7 @@ const Swiper: React.FC = () => {
                   started_at: Date.now(),
                   completed_at: Date.now(),
                 });
+
                 const sessionId = sessionRes.data.id;
 
                 await swiperComponentData({
@@ -569,7 +574,10 @@ const Swiper: React.FC = () => {
                   designer_email: winner.designer_email,
                   session_id: sessionId,
                   category: winner.category?.toLowerCase(),
-                  layout_structure: normalizeLayout(winner.category ?? "", winner.layout_structure ?? ""),
+                  layout_structure: normalizeLayout(
+                    winner.category ?? "",
+                    winner.layout_structure ?? ""
+                  ),
                   thumbnail_url: winner.thumbnail_url || null,
                   content_slots: winner.content_slots,
                   tokens: winner.tokens,
@@ -595,7 +603,9 @@ const Swiper: React.FC = () => {
                 started_at: Date.now(),
                 completed_at: Date.now(),
               };
+
               setKingOfHillSessions(prev => [...prev, autoSession]);
+
               if (!isLastRound) {
                 dispatch(moveToNextRound());
                 setTimeout(() => dispatch(unlockTransition()), 1000);
@@ -614,7 +624,18 @@ const Swiper: React.FC = () => {
 
           }, TIMINGS.CELEBRATION);
 
-        } catch (error) {
+        } catch (error: any) {
+          // 🔥 Billing Gate Intercept
+          if (
+            error?.response?.status === 403 &&
+            error?.response?.data?.code === "USAGE_LIMIT_REACHED"
+          ) {
+            setBillingGateData(error.response.data);
+            setShowBillingGateModal(true);
+            dispatch(setShowRoundCompletion(false));
+            return;
+          }
+
           console.error("❌ Backend save/check failed:", error);
           alert("Failed to save round. Please try again.");
           await loadData();
@@ -624,8 +645,17 @@ const Swiper: React.FC = () => {
 
       saveRoundData();
     }
-  }, [showRoundCompletion, userChoices, currentRound, generateRoundSummary, currentRoundData, kingOfHill.isActive, dispatch, isLastRound, totalRounds]);
-
+  }, [
+    showRoundCompletion,
+    userChoices,
+    currentRound,
+    generateRoundSummary,
+    currentRoundData,
+    kingOfHill.isActive,
+    dispatch,
+    isLastRound,
+    totalRounds
+  ]);
   useEffect(() => {
     return () => {
       setKingOfHillSessions([]);
@@ -916,7 +946,21 @@ const Swiper: React.FC = () => {
           }}
           roundsCompleted={currentRound + 1}
         />
-
+        <BillingGateModal
+          isOpen={showBillingGateModal}
+          usageType={billingGateData?.usage_type}
+          currentCount={billingGateData?.current_count}
+          limit={billingGateData?.limit}
+          onUpgrade={() => {
+            // TODO: connect Stripe later
+            console.log("Upgrade clicked");
+          }}
+          onSecondary={() => {
+            // 👉 Continue to compose (IMPORTANT for swiper)
+            navigate("/dashboard/client/swiper/compose");
+          }}
+          onClose={() => setShowBillingGateModal(false)}
+        />
         <Modal
           isOpen={showExitModal}
           onClose={() => dispatch(setShowExitModal(false))}
