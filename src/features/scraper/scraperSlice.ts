@@ -41,12 +41,12 @@ export interface ScraperState {
   error: string | null;
 }
 
-// ─── Thunk payload types ──────────────────────────────────────────────────────
+// ─── Thunk payload types 
 
 interface ScrapePayload {
   designer_email: string;
   client_email: string | null;
-  project_id: string;
+  project_id?: string | null;  
   role: string;
   url: string;
 }

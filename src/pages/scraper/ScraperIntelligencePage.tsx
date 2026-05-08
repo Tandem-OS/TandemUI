@@ -123,11 +123,11 @@ const ScraperIntelligencePage = () => {
 
     const handleStartScraping = async (url: string) => {
         const payload =
-            userRole === 'Designer' && email && projectId
-                ? { designer_email: email, client_email: null, project_id: projectId, role: 'designer', url }
-                : userRole === 'Client' && designerEmail && projectId
-                    ? { designer_email: designerEmail, role: 'client', project_id: projectId, client_email: email!, url }
-                    : null;
+    userRole === 'Designer' && email
+        ? { designer_email: email, client_email: null, project_id: projectId ?? null, role: 'designer', url }
+        : userRole === 'Client' && designerEmail && projectId
+            ? { designer_email: designerEmail, role: 'client', project_id: projectId, client_email: email!, url }
+            : null;
 
         if (!payload) return;
 
