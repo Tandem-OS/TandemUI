@@ -35,6 +35,7 @@ import { selectActiveOrPreviewSchema } from '@/features/composition/compositionS
 
 // Extracted hook
 import { useTasteProfile } from '@/hooks/useTasteProfile';
+import { useBillingGate } from '@/hooks/useBillingGate';
 
 // Tokens
 import { layoutTokens } from '@/design-system/tokens/layout';
@@ -82,8 +83,7 @@ const ScraperIntelligencePage = () => {
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
-    const [showBillingGateModal, setShowBillingGateModal] = useState(false);
-    const [billingGateData, setBillingGateData] = useState<any>(null);
+    const { gateState, warningState, handleBillingError, handleUsageUpdate, dismissGate, dismissWarning } = useBillingGate();
     // ── Composition schema 
     const pageSchema = useSelector(selectActiveOrPreviewSchema);
     const activeSections = compositionId && pageSchema?.sections
@@ -123,11 +123,11 @@ const ScraperIntelligencePage = () => {
 
     const handleStartScraping = async (url: string) => {
         const payload =
-    userRole === 'Designer' && email
-        ? { designer_email: email, client_email: null, project_id: projectId ?? null, role: 'designer', url }
-        : userRole === 'Client' && designerEmail && projectId
-            ? { designer_email: designerEmail, role: 'client', project_id: projectId, client_email: email!, url }
-            : null;
+            userRole === 'Designer' && email
+                ? { designer_email: email, client_email: null, project_id: projectId ?? null, role: 'designer', url }
+                : userRole === 'Client' && designerEmail && projectId
+                    ? { designer_email: designerEmail, role: 'client', project_id: projectId, client_email: email!, url }
+                    : null;
 
         if (!payload) return;
 
@@ -142,23 +142,29 @@ const ScraperIntelligencePage = () => {
         })();
 
         try {
-            await Promise.all([
+            const [scrapeResult] = await Promise.all([
                 dispatch(scrapeUrl(payload)).unwrap(),
                 processingAnimation,
             ]);
+
+            if (scrapeResult?.usage) {
+                handleUsageUpdate({
+                    usage_type: 'scraper_run',
+                    current_count: scrapeResult.usage.current_count,
+                    limit: scrapeResult.usage.limit,
+                });
+            }
         } catch (err: any) {
 
             // 🔥 Billing Gate Intercept (SCRAPER)
-            const status = err?.response?.status ?? err?.status;
-            const data = err?.response?.data ?? err;
+            // Handle flattened rejectWithValue from Redux thunk
+            const isBillingError =
+                (err?.status === 403 || err?.response?.status === 403) &&
+                (err?.code === "USAGE_LIMIT_REACHED" || err?.response?.data?.code === "USAGE_LIMIT_REACHED");
 
-            if (
-                status === 403 &&
-                data?.code === "USAGE_LIMIT_REACHED" &&
-                data?.usage_type === "scraper_run"
-            ) {
-                setBillingGateData(data);
-                setShowBillingGateModal(true);
+            if (isBillingError) {
+                const gateData = err?.code ? err : err?.response?.data;
+                handleBillingError({ response: { status: 403, data: gateData } });
                 setCurrentStep('input');
                 return;
             }
@@ -208,6 +214,22 @@ const ScraperIntelligencePage = () => {
     return (
         <div className={t.root}>
             <AnimatePresence>
+                {warningState && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
+                    >
+                        <span>⚠️ {warningState.remaining} scraper {warningState.remaining === 1 ? 'run' : 'runs'} left on your free plan.</span>
+                        <button
+                            onClick={dismissWarning}
+                            className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline"
+                        >
+                            Dismiss
+                        </button>
+                    </motion.div>
+                )}
                 {toastMessage && (
                     <Toast message={toastMessage.message} type={toastMessage.type} />
                 )}
@@ -700,19 +722,17 @@ const ScraperIntelligencePage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-            {billingGateData && (
+            {gateState && (
                 <BillingGateModal
-                    isOpen={showBillingGateModal}
-                    usageType={billingGateData.usage_type}
-                    currentCount={billingGateData.current_count}
-                    limit={billingGateData.limit}
+                    isOpen={true}
+                    usageType={gateState.usage_type}
+                    currentCount={gateState.current_count}
+                    limit={gateState.limit}
                     onUpgrade={() => {
                         console.log("Upgrade clicked");
                     }}
-                    onSecondary={() => {
-                        setShowBillingGateModal(false);
-                    }}
-                    onClose={() => setShowBillingGateModal(false)}
+                    onSecondary={dismissGate}
+                    onClose={dismissGate}
                 />
             )}
         </div>

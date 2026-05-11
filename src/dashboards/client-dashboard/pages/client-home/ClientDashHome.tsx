@@ -257,26 +257,21 @@ const ClientDashHome: React.FC = () => {
       label: 'Edit Intake Form',
       color: 'from-blue-500 to-cyan-500',
       href: 'intake',
-      // Active only at null (no project yet) or current stage is intake
-      disabled: !(projectStatus === null || isCurrentStage('intake')),
     },
     {
       icon: RiPaletteLine,
       label: 'Update Preferences',
       color: 'from-purple-500 to-pink-500',
-      disabled: !(isCurrentStage('swiping') || isNextStage('swiping')),
     },
     {
       icon: RiMessage3Line,
       label: 'Submit Feedback',
       color: 'from-emerald-500 to-teal-500',
-      disabled: !(isCurrentStage('refining') || isNextStage('refining')),
     },
     {
       icon: RiStarLine,
       label: 'Testimonial',
       color: 'from-amber-500 to-orange-500',
-      disabled: !(isCurrentStage('completed') || isNextStage('completed')),
     },
   ];
 
@@ -329,7 +324,7 @@ const ClientDashHome: React.FC = () => {
   ];
 
   const scrapperButton = [
-    { icon: RiLinkM, label: 'Capture & Create', color: 'from-blue-500 to-cyan-500', href: 'scraper', disabled: false },
+    { icon: RiLinkM, label: 'Capture & Create', color: 'from-blue-500 to-cyan-500', href: 'scraper' },
   ];
 
   const clientName = useSelector((state: RootState) => state.auth.user.name)!;
@@ -410,62 +405,29 @@ const ClientDashHome: React.FC = () => {
               const button = (
                 <motion.button
                   key={action.label}
-                  disabled={action.disabled}
-                  className={clsx(
-                    'p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden',
-                    'flex flex-col items-center justify-center gap-2 sm:gap-3',
-                    action.disabled
-                      ? 'bg-background-muted opacity-50 cursor-not-allowed'
-                      : 'bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg'
-                  )}
+                  className="p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center gap-2 sm:gap-3 bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={!action.disabled ? { y: -8, transition: { duration: 0.2 } } : {}}
+                  whileHover={{ y: -8, transition: { duration: 0.2 } }}
                 >
-                  {!action.disabled && (
-                    <motion.div
-                      className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-                    />
-                  )}
-
                   <motion.div
-                    className={clsx(
-                      'p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10',
-                      action.disabled
-                        ? 'bg-background-secondary'
-                        : `bg-gradient-to-r ${action.color} shadow-lg`
-                    )}
-                    whileHover={!action.disabled ? { rotate: 10, scale: 1.1 } : {}}
+                    className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                  />
+                  <motion.div
+                    className={`p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10 bg-gradient-to-r ${action.color} shadow-lg`}
+                    whileHover={{ rotate: 10, scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
-                    <action.icon className={clsx(
-                      'text-xl sm:text-2xl',
-                      action.disabled ? 'text-text-tertiary' : 'text-white'
-                    )} />
+                    <action.icon className="text-xl sm:text-2xl text-white" />
                   </motion.div>
-
-                  <p className={clsx(
-                    'text-xs sm:text-sm font-semibold text-center relative z-10',
-                    action.disabled ? 'text-text-tertiary' : 'text-text-secondary'
-                  )}>
+                  <p className="text-xs sm:text-sm font-semibold text-center relative z-10 text-text-secondary">
                     {action.label}
                   </p>
-
-                  {action.disabled && (
-                    <motion.span
-                      className="absolute top-1 right-1 sm:top-2 sm:right-2 text-xs bg-background-secondary text-text-tertiary px-2 py-0.5 rounded-full font-medium"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      Locked
-                    </motion.span>
-                  )}
                 </motion.button>
               );
 
-              return !action.disabled && action.href ? (
+              return action.href ? (
                 <Link to={action.href} key={action.label} className="contents">
                   {button}
                 </Link>
@@ -631,67 +593,35 @@ const ClientDashHome: React.FC = () => {
                 const button = (
                   <motion.button
                     key={action.label}
-                    disabled={action.disabled}
-                    className={clsx(
-                      'p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden',
-                      'flex flex-col items-center justify-center gap-2 sm:gap-3',
-                      action.disabled
-                        ? 'bg-background-muted opacity-50 cursor-not-allowed'
-                        : 'bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg'
-                    )}
+                    className="p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center gap-2 sm:gap-3 bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={!action.disabled ? { y: -8, transition: { duration: 0.2 } } : {}}
+                    whileHover={{ y: -8, transition: { duration: 0.2 } }}
                   >
-                    {!action.disabled && (
-                      <motion.div
-                        className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-                      />
-                    )}
-
                     <motion.div
-                      className={clsx(
-                        'p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10',
-                        action.disabled
-                          ? 'bg-background-secondary'
-                          : `bg-gradient-to-r ${action.color} shadow-lg`
-                      )}
-                      whileHover={!action.disabled ? { rotate: 10, scale: 1.1 } : {}}
+                      className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                    />
+                    <motion.div
+                      className={`p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10 bg-gradient-to-r ${action.color} shadow-lg`}
+                      whileHover={{ rotate: 10, scale: 1.1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 10 }}
                     >
-                      <action.icon className={clsx(
-                        'text-xl sm:text-2xl',
-                        action.disabled ? 'text-text-tertiary' : 'text-white'
-                      )} />
+                      <action.icon className="text-xl sm:text-2xl text-white" />
                     </motion.div>
-
-                    <p className={clsx(
-                      'text-xs sm:text-sm font-semibold text-center relative z-10',
-                      action.disabled ? 'text-text-tertiary' : 'text-text-secondary'
-                    )}>
+                    <p className="text-xs sm:text-sm font-semibold text-center relative z-10 text-text-secondary">
                       {action.label}
                     </p>
-
-                    {action.disabled && (
-                      <motion.span
-                        className="absolute top-1 right-1 sm:top-2 sm:right-2 text-xs bg-background-secondary text-text-tertiary px-2 py-0.5 rounded-full font-medium"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        Locked
-                      </motion.span>
-                    )}
                   </motion.button>
                 );
 
-                return !action.disabled && action.href ? (
+                return 'href' in action && action.href ? (
                   <Link to={action.href} key={action.label} className="contents">
                     {button}
                   </Link>
                 ) : (
-                  button
+                  <span key={action.label} className="contents">{button}</span>
+
                 );
               })}
             </div>

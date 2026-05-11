@@ -20,6 +20,7 @@ import type { RootState } from '@/store';
 import { layoutTokens } from '@/design-system/tokens/layout';
 import BillingGateModal from '@/common-components/BillingGateModal';
 import Toast from '@/common-components/Toast';
+import { useBillingGate } from '@/hooks/useBillingGate';
 
 const t = layoutTokens.intakeForm;
 
@@ -106,8 +107,7 @@ const IntakeForm: React.FC = () => {
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
-    const [showBillingGateModal, setShowBillingGateModal] = useState(false);
-    const [billingGateData, setBillingGateData] = useState<any>(null);
+    const { gateState, warningState, handleBillingError, handleUsageUpdate, dismissGate, dismissWarning } = useBillingGate();
     const [toastMessage, setToastMessage] = useState<{
         message: string;
         type: 'success' | 'error';
@@ -215,19 +215,21 @@ const IntakeForm: React.FC = () => {
                     is_last_stage: true
                 };
 
-                await submitIntakeStep(payload);
+                const result = await submitIntakeStep(payload);
+                if (result?.data?.usage) {
+                    handleUsageUpdate({
+                        usage_type: 'intake_update',
+                        current_count: result.data.usage.current_count,
+                        limit: result.data.usage.limit,
+                    });
+                }
                 showToast('Intake form submitted successfully!', 'success');
 
                 setTimeout(() => {
                     navigateHook("/dashboard/client");
                 }, 1200);
             } catch (error: any) {
-                if (
-                    error?.response?.status === 403 &&
-                    error?.response?.data?.code === "USAGE_LIMIT_REACHED"
-                ) {
-                    setBillingGateData(error.response.data);
-                    setShowBillingGateModal(true);
+                if (handleBillingError(error)) {
                     return;
                 }
 
@@ -269,7 +271,14 @@ const IntakeForm: React.FC = () => {
                 is_last_stage: false
             };
 
-            await submitIntakeStep(payload);
+            const stepResult = await submitIntakeStep(payload);
+            if (stepResult?.data?.usage) {
+                handleUsageUpdate({
+                    usage_type: 'intake_update',
+                    current_count: stepResult.data.usage.current_count,
+                    limit: stepResult.data.usage.limit,
+                });
+            }
 
             setButtonState('saved');
             setTimeout(() => {
@@ -277,12 +286,7 @@ const IntakeForm: React.FC = () => {
                 setButtonState('default');
             }, 500);
         } catch (err: any) {
-            if (
-                err?.response?.status === 403 &&
-                err?.response?.data?.code === "USAGE_LIMIT_REACHED"
-            ) {
-                setBillingGateData(err.response.data);
-                setShowBillingGateModal(true);
+            if (handleBillingError(err)) {
                 setButtonState('default');
                 return;
             }
@@ -555,6 +559,25 @@ const IntakeForm: React.FC = () => {
                 )}
             </AnimatePresence>
 
+            <AnimatePresence>
+                {warningState && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
+                    >
+                        <span>⚠️ {warningState.remaining} intake {warningState.remaining === 1 ? 'edit' : 'edits'} left on your free plan.</span>
+                        <button
+                            onClick={dismissWarning}
+                            className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline"
+                        >
+                            Dismiss
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {loading ? (
                 <div className={t.loadingWrapper}>
                     Loading
@@ -638,19 +661,15 @@ const IntakeForm: React.FC = () => {
                 </div>
             )}
 
-            {billingGateData && (
+            {gateState && (
                 <BillingGateModal
-                    isOpen={showBillingGateModal}
-                    usageType={billingGateData.usage_type}
-                    currentCount={billingGateData.current_count}
-                    limit={billingGateData.limit}
-                    onUpgrade={() => {
-                        console.log("Upgrade clicked");
-                    }}
-                    onSecondary={() => {
-                        setShowBillingGateModal(false);
-                    }}
-                    onClose={() => setShowBillingGateModal(false)}
+                    isOpen={true}
+                    usageType={gateState.usage_type}
+                    currentCount={gateState.current_count}
+                    limit={gateState.limit}
+                    onUpgrade={() => console.log("Upgrade clicked")}
+                    onSecondary={dismissGate}
+                    onClose={dismissGate}
                 />
             )}
         </>

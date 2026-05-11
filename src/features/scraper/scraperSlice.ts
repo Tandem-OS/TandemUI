@@ -28,6 +28,10 @@ export interface ScrapedData {
   url: string;
   analyzedAt: Date | string;
   sections: ScrapedSection[];
+  usage?: {
+    current_count: number;
+    limit: number;
+  };
 }
 
 export type LayoutPlan = ScrapedSection[];
@@ -46,7 +50,7 @@ export interface ScraperState {
 interface ScrapePayload {
   designer_email: string;
   client_email: string | null;
-  project_id?: string | null;  
+  project_id?: string | null;
   role: string;
   url: string;
 }
@@ -76,7 +80,9 @@ export const scrapeUrl = createAsyncThunk<
       if (!response?.data) {
         return rejectWithValue('Scraper returned no data');
       }
-      return { ...response.data, url: payload.url } as ScrapedData;
+      return {
+        ...response.data, url: payload.url, usage: response.data.usage ?? null,
+      } as ScrapedData;
     } catch (error: any) {
       if (
         error.response?.status === 403 &&
