@@ -61,3 +61,12 @@ export const retrivePlatformTestimonial = async () => {
 
   return await api.post("/testimonial/platform", payload);
 }
+
+// ── Designer dashboard — fetch ALL testimonials for the logged-in designer ───
+export const retriveAllDesignerTestimonials = async () => {
+  const designerEmail = store.getState().auth.user.email!;
+
+  return await api.post("/testimonial/designer", {
+    designer_email: designerEmail,
+  });
+}

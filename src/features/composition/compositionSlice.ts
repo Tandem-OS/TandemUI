@@ -109,6 +109,8 @@ export const refineComposition = createAsyncThunk(
         chatResponse: data.chat_response,
         reasoning: data.reasoning as string ?? undefined,
         currentVersion: data.current_version as number ?? null,
+        usage: data.usage ?? null,
+
       };
     } catch (err: any) {
       return rejectWithValue(
@@ -165,7 +167,10 @@ export const restoreVersion = createAsyncThunk(
       dispatch(setPageSchema(data.page_schema));
       dispatch(fetchVersions(payload.projectId));
 
-      return { newCompositionId: data.composition_id as string };
+      return {
+        newCompositionId: data.composition_id as string,
+        usage: data.usage ?? null,
+      };
     } catch (err: any) {
       return rejectWithValue(err.message ?? 'Failed to restore version');
     }

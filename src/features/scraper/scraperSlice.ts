@@ -28,6 +28,10 @@ export interface ScrapedData {
   url: string;
   analyzedAt: Date | string;
   sections: ScrapedSection[];
+  usage?: {
+    current_count: number;
+    limit: number;
+  };
 }
 
 export type LayoutPlan = ScrapedSection[];
@@ -41,12 +45,12 @@ export interface ScraperState {
   error: string | null;
 }
 
-// ─── Thunk payload types ──────────────────────────────────────────────────────
+// ─── Thunk payload types 
 
 interface ScrapePayload {
   designer_email: string;
   client_email: string | null;
-  project_id: string;
+  project_id?: string | null;
   role: string;
   url: string;
 }
@@ -67,7 +71,7 @@ const initialState: ScraperState = {
 export const scrapeUrl = createAsyncThunk<
   ScrapedData,
   ScrapePayload,
-  { rejectValue: string }
+  { rejectValue: any }
 >(
   'scraper/scrapeUrl',
   async (payload, { rejectWithValue }) => {
@@ -76,8 +80,19 @@ export const scrapeUrl = createAsyncThunk<
       if (!response?.data) {
         return rejectWithValue('Scraper returned no data');
       }
-      return { ...response.data, url: payload.url } as ScrapedData;
+      return {
+        ...response.data, url: payload.url, usage: response.data.usage ?? null,
+      } as ScrapedData;
     } catch (error: any) {
+      if (
+        error.response?.status === 403 &&
+        error.response?.data?.code === 'USAGE_LIMIT_REACHED'
+      ) {
+        return rejectWithValue({
+          status: 403,
+          ...error.response.data,
+        });
+      }
       if (error.response?.status === 429) {
         return rejectWithValue(
           error.response.data?.message ?? 'Daily scraping limit reached.'
@@ -151,7 +166,10 @@ const scraperSlice = createSlice({
       })
       .addCase(scrapeUrl.rejected, (state, action) => {
         state.status = 'error';
-        state.error = action.payload ?? 'Unknown error';
+        state.error =
+          typeof action.payload === 'string'
+            ? action.payload
+            : action.payload?.message ?? null;
       });
   },
 });

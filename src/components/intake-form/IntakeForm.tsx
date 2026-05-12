@@ -18,6 +18,9 @@ import { submitIntakeStep, getIntakeByClientEmail } from '@/lib/requests/IntakeR
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { layoutTokens } from '@/design-system/tokens/layout';
+import BillingGateModal from '@/common-components/BillingGateModal';
+import Toast from '@/common-components/Toast';
+import { useBillingGate } from '@/hooks/useBillingGate';
 
 const t = layoutTokens.intakeForm;
 
@@ -104,6 +107,11 @@ const IntakeForm: React.FC = () => {
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
+    const { gateState, warningState, handleBillingError, handleUsageUpdate, dismissGate, dismissWarning } = useBillingGate();
+    const [toastMessage, setToastMessage] = useState<{
+        message: string;
+        type: 'success' | 'error';
+    } | null>(null);
 
     const fetchForm = async (clientEmail: string) => {
         setLoading(true);
@@ -146,6 +154,16 @@ const IntakeForm: React.FC = () => {
 
     const totalScreens = 5;
     const canSkip = currentScreen > 1;
+    const showToast = (
+        message: string,
+        type: 'success' | 'error' = 'success'
+    ) => {
+        setToastMessage({ message, type });
+
+        setTimeout(() => {
+            setToastMessage(null);
+        }, 3000);
+    };
 
     const updateForm = (updates: Partial<IntakeFormData>) =>
         setFormData(prev => ({ ...prev, ...updates }));
@@ -173,7 +191,6 @@ const IntakeForm: React.FC = () => {
         console.log('Feedback skipped for Intake Form');
         navigateHook('/dashboard/client');
     };
-
     const navigateScreen = async (next: boolean) => {
         if (!next) {
             if (currentScreen > 1) setCurrentScreen(currentScreen - 1);
@@ -184,10 +201,7 @@ const IntakeForm: React.FC = () => {
 
         if (currentScreen === totalScreens) {
             try {
-                alert('Intake form submitted successfully!');
-                const { ...rest } = formData;
                 const payload = {
-                    ...rest,
                     designer_email: designerEmail,
                     client_email: clientEmail,
                     key_features: formData.keyFeatures,
@@ -198,18 +212,35 @@ const IntakeForm: React.FC = () => {
                     additional_details: formData.additionalDetails,
                     dead_line: formData.deadline,
                     not_sure_deadline: formData.notSureDeadline,
+                    is_last_stage: true
                 };
-                await submitIntakeStep(payload);
-                alert('Intake form submitted successfully!');
-                navigateHook("/dashboard/client");
-            } catch (error) {
+
+                const result = await submitIntakeStep(payload);
+                if (result?.data?.usage) {
+                    handleUsageUpdate({
+                        usage_type: 'intake_update',
+                        current_count: result.data.usage.current_count,
+                        limit: result.data.usage.limit,
+                    });
+                }
+                showToast('Intake form submitted successfully!', 'success');
+
+                setTimeout(() => {
+                    navigateHook("/dashboard/client");
+                }, 1200);
+            } catch (error: any) {
+                if (handleBillingError(error)) {
+                    return;
+                }
+
                 console.error('Error submitting intake form:', error);
-                alert('Submission failed. Please try again.');
+                showToast('Submission failed. Please try again.', 'error');
             }
             return;
         }
 
         setButtonState('saving');
+
         try {
             const {
                 tones, keyFeatures, inspirationUrls, colorStrategy,
@@ -237,18 +268,34 @@ const IntakeForm: React.FC = () => {
                         lastModified: brandGuide.lastModified,
                     }
                     : null,
+                is_last_stage: false
             };
 
-            await submitIntakeStep(payload);
+            const stepResult = await submitIntakeStep(payload);
+            if (stepResult?.data?.usage) {
+                handleUsageUpdate({
+                    usage_type: 'intake_update',
+                    current_count: stepResult.data.usage.current_count,
+                    limit: stepResult.data.usage.limit,
+                });
+            }
 
             setButtonState('saved');
             setTimeout(() => {
                 setCurrentScreen(currentScreen + 1);
                 setButtonState('default');
             }, 500);
-        } catch (err) {
+        } catch (err: any) {
+            if (handleBillingError(err)) {
+                setButtonState('default');
+                return;
+            }
+
             console.error("Intake submission failed", err);
-            alert("Something went wrong while saving this step. Please try again.");
+            showToast(
+                "Something went wrong while saving this step. Please try again.",
+                'error'
+            );
             setButtonState('default');
         }
     };
@@ -503,6 +550,34 @@ const IntakeForm: React.FC = () => {
 
     return (
         <>
+            <AnimatePresence>
+                {toastMessage && (
+                    <Toast
+                        message={toastMessage.message}
+                        type={toastMessage.type}
+                    />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {warningState && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
+                    >
+                        <span>⚠️ {warningState.remaining} intake {warningState.remaining === 1 ? 'edit' : 'edits'} left on your free plan.</span>
+                        <button
+                            onClick={dismissWarning}
+                            className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline"
+                        >
+                            Dismiss
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {loading ? (
                 <div className={t.loadingWrapper}>
                     Loading
@@ -562,6 +637,7 @@ const IntakeForm: React.FC = () => {
                                                     Back
                                                 </SimpleButton>
                                             )}
+
                                             {(currentScreen > 1 || vibeSelectionComplete) && (
                                                 <SimpleButton
                                                     variant="solid"
@@ -583,6 +659,18 @@ const IntakeForm: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {gateState && (
+                <BillingGateModal
+                    isOpen={true}
+                    usageType={gateState.usage_type}
+                    currentCount={gateState.current_count}
+                    limit={gateState.limit}
+                    onUpgrade={() => console.log("Upgrade clicked")}
+                    onSecondary={dismissGate}
+                    onClose={dismissGate}
+                />
             )}
         </>
     );

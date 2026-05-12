@@ -15,9 +15,12 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = store.getState().auth.tokens.access;
   console.log(token)
-  const isAuthRoute = config.url?.includes('/auth') || 
-                      config.url?.includes('/swiper/canonical');
-
+const isAuthRoute = config.url?.includes('/auth') ||
+                    config.url?.includes('/swiper/canonical') ||
+                    config.url?.includes('/login') ||
+                    config.url?.includes('/signup') ||
+                    config.url?.includes('/forgot-password') ||
+                    config.url?.includes('/reset-password');
   if (!token && !isAuthRoute) {
     store.dispatch(logout());
     store.dispatch(clearProjectId());

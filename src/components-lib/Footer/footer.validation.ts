@@ -62,7 +62,11 @@ function validateFooterColumn(column: unknown, index: number): FooterColumn {
   if (!Array.isArray(c.links) || c.links.length === 0) throw new Error(`${ctx}: links must be a non-empty array`);
 
   const links = c.links.map((link: unknown, li: number) => {
-    if (!link || typeof link !== 'object') throw new Error(`${ctx}.links[${li}]: must be an object`);
+    if (typeof link === 'string') {
+      if (!link.trim()) throw new Error(`${ctx}.links[${li}]: must not be empty`);
+      return { label: link, href: '#' };
+    }
+    if (!link || typeof link !== 'object') throw new Error(`${ctx}.links[${li}]: must be an object or string`);
     const l = link as Record<string, unknown>;
     if (typeof l.label !== 'string' || !l.label.trim()) throw new Error(`${ctx}.links[${li}]: label is required`);
     if (typeof l.href !== 'string' || !l.href.trim()) throw new Error(`${ctx}.links[${li}]: href is required`);

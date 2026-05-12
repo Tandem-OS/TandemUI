@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import type { RootState } from '@/store';
 import { useSelector } from 'react-redux';
 import { getProjectByClientEmail } from '@/lib/requests/ProjectRequest';
-import { setProjectId } from '@/features/project/projectSlice';
+import { setProjectId, setProjectStatus, clearProjectId, clearProjectStatus } from '@/features/project/projectSlice';
 
 import {
   RiCheckLine,
@@ -15,7 +15,6 @@ import {
   RiFileTextLine,
   RiPaletteLine,
   RiMessage3Line,
-  RiCheckDoubleLine,
   RiStarLine,
   RiThunderstormsLine,
   RiRocketLine,
@@ -36,6 +35,20 @@ interface StatusCardProps {
   onClick?: () => void;
   delay?: number;
 }
+
+const STATUS_PROGRESS: Record<string, number> = {
+  intake: 10,
+  scraping: 20,
+  swiping: 35,
+  embedded: 45,
+  composing: 55,
+  refining: 65,
+  revisions: 75,
+  completed: 90,
+  handoff: 100,
+};
+
+const PIPELINE_ORDER = ['intake', 'scraping', 'swiping', 'embedded', 'composing', 'refining', 'revisions', 'completed', 'handoff'];
 
 const StatusCard: React.FC<StatusCardProps> = ({
   title,
@@ -193,21 +206,16 @@ const ClientDashHome: React.FC = () => {
 
   // Prevent scroll issues on mount
   useEffect(() => {
-    // Force scroll to top
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
 
-    // Disable scroll restoration
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
 
-    // Enable content after DOM settles
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setTimeout(() => setProgress(65), 800);
-      });
+      requestAnimationFrame(() => { });
     });
 
     return () => {
@@ -217,38 +225,132 @@ const ClientDashHome: React.FC = () => {
     };
   }, []);
 
+  const projectStatus = useSelector((state: RootState) => state.project.status);
+
+  // ─── Gating helpers ───────────────────────────────────────────────────────
+  const isStageCompleted = (stage: string): boolean => {
+    if (!projectStatus) return false;
+    return PIPELINE_ORDER.indexOf(stage) < PIPELINE_ORDER.indexOf(projectStatus);
+  };
+
+  const isCurrentStage = (stage: string): boolean => projectStatus === stage;
+;
+
+  const getCardStatus = (stage: string): 'completed' | 'pending' => {
+    return isStageCompleted(stage) || isCurrentStage(stage) ? 'completed' : 'pending';
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
+
   const quickActions = [
-    { icon: RiEditLine, label: 'Edit Intake Form', color: 'from-blue-500 to-cyan-500', href: 'intake' },
-    { icon: RiPaletteLine, label: 'Update Preferences', color: 'from-purple-500 to-pink-500' },
-    { icon: RiMessage3Line, label: 'Submit Feedback', color: 'from-emerald-500 to-teal-500' },
-    { icon: RiStarLine, label: 'Testimonial', color: 'from-amber-500 to-orange-500', disabled: true }
+    {
+      icon: RiEditLine,
+      label: 'Edit Intake Form',
+      color: 'from-blue-500 to-cyan-500',
+      href: 'intake',
+    },
+    {
+      icon: RiPaletteLine,
+      label: 'Update Preferences',
+      color: 'from-purple-500 to-pink-500',
+    },
+    {
+      icon: RiMessage3Line,
+      label: 'Submit Feedback',
+      color: 'from-emerald-500 to-teal-500',
+    },
+    {
+      icon: RiStarLine,
+      label: 'Testimonial',
+      color: 'from-amber-500 to-orange-500',
+    },
   ];
 
   const statusItems = [
-    { title: "Intake Submitted", status: "completed" as const, icon: <RiFileTextLine />, action: "View", route: '/client-dashboard/intake', delay: 0 },
-    { title: "Preferences Swiped", status: "completed" as const, icon: <RiPaletteLine />, action: "View", route: 'swiper', delay: 0.1 },
-    { title: "Feedback Pending", status: "pending" as const, icon: <RiMessage3Line />, action: "Submit", route: '/client-dashboard/feedback', delay: 0.2 },
-    { title: "Design Approval", status: "pending" as const, icon: <RiCheckDoubleLine />, action: "Review", route: '/client-dashboard/approval', delay: 0.3 }
+    {
+      title: 'Intake Submitted',
+      status: getCardStatus('intake'),
+      icon: <RiFileTextLine />,
+      action: 'View',
+      route: '/dashboard/client/intake',
+      delay: 0,
+    },
+    {
+      title: 'Scraping',
+      status: getCardStatus('scraping'),
+      icon: <RiLinkM />,
+      action: 'View',
+      route: '/dashboard/client/scraper',
+      delay: 0.1,
+    },
+    {
+      title: 'Preferences Swiped',
+      status: getCardStatus('swiping'),
+      icon: <RiPaletteLine />,
+      action: 'View',
+      route: 'swiper',
+      delay: 0.2,
+    },
+    {
+      title: 'Generate Layout',
+      status: getCardStatus('composing'),
+      icon: <RiMessage3Line />,
+      action: 'Submit',
+      route: '/dashboard/client/compose',
+      delay: 0.3,
+    },
+    {
+      title: 'Designer Feedback',
+      status: getCardStatus('completed'),
+      icon: <RiMessage3Line />,
+      action: 'Submit',
+      route: 'designer-testimonial',
+      delay: 0.3,
+    },
+    {
+      title: 'PlatForm Feedback',
+      status: getCardStatus('handoff'),
+      icon: <RiMessage3Line />,
+      action: 'Submit',
+      route: 'final-testimonial',
+      delay: 0.3,
+    },
   ];
 
   const scrapperButton = [
-    { icon: RiLinkM, label: 'Capture & Create', color: 'from-blue-500 to-cyan-500', href: 'scraper', disabled: false },
+    { icon: RiLinkM, label: 'Capture & Create', color: 'from-blue-500 to-cyan-500', href: 'scraper' },
   ];
-
 
   const clientName = useSelector((state: RootState) => state.auth.user.name)!;
   const client_email = useSelector((state: RootState) => state.auth.user.email)!;
 
   const fetchProject = async () => {
+    dispatch(clearProjectStatus());
+    setProgress(0);
     const result = await getProjectByClientEmail({ client_email });
     if (result.status === 200 && result.data.data?.id) {
-      dispatch(setProjectId(result.data.data?.id));
+      dispatch(setProjectId(result.data.data.id));
+      const status = result.data.data.status;
+      if (status) {
+        dispatch(setProjectStatus(status));
+      }
+    } else {
+      dispatch(clearProjectId());
+      dispatch(clearProjectStatus());
     }
-  }
+  };
 
   useEffect(() => {
-    fetchProject()
-  }, [])
+    if (projectStatus) {
+      const pct = STATUS_PROGRESS[projectStatus] ?? 0;
+      const timer = setTimeout(() => setProgress(pct), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [projectStatus]);
+
+  useEffect(() => {
+    fetchProject();
+  }, []);
 
   return (
     <div className="min-h-screen overflow-x-hidden">
@@ -297,70 +399,29 @@ const ClientDashHome: React.FC = () => {
               const button = (
                 <motion.button
                   key={action.label}
-                  disabled={action.disabled}
-                  className={clsx(
-                    'p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden',
-                    'flex flex-col items-center justify-center gap-2 sm:gap-3',
-                    action.disabled
-                      ? 'bg-background-muted opacity-50 cursor-not-allowed'
-                      : 'bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg'
-                  )}
+                  className="p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center gap-2 sm:gap-3 bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{
-                    duration: 0.5,
-                    delay: index * 0.1
-                  }}
-                  whileHover={!action.disabled ? {
-                    y: -8,
-                    transition: { duration: 0.2 }
-                  } : {}}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ y: -8, transition: { duration: 0.2 } }}
                 >
-                  {!action.disabled && (
-                    <motion.div
-                      className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-                    />
-                  )}
-
                   <motion.div
-                    className={clsx(
-                      'p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10',
-                      action.disabled
-                        ? 'bg-background-secondary'
-                        : `bg-gradient-to-r ${action.color} shadow-lg`
-                    )}
-                    whileHover={!action.disabled ? { rotate: 10, scale: 1.1 } : {}}
+                    className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                  />
+                  <motion.div
+                    className={`p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10 bg-gradient-to-r ${action.color} shadow-lg`}
+                    whileHover={{ rotate: 10, scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
-                    <action.icon className={clsx(
-                      'text-xl sm:text-2xl',
-                      action.disabled ? 'text-text-tertiary' : 'text-white'
-                    )} />
+                    <action.icon className="text-xl sm:text-2xl text-white" />
                   </motion.div>
-
-                  <p className={clsx(
-                    'text-xs sm:text-sm font-semibold text-center relative z-10',
-                    action.disabled
-                      ? 'text-text-tertiary'
-                      : 'text-text-secondary'
-                  )}>
+                  <p className="text-xs sm:text-sm font-semibold text-center relative z-10 text-text-secondary">
                     {action.label}
                   </p>
-
-                  {action.disabled && (
-                    <motion.span
-                      className="absolute top-1 right-1 sm:top-2 sm:right-2 text-xs bg-background-secondary text-text-tertiary px-2 py-0.5 rounded-full font-medium"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      Locked
-                    </motion.span>
-                  )}
                 </motion.button>
               );
 
-              return !action.disabled && action.href ? (
+              return action.href ? (
                 <Link to={action.href} key={action.label} className="contents">
                   {button}
                 </Link>
@@ -395,10 +456,7 @@ const ClientDashHome: React.FC = () => {
 
                 {/* Progress Ring */}
                 <div className="relative w-32 h-32 mx-auto mb-6">
-                  <svg
-                    className="w-full h-full transform -rotate-90"
-                    viewBox="0 0 128 128"
-                  >
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 128 128">
                     <defs>
                       <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" stopColor="#3B82F6" />
@@ -406,31 +464,15 @@ const ClientDashHome: React.FC = () => {
                         <stop offset="100%" stopColor="#EC4899" />
                       </linearGradient>
                     </defs>
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r="56"
-                      stroke="currentColor"
-                      strokeWidth="8"
-                      fill="none"
-                      className="text-border-muted"
-                    />
+                    <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="none" className="text-border-muted" />
                     <motion.circle
-                      cx="64"
-                      cy="64"
-                      r="56"
+                      cx="64" cy="64" r="56"
                       stroke="url(#progressGradient)"
-                      strokeWidth="8"
-                      fill="none"
-                      strokeLinecap="round"
+                      strokeWidth="8" fill="none" strokeLinecap="round"
                       strokeDasharray={351.86}
                       initial={{ strokeDashoffset: 351.86 }}
                       animate={{ strokeDashoffset: 351.86 * (1 - progress / 100) }}
-                      transition={{
-                        duration: 2,
-                        delay: 0.5,
-                        ease: "easeInOut"
-                      }}
+                      transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -442,9 +484,7 @@ const ClientDashHome: React.FC = () => {
                     >
                       {progress}%
                     </motion.span>
-                    <span className="text-para-sm text-text-tertiary font-medium">
-                      done
-                    </span>
+                    <span className="text-para-sm text-text-tertiary font-medium">done</span>
                   </div>
                 </div>
 
@@ -469,9 +509,7 @@ const ClientDashHome: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                />
+                <motion.div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <RiSparklingLine className="text-lg sm:text-xl relative z-10" />
                 <span className="relative z-10">Continue Project</span>
                 <motion.div
@@ -511,7 +549,7 @@ const ClientDashHome: React.FC = () => {
             Project Status
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
             {statusItems.map((item) => (
               <StatusCard
                 key={item.title}
@@ -549,76 +587,35 @@ const ClientDashHome: React.FC = () => {
                 const button = (
                   <motion.button
                     key={action.label}
-                    disabled={action.disabled}
-                    className={clsx(
-                      'p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden',
-                      'flex flex-col items-center justify-center gap-2 sm:gap-3',
-                      action.disabled
-                        ? 'bg-background-muted opacity-50 cursor-not-allowed'
-                        : 'bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg'
-                    )}
+                    className="p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center gap-2 sm:gap-3 bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{
-                      duration: 0.5,
-                      delay: index * 0.1
-                    }}
-                    whileHover={!action.disabled ? {
-                      y: -8,
-                      transition: { duration: 0.2 }
-                    } : {}}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    whileHover={{ y: -8, transition: { duration: 0.2 } }}
                   >
-                    {!action.disabled && (
-                      <motion.div
-                        className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
-                      />
-                    )}
-
                     <motion.div
-                      className={clsx(
-                        'p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10',
-                        action.disabled
-                          ? 'bg-background-secondary'
-                          : `bg-gradient-to-r ${action.color} shadow-lg`
-                      )}
-                      whileHover={!action.disabled ? { rotate: 10, scale: 1.1 } : {}}
+                      className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                    />
+                    <motion.div
+                      className={`p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10 bg-gradient-to-r ${action.color} shadow-lg`}
+                      whileHover={{ rotate: 10, scale: 1.1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 10 }}
                     >
-                      <action.icon className={clsx(
-                        'text-xl sm:text-2xl',
-                        action.disabled ? 'text-text-tertiary' : 'text-white'
-                      )} />
+                      <action.icon className="text-xl sm:text-2xl text-white" />
                     </motion.div>
-
-                    <p className={clsx(
-                      'text-xs sm:text-sm font-semibold text-center relative z-10',
-                      action.disabled
-                        ? 'text-text-tertiary'
-                        : 'text-text-secondary'
-                    )}>
+                    <p className="text-xs sm:text-sm font-semibold text-center relative z-10 text-text-secondary">
                       {action.label}
                     </p>
-
-                    {action.disabled && (
-                      <motion.span
-                        className="absolute top-1 right-1 sm:top-2 sm:right-2 text-xs bg-background-secondary text-text-tertiary px-2 py-0.5 rounded-full font-medium"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        Locked
-                      </motion.span>
-                    )}
                   </motion.button>
                 );
 
-                // Wrap with Link if not disabled and has href
-                return !action.disabled && action.href ? (
+                return 'href' in action && action.href ? (
                   <Link to={action.href} key={action.label} className="contents">
                     {button}
                   </Link>
                 ) : (
-                  button
+                  <span key={action.label} className="contents">{button}</span>
+
                 );
               })}
             </div>
