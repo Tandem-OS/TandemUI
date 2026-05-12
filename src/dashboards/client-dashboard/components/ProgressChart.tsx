@@ -2,11 +2,15 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaCh
 
 const data = [
     { name: 'Start', progress: 0, tasks: 0 },
-    { name: 'Intake', progress: 25, tasks: 1 },
-    { name: 'Preferences', progress: 50, tasks: 2 },
-    { name: 'Current', progress: 65, tasks: 2 },
-    { name: 'Feedback', progress: 80, tasks: 3 },
-    { name: 'Complete', progress: 100, tasks: 4 }
+    { name: 'Intake', progress: 10, tasks: 1 },
+    { name: 'Scraping', progress: 20, tasks: 2 },
+    { name: 'swiping', progress: 35, tasks: 2 },
+    { name: 'Embedded', progress: 45, tasks: 3 },
+    { name: 'Composing', progress: 55, tasks: 4 },
+    { name: 'Refining', progress: 65, tasks: 5 },
+    { name: 'Revisions', progress: 75, tasks: 6 },
+    { name: 'Completed', progress: 90, tasks: 7 },
+    { name: 'Hand OFf', progress: 100, tasks: 8 }
 ];
 
 interface CustomTooltipProps {
