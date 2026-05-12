@@ -26,6 +26,10 @@ export interface RefineResponse {
   current_version: number;
   chat_response: string;
   reasoning?: string;
+  usage?: {
+    current_count: number;
+    limit: number;
+  };
 }
 
 export interface CallAiComposePipeline {
@@ -60,7 +64,7 @@ export const getCompose = async (compositionId: string): Promise<ComposeResponse
 
 export const getAllProjectCompose = async (): Promise<ComposeResponse> => {
   const projectId = store.getState().project.projectId;
-  const response = await api.get(`${COMPOSE_ENDPOINT}?project_id${projectId}`);
+  const response = await api.get(`${COMPOSE_ENDPOINT}?project_id=${projectId}`);
   return response.data;
 };
 // ─── Refine 
@@ -120,7 +124,16 @@ export const getVersionByNumber = async (projectId: string, versionNumber: numbe
   return response.data;
 };
 
-export const postRestoreVersion = async (projectId: string, targetVersion: number) => {
+export interface RestoreResponse {
+  composition_id: string;
+  page_schema: PageSchema;
+  usage?: {
+    current_count: number;
+    limit: number;
+  };
+}
+
+export const postRestoreVersion = async (projectId: string, targetVersion: number): Promise<RestoreResponse> => {
   const response = await api.post('/compose/versions/restore', {
     project_id: projectId,
     target_version: targetVersion,

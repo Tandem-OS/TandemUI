@@ -25,14 +25,14 @@ const ClientDashMain = () => {
                 <Route path="/project-overview/:id" element={<ProjectOverview />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/final-testimonial" element={<FinalTestimonial />} />
-                <Route path="/scraper" element={<ScraperIntelligencePage />} />
+                <Route path="/scraper" element={<ScraperIntelligencePage mode="scraper" />} />
                 <Route path="/designer-testimonial" element={<DesignerTestimonial />} />
                 <Route path="/intake" element={<IntakeForm />} />
                 <Route path="/onboard" element={<OnboardingForm />} />
                 <Route path="/onboard/onboard-compelete" element={<OnboardComplete />} />
                 <Route path="/swiper" element={<Swiper />} />
-                <Route path="/swiper/compose" element={<ScraperIntelligencePage />} />
-                <Route path="/swiper/compose/:id" element={
+                <Route path="/compose" element={<ScraperIntelligencePage mode="compose" />} />
+                <Route path="/compose/:id" element={
                     <div className="w-full overflow-x-hidden">
                         <CompositionRenderer />
                     </div>

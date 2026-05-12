@@ -10,6 +10,7 @@ import { setPageSchema } from '@/features/composition/compositionSlice';
 
 interface StartFromIdeaProps {
     onGenerateLayout: (sections: any[], compositionId: string) => void;
+    disabled?: boolean;
 }
 
 const STAGES = [
@@ -18,7 +19,7 @@ const STAGES = [
     "Composing your layout...",
 ];
 
-const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
+const StartFromIdea = ({ onGenerateLayout, disabled = false }: StartFromIdeaProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [idea, setIdea] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
@@ -42,7 +43,6 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
         setActiveStage(0);
         setError(null);
 
-        // Fake progress timers
         const t1 = setTimeout(() => setActiveStage(1), 3000);
         const t2 = setTimeout(() => setActiveStage(2), 7000);
 
@@ -65,12 +65,16 @@ const StartFromIdea = ({ onGenerateLayout }: StartFromIdeaProps) => {
     return (
         <>
             <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0 4px 15px -3px rgba(99, 102, 241, 0.3)" }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsOpen(true)}
-                className="bg-background-secondary border border-border-default text-text-primary px-md sm:px-lg py-sm sm:py-md rounded-lg sm:rounded-xl font-medium hover:border-accent-default hover:bg-accent-subtle flex items-center gap-xs sm:gap-sm text-para-sm sm:text-para-md shadow-sm hover:shadow-md will-change-transform"
+                whileHover={!disabled ? { scale: 1.05, boxShadow: "0 4px 15px -3px rgba(99, 102, 241, 0.3)" } : {}}
+                whileTap={!disabled ? { scale: 0.95 } : {}}
+                onClick={() => !disabled && setIsOpen(true)}
+                disabled={disabled}
+                className={`bg-background-secondary border border-border-default text-text-primary px-md sm:px-lg py-sm sm:py-md rounded-lg sm:rounded-xl font-medium hover:border-accent-default hover:bg-accent-subtle flex items-center gap-xs sm:gap-sm text-para-sm sm:text-para-md shadow-sm hover:shadow-md will-change-transform ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
-                <motion.div whileHover={{ rotate: 15 }} transition={{ type: "spring", stiffness: 400 }}>
+                <motion.div
+                    whileHover={!disabled ? { rotate: 15 } : {}}
+                    transition={{ type: "spring", stiffness: 400 }}
+                >
                     <FaMagic className="text-icon-sm sm:text-icon-md text-accent-default" />
                 </motion.div>
                 <span>Generate with Idea</span>

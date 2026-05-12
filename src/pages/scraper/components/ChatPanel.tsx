@@ -6,7 +6,8 @@ import { FiPaperclip } from 'react-icons/fi';
 import { mockChatResponses, chatPrompts } from '../constants';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
-
+import BillingGateModal from '@/common-components/BillingGateModal';
+import { useBillingGate } from '@/hooks/useBillingGate';
 import {
     refineComposition,
     fetchVersions,
@@ -53,7 +54,7 @@ interface ChatPanelProps {
     onRestoreComplete?: (newCompositionId: string) => void;
 }
 
-// ─── Reasoning Toggle ─────────────────────────────────────────────────────────
+// ─── Reasoning Toggle 
 
 interface ReasoningToggleProps {
     reasoning: string;
@@ -103,7 +104,7 @@ const ReasoningToggle = ({ reasoning }: ReasoningToggleProps) => {
     );
 };
 
-// ─── Version Navigator ────────────────────────────────────────────────────────
+// ─── Version Navigator 
 
 interface VersionNavigatorProps {
     projectId: string;
@@ -168,7 +169,7 @@ const VersionNavigator = ({
                     id: `v-${targetVersion}-response`,
                     type: 'assistant',
                     message: result.chatResponse,
-                    reasoning: result.reasoning ?? undefined, // ← reasoning attached here
+                    reasoning: result.reasoning ?? undefined,
                     timestamp: new Date(),
                 },
             ]);
@@ -276,10 +277,10 @@ const ChatPanel = ({
     const [isTyping, setIsTyping] = useState(false);
     const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
+    const { gateState, warningState, handleBillingError, handleUsageUpdate, dismissGate, dismissWarning } = useBillingGate();
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-
     const processedContextRef = useRef<Set<string>>(new Set());
 
     const dispatch = useDispatch<AppDispatch>();
@@ -343,10 +344,22 @@ const ChatPanel = ({
                 projectId: resolvedProjectId,
                 targetVersion,
             })).unwrap();
+
+            if (result?.usage) {
+                handleUsageUpdate({
+                    usage_type: 'version_restore',
+                    current_count: result.usage.current_count,
+                    limit: result.usage.limit,
+                });
+            }
+
             dispatch(clearPreview());
             onRestoreComplete?.(result.newCompositionId);
-        } catch {
-            // restoreStatus in Redux will be 'error' — UI reads from there
+        } catch (err: any) {
+            if (handleBillingError(err)) {
+                return;
+            }
+            console.error("Restore failed:", err);
         }
     };
 
@@ -376,9 +389,17 @@ const ChatPanel = ({
                     id: (Date.now() + 1).toString(),
                     type: 'assistant',
                     message: result.chatResponse ?? `Done! Updated ${Array.from(selectedSections).join(', ')}.`,
-                    reasoning: result.reasoning ?? undefined, // ← ADD this line
+                    reasoning: result.reasoning ?? undefined,
                     timestamp: new Date(),
                 }]);
+
+                if (result?.usage) {
+                    handleUsageUpdate({
+                        usage_type: 'refine',
+                        current_count: result.usage.current_count,
+                        limit: result.usage.limit,
+                    });
+                }
 
                 onRefineComplete?.(Array.from(selectedSections));
                 setSelectedSections(new Set());
@@ -386,10 +407,13 @@ const ChatPanel = ({
 
                 if (resolvedProjectId) dispatch(fetchVersions(resolvedProjectId));
             } catch (err: any) {
+                if (handleBillingError(err)) {
+                    return;
+                }
                 setMessages(prev => [...prev, {
                     id: (Date.now() + 1).toString(),
                     type: 'assistant',
-                    message: err ?? 'Something went wrong. Please try again.',
+                    message: 'Something went wrong. Please try again.',
                     timestamp: new Date(),
                 }]);
             } finally {
@@ -480,8 +504,10 @@ const ChatPanel = ({
                     isPreviewingHistory={isPreviewingHistory}
                     onRestore={handleRestore}
                     onVersionChange={(msgs) => setMessages(prev => [...prev, ...msgs])}
-                    onPageSchemaChange={(schema) => dispatch(setPreviewSchema(schema))} />
+                    onPageSchemaChange={(schema) => dispatch(setPreviewSchema(schema))}
+                />
             )}
+
             {/* Preview Mode Banner */}
             {isPreviewingHistory && (
                 <div className="flex items-center justify-between gap-xs px-sm py-xs bg-amber-500/10 border-b border-amber-500/30 flex-shrink-0">
@@ -523,7 +549,6 @@ const ChatPanel = ({
                             <Para size="xs" className={`mt-xs opacity-70 ${message.type === 'user' ? '!text-white' : ''}`}>
                                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </Para>
-                            {/* Reasoning toggle — only on assistant messages with reasoning */}
                             {message.type === 'assistant' && message.reasoning && (
                                 <ReasoningToggle reasoning={message.reasoning} />
                             )}
@@ -597,7 +622,6 @@ const ChatPanel = ({
             </div>
 
             {/* Input */}
-            {/* Input */}
             <div className="p-sm sm:p-md border-t border-border-default flex-shrink-0">
                 {selectedImage && (
                     <div className="flex items-center gap-xs px-sm py-xs bg-accent-subtle border border-accent-default rounded-lg text-para-xs text-accent-default mb-xs">
@@ -669,7 +693,41 @@ const ChatPanel = ({
         </div>
     );
 
-    if (isDesktop) return ChatInterface;
+    if (isDesktop) {
+        return (
+            <>
+                {ChatInterface}
+
+                <AnimatePresence>
+                    {warningState && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
+                        >
+                            <span>⚠️ {warningState.remaining} {warningState.usage_type === 'refine' ? 'refinement' : 'restore'}{warningState.remaining === 1 ? '' : 's'} left on your free plan.</span>
+                            <button onClick={dismissWarning} className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline">
+                                Dismiss
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {gateState && (
+                    <BillingGateModal
+                        isOpen={true}
+                        usageType={gateState.usage_type}
+                        currentCount={gateState.current_count}
+                        limit={gateState.limit}
+                        onUpgrade={() => console.log("Upgrade clicked")}
+                        onSecondary={dismissGate}
+                        onClose={dismissGate}
+                    />
+                )}
+            </>
+        );
+    }
 
     return (
         <>
@@ -710,6 +768,34 @@ const ChatPanel = ({
                     </>
                 )}
             </AnimatePresence>
+
+            <AnimatePresence>
+                {warningState && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
+                    >
+                        <span>⚠️ {warningState.remaining} {warningState.usage_type === 'refine' ? 'refinement' : 'restore'}{warningState.remaining === 1 ? '' : 's'} left on your free plan.</span>
+                        <button onClick={dismissWarning} className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline">
+                            Dismiss
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {gateState && (
+                <BillingGateModal
+                    isOpen={true}
+                    usageType={gateState.usage_type}
+                    currentCount={gateState.current_count}
+                    limit={gateState.limit}
+                    onUpgrade={() => console.log("Upgrade clicked")}
+                    onSecondary={dismissGate}
+                    onClose={dismissGate}
+                />
+            )}
         </>
     );
 };

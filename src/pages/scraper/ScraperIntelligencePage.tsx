@@ -13,7 +13,6 @@ import {
 } from 'react-icons/fa';
 import { FaArrowLeftLong } from "react-icons/fa6";
 
-// Import components
 import ChatPanel from './components/ChatPanel';
 import LayoutPlan from './components/LayoutPlan';
 import StartFromIdea from './components/StartFromIdea';
@@ -21,10 +20,9 @@ import SectionCard from './components/SectionCard';
 import Heading from '../../components/demos/typography/Heading';
 import Para from '../../common-components/Para';
 
-// Import constants
 import { quickSuggestions, processingSteps } from './constants';
+import BillingGateModal from '@/common-components/BillingGateModal';
 
-// Redux
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
 import { pollForThumbnails } from '@/features/composition/compositionSlice';
@@ -33,10 +31,9 @@ import { useNavigate } from 'react-router-dom';
 import Toast from '@/common-components/Toast';
 import { selectActiveOrPreviewSchema } from '@/features/composition/compositionSelectors';
 
-// Extracted hook
 import { useTasteProfile } from '@/hooks/useTasteProfile';
+import { useBillingGate } from '@/hooks/useBillingGate';
 
-// Tokens
 import { layoutTokens } from '@/design-system/tokens/layout';
 
 import {
@@ -46,9 +43,17 @@ import {
     updateLayoutPlan,
     resetScraper,
 } from '@/features/scraper/scraperSlice';
+
 const t = layoutTokens.scraper;
 
-const ScraperIntelligencePage = () => {
+interface Props {
+    mode?: 'scraper' | 'compose';
+}
+
+const ScraperIntelligencePage = ({ mode }: Props) => {
+    const disableAnalyze = mode === 'compose';
+    const disableIdea = mode === 'scraper';
+
     // ── Pure UI state ─────────────────────────────────────────────────────────
     const [currentStep, setCurrentStep] = useState('welcome');
     const [inputValue, setInputValue] = useState('');
@@ -78,18 +83,19 @@ const ScraperIntelligencePage = () => {
     const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
     const projectId = useSelector((state: RootState) => state.project.projectId);
 
-    // ── Hooks 
+    // ── Hooks ─────────────────────────────────────────────────────────────────
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
+    const { gateState, warningState, handleBillingError, handleUsageUpdate, dismissGate, dismissWarning } = useBillingGate();
 
-    // ── Composition schema 
+    // ── Composition schema ────────────────────────────────────────────────────
     const pageSchema = useSelector(selectActiveOrPreviewSchema);
     const activeSections = compositionId && pageSchema?.sections
         ? pageSchema.sections
         : (scrapedData?.sections ?? []);
 
-    // ── Sync scraper status → currentStep 
+    // ── Sync scraper status → currentStep ─────────────────────────────────────
     useEffect(() => {
         if (scraperStatus === 'success' && currentStep === 'processing') {
             setCurrentStep('results');
@@ -110,11 +116,13 @@ const ScraperIntelligencePage = () => {
             handleModeToggle(false);
         }
     }, [userRole]);
-    // ── Reset scraper on mount 
+
+    // ── Reset scraper on mount ────────────────────────────────────────────────
     useEffect(() => {
         dispatch(resetScraper());
     }, []);
-    // ── Helpers 
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);
@@ -122,8 +130,8 @@ const ScraperIntelligencePage = () => {
 
     const handleStartScraping = async (url: string) => {
         const payload =
-            userRole === 'Designer' && email && projectId
-                ? { designer_email: email, client_email: null, project_id: projectId, role: 'designer', url }
+            userRole === 'Designer' && email
+                ? { designer_email: email, client_email: null, project_id: projectId ?? null, role: 'designer', url }
                 : userRole === 'Client' && designerEmail && projectId
                     ? { designer_email: designerEmail, role: 'client', project_id: projectId, client_email: email!, url }
                     : null;
@@ -140,10 +148,32 @@ const ScraperIntelligencePage = () => {
             }
         })();
 
-        await Promise.all([
-            dispatch(scrapeUrl(payload)),
-            processingAnimation,
-        ]);
+        try {
+            const [scrapeResult] = await Promise.all([
+                dispatch(scrapeUrl(payload)).unwrap(),
+                processingAnimation,
+            ]);
+
+            if (scrapeResult?.usage) {
+                handleUsageUpdate({
+                    usage_type: 'scraper_run',
+                    current_count: scrapeResult.usage.current_count,
+                    limit: scrapeResult.usage.limit,
+                });
+            }
+        } catch (err: any) {
+            const isBillingError =
+                (err?.status === 403 || err?.response?.status === 403) &&
+                (err?.code === "USAGE_LIMIT_REACHED" || err?.response?.data?.code === "USAGE_LIMIT_REACHED");
+
+            if (isBillingError) {
+                const gateData = err?.code ? err : err?.response?.data;
+                handleBillingError({ response: { status: 403, data: gateData } });
+                setCurrentStep('input');
+                return;
+            }
+            console.error("❌ Scraper failed:", err);
+        }
     };
 
     const handleSectionFeedback = (sectionId: string, feedback: 'like' | 'dislike') => {
@@ -188,6 +218,22 @@ const ScraperIntelligencePage = () => {
     return (
         <div className={t.root}>
             <AnimatePresence>
+                {warningState && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
+                    >
+                        <span>⚠️ {warningState.remaining} scraper {warningState.remaining === 1 ? 'run' : 'runs'} left on your free plan.</span>
+                        <button
+                            onClick={dismissWarning}
+                            className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline"
+                        >
+                            Dismiss
+                        </button>
+                    </motion.div>
+                )}
                 {toastMessage && (
                     <Toast message={toastMessage.message} type={toastMessage.type} />
                 )}
@@ -235,14 +281,16 @@ const ScraperIntelligencePage = () => {
                                 transition={{ delay: 0.4 }}
                                 className={t.welcomeActions}
                             >
+                                {/* Analyze a Website — disabled when mode is compose */}
                                 <motion.button
-                                    onClick={() => setCurrentStep('input')}
-                                    whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className={t.welcomePrimaryBtn}
+                                    onClick={() => !disableAnalyze && setCurrentStep('input')}
+                                    whileHover={!disableAnalyze ? { scale: 1.05, boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" } : {}}
+                                    whileTap={!disableAnalyze ? { scale: 0.95 } : {}}
+                                    disabled={disableAnalyze}
+                                    className={`${t.welcomePrimaryBtn} ${disableAnalyze ? 'opacity-40 cursor-not-allowed' : ''}`}
                                 >
                                     <motion.div
-                                        whileHover={{ rotate: 15 }}
+                                        whileHover={!disableAnalyze ? { rotate: 15 } : {}}
                                         transition={{ type: "spring", stiffness: 400 }}
                                     >
                                         <FaGlobe className="text-icon-md" />
@@ -250,7 +298,11 @@ const ScraperIntelligencePage = () => {
                                     <span>Analyze a Website</span>
                                 </motion.button>
 
-                                <StartFromIdea onGenerateLayout={handleGenerateLayout} />
+                                {/* Generate with Idea — disabled when mode is scraper */}
+                                <StartFromIdea
+                                    onGenerateLayout={handleGenerateLayout}
+                                    disabled={disableIdea}
+                                />
                             </motion.div>
 
                             {Object.keys(profile).length > 0 && (
@@ -527,7 +579,11 @@ const ScraperIntelligencePage = () => {
                                         </div>
                                     </div>
                                     <div className={t.resultsHeaderRight}>
-                                        <StartFromIdea onGenerateLayout={handleGenerateLayout} />
+                                        {/* Generate with Idea — disabled when mode is scraper */}
+                                        <StartFromIdea
+                                            onGenerateLayout={handleGenerateLayout}
+                                            disabled={disableIdea}
+                                        />
 
                                         {compositionId && (
                                             <motion.button
@@ -535,7 +591,7 @@ const ScraperIntelligencePage = () => {
                                                 whileTap={{ scale: 0.97 }}
                                                 onClick={() => {
                                                     dispatch(pollForThumbnails({ compositionId: compositionId! }));
-                                                    navigate(`/dashboard/client/swiper/compose/${compositionId}`);
+                                                    navigate(`/dashboard/client/compose/${compositionId}`);
                                                 }}
                                                 className={t.resultsPreviewBtn}
                                             >
@@ -680,6 +736,20 @@ const ScraperIntelligencePage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {gateState && (
+                <BillingGateModal
+                    isOpen={true}
+                    usageType={gateState.usage_type}
+                    currentCount={gateState.current_count}
+                    limit={gateState.limit}
+                    onUpgrade={() => {
+                        console.log("Upgrade clicked");
+                    }}
+                    onSecondary={dismissGate}
+                    onClose={dismissGate}
+                />
+            )}
         </div>
     );
 };
