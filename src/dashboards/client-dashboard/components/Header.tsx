@@ -2,16 +2,21 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { RiMenuLine, RiSettings4Line, RiLogoutBoxLine, RiArrowDownSLine } from 'react-icons/ri';
 import { clsx } from 'clsx';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store';
 import Drawer from '../../../common-components/Drawer';
 import Dropdown from '../../../common-components/Dropdown';
 import ThemeToggle from '../../../components/theme-toggle/ThemeToggle';
+import ProBadge from '../../../common-components/ProBadge';
 import { menuItems } from '../config/menuItems';
 
 const Header = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const navigate = useNavigate();
 
-    // Avatar image URL
+    const plan = useSelector((state: RootState) => state.auth.user?.plan);
+    const isPro = plan?.toLowerCase() === 'pro';
+
     const avatarUrl = "/images/avatar.png";
 
     const profileDropdownItems = [
@@ -27,7 +32,6 @@ const Header = () => {
             icon: <RiLogoutBoxLine />,
             divider: true,
             onClick: () => {
-                // Handle logout logic
                 console.log('Logout');
             }
         }
@@ -63,21 +67,25 @@ const Header = () => {
                                 </Link>
                             ))}
 
-                            {/* Theme Toggle */}
-                            <div>
-                                <ThemeToggle />
-                            </div>
+                            <ThemeToggle />
 
-                            {/* Profile Dropdown */}
                             <Dropdown
                                 trigger={
                                     <div className="flex items-center gap-sm cursor-pointer group">
-                                        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-border-default hover:border-accent-default transition-colors">
-                                            <img
-                                                src={avatarUrl}
-                                                alt="Profile Avatar"
-                                                className="w-full h-full object-cover"
-                                            />
+                                        <div className="relative">
+                                            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-border-default hover:border-accent-default transition-colors">
+                                                <img
+                                                    src={avatarUrl}
+                                                    alt="Profile Avatar"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            {isPro && (
+                                                <ProBadge
+                                                    size="sm"
+                                                    className="absolute -bottom-1 -right-1"
+                                                />
+                                            )}
                                         </div>
                                         <RiArrowDownSLine className="text-text-tertiary group-hover:text-accent-default transition-colors" />
                                     </div>
@@ -105,33 +113,41 @@ const Header = () => {
                 width="w-72"
             >
                 <div className="p-lg">
-                    {/* Drawer Header */}
                     <div className="mb-lg">
                         <h3 className="text-h4-md font-poppins text-text-primary">
                             Menu
                         </h3>
                     </div>
 
-                    {/* Profile Section */}
                     <div className="flex items-center gap-md mb-lg pb-lg border-b border-border-default">
-                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border-default">
-                            <img
-                                src={avatarUrl}
-                                alt="Profile Avatar"
-                                className="w-full h-full object-cover"
-                            />
+                        <div className="relative">
+                            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-border-default">
+                                <img
+                                    src={avatarUrl}
+                                    alt="Profile Avatar"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            {isPro && (
+                                <ProBadge
+                                    size="sm"
+                                    className="absolute -bottom-1 -right-1"
+                                />
+                            )}
                         </div>
                         <div>
-                            <p className="text-para-md font-poppins text-text-primary">
-                                John Doe
-                            </p>
+                            <div className="flex items-center gap-xs">
+                                <p className="text-para-md font-poppins text-text-primary">
+                                    John Doe
+                                </p>
+                                {isPro && <ProBadge size="md" />}
+                            </div>
                             <p className="text-para-sm text-text-tertiary">
                                 john@example.com
                             </p>
                         </div>
                     </div>
 
-                    {/* Menu Items */}
                     <nav className="space-y-sm mb-lg">
                         {menuItems.map((item: any) => (
                             <Link
@@ -151,7 +167,6 @@ const Header = () => {
                         ))}
                     </nav>
 
-                    {/* Theme Toggle Section */}
                     <div className="flex items-center justify-between py-md border-t border-border-default">
                         <span className="text-para-md font-poppins text-text-secondary">
                             Dark Mode
@@ -159,7 +174,6 @@ const Header = () => {
                         <ThemeToggle />
                     </div>
 
-                    {/* Action Buttons */}
                     <div className="mt-lg space-y-sm">
                         <button
                             onClick={() => {

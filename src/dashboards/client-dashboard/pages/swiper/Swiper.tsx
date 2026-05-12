@@ -9,6 +9,8 @@ import SwiperSummary from './components/SwiperSummary';
 import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
 import BillingGateModal from '@/common-components/BillingGateModal';
+import { LOADING_COPY } from '@/lib/config/loadingCopy';
+
 import {
   type SwipeAction,
   type ComponentPreview,
@@ -229,8 +231,17 @@ const Swiper: React.FC = () => {
   const [showTransition, setShowTransition] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
-  const { gateState, warningState, handleBillingError, handleUsageUpdate, dismissGate, dismissWarning } = useBillingGate();
-
+  const {
+    gateState,
+    warningState,
+    handleBillingError,
+    handleUsageUpdate,
+    dismissGate,
+    dismissWarning,
+    isCheckoutLoading,
+    checkoutError,
+    initiateCheckout,
+  } = useBillingGate();
   const {
     currentRound,
     roundsData,
@@ -820,205 +831,207 @@ const Swiper: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      {loading ? (<GlobalSpinner message="Saving your selection..." subMessage="Recording match results and preparing next round" />) : <>        <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
-        <div className="w-full flex-shrink-0 relative z-10">
-          <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
-            <div className="flex items-center justify-between gap-sm">
-              <div className="flex items-center space-x-sm sm:space-x-sm md:space-x-lg flex-1 min-w-0">
-                <button
-                  onClick={() => dispatch(setShowExitModal(true))}
-                  className="flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-background-secondary text-text-secondary rounded-md sm:rounded-lg hover:bg-background-muted hover:text-text-primary transition-colors cursor-pointer"
-                >
-                  <FiX className="text-icon-sm sm:text-icon-md" />
-                </button>
-                <div className="space-y-0 md:space-y-xs min-w-0 flex-1">
-                  <div className="flex items-center space-x-xs sm:space-x-sm md:space-x-md flex-wrap">
-                    <h1 className="text-h6-sm sm:text-h5-sm md:text-h4-md 2xl:text-h4-lg font-bold text-text-primary truncate">
-                      {kingOfHill.isActive ? 'King of the Hill' : `${currentCategory} Round`}
-                    </h1>
-                    <span className="px-xs py-px sm:px-sm sm:py-xs md:px-sm md:py-xs bg-accent-subtle text-text-primary text-para-xs font-medium rounded-sm sm:rounded-md whitespace-nowrap">
-                      {kingOfHill.isActive
-                        ? `Match ${kingOfHill.currentMatchNumber} of ${kingOfHill.matches.length + kingOfHill.remainingComponents.length + 1}`
-                        : `Round ${currentRound + 1} of ${totalRounds}`
-                      }
-                    </span>
+      {loading ? (<GlobalSpinner {...LOADING_COPY.savingRound} />) :
+        <>
+          <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
+            <div className="w-full flex-shrink-0 relative z-10">
+              <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
+                <div className="flex items-center justify-between gap-sm">
+                  <div className="flex items-center space-x-sm sm:space-x-sm md:space-x-lg flex-1 min-w-0">
+                    <button
+                      onClick={() => dispatch(setShowExitModal(true))}
+                      className="flex-shrink-0 flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-background-secondary text-text-secondary rounded-md sm:rounded-lg hover:bg-background-muted hover:text-text-primary transition-colors cursor-pointer"
+                    >
+                      <FiX className="text-icon-sm sm:text-icon-md" />
+                    </button>
+                    <div className="space-y-0 md:space-y-xs min-w-0 flex-1">
+                      <div className="flex items-center space-x-xs sm:space-x-sm md:space-x-md flex-wrap">
+                        <h1 className="text-h6-sm sm:text-h5-sm md:text-h4-md 2xl:text-h4-lg font-bold text-text-primary truncate">
+                          {kingOfHill.isActive ? 'King of the Hill' : `${currentCategory} Round`}
+                        </h1>
+                        <span className="px-xs py-px sm:px-sm sm:py-xs md:px-sm md:py-xs bg-accent-subtle text-text-primary text-para-xs font-medium rounded-sm sm:rounded-md whitespace-nowrap">
+                          {kingOfHill.isActive
+                            ? `Match ${kingOfHill.currentMatchNumber} of ${kingOfHill.matches.length + kingOfHill.remainingComponents.length + 1}`
+                            : `Round ${currentRound + 1} of ${totalRounds}`
+                          }
+                        </span>
+                      </div>
+                      <p className="text-text-secondary text-para-xs sm:text-para-sm 2xl:text-para-lg max-w-md hidden sm:block truncate">
+                        {roundMessage}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-text-secondary text-para-xs sm:text-para-sm 2xl:text-para-lg max-w-md hidden sm:block truncate">
-                    {roundMessage}
-                  </p>
+                  <SwipeProgress
+                    current={currentRound + 1}
+                    total={totalRounds}
+                    completedCount={roundsData.filter(r => r.completed).length}
+                    className="hidden lg:flex"
+                  />
                 </div>
               </div>
-              <SwipeProgress
-                current={currentRound + 1}
-                total={totalRounds}
-                completedCount={roundsData.filter(r => r.completed).length}
-                className="hidden lg:flex"
-              />
-            </div>
-          </div>
-          <div className="lg:hidden px-sm pb-xs mb-sm">
-            <div className="flex items-center justify-between gap-sm">
-              <div className="flex-1 h-2 bg-background-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-accent-default rounded-full transition-transform duration-700 ease-out"
-                  style={{ transform: `scaleX(${percentage / 100})`, transformOrigin: 'left' }}
-                />
-              </div>
-              <span className="text-text-secondary text-para-xs font-medium whitespace-nowrap">{percentage}%</span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-center 2xl:p-xl relative z-20 h-[-webkit-fill-available]">
-          <AnimatePresence mode="wait">
-            {showRoundCompletion ? (
-              <RoundCompletionCelebration />
-            ) : kingOfHill.isActive && kingOfHill.currentDefender && kingOfHill.currentChallenger ? (
-              <motion.div key="king-of-hill" {...animations.page} className="w-full h-full">
-                <KingOfTheHill
-                  defender={kingOfHill.currentDefender}
-                  challenger={kingOfHill.currentChallenger}
-                  onSelect={handleKingOfHillSelect}
-                  matchNumber={kingOfHill.currentMatchNumber}
-                  isAnimating={isAnimating}
-                  onAnimationStart={handleAnimationStart}
-                  onAnimationComplete={handleAnimationComplete}
-                />
-              </motion.div>
-            ) : currentRoundData && !currentRoundData.completed ? (
-              <motion.div key={`round-${currentRound}`} {...animations.page} className="w-full h-full flex items-center justify-center">
-                <SwiperStack
-                  key={currentRound}
-                  components={currentRoundData.components}
-                  onSwipe={handleSwipe}
-                  onComplete={handleRoundComplete}
-                  isAnimating={isAnimating}
-                  onAnimationStart={handleAnimationStart}
-                  onAnimationComplete={handleAnimationComplete}
-                  isModalOpen={isAnyModalOpen}
-                />
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </div>
-      </div>
-
-        <Modal
-          isOpen={shouldAskForPreview}
-          onClose={() => {
-            dispatch(handleSkipPreview());
-            dispatch(moveToNextRound());
-            setTimeout(() => { dispatch(unlockTransition()); }, 1000);
-          }}
-          title="Preview Your Design?"
-          size="sm"
-          footer={
-            <div className="flex gap-sm justify-end">
-              <motion.button
-                onClick={() => {
-                  dispatch(handleSkipPreview());
-                  dispatch(moveToNextRound());
-                  setTimeout(() => { dispatch(unlockTransition()); }, 1000);
-                }}
-                className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
-                {...animations.button}
-              >
-                <span className='inline lg:hidden'>Continue</span>
-                <span className='hidden lg:inline'>Continue Swiping</span>
-              </motion.button>
-              <motion.button
-                onClick={() => {
-                  dispatch(setShouldAskForPreview(false));
-                  dispatch(setShowPreviewModal(true));
-                }}
-                className="px-lg py-sm text-accent-foreground bg-accent-default hover:bg-accent-hover rounded-lg transition-colors flex items-center gap-sm"
-                {...animations.button}
-              >
-                <FiEye className="text-icon-sm" />
-                <span className='inline lg:hidden'>Preview</span>
-                <span className='hidden lg:inline'>Show Preview</span>
-              </motion.button>
-            </div>
-          }
-        >
-          <div className="space-y-lg">
-            <div className="flex items-center justify-center">
-              <div className="w-20 h-20 bg-accent-subtle rounded-full flex items-center justify-center">
-                <FiEye className="text-icon-2xl text-accent-default" />
+              <div className="lg:hidden px-sm pb-xs mb-sm">
+                <div className="flex items-center justify-between gap-sm">
+                  <div className="flex-1 h-2 bg-background-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-accent-default rounded-full transition-transform duration-700 ease-out"
+                      style={{ transform: `scaleX(${percentage / 100})`, transformOrigin: 'left' }}
+                    />
+                  </div>
+                  <span className="text-text-secondary text-para-xs font-medium whitespace-nowrap">{percentage}%</span>
+                </div>
               </div>
             </div>
-            <div className="text-center space-y-sm">
-              <p className="text-text-primary text-para-lg font-medium">
-                Great progress! You've completed {currentRound + 1} rounds.
-              </p>
-              <p className="text-text-secondary text-para-md">
-                Would you like to see how your design is shaping up based on your choices?
-              </p>
+            <div className="flex items-center justify-center 2xl:p-xl relative z-20 h-[-webkit-fill-available]">
+              <AnimatePresence mode="wait">
+                {showRoundCompletion ? (
+                  <RoundCompletionCelebration />
+                ) : kingOfHill.isActive && kingOfHill.currentDefender && kingOfHill.currentChallenger ? (
+                  <motion.div key="king-of-hill" {...animations.page} className="w-full h-full">
+                    <KingOfTheHill
+                      defender={kingOfHill.currentDefender}
+                      challenger={kingOfHill.currentChallenger}
+                      onSelect={handleKingOfHillSelect}
+                      matchNumber={kingOfHill.currentMatchNumber}
+                      isAnimating={isAnimating}
+                      onAnimationStart={handleAnimationStart}
+                      onAnimationComplete={handleAnimationComplete}
+                    />
+                  </motion.div>
+                ) : currentRoundData && !currentRoundData.completed ? (
+                  <motion.div key={`round-${currentRound}`} {...animations.page} className="w-full h-full flex items-center justify-center">
+                    <SwiperStack
+                      key={currentRound}
+                      components={currentRoundData.components}
+                      onSwipe={handleSwipe}
+                      onComplete={handleRoundComplete}
+                      isAnimating={isAnimating}
+                      onAnimationStart={handleAnimationStart}
+                      onAnimationComplete={handleAnimationComplete}
+                      isModalOpen={isAnyModalOpen}
+                    />
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             </div>
           </div>
-        </Modal>
 
-        <PreviewModal
-          isOpen={showPreviewModal}
-          onClose={() => dispatch(setShowPreviewModal(false))}
-          onContinue={() => {
-            dispatch(handlePreviewContinue());
-            dispatch(moveToNextRound());
-            setTimeout(() => { dispatch(unlockTransition()); }, 1000);
-          }}
-          roundsCompleted={currentRound + 1}
-        />
-        {gateState && (
-          <BillingGateModal
-            isOpen={true}
-            usageType={gateState.usage_type}
-            currentCount={gateState.current_count}
-            limit={gateState.limit}
-            onUpgrade={() => {
-              console.log("Upgrade clicked");
+          <Modal
+            isOpen={shouldAskForPreview}
+            onClose={() => {
+              dispatch(handleSkipPreview());
+              dispatch(moveToNextRound());
+              setTimeout(() => { dispatch(unlockTransition()); }, 1000);
             }}
-            onSecondary={() => {
-              dismissGate();
-              navigate("/dashboard/client/compose");
+            title="Preview Your Design?"
+            size="sm"
+            footer={
+              <div className="flex gap-sm justify-end">
+                <motion.button
+                  onClick={() => {
+                    dispatch(handleSkipPreview());
+                    dispatch(moveToNextRound());
+                    setTimeout(() => { dispatch(unlockTransition()); }, 1000);
+                  }}
+                  className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
+                  {...animations.button}
+                >
+                  <span className='inline lg:hidden'>Continue</span>
+                  <span className='hidden lg:inline'>Continue Swiping</span>
+                </motion.button>
+                <motion.button
+                  onClick={() => {
+                    dispatch(setShouldAskForPreview(false));
+                    dispatch(setShowPreviewModal(true));
+                  }}
+                  className="px-lg py-sm text-accent-foreground bg-accent-default hover:bg-accent-hover rounded-lg transition-colors flex items-center gap-sm"
+                  {...animations.button}
+                >
+                  <FiEye className="text-icon-sm" />
+                  <span className='inline lg:hidden'>Preview</span>
+                  <span className='hidden lg:inline'>Show Preview</span>
+                </motion.button>
+              </div>
+            }
+          >
+            <div className="space-y-lg">
+              <div className="flex items-center justify-center">
+                <div className="w-20 h-20 bg-accent-subtle rounded-full flex items-center justify-center">
+                  <FiEye className="text-icon-2xl text-accent-default" />
+                </div>
+              </div>
+              <div className="text-center space-y-sm">
+                <p className="text-text-primary text-para-lg font-medium">
+                  Great progress! You've completed {currentRound + 1} rounds.
+                </p>
+                <p className="text-text-secondary text-para-md">
+                  Would you like to see how your design is shaping up based on your choices?
+                </p>
+              </div>
+            </div>
+          </Modal>
+
+          <PreviewModal
+            isOpen={showPreviewModal}
+            onClose={() => dispatch(setShowPreviewModal(false))}
+            onContinue={() => {
+              dispatch(handlePreviewContinue());
+              dispatch(moveToNextRound());
+              setTimeout(() => { dispatch(unlockTransition()); }, 1000);
             }}
-            onClose={dismissGate}
+            roundsCompleted={currentRound + 1}
           />
-        )}
-        <Modal
-          isOpen={showExitModal}
-          onClose={() => dispatch(setShowExitModal(false))}
-          title="Exit Design Discovery?"
-          size="sm"
-          footer={
-            <div className="flex gap-sm justify-end">
-              <motion.button
-                onClick={() => dispatch(setShowExitModal(false))}
-                className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
-                {...animations.button}
-              >
-                Continue
-              </motion.button>
-              <motion.button
-                onClick={handleExit}
-                className="px-lg py-sm text-accent-foreground bg-accent-default hover:bg-accent-hover rounded-lg transition-colors"
-                {...animations.button}
-              >
-                Exit
-              </motion.button>
-            </div>
-          }
-        >
-          <div className="space-y-lg">
-            <div className="flex items-center justify-center">
-              <div className="w-20 h-20 bg-background-warning rounded-full flex items-center justify-center">
-                <FiAlertTriangle className="text-icon-2xl text-text-warning" />
+          {gateState && (
+            <BillingGateModal
+              isOpen={true}
+              usageType={gateState.usage_type}
+              currentCount={gateState.current_count}
+              limit={gateState.limit}
+              isCheckoutLoading={isCheckoutLoading}
+              checkoutError={checkoutError}
+              onUpgrade={(plan) => initiateCheckout(plan)}
+              onSecondary={() => {
+                dismissGate();
+                navigate("/dashboard/client/compose");
+              }}
+              onClose={dismissGate}
+            />
+          )}
+          <Modal
+            isOpen={showExitModal}
+            onClose={() => dispatch(setShowExitModal(false))}
+            title="Exit Design Discovery?"
+            size="sm"
+            footer={
+              <div className="flex gap-sm justify-end">
+                <motion.button
+                  onClick={() => dispatch(setShowExitModal(false))}
+                  className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
+                  {...animations.button}
+                >
+                  Continue
+                </motion.button>
+                <motion.button
+                  onClick={handleExit}
+                  className="px-lg py-sm text-accent-foreground bg-accent-default hover:bg-accent-hover rounded-lg transition-colors"
+                  {...animations.button}
+                >
+                  Exit
+                </motion.button>
               </div>
+            }
+          >
+            <div className="space-y-lg">
+              <div className="flex items-center justify-center">
+                <div className="w-20 h-20 bg-background-warning rounded-full flex items-center justify-center">
+                  <FiAlertTriangle className="text-icon-2xl text-text-warning" />
+                </div>
+              </div>
+              <p className="text-text-primary text-para-lg text-center font-medium">
+                Are you sure you want to exit? Your progress will be saved.
+              </p>
             </div>
-            <p className="text-text-primary text-para-lg text-center font-medium">
-              Are you sure you want to exit? Your progress will be saved.
-            </p>
-          </div>
-        </Modal>
-      </>
+          </Modal>
+        </>
       }
     </>
   );

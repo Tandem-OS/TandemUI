@@ -193,8 +193,8 @@ const MyProject: React.FC = () => {
 
   return (
     <>
-      {state.isLoading ?
-        <GlobalSpinner /> :
+     {state.isLoading ?
+    <GlobalSpinner message="Loading your projects" subMessage="Fetching the latest from your workspace…" /> :
         <div className="min-h-screen">
           <div className="container mx-auto px-md sm:px-lg lg:px-xl py-lg sm:py-xl lg:py-2xl">
             {/* Header */}

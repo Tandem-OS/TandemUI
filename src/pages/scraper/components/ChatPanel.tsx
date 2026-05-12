@@ -277,8 +277,17 @@ const ChatPanel = ({
     const [isTyping, setIsTyping] = useState(false);
     const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
-    const { gateState, warningState, handleBillingError, handleUsageUpdate, dismissGate, dismissWarning } = useBillingGate();
-
+    const {
+        gateState,
+        warningState,
+        handleBillingError,
+        handleUsageUpdate,
+        dismissGate,
+        dismissWarning,
+        isCheckoutLoading,
+        checkoutError,
+        initiateCheckout,
+    } = useBillingGate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const processedContextRef = useRef<Set<string>>(new Set());
@@ -720,7 +729,9 @@ const ChatPanel = ({
                         usageType={gateState.usage_type}
                         currentCount={gateState.current_count}
                         limit={gateState.limit}
-                        onUpgrade={() => console.log("Upgrade clicked")}
+                        isCheckoutLoading={isCheckoutLoading}
+                        checkoutError={checkoutError}
+                        onUpgrade={(plan) => initiateCheckout(plan)}
                         onSecondary={dismissGate}
                         onClose={dismissGate}
                     />
@@ -791,7 +802,9 @@ const ChatPanel = ({
                     usageType={gateState.usage_type}
                     currentCount={gateState.current_count}
                     limit={gateState.limit}
-                    onUpgrade={() => console.log("Upgrade clicked")}
+                    isCheckoutLoading={isCheckoutLoading}
+                    checkoutError={checkoutError}
+                    onUpgrade={(plan) => initiateCheckout(plan)}
                     onSecondary={dismissGate}
                     onClose={dismissGate}
                 />

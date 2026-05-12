@@ -176,9 +176,9 @@ const ProjectOverview: React.FC = () => {
 
   return (
     <>
-      {loading || !project ? <>
-        <GlobalSpinner />
-      </> :
+    {loading || !project ? <>
+    <GlobalSpinner message="Loading project" subMessage="Fetching your project details…" />
+</> :
         <div className="min-h-screen">
           {/* Hero Section - Fixed mobile text sizes */}
           <div className="bg-background-primary">

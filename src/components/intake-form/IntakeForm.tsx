@@ -107,8 +107,17 @@ const IntakeForm: React.FC = () => {
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
-    const { gateState, warningState, handleBillingError, handleUsageUpdate, dismissGate, dismissWarning } = useBillingGate();
-    const [toastMessage, setToastMessage] = useState<{
+    const {
+        gateState,
+        warningState,
+        handleBillingError,
+        handleUsageUpdate,
+        dismissGate,
+        dismissWarning,
+        isCheckoutLoading,
+        checkoutError,
+        initiateCheckout,
+    } = useBillingGate(); const [toastMessage, setToastMessage] = useState<{
         message: string;
         type: 'success' | 'error';
     } | null>(null);
@@ -667,7 +676,9 @@ const IntakeForm: React.FC = () => {
                     usageType={gateState.usage_type}
                     currentCount={gateState.current_count}
                     limit={gateState.limit}
-                    onUpgrade={() => console.log("Upgrade clicked")}
+                    isCheckoutLoading={isCheckoutLoading}
+                    checkoutError={checkoutError}
+                    onUpgrade={(plan) => initiateCheckout(plan)}
                     onSecondary={dismissGate}
                     onClose={dismissGate}
                 />
