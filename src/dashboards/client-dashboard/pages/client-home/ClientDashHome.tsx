@@ -234,7 +234,7 @@ const ClientDashHome: React.FC = () => {
   };
 
   const isCurrentStage = (stage: string): boolean => projectStatus === stage;
-;
+  ;
 
   const getCardStatus = (stage: string): 'completed' | 'pending' => {
     return isStageCompleted(stage) || isCurrentStage(stage) ? 'completed' : 'pending';
