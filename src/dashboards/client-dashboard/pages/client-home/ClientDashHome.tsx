@@ -15,7 +15,6 @@ import {
   RiFileTextLine,
   RiPaletteLine,
   RiMessage3Line,
-  RiCheckDoubleLine,
   RiStarLine,
   RiThunderstormsLine,
   RiRocketLine,
@@ -235,20 +234,12 @@ const ClientDashHome: React.FC = () => {
   };
 
   const isCurrentStage = (stage: string): boolean => projectStatus === stage;
-
-  const isNextStage = (stage: string): boolean => {
-    if (!projectStatus) return stage === 'intake';
-    const currentIdx = PIPELINE_ORDER.indexOf(projectStatus);
-    return PIPELINE_ORDER.indexOf(stage) === currentIdx + 1;
-  };
+;
 
   const getCardStatus = (stage: string): 'completed' | 'pending' => {
     return isStageCompleted(stage) || isCurrentStage(stage) ? 'completed' : 'pending';
   };
 
-  const isCardActive = (stage: string): boolean => {
-    return isCurrentStage(stage) || isNextStage(stage);
-  };
   // ─────────────────────────────────────────────────────────────────────────
 
   const quickActions = [
@@ -283,7 +274,6 @@ const ClientDashHome: React.FC = () => {
       action: 'View',
       route: '/dashboard/client/intake',
       delay: 0,
-      disabled: !isCardActive('intake'),
     },
     {
       title: 'Scraping',
@@ -292,7 +282,6 @@ const ClientDashHome: React.FC = () => {
       action: 'View',
       route: '/dashboard/client/scraper',
       delay: 0.1,
-      disabled: !isCardActive('scraping'),
     },
     {
       title: 'Preferences Swiped',
@@ -301,25 +290,22 @@ const ClientDashHome: React.FC = () => {
       action: 'View',
       route: 'swiper',
       delay: 0.2,
-      disabled: !isCardActive('swiping'),
+    },
+    {
+      title: 'Generate Layout',
+      status: getCardStatus('composing'),
+      icon: <RiMessage3Line />,
+      action: 'Submit',
+      route: '/dashboard/client/compose',
+      delay: 0.3,
     },
     {
       title: 'Feedback Pending',
       status: getCardStatus('refining'),
       icon: <RiMessage3Line />,
       action: 'Submit',
-      route: '/client-dashboard/feedback',
+      route: 'designer-testimonial',
       delay: 0.3,
-      disabled: !isCardActive('refining'),
-    },
-    {
-      title: 'Design Approval',
-      status: getCardStatus('revisions'),
-      icon: <RiCheckDoubleLine />,
-      action: 'Review',
-      route: '/client-dashboard/approval',
-      delay: 0.4,
-      disabled: !isCardActive('revisions'),
     },
   ];
 
@@ -562,8 +548,8 @@ const ClientDashHome: React.FC = () => {
                 title={item.title}
                 status={item.status}
                 icon={item.icon}
-                action={item.disabled ? undefined : item.action}
-                onClick={item.disabled ? undefined : () => navigate(item.route)}
+                action={item.action}
+                onClick={() => navigate(item.route)}
                 delay={item.delay}
               />
             ))}

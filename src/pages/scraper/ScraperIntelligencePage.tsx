@@ -13,7 +13,6 @@ import {
 } from 'react-icons/fa';
 import { FaArrowLeftLong } from "react-icons/fa6";
 
-// Import components
 import ChatPanel from './components/ChatPanel';
 import LayoutPlan from './components/LayoutPlan';
 import StartFromIdea from './components/StartFromIdea';
@@ -21,10 +20,9 @@ import SectionCard from './components/SectionCard';
 import Heading from '../../components/demos/typography/Heading';
 import Para from '../../common-components/Para';
 
-// Import constants
 import { quickSuggestions, processingSteps } from './constants';
 import BillingGateModal from '@/common-components/BillingGateModal';
-// Redux
+
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
 import { pollForThumbnails } from '@/features/composition/compositionSlice';
@@ -33,11 +31,9 @@ import { useNavigate } from 'react-router-dom';
 import Toast from '@/common-components/Toast';
 import { selectActiveOrPreviewSchema } from '@/features/composition/compositionSelectors';
 
-// Extracted hook
 import { useTasteProfile } from '@/hooks/useTasteProfile';
 import { useBillingGate } from '@/hooks/useBillingGate';
 
-// Tokens
 import { layoutTokens } from '@/design-system/tokens/layout';
 
 import {
@@ -47,9 +43,17 @@ import {
     updateLayoutPlan,
     resetScraper,
 } from '@/features/scraper/scraperSlice';
+
 const t = layoutTokens.scraper;
 
-const ScraperIntelligencePage = () => {
+interface Props {
+    mode?: 'scraper' | 'compose';
+}
+
+const ScraperIntelligencePage = ({ mode }: Props) => {
+    const disableAnalyze = mode === 'compose';
+    const disableIdea = mode === 'scraper';
+
     // ── Pure UI state ─────────────────────────────────────────────────────────
     const [currentStep, setCurrentStep] = useState('welcome');
     const [inputValue, setInputValue] = useState('');
@@ -79,18 +83,19 @@ const ScraperIntelligencePage = () => {
     const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
     const projectId = useSelector((state: RootState) => state.project.projectId);
 
-    // ── Hooks 
+    // ── Hooks ─────────────────────────────────────────────────────────────────
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
     const { gateState, warningState, handleBillingError, handleUsageUpdate, dismissGate, dismissWarning } = useBillingGate();
-    // ── Composition schema 
+
+    // ── Composition schema ────────────────────────────────────────────────────
     const pageSchema = useSelector(selectActiveOrPreviewSchema);
     const activeSections = compositionId && pageSchema?.sections
         ? pageSchema.sections
         : (scrapedData?.sections ?? []);
 
-    // ── Sync scraper status → currentStep 
+    // ── Sync scraper status → currentStep ─────────────────────────────────────
     useEffect(() => {
         if (scraperStatus === 'success' && currentStep === 'processing') {
             setCurrentStep('results');
@@ -111,11 +116,13 @@ const ScraperIntelligencePage = () => {
             handleModeToggle(false);
         }
     }, [userRole]);
-    // ── Reset scraper on mount 
+
+    // ── Reset scraper on mount ────────────────────────────────────────────────
     useEffect(() => {
         dispatch(resetScraper());
     }, []);
-    // ── Helpers 
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);
@@ -155,9 +162,6 @@ const ScraperIntelligencePage = () => {
                 });
             }
         } catch (err: any) {
-
-            // 🔥 Billing Gate Intercept (SCRAPER)
-            // Handle flattened rejectWithValue from Redux thunk
             const isBillingError =
                 (err?.status === 403 || err?.response?.status === 403) &&
                 (err?.code === "USAGE_LIMIT_REACHED" || err?.response?.data?.code === "USAGE_LIMIT_REACHED");
@@ -277,14 +281,16 @@ const ScraperIntelligencePage = () => {
                                 transition={{ delay: 0.4 }}
                                 className={t.welcomeActions}
                             >
+                                {/* Analyze a Website — disabled when mode is compose */}
                                 <motion.button
-                                    onClick={() => setCurrentStep('input')}
-                                    whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className={t.welcomePrimaryBtn}
+                                    onClick={() => !disableAnalyze && setCurrentStep('input')}
+                                    whileHover={!disableAnalyze ? { scale: 1.05, boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" } : {}}
+                                    whileTap={!disableAnalyze ? { scale: 0.95 } : {}}
+                                    disabled={disableAnalyze}
+                                    className={`${t.welcomePrimaryBtn} ${disableAnalyze ? 'opacity-40 cursor-not-allowed' : ''}`}
                                 >
                                     <motion.div
-                                        whileHover={{ rotate: 15 }}
+                                        whileHover={!disableAnalyze ? { rotate: 15 } : {}}
                                         transition={{ type: "spring", stiffness: 400 }}
                                     >
                                         <FaGlobe className="text-icon-md" />
@@ -292,7 +298,11 @@ const ScraperIntelligencePage = () => {
                                     <span>Analyze a Website</span>
                                 </motion.button>
 
-                                <StartFromIdea onGenerateLayout={handleGenerateLayout} />
+                                {/* Generate with Idea — disabled when mode is scraper */}
+                                <StartFromIdea
+                                    onGenerateLayout={handleGenerateLayout}
+                                    disabled={disableIdea}
+                                />
                             </motion.div>
 
                             {Object.keys(profile).length > 0 && (
@@ -569,7 +579,11 @@ const ScraperIntelligencePage = () => {
                                         </div>
                                     </div>
                                     <div className={t.resultsHeaderRight}>
-                                        <StartFromIdea onGenerateLayout={handleGenerateLayout} />
+                                        {/* Generate with Idea — disabled when mode is scraper */}
+                                        <StartFromIdea
+                                            onGenerateLayout={handleGenerateLayout}
+                                            disabled={disableIdea}
+                                        />
 
                                         {compositionId && (
                                             <motion.button
@@ -577,7 +591,7 @@ const ScraperIntelligencePage = () => {
                                                 whileTap={{ scale: 0.97 }}
                                                 onClick={() => {
                                                     dispatch(pollForThumbnails({ compositionId: compositionId! }));
-                                                    navigate(`/dashboard/client/swiper/compose/${compositionId}`);
+                                                    navigate(`/dashboard/client/compose/${compositionId}`);
                                                 }}
                                                 className={t.resultsPreviewBtn}
                                             >
@@ -722,6 +736,7 @@ const ScraperIntelligencePage = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
             {gateState && (
                 <BillingGateModal
                     isOpen={true}

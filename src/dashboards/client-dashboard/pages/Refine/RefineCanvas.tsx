@@ -87,7 +87,7 @@ const RefineCanvas: React.FC = () => {
           </div>
           {compositionId && (
             <motion.button
-              onClick={() => navigate(`/dashboard/client/swiper/compose/${compositionId}`)}
+              onClick={() => navigate(`/dashboard/client/compose/${compositionId}`)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="flex items-center gap-xs text-para-sm text-text-secondary hover:text-text-primary border border-border-default hover:border-accent-default px-md py-xs rounded-lg transition-colors"

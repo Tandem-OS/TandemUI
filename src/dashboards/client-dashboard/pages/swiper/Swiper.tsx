@@ -301,7 +301,7 @@ const Swiper: React.FC = () => {
       try {
         const statusResult = await fetchRoundCompleted();
         if (!statusResult.data.round_completed) return;
-        navigate('/dashboard/client/scraper');
+        navigate('/dashboard/client/compose');
       } catch (err) {
         console.error("Failed to prepopulate swiper data:", err);
       }
@@ -978,7 +978,7 @@ const Swiper: React.FC = () => {
             }}
             onSecondary={() => {
               dismissGate();
-              navigate("/dashboard/client/swiper/compose");
+              navigate("/dashboard/client/compose");
             }}
             onClose={dismissGate}
           />
