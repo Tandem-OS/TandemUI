@@ -62,10 +62,10 @@ export const getCompose = async (compositionId: string): Promise<ComposeResponse
   return response.data;
 };
 
-export const getAllProjectCompose = async (): Promise<ComposeResponse> => {
-  const projectId = store.getState().project.projectId;
-  const response = await api.get(`${COMPOSE_ENDPOINT}?project_id=${projectId}`);
-  return response.data;
+export const getAllProjectCompose = async (projectId?: string): Promise<ComposeResponse> => {
+    const id = projectId ?? store.getState().project.projectId;
+    const response = await api.get(`${COMPOSE_ENDPOINT}?project_id=${id}`);
+    return response.data;
 };
 // ─── Refine 
 export interface RefinePayload {
