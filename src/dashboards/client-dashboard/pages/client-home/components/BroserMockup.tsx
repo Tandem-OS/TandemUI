@@ -5,17 +5,20 @@ import { getAllProjectCompose } from '@/lib/requests/CompositionRequest';
 import CompositionRenderer from '@/pages/Renderer/CompositionRenderer';
 import type { ComposeResponse } from '@/lib/requests/CompositionRequest';
 
+interface BrowserMockupProps {
+    projectId?: string;
+}
 
-const BrowserMockup: React.FC = () => {
+const BrowserMockup: React.FC<BrowserMockupProps> = ({ projectId }) => {
     const [compose, setCompose] = useState<ComposeResponse | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        getAllProjectCompose()
+        getAllProjectCompose(projectId)
             .then((data) => setCompose(data))
             .catch(() => setCompose(null))
             .finally(() => setLoading(false));
-    }, []);
+    }, [projectId]);
 
     return (
         <motion.div
