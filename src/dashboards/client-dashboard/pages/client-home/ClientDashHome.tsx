@@ -300,11 +300,19 @@ const ClientDashHome: React.FC = () => {
       delay: 0.3,
     },
     {
-      title: 'Feedback Pending',
-      status: getCardStatus('refining'),
+      title: 'Designer Feedback',
+      status: getCardStatus('completed'),
       icon: <RiMessage3Line />,
       action: 'Submit',
       route: 'designer-testimonial',
+      delay: 0.3,
+    },
+    {
+      title: 'PlatForm Feedback',
+      status: getCardStatus('handoff'),
+      icon: <RiMessage3Line />,
+      action: 'Submit',
+      route: 'final-testimonial',
       delay: 0.3,
     },
   ];
