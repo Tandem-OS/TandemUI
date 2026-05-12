@@ -6,9 +6,6 @@ import type { RootState } from '@/store';
 import { useSelector } from 'react-redux';
 import { getProjectByClientEmail } from '@/lib/requests/ProjectRequest';
 import { setProjectId, setProjectStatus, clearProjectId, clearProjectStatus } from '@/features/project/projectSlice';
-import { projectStatusToClientProgress } from '@/lib/helpers/projectStatusToClientProgress';
-
-
 
 import {
   RiCheckLine,
@@ -22,15 +19,13 @@ import {
   RiThunderstormsLine,
   RiRocketLine,
   RiShieldCheckLine,
-  RiLinkM,
-  RiLockLine,
+  RiLinkM
 } from 'react-icons/ri';
 import { clsx } from 'clsx';
 import Card from '../../../../common-components/Card';
 import ProgressChart from '../../components/ProgressChart';
 import BrowserMockup from './components/BroserMockup';
 import { useDispatch } from 'react-redux';
-import { canPerformAction, getNextRoute, type ProjectStatus, type ActionType } from '@/lib/helpers/canPerformAction';
 
 interface StatusCardProps {
   title: string;
@@ -39,47 +34,21 @@ interface StatusCardProps {
   action?: string;
   onClick?: () => void;
   delay?: number;
-  disabled?: boolean;
-  disabledReason?: string | null;
 }
 
-const PIPELINE_ORDER = ['intake', 'scraping', 'swiping', 'embedded', 'composing', 'refining', 'revisions', 'completed', 'handoff'];
-
-// ─── Tooltip wrapper 
-
-const GateTooltip: React.FC<{ reason: string; children: React.ReactNode }> = ({ reason, children }) => {
-  const [visible, setVisible] = useState(false);
-
-  return (
-    <div
-      className="relative"
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-      onFocus={() => setVisible(true)}
-      onBlur={() => setVisible(false)}
-    >
-      {children}
-      <AnimatePresence>
-        {visible && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            transition={{ duration: 0.15 }}
-            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-xs z-50 w-max max-w-[200px] px-sm py-xs rounded-lg bg-background-primary border border-border-default shadow-lg text-para-xs text-text-secondary text-center pointer-events-none"
-          >
-            <div className="flex items-center gap-xs">
-              <RiLockLine className="shrink-0 text-text-tertiary" />
-              <span>{reason}</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+const STATUS_PROGRESS: Record<string, number> = {
+  intake: 10,
+  scraping: 20,
+  swiping: 35,
+  embedded: 45,
+  composing: 55,
+  refining: 65,
+  revisions: 75,
+  completed: 90,
+  handoff: 100,
 };
 
-// ─── Status Card 
+const PIPELINE_ORDER = ['intake', 'scraping', 'swiping', 'embedded', 'composing', 'refining', 'revisions', 'completed', 'handoff'];
 
 const StatusCard: React.FC<StatusCardProps> = ({
   title,
@@ -87,9 +56,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
   icon,
   action,
   onClick,
-  delay = 0,
-  disabled = false,
-  disabledReason = null,
+  delay = 0
 }) => {
   const statusConfig = {
     completed: {
@@ -114,35 +81,44 @@ const StatusCard: React.FC<StatusCardProps> = ({
 
   const config = statusConfig[status];
 
-  const card = (
+  return (
     <motion.div
       role="button"
-      tabIndex={disabled ? -1 : 0}
-      onClick={disabled ? undefined : onClick}
+      tabIndex={0}
+      onClick={onClick}
       onKeyDown={(e) => {
-        if (!disabled && (e.key === "Enter" || e.key === " ")) {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick?.();
         }
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, delay, ease: "easeOut" }}
-      whileHover={!disabled ? { y: -8, transition: { duration: 0.2, ease: "easeOut" } } : {}}
+      transition={{
+        duration: 0.5,
+        delay,
+        ease: "easeOut"
+      }}
+      whileHover={{
+        y: -8,
+        transition: { duration: 0.2, ease: "easeOut" }
+      }}
       className={clsx(
-        "relative overflow-hidden rounded-xl sm:rounded-2xl border backdrop-blur-sm outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400",
+        "relative overflow-hidden rounded-xl sm:rounded-2xl border backdrop-blur-sm cursor-pointer group outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400",
         config.bg,
-        config.border,
-        disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer group"
+        config.border
       )}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent dark:from-white/5" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent dark:from-white/5"></div>
 
       <div className="relative p-4 sm:p-6">
         <div className="flex items-start justify-between mb-3 sm:mb-4">
           <motion.div
-            className={clsx("p-2 sm:p-3 rounded-lg sm:rounded-xl", config.badge)}
-            whileHover={!disabled ? { scale: 1.1, rotate: 5 } : {}}
+            className={clsx(
+              "p-2 sm:p-3 rounded-lg sm:rounded-xl",
+              config.badge
+            )}
+            whileHover={{ scale: 1.1, rotate: 5 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
             <span className="text-base sm:text-lg">{icon}</span>
@@ -160,11 +136,6 @@ const StatusCard: React.FC<StatusCardProps> = ({
                 <RiCheckLine className="text-white text-xs sm:text-sm" />
               </motion.div>
             )}
-            {disabled && (
-              <div className="p-1.5 sm:p-2 rounded-full bg-background-muted">
-                <RiLockLine className="text-text-tertiary text-xs sm:text-sm" />
-              </div>
-            )}
           </AnimatePresence>
         </div>
 
@@ -178,12 +149,19 @@ const StatusCard: React.FC<StatusCardProps> = ({
             animate={{ opacity: [0.7, 1, 0.7] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            {status === "completed" ? "Completed" : status === "pending" ? "Pending" : "In Progress"}
+            {status === "completed"
+              ? "Completed"
+              : status === "pending"
+                ? "Pending"
+                : "In Progress"}
           </motion.span>
 
-          {action && !disabled && (
+          {action && (
             <motion.button
-              onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick?.();
+              }}
               className={clsx(
                 "text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 hover:gap-2 sm:hover:gap-3 transition-all duration-200",
                 config.text
@@ -201,52 +179,68 @@ const StatusCard: React.FC<StatusCardProps> = ({
       <motion.div
         className={clsx(
           "absolute -right-4 -bottom-4 w-16 h-16 sm:w-20 sm:h-20 rounded-full opacity-10 dark:opacity-5",
-          status === "completed" ? "bg-emerald-500" : status === "pending" ? "bg-amber-500" : "bg-sky-500"
+          status === "completed"
+            ? "bg-emerald-500"
+            : status === "pending"
+              ? "bg-amber-500"
+              : "bg-sky-500"
         )}
-        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.1, 0.2, 0.1]
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
       />
     </motion.div>
   );
-
-  if (disabled && disabledReason) {
-    return <GateTooltip reason={disabledReason}>{card}</GateTooltip>;
-  }
-
-  return card;
 };
-
-// ─── Main Component 
 
 const ClientDashHome: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [progress, setProgress] = useState(0);
 
+  // Prevent scroll issues on mount
   useEffect(() => {
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-    requestAnimationFrame(() => { requestAnimationFrame(() => { }); });
-    return () => { if ('scrollRestoration' in history) history.scrollRestoration = 'auto'; };
+
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => { });
+    });
+
+    return () => {
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'auto';
+      }
+    };
   }, []);
 
-  const projectStatus = useSelector((state: RootState) => state.project.status) as ProjectStatus;
+  const projectStatus = useSelector((state: RootState) => state.project.status);
 
+  // ─── Gating helpers ───────────────────────────────────────────────────────
   const isStageCompleted = (stage: string): boolean => {
     if (!projectStatus) return false;
     return PIPELINE_ORDER.indexOf(stage) < PIPELINE_ORDER.indexOf(projectStatus);
   };
 
   const isCurrentStage = (stage: string): boolean => projectStatus === stage;
+  ;
 
   const getCardStatus = (stage: string): 'completed' | 'pending' => {
     return isStageCompleted(stage) || isCurrentStage(stage) ? 'completed' : 'pending';
   };
 
-  // ─── Gate helper shorthand ────────────────────────────────────────────────
-  const gate = (action: ActionType) => canPerformAction(action, projectStatus);
+  // ─────────────────────────────────────────────────────────────────────────
 
   const quickActions = [
     {
@@ -254,25 +248,21 @@ const ClientDashHome: React.FC = () => {
       label: 'Edit Intake Form',
       color: 'from-blue-500 to-cyan-500',
       href: 'intake',
-      action: 'edit_intake' as ActionType,
     },
     {
       icon: RiPaletteLine,
       label: 'Update Preferences',
       color: 'from-purple-500 to-pink-500',
-      action: 'start_swiping' as ActionType,
     },
     {
       icon: RiMessage3Line,
       label: 'Submit Feedback',
       color: 'from-emerald-500 to-teal-500',
-      action: 'submit_designer_testimonial' as ActionType,
     },
     {
       icon: RiStarLine,
       label: 'Testimonial',
       color: 'from-amber-500 to-orange-500',
-      action: 'submit_platform_testimonial' as ActionType,
     },
   ];
 
@@ -283,7 +273,6 @@ const ClientDashHome: React.FC = () => {
       icon: <RiFileTextLine />,
       action: 'View',
       route: '/dashboard/client/intake',
-      gateAction: 'edit_intake' as ActionType,
       delay: 0,
     },
     {
@@ -292,7 +281,6 @@ const ClientDashHome: React.FC = () => {
       icon: <RiLinkM />,
       action: 'View',
       route: '/dashboard/client/scraper',
-      gateAction: 'start_scraper' as ActionType,
       delay: 0.1,
     },
     {
@@ -301,7 +289,6 @@ const ClientDashHome: React.FC = () => {
       icon: <RiPaletteLine />,
       action: 'View',
       route: 'swiper',
-      gateAction: 'start_swiping' as ActionType,
       delay: 0.2,
     },
     {
@@ -310,7 +297,6 @@ const ClientDashHome: React.FC = () => {
       icon: <RiMessage3Line />,
       action: 'Submit',
       route: '/dashboard/client/compose',
-      gateAction: 'start_composing' as ActionType,
       delay: 0.3,
     },
     {
@@ -319,22 +305,20 @@ const ClientDashHome: React.FC = () => {
       icon: <RiMessage3Line />,
       action: 'Submit',
       route: 'designer-testimonial',
-      gateAction: 'submit_designer_testimonial' as ActionType,
       delay: 0.3,
     },
     {
-      title: 'Platform Feedback',
+      title: 'PlatForm Feedback',
       status: getCardStatus('handoff'),
       icon: <RiMessage3Line />,
       action: 'Submit',
       route: 'final-testimonial',
-      gateAction: 'submit_platform_testimonial' as ActionType,
       delay: 0.3,
     },
   ];
 
   const scrapperButton = [
-    { icon: RiLinkM, label: 'Capture & Create', color: 'from-blue-500 to-cyan-500', href: 'scraper', action: 'start_scraper' as ActionType },
+    { icon: RiLinkM, label: 'Capture & Create', color: 'from-blue-500 to-cyan-500', href: 'scraper' },
   ];
 
   const clientName = useSelector((state: RootState) => state.auth.user.name)!;
@@ -347,28 +331,30 @@ const ClientDashHome: React.FC = () => {
     if (result.status === 200 && result.data.data?.id) {
       dispatch(setProjectId(result.data.data.id));
       const status = result.data.data.status;
-      if (status) dispatch(setProjectStatus(status));
+      if (status) {
+        dispatch(setProjectStatus(status));
+      }
     } else {
       dispatch(clearProjectId());
       dispatch(clearProjectStatus());
     }
   };
 
+  useEffect(() => {
+    if (projectStatus) {
+      const pct = STATUS_PROGRESS[projectStatus] ?? 0;
+      const timer = setTimeout(() => setProgress(pct), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [projectStatus]);
 
-useEffect(() => {
-    const { percentage } = projectStatusToClientProgress(projectStatus);
-    const timer = setTimeout(() => setProgress(percentage), 800);
-    return () => clearTimeout(timer);
-}, [projectStatus]);
-
-  useEffect(() => { fetchProject(); }, []);
-
-  const nextRoute = getNextRoute(projectStatus);
+  useEffect(() => {
+    fetchProject();
+  }, []);
 
   return (
     <div className="min-h-screen overflow-x-hidden">
       <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-12">
-
         {/* Welcome Section */}
         <motion.div
           className="mb-8 sm:mb-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
@@ -376,6 +362,7 @@ useEffect(() => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
+          {/* Text Content */}
           <div className="flex-1">
             <motion.h1
               className="text-h1-sm md:text-h1-md xl:text-h1-lg font-bold bg-gradient-to-r from-text-primary via-text-secondary to-text-primary bg-clip-text text-transparent mb-2 sm:mb-3"
@@ -408,26 +395,22 @@ useEffect(() => {
 
           {/* Scraper Button */}
           <div className="flex-shrink-0">
-            {scrapperButton.map((action) => {
-              const gateResult = gate(action.action);
+            {scrapperButton.map((action, index) => {
               const button = (
                 <motion.button
                   key={action.label}
-                  onClick={gateResult.allowed ? undefined : (e) => e.preventDefault()}
-                  disabled={!gateResult.allowed}
-                  className={clsx(
-                    "p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center gap-2 sm:gap-3 bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg",
-                    !gateResult.allowed && "opacity-50 cursor-not-allowed"
-                  )}
+                  className="p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center gap-2 sm:gap-3 bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                  whileHover={gateResult.allowed ? { y: -8, transition: { duration: 0.2 } } : {}}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ y: -8, transition: { duration: 0.2 } }}
                 >
-                  <motion.div className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+                  <motion.div
+                    className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                  />
                   <motion.div
                     className={`p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10 bg-gradient-to-r ${action.color} shadow-lg`}
-                    whileHover={gateResult.allowed ? { rotate: 10, scale: 1.1 } : {}}
+                    whileHover={{ rotate: 10, scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
                   >
                     <action.icon className="text-xl sm:text-2xl text-white" />
@@ -438,15 +421,13 @@ useEffect(() => {
                 </motion.button>
               );
 
-              const wrapped = gateResult.allowed ? (
-                <Link to={action.href} key={action.label} className="contents">{button}</Link>
+              return action.href ? (
+                <Link to={action.href} key={action.label} className="contents">
+                  {button}
+                </Link>
               ) : (
-                <span key={action.label} className="contents">{button}</span>
+                button
               );
-
-              return gateResult.reason ? (
-                <GateTooltip key={action.label} reason={gateResult.reason}>{wrapped}</GateTooltip>
-              ) : wrapped;
             })}
           </div>
         </motion.div>
@@ -473,6 +454,7 @@ useEffect(() => {
                   Project Progress
                 </h2>
 
+                {/* Progress Ring */}
                 <div className="relative w-32 h-32 mx-auto mb-6">
                   <svg className="w-full h-full transform -rotate-90" viewBox="0 0 128 128">
                     <defs>
@@ -520,9 +502,8 @@ useEffect(() => {
                 </motion.p>
               </div>
 
-              {/* Continue Project button — always enabled, routes to current stage */}
               <motion.button
-                onClick={() => navigate(nextRoute)}
+                onClick={() => navigate('onboard')}
                 className="mx-4 sm:mx-6 mb-4 sm:mb-6 py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 group relative overflow-hidden"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -569,22 +550,17 @@ useEffect(() => {
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
-            {statusItems.map((item) => {
-              const gateResult = gate(item.gateAction);
-              return (
-                <StatusCard
-                  key={item.title}
-                  title={item.title}
-                  status={item.status}
-                  icon={item.icon}
-                  action={item.action}
-                  onClick={() => navigate(item.route)}
-                  delay={item.delay}
-                  disabled={!gateResult.allowed}
-                  disabledReason={gateResult.reason}
-                />
-              );
-            })}
+            {statusItems.map((item) => (
+              <StatusCard
+                key={item.title}
+                title={item.title}
+                status={item.status}
+                icon={item.icon}
+                action={item.action}
+                onClick={() => navigate(item.route)}
+                delay={item.delay}
+              />
+            ))}
           </div>
         </motion.div>
 
@@ -608,25 +584,21 @@ useEffect(() => {
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
               {quickActions.map((action, index) => {
-                const gateResult = gate(action.action);
-
                 const button = (
                   <motion.button
                     key={action.label}
-                    disabled={!gateResult.allowed}
-                    className={clsx(
-                      "p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center gap-2 sm:gap-3 bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg",
-                      !gateResult.allowed && "opacity-50 cursor-not-allowed"
-                    )}
+                    className="p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center gap-2 sm:gap-3 bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={gateResult.allowed ? { y: -8, transition: { duration: 0.2 } } : {}}
+                    whileHover={{ y: -8, transition: { duration: 0.2 } }}
                   >
-                    <motion.div className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+                    <motion.div
+                      className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                    />
                     <motion.div
                       className={`p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10 bg-gradient-to-r ${action.color} shadow-lg`}
-                      whileHover={gateResult.allowed ? { rotate: 10, scale: 1.1 } : {}}
+                      whileHover={{ rotate: 10, scale: 1.1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 10 }}
                     >
                       <action.icon className="text-xl sm:text-2xl text-white" />
@@ -637,15 +609,14 @@ useEffect(() => {
                   </motion.button>
                 );
 
-                const wrapped = gateResult.allowed && 'href' in action && action.href ? (
-                  <Link to={action.href} key={action.label} className="contents">{button}</Link>
+                return 'href' in action && action.href ? (
+                  <Link to={action.href} key={action.label} className="contents">
+                    {button}
+                  </Link>
                 ) : (
                   <span key={action.label} className="contents">{button}</span>
-                );
 
-                return gateResult.reason ? (
-                  <GateTooltip key={action.label} reason={gateResult.reason}>{wrapped}</GateTooltip>
-                ) : wrapped;
+                );
               })}
             </div>
           </Card>
@@ -679,7 +650,6 @@ useEffect(() => {
             </div>
           </Card>
         </motion.div>
-
       </div>
     </div>
   );
