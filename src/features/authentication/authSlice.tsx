@@ -13,6 +13,7 @@ interface User {
   role: string | null;
   designerId: string | null;
   designerEmail: string | null;
+  plan: string | null;
 }
 
 interface AuthState {
@@ -34,6 +35,7 @@ const initialState: AuthState = {
     role: null,
     designerId: null,
     designerEmail: null,
+    plan: null,
   },
   loginTime: null,
   isAuthenticated: false,
@@ -54,8 +56,9 @@ const authSlice = createSlice({
           email?: string;
           name?: string
           role?: string;
-          designerId?: string| null;
+          designerId?: string | null;
           designerEmail?: string | null;
+          plan?: string | null;
         };
       }>
     ) => {
@@ -72,6 +75,8 @@ const authSlice = createSlice({
 
       state.loginTime = action.payload.login_time ?? null;
       state.isAuthenticated = true;
+      state.user.plan = action.payload.user?.plan ?? null;
+
     },
 
     logout: (state) => {
@@ -83,6 +88,8 @@ const authSlice = createSlice({
         role: null,
         designerId: null,
         designerEmail: null,
+        plan: null,  // add this
+
       };
       state.loginTime = null;
       state.isAuthenticated = false;

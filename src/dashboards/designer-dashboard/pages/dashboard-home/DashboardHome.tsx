@@ -3,7 +3,7 @@ import { RiArrowRightLine } from 'react-icons/ri';
 import { motion } from 'framer-motion';
 import { mockDashboardData } from '../../../../mock-data/designer-dash-home.mock.';
 import { type AccentColor } from '../../../../types/component.types';
-import { FaArrowTrendUp } from "react-icons/fa6";
+import { FaArrowTrendUp, FaArrowTrendDown } from "react-icons/fa6";
 import { BsTags } from "react-icons/bs";
 import activeProjectChart from "@/assets/images/active-project-chart.svg"
 import linkChartIcon from "@/assets/images/link-chart.svg"
@@ -11,6 +11,9 @@ import orangeLinkChart from "@/assets/images/orangeLinkChart.svg"
 import blueLineChart from "@/assets/images/blueLinkChart.svg"
 import ColorPicker from '@/common-components/ColorPicker';
 import { getAllProjectsByDesignerEmail } from '@/lib/requests/ProjectRequest';
+import { getDesignerStats } from '@/lib/requests/AnalyticsRequest';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/store';
 
 // ─── Pipeline helpers ────────────────────────────────────────────────────────
 
@@ -21,39 +24,26 @@ type ProjectStatus = 'in-progress' | 'reviewing' | 'final-review' | 'completed';
 const PIPELINE_ORDER: StageKey[] = ['intake', 'scraping', 'swiping', 'embedded', 'composing', 'refining', 'revisions', 'completed', 'handoff'];
 
 const STATUS_TO_PROGRESS: Record<string, number> = {
-  intake:    10,
-  scraping:  20,
-  swiping:   35,
-  embedded:  45,
-  composing: 55,
-  refining:  65,
-  revisions: 75,
-  completed: 90,
-  handoff:   100,
+  intake: 10, scraping: 20, swiping: 35, embedded: 45,
+  composing: 55, refining: 65, revisions: 75, completed: 90, handoff: 100,
 };
 
 const STATUS_TO_STAGE: Record<string, ProjectStage> = {
-  intake:    'scraper',
-  scraping:  'scraper',
-  swiping:   'swiper',
-  embedded:  'swiper',
-  composing: 'swiper',
-  refining:  'swiper',
-  revisions: 'finalReview',
-  completed: 'finalReview',
-  handoff:   'finalReview',
+  intake: 'scraper', scraping: 'scraper', swiping: 'swiper',
+  embedded: 'swiper', composing: 'swiper', refining: 'swiper',
+  revisions: 'finalReview', completed: 'finalReview', handoff: 'finalReview',
 };
 
 const STATUS_TO_UI: Record<string, { status: ProjectStatus; label: string }> = {
-  intake:    { status: 'in-progress',  label: 'In Progress'  },
-  scraping:  { status: 'in-progress',  label: 'In Progress'  },
-  swiping:   { status: 'in-progress',  label: 'In Progress'  },
-  embedded:  { status: 'reviewing',    label: 'Reviewing'    },
-  composing: { status: 'reviewing',    label: 'Reviewing'    },
-  refining:  { status: 'reviewing',    label: 'Reviewing'    },
+  intake: { status: 'in-progress', label: 'In Progress' },
+  scraping: { status: 'in-progress', label: 'In Progress' },
+  swiping: { status: 'in-progress', label: 'In Progress' },
+  embedded: { status: 'reviewing', label: 'Reviewing' },
+  composing: { status: 'reviewing', label: 'Reviewing' },
+  refining: { status: 'reviewing', label: 'Reviewing' },
   revisions: { status: 'final-review', label: 'Final Review' },
-  completed: { status: 'completed',    label: 'Completed'    },
-  handoff:   { status: 'completed',    label: 'Completed'    },
+  completed: { status: 'completed', label: 'Completed' },
+  handoff: { status: 'completed', label: 'Completed' },
 };
 
 const deriveStages = (apiStatus: string): Record<StageKey, { completed: boolean; active: boolean }> => {
@@ -64,6 +54,29 @@ const deriveStages = (apiStatus: string): Record<StageKey, { completed: boolean;
       { completed: idx < currentIdx, active: idx === currentIdx }
     ])
   ) as Record<StageKey, { completed: boolean; active: boolean }>;
+};
+
+// ─── Trend helper ─────────────────────────────────────────────────────────────
+// higher is better: approval_rate, conversion_rate
+// lower is better: avg_days
+
+interface TrendResult {
+  isUp: boolean;
+  color: string;
+  icon: React.ReactNode;
+  label: string;
+}
+
+const getTrend = (value: number, threshold: number, lowerIsBetter = false): TrendResult => {
+  const isUp = lowerIsBetter ? value <= threshold : value >= threshold;
+  return {
+    isUp,
+    color: isUp ? 'text-emerald-600' : 'text-red-500',
+    icon: isUp
+      ? <FaArrowTrendUp className="text-emerald-600" />
+      : <FaArrowTrendDown className="text-red-500" />,
+    label: isUp ? 'Good' : 'Needs work',
+  };
 };
 
 // ─── API project shape ───────────────────────────────────────────────────────
@@ -89,15 +102,15 @@ interface UiProject {
 }
 
 const normaliseProject = (p: ApiProject): UiProject => ({
-  id:              p.id,
-  name:            p.project_name,
-  status:          STATUS_TO_UI[p.status]?.status  ?? 'in-progress',
-  statusLabel:     STATUS_TO_UI[p.status]?.label   ?? p.status,
-  progress:        STATUS_TO_PROGRESS[p.status]    ?? 0,
-  stages:          deriveStages(p.status),
+  id: p.id,
+  name: p.project_name,
+  status: STATUS_TO_UI[p.status]?.status ?? 'in-progress',
+  statusLabel: STATUS_TO_UI[p.status]?.label ?? p.status,
+  progress: STATUS_TO_PROGRESS[p.status] ?? 0,
+  stages: deriveStages(p.status),
   feedbackThreads: 0,
-  currentStage:    STATUS_TO_STAGE[p.status]       ?? 'scraper',
-  apiStatus:       p.status,
+  currentStage: STATUS_TO_STAGE[p.status] ?? 'scraper',
+  apiStatus: p.status,
 });
 
 // ─── Shared sub-components ───────────────────────────────────────────────────
@@ -127,11 +140,11 @@ const ActiveProjectIcon: React.FC<{ className?: string }> = ({ className }) => (
 const useAccentColor = () => {
   const [accentColor, setAccentColor] = useState<AccentColor>("blue");
   const colorSystem = {
-    blue:    { primary: "bg-blue-500",    light: "bg-blue-50 dark:bg-blue-950/10",       text: "text-blue-600 dark:text-blue-400",       border: "border-blue-100 dark:border-blue-900/30",       hover: "hover:bg-blue-50/50 dark:hover:bg-blue-950/10",       hex: "#3B82F6" },
-    purple:  { primary: "bg-purple-500",  light: "bg-purple-50 dark:bg-purple-950/10",   text: "text-purple-600 dark:text-purple-400",   border: "border-purple-100 dark:border-purple-900/30",   hover: "hover:bg-purple-50/50 dark:hover:bg-purple-950/10",   hex: "#A855F7" },
+    blue: { primary: "bg-blue-500", light: "bg-blue-50 dark:bg-blue-950/10", text: "text-blue-600 dark:text-blue-400", border: "border-blue-100 dark:border-blue-900/30", hover: "hover:bg-blue-50/50 dark:hover:bg-blue-950/10", hex: "#3B82F6" },
+    purple: { primary: "bg-purple-500", light: "bg-purple-50 dark:bg-purple-950/10", text: "text-purple-600 dark:text-purple-400", border: "border-purple-100 dark:border-purple-900/30", hover: "hover:bg-purple-50/50 dark:hover:bg-purple-950/10", hex: "#A855F7" },
     emerald: { primary: "bg-emerald-500", light: "bg-emerald-50 dark:bg-emerald-950/10", text: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-100 dark:border-emerald-900/30", hover: "hover:bg-emerald-50/50 dark:hover:bg-emerald-950/10", hex: "#10B981" },
-    rose:    { primary: "bg-rose-500",    light: "bg-rose-50 dark:bg-rose-950/10",       text: "text-rose-600 dark:text-rose-400",       border: "border-rose-100 dark:border-rose-900/30",       hover: "hover:bg-rose-50/50 dark:hover:bg-rose-950/10",       hex: "#F43F5E" },
-    amber:   { primary: "bg-amber-500",   light: "bg-amber-50 dark:bg-amber-950/10",     text: "text-amber-600 dark:text-amber-400",     border: "border-amber-100 dark:border-amber-900/30",     hover: "hover:bg-amber-50/50 dark:hover:bg-amber-950/10",     hex: "#F59E0B" },
+    rose: { primary: "bg-rose-500", light: "bg-rose-50 dark:bg-rose-950/10", text: "text-rose-600 dark:text-rose-400", border: "border-rose-100 dark:border-rose-900/30", hover: "hover:bg-rose-50/50 dark:hover:bg-rose-950/10", hex: "#F43F5E" },
+    amber: { primary: "bg-amber-500", light: "bg-amber-50 dark:bg-amber-950/10", text: "text-amber-600 dark:text-amber-400", border: "border-amber-100 dark:border-amber-900/30", hover: "hover:bg-amber-50/50 dark:hover:bg-amber-950/10", hex: "#F59E0B" },
   };
   return { accentColor, setAccentColor, colors: colorSystem[accentColor] };
 };
@@ -139,10 +152,10 @@ const useAccentColor = () => {
 interface StatusTagProps { status: ProjectStatus; label: string; colors: any; }
 const StatusTag: React.FC<StatusTagProps> = ({ status, label, colors }) => {
   const statusStyles: Record<ProjectStatus, string> = {
-    'in-progress':  `${colors.light} ${colors.text} ${colors.border}`,
-    'reviewing':    'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/10 dark:text-amber-400 dark:border-amber-900/30',
+    'in-progress': `${colors.light} ${colors.text} ${colors.border}`,
+    'reviewing': 'bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-950/10 dark:text-amber-400 dark:border-amber-900/30',
     'final-review': 'bg-violet-50 text-violet-700 border-violet-100 dark:bg-violet-950/10 dark:text-violet-400 dark:border-violet-900/30',
-    'completed':    'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/10 dark:text-emerald-400 dark:border-emerald-900/30',
+    'completed': 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-950/10 dark:text-emerald-400 dark:border-emerald-900/30',
   };
   return (
     <div className="w-full flex justify-center">
@@ -171,15 +184,9 @@ interface ProjectTimelineProps {
 }
 const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) => {
   const stageLabels: Record<StageKey, string> = {
-    intake:    'Intake',
-    scraping:  'Scraping',
-    swiping:   'Swiping',
-    embedded:  'Embedded',
-    composing: 'Composing',
-    refining:  'Refining',
-    revisions: 'Revisions',
-    completed: 'Completed',
-    handoff:   'Handoff',
+    intake: 'Intake', scraping: 'Scraping', swiping: 'Swiping',
+    embedded: 'Embedded', composing: 'Composing', refining: 'Refining',
+    revisions: 'Revisions', completed: 'Completed', handoff: 'Handoff',
   };
 
   const currentIdx = PIPELINE_ORDER.indexOf(apiStatus as StageKey);
@@ -187,9 +194,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) 
 
   return (
     <div className="relative w-full">
-      {/* Bar + dots */}
       <div className="relative w-full h-[14px] bg-border-muted rounded-full overflow-hidden">
-        {/* Colored fill */}
         <motion.div
           className={`absolute left-0 top-0 h-full ${colors.primary} rounded-full`}
           initial={{ width: 0 }}
@@ -198,31 +203,16 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) 
           viewport={{ once: true }}
         />
       </div>
-
-      {/* Dots overlay — sits on top of bar, absolutely positioned */}
       <div className="absolute top-0 left-0 right-0 h-[14px] flex items-center justify-between">
-        {PIPELINE_ORDER.map((stage) => {
-          return (
-            <div
-              key={stage}
-           className="w-[10px] h-[10px] rounded-full z-10 flex-shrink-0 bg-white"
-
-            />
-          );
-        })}
+        {PIPELINE_ORDER.map((stage) => (
+          <div key={stage} className="w-[10px] h-[10px] rounded-full z-10 flex-shrink-0 bg-white" />
+        ))}
       </div>
-
-      {/* Labels */}
       <div className="flex items-center justify-between mt-2">
         {PIPELINE_ORDER.map((stage, idx) => {
           const isActive = idx === currentIdx;
           return (
-            <span
-              key={stage}
-              className={`text-[9px] font-medium whitespace-nowrap
-                ${isActive ? `${colors.text} font-bold` : 'text-text-secondary'}
-              `}
-            >
+            <span key={stage} className={`text-[9px] font-medium whitespace-nowrap ${isActive ? `${colors.text} font-bold` : 'text-text-secondary'}`}>
               {stageLabels[stage]}
             </span>
           );
@@ -232,13 +222,24 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) 
   );
 };
 
-// ─── Main component 
+// ─── Designer stats shape ─────────────────────────────────────────────────────
+
+interface DesignerStats {
+  approval_rate: number;
+  avg_days: number;
+  conversion_rate: number;
+  total_projects: number;
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 function DashboardHome() {
   const data = mockDashboardData;
   const { accentColor, setAccentColor, colors } = useAccentColor();
   const [projects, setProjects] = useState<UiProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState<DesignerStats>({ approval_rate: 0, avg_days: 0, conversion_rate: 0, total_projects: 0 });
+  const email = useSelector((state: RootState) => state.auth.user.email);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -257,20 +258,40 @@ function DashboardHome() {
     fetchProjects();
   }, []);
 
+  useEffect(() => {
+    if (!email) return;
+    getDesignerStats(email)
+      .then((res) => setStats(res.data))
+      .catch(() => { });
+  }, [email]);
+
+  // ── Trend calculations ────────────────────────────────────────────────────
+  // approval_rate: good if >= 70%
+  // avg_days: good if <= 7 days (lower is better)
+  // conversion_rate: good if >= 60%
+  const approvalTrend = getTrend(stats.approval_rate, 70);
+  const avgDaysTrend = getTrend(stats.avg_days, 7, true);
+  const conversionTrend = getTrend(stats.conversion_rate, 60);
+
   return (
     <div className="min-h-screen">
       <div className="space-y-xl">
 
         {/* Top 3 Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-lg">
+
+          {/* Card 1 — Approval Rate */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }} transition={{ duration: 0.4, delay: 0.1 }} className="h-full">
             <div className={`relative ${colors.light} rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px]`}>
               <div className="absolute top-4 left-4 flex gap-2">
                 <div className="bg-background-secondary-2 p-2 rounded-full flex items-center justify-center text-text-secondary dark:text-lightSecondary"><BsTags /></div>
-                <div className={`bg-background-secondary-2 ${colors.text} text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2`}><span className={colors.text}><FaArrowTrendUp /></span>4.43%</div>
+                <div className={`bg-background-secondary-2 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2 ${approvalTrend.color}`}>
+                  {approvalTrend.icon}
+                  {approvalTrend.label}
+                </div>
               </div>
               <div className="mt-12">
-                <h3 className={`text-4xl font-bold ${colors.text}`}>73%</h3>
+                <h3 className={`text-4xl font-bold ${colors.text}`}>{stats.approval_rate}%</h3>
                 <p className="text-para-sm text-text-secondary mt-1">Across all projects</p>
               </div>
               <div className="absolute right-4 bottom-4 w-10 h-10 bg-background-secondary-2 p-2 rounded-full flex items-center justify-center">
@@ -279,14 +300,18 @@ function DashboardHome() {
             </div>
           </motion.div>
 
+          {/* Card 2 — Avg Days */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }} whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }} className="h-full">
             <div className={`relative ${colors.light} rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px]`}>
               <div className="absolute top-4 left-4 flex gap-2">
                 <div className="bg-background-secondary-2 text-gray-600 p-2 rounded-full flex items-center justify-center"><BsTags /></div>
-                <div className={`bg-background-secondary-2 ${colors.text} text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2`}><span className={colors.text}><FaArrowTrendUp /></span>23% faster this month</div>
+                <div className={`bg-background-secondary-2 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2 ${avgDaysTrend.color}`}>
+                  {avgDaysTrend.icon}
+                  {stats.avg_days > 0 ? `${stats.avg_days} day avg` : 'No data yet'}
+                </div>
               </div>
               <div className="mt-12">
-                <h3 className={`text-4xl font-bold ${colors.text}`}>4.2 days</h3>
+                <h3 className={`text-4xl font-bold ${colors.text}`}>{stats.avg_days} days</h3>
                 <p className="text-gray-500 text-sm mt-1">Average Time</p>
               </div>
               <div className="absolute right-4 bottom-4 w-10 h-10 bg-background-secondary-2 p-2 rounded-full flex items-center justify-center">
@@ -295,14 +320,18 @@ function DashboardHome() {
             </div>
           </motion.div>
 
+          {/* Card 3 — Conversion Rate */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }} whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }} className="h-full">
             <div className="relative bg-card-gradient text-white rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px] bg-[linear-gradient(180deg,_#4D43E4_26.44%,_rgba(132,_125,_236,_0.689189)_99.99%,_rgba(255,_255,_255,_0)_100%)]">
               <div className="absolute top-4 left-4 flex gap-2">
                 <div className="bg-background-secondary-2 text-blue-violet p-2 rounded-full flex items-center justify-center"><BsTags /></div>
-                <div className="bg-background-secondary-2 text-blue-violet text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2"><FaArrowTrendUp />23% faster this month</div>
+                <div className={`bg-background-secondary-2 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2 ${conversionTrend.color}`}>
+                  {conversionTrend.icon}
+                  {stats.total_projects} total projects
+                </div>
               </div>
               <div className="mt-12">
-                <h3 className="text-4xl font-bold">71%</h3>
+                <h3 className="text-4xl font-bold">{stats.conversion_rate}%</h3>
                 <p className="text-white/80 text-sm mt-1">Conversion Rate</p>
               </div>
               <div className="absolute right-4 bottom-4 w-10 h-10 bg-transparent border p-2 rounded-full flex items-center justify-center">
@@ -310,6 +339,7 @@ function DashboardHome() {
               </div>
             </div>
           </motion.div>
+
         </div>
 
         {/* Active Projects */}
@@ -405,7 +435,7 @@ function DashboardHome() {
                       <img src={linkChartIcon} alt="" className="w-[40px] h-[40px]" />
                       <div>
                         <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
-                          {projects.length}
+                          {stats.total_projects}
                         </motion.div>
                         <p className="text-para-sm font-medium text-text-primary">Active Projects</p>
                       </div>
@@ -414,7 +444,7 @@ function DashboardHome() {
                       <img src={orangeLinkChart} alt="" className="w-[40px] h-[40px]" />
                       <div>
                         <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
-                          {data.projectStats.approvalRate}%
+                          {stats.approval_rate}%
                         </motion.div>
                         <p className="text-para-sm font-medium text-text-primary">Approval Rate</p>
                       </div>
@@ -423,7 +453,7 @@ function DashboardHome() {
                       <img src={blueLineChart} alt="" className="w-[40px] h-[40px]" />
                       <div>
                         <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.9, duration: 0.3 }}>
-                          {data.projectStats.avgProjectTime}Days
+                          {stats.avg_days > 0 ? `${stats.avg_days}` : '—'}
                         </motion.div>
                         <p className="text-para-sm font-medium text-text-primary">Avg Time To Complete</p>
                       </div>
@@ -465,7 +495,7 @@ function DashboardHome() {
         </div>
 
         <motion.div className="flex justify-end pt-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.8 }}>
-          <motion.a href="#" className={`inline-flex items-center gap-sm ${colors.text} font-medium hover:gap-sm transition-all duration-200`} whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
+          <motion.a href="/dashboard/designer/my-project" className={`inline-flex items-center gap-sm ${colors.text} font-medium hover:gap-sm transition-all duration-200`} whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
             View Recent Projects
             <RiArrowRightLine className="w-4 h-4" />
           </motion.a>

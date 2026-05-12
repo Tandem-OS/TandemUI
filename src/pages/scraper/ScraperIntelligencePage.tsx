@@ -87,15 +87,24 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
-    const { gateState, warningState, handleBillingError, handleUsageUpdate, dismissGate, dismissWarning } = useBillingGate();
-
-    // ── Composition schema ────────────────────────────────────────────────────
+    const {
+        gateState,
+        warningState,
+        handleBillingError,
+        handleUsageUpdate,
+        dismissGate,
+        dismissWarning,
+        isCheckoutLoading,
+        checkoutError,
+        initiateCheckout,
+    } = useBillingGate();
+    // ── Composition schema 
     const pageSchema = useSelector(selectActiveOrPreviewSchema);
     const activeSections = compositionId && pageSchema?.sections
         ? pageSchema.sections
         : (scrapedData?.sections ?? []);
 
-    // ── Sync scraper status → currentStep ─────────────────────────────────────
+    // ── Sync scraper status → currentStep 
     useEffect(() => {
         if (scraperStatus === 'success' && currentStep === 'processing') {
             setCurrentStep('results');
@@ -117,12 +126,12 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
         }
     }, [userRole]);
 
-    // ── Reset scraper on mount ────────────────────────────────────────────────
+    // ── Reset scraper on mount 
     useEffect(() => {
         dispatch(resetScraper());
     }, []);
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // ── Helpers 
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);
@@ -743,9 +752,9 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                     usageType={gateState.usage_type}
                     currentCount={gateState.current_count}
                     limit={gateState.limit}
-                    onUpgrade={() => {
-                        console.log("Upgrade clicked");
-                    }}
+                    isCheckoutLoading={isCheckoutLoading}
+                    checkoutError={checkoutError}
+                    onUpgrade={(plan) => initiateCheckout(plan)}
                     onSecondary={dismissGate}
                     onClose={dismissGate}
                 />
