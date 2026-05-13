@@ -1,9 +1,9 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RiCloseLine, RiShieldCheckLine, RiLockLine } from "react-icons/ri";
+import { RiCloseLine, RiLockLine } from "react-icons/ri";
 import type { BillingPlan } from "@/lib/requests/BillingRequest";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types 
 
 type BillingUsageType =
   | "swiper_session"
@@ -299,8 +299,7 @@ const BillingGateModal: React.FC<BillingGateModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
           />
 
           {/* Modal */}

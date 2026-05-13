@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaGlobe,
@@ -65,6 +65,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [compositionId, setCompositionId] = useState<string | null>(null);
     const [refinedSections, setRefinedSections] = useState<Set<string>>(new Set());
+    const billingErrorRef = useRef(false);
 
     const handleRefineComplete = (sections: string[]) => {
         setRefinedSections(new Set(sections));
@@ -109,14 +110,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
         if (scraperStatus === 'success' && currentStep === 'processing') {
             setCurrentStep('results');
         }
-        if (scraperStatus === 'error' && currentStep === 'processing') {
-            if (scraperError) {
-                showToast(scraperError, 'error');
-            }
-            setCurrentStep('error');
-            setTimeout(() => navigate(-1), 3000);
-        }
-    }, [scraperStatus, scraperError]);
+    }, [scraperStatus]);
 
     useEffect(() => {
         if (userRole === 'Designer') {
@@ -174,14 +168,16 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
             const isBillingError =
                 (err?.status === 403 || err?.response?.status === 403) &&
                 (err?.code === "USAGE_LIMIT_REACHED" || err?.response?.data?.code === "USAGE_LIMIT_REACHED");
-
             if (isBillingError) {
+                billingErrorRef.current = true;
                 const gateData = err?.code ? err : err?.response?.data;
                 handleBillingError({ response: { status: 403, data: gateData } });
-                setCurrentStep('input');
                 return;
             }
             console.error("❌ Scraper failed:", err);
+            if (scraperError) showToast(scraperError, 'error');
+            setCurrentStep('error');
+            setTimeout(() => navigate(-1), 3000);
         }
     };
 
@@ -770,8 +766,8 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                     isCheckoutLoading={isCheckoutLoading}
                     checkoutError={checkoutError}
                     onUpgrade={(plan) => initiateCheckout(plan)}
-                    onSecondary={dismissGate}
-                    onClose={dismissGate}
+                    onSecondary={() => { billingErrorRef.current = false; dismissGate(); setCurrentStep('input'); }}
+                    onClose={() => { billingErrorRef.current = false; dismissGate(); setCurrentStep('input'); }}
                 />
             )}
         </div>
