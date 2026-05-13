@@ -228,7 +228,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) 
 interface DesignerStats {
   approval_rate: number;
   avg_days: number;
-  conversion_rate: number;
+  project_progression: number;
   total_projects: number;
 }
 
@@ -241,7 +241,7 @@ function DashboardHome() {
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
-  const [stats, setStats] = useState<DesignerStats>({ approval_rate: 0, avg_days: 0, conversion_rate: 0, total_projects: 0 });
+  const [stats, setStats] = useState<DesignerStats>({ approval_rate: 0, avg_days: 0, project_progression: 0, total_projects: 0 });
   const email = useSelector((state: RootState) => state.auth.user.email);
 
   const fetchProjects = async () => {
@@ -276,7 +276,7 @@ function DashboardHome() {
   // conversion_rate: good if >= 60%
   const approvalTrend = getTrend(stats.approval_rate, 70);
   const avgDaysTrend = getTrend(stats.avg_days, 7, true);
-  const conversionTrend = getTrend(stats.conversion_rate, 60);
+  const conversionTrend = getTrend(stats.project_progression, 60);
 
   return (
     <div className="min-h-screen">
@@ -336,8 +336,8 @@ function DashboardHome() {
                 </div>
               </div>
               <div className="mt-12">
-                <h3 className="text-4xl font-bold">{stats.conversion_rate}%</h3>
-                <p className="text-white/80 text-sm mt-1">Conversion Rate</p>
+                <h3 className="text-4xl font-bold">{stats.project_progression}%</h3>
+                <p className="text-white/80 text-sm mt-1">Project Progression</p>
               </div>
               <div className="absolute right-4 bottom-4 w-10 h-10 bg-transparent border p-2 rounded-full flex items-center justify-center">
                 <span className="text-white inline-block rotate-[-45deg]">→</span>

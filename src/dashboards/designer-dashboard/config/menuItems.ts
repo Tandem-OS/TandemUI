@@ -1,12 +1,8 @@
 import {
     RiDashboardLine,
-    RiProjectorLine,
     RiBriefcaseLine,
-    RiBarChartLine,
-    RiSwapLine,
     RiGlobalLine,
     RiChatQuoteLine,
-    RiUserLine
 } from 'react-icons/ri';
 import { type IconType } from 'react-icons';
 
@@ -26,54 +22,10 @@ export const menuItems: MenuItem[] = [
         path: '/dashboard/designer'
     },
     {
-        id: 'projects',
-        name: 'Projects',
-        icon: RiProjectorLine,
-        path: '/dashboard/designer/projects'
-    },
-    {
         id: 'my-projects',
         name: 'My Projects',
         icon: RiBriefcaseLine,
         path: '/dashboard/designer/my-project'
-    },
-    {
-        id: 'briefs',
-        name: 'Briefs',
-        icon: RiBriefcaseLine,
-        path: '/dashboard/designer/briefs'
-    },
-    {
-        id: 'analytics',
-        name: 'Analytics',
-        icon: RiBarChartLine,
-        path: '/dashboard/designer/analytics',
-        children: [
-            {
-                id: 'analytics-overview',
-                name: 'Overview',
-                icon: RiBarChartLine,
-                path: '/dashboard/designer/analytics/overview'
-            },
-            {
-                id: 'analytics-performance',
-                name: 'Performance',
-                icon: RiBarChartLine,
-                path: '/dashboard/designer/analytics/performance'
-            },
-            {
-                id: 'analytics-reports',
-                name: 'Reports',
-                icon: RiBarChartLine,
-                path: '/dashboard/designer/analytics/reports'
-            }
-        ]
-    },
-    {
-        id: 'swiper',
-        name: 'Swiper',
-        icon: RiSwapLine,
-        path: '/dashboard/designer/swiper'
     },
     {
         id: 'website-scraper',
@@ -87,11 +39,4 @@ export const menuItems: MenuItem[] = [
         icon: RiChatQuoteLine,
         path: '/dashboard/designer/testimonials'
     },
-    {
-        id: 'daconsah',
-        name: 'Daconsah',
-        icon: RiUserLine,
-        path: '/dashboard/designer/daconsah'
-    },
-
 ];
