@@ -26,7 +26,7 @@ import Card from '../../../../common-components/Card';
 import ProgressChart from '../../components/ProgressChart';
 import BrowserMockup from './components/BroserMockup';
 import { useDispatch } from 'react-redux';
-
+import ErrorState from '@/common-components/ErrorState';
 interface StatusCardProps {
   title: string;
   status: 'completed' | 'pending' | 'in-progress';
@@ -441,85 +441,97 @@ const ClientDashHome: React.FC = () => {
         >
           {/* Progress Section */}
           <div className="lg:col-span-1">
-            <Card className="h-full flex flex-col bg-background-primary-2 border-0 shadow-xl">
-              <div className="flex-1 p-4 sm:p-6">
-                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-primary mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-                  <motion.div
-                    className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg sm:rounded-xl"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                  >
-                    <RiRocketLine className="text-white text-sm sm:text-base lg:text-lg" />
-                  </motion.div>
-                  Project Progress
-                </h2>
-
-                {/* Progress Ring */}
-                <div className="relative w-32 h-32 mx-auto mb-6">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 128 128">
-                    <defs>
-                      <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#3B82F6" />
-                        <stop offset="50%" stopColor="#8B5CF6" />
-                        <stop offset="100%" stopColor="#EC4899" />
-                      </linearGradient>
-                    </defs>
-                    <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="none" className="text-border-muted" />
-                    <motion.circle
-                      cx="64" cy="64" r="56"
-                      stroke="url(#progressGradient)"
-                      strokeWidth="8" fill="none" strokeLinecap="round"
-                      strokeDasharray={351.86}
-                      initial={{ strokeDashoffset: 351.86 }}
-                      animate={{ strokeDashoffset: 351.86 * (1 - progress / 100) }}
-                      transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <motion.span
-                      className="text-h2-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-none"
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.8, delay: 1 }}
-                    >
-                      {progress}%
-                    </motion.span>
-                    <span className="text-para-sm text-text-tertiary font-medium">done</span>
-                  </div>
+           <Card className="h-full flex flex-col bg-background-primary-2 border-0 shadow-xl">
+              {!projectStatus ? (
+                <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
+                  <ErrorState
+                    variant="generic"
+                    title="No project yet"
+                    message="Your designer hasn't started your project yet. You'll see progress here once it kicks off."
+                  />
                 </div>
+              ) : (
+                <>
+                  <div className="flex-1 p-4 sm:p-6">
+                    <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-primary mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+                      <motion.div
+                        className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg sm:rounded-xl"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                      >
+                        <RiRocketLine className="text-white text-sm sm:text-base lg:text-lg" />
+                      </motion.div>
+                      Project Progress
+                    </h2>
 
-                <motion.p
-                  className="text-center text-xs sm:text-sm text-text-secondary mb-2 sm:mb-3 leading-relaxed px-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.2 }}
-                >
-                  <span className="text-transparent bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text font-semibold">
-                    Almost there!
-                  </span>
-                  <br />
-                  Just one more swipe to complete your design preferences.
-                </motion.p>
-              </div>
+                    {/* Progress Ring */}
+                    <div className="relative w-32 h-32 mx-auto mb-6">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 128 128">
+                        <defs>
+                          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#3B82F6" />
+                            <stop offset="50%" stopColor="#8B5CF6" />
+                            <stop offset="100%" stopColor="#EC4899" />
+                          </linearGradient>
+                        </defs>
+                        <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="none" className="text-border-muted" />
+                        <motion.circle
+                          cx="64" cy="64" r="56"
+                          stroke="url(#progressGradient)"
+                          strokeWidth="8" fill="none" strokeLinecap="round"
+                          strokeDasharray={351.86}
+                          initial={{ strokeDashoffset: 351.86 }}
+                          animate={{ strokeDashoffset: 351.86 * (1 - progress / 100) }}
+                          transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <motion.span
+                          className="text-h2-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-none"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.8, delay: 1 }}
+                        >
+                          {progress}%
+                        </motion.span>
+                        <span className="text-para-sm text-text-tertiary font-medium">done</span>
+                      </div>
+                    </div>
 
-              <motion.button
-                onClick={() => navigate('onboard')}
-                className="mx-4 sm:mx-6 mb-4 sm:mb-6 py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 group relative overflow-hidden"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              >
-                <motion.div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <RiSparklingLine className="text-lg sm:text-xl relative z-10" />
-                <span className="relative z-10">Continue Project</span>
-                <motion.div
-                  className="relative z-10"
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  <RiArrowRightLine className="text-lg sm:text-xl" />
-                </motion.div>
-              </motion.button>
+                    <motion.p
+                      className="text-center text-xs sm:text-sm text-text-secondary mb-2 sm:mb-3 leading-relaxed px-2"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.2 }}
+                    >
+                      <span className="text-transparent bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text font-semibold">
+                        Almost there!
+                      </span>
+                      <br />
+                      Just one more swipe to complete your design preferences.
+                    </motion.p>
+                  </div>
+
+                  <motion.button
+                    onClick={() => navigate('onboard')}
+                    className="mx-4 sm:mx-6 mb-4 sm:mb-6 py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 group relative overflow-hidden"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    <motion.div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <RiSparklingLine className="text-lg sm:text-xl relative z-10" />
+                    <span className="relative z-10">Continue Project</span>
+                    <motion.div
+                      className="relative z-10"
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <RiArrowRightLine className="text-lg sm:text-xl" />
+                    </motion.div>
+                  </motion.button>
+                </>
+              )}
             </Card>
           </div>
 

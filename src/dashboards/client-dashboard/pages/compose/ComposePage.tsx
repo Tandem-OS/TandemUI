@@ -6,6 +6,8 @@ import {
   FiMonitor, FiTablet, FiSmartphone,
   FiCheck, FiEdit2, FiRefreshCw, FiAlertTriangle,
 } from 'react-icons/fi';
+import ErrorState from '@/common-components/ErrorState';
+
 import { type AppDispatch, type RootState } from '@/store';
 import {
   pollForThumbnails,
@@ -298,7 +300,18 @@ const ComposePage: React.FC = () => {
               </span>
             </span>
           </div>
-          {thumbnails && <ThumbnailPreview thumbnails={thumbnails} active={activeBp} />}
+          {thumbnails ? (
+            <ThumbnailPreview thumbnails={thumbnails} active={activeBp} />
+          ) : (
+            <ErrorState
+variant="compose_failed"
+              title="No preview available"
+              message="Thumbnails weren't generated for this composition. Try generating again."
+              onAction={() => navigate('/client/swiper')}
+              onSecondary={handleRetry}
+              secondaryLabel="Retry thumbnails"
+            />
+          )}
         </div>
 
 

@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { FiX, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiWifi, FiEye } from 'react-icons/fi';
-import SwiperStack from './components/SwiperStack';
+import { FiX, FiAlertTriangle, FiCheckCircle, FiEye } from 'react-icons/fi';import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
@@ -10,6 +9,7 @@ import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
 import BillingGateModal from '@/common-components/BillingGateModal';
 import { LOADING_COPY } from '@/lib/config/loadingCopy';
+import SharedErrorState from '@/common-components/ErrorState';
 
 import {
   type SwipeAction,
@@ -201,27 +201,6 @@ const SkeletonCard: React.FC = () => (
   </div>
 );
 
-// Error State Component
-const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetry, message }) => (
-  <motion.div {...animations.page} className="flex flex-col items-center justify-center text-center space-y-md px-lg">
-    <div className="w-20 h-20 bg-background-error rounded-full flex items-center justify-center">
-      <FiWifi className="text-icon-2xl text-text-error" />
-    </div>
-    <div className="space-y-sm">
-      <h3 className="text-h4-sm font-semibold text-text-primary">Oops! Something went wrong</h3>
-      <p className="text-text-secondary text-para-md max-w-md">{message}</p>
-    </div>
-    <motion.button
-      onClick={onRetry}
-      className="flex items-center gap-sm px-lg py-md bg-accent-subtle text-accent-default hover:bg-accent-default hover:text-accent-foreground rounded-lg border border-border-default hover:border-accent-default transition-all"
-      {...animations.button}
-    >
-      <FiRefreshCw className="text-icon-sm" />
-      <span className="text-para-md font-medium">Try Again</span>
-    </motion.button>
-  </motion.div>
-);
-
 const Swiper: React.FC = () => {
   const [isSummaryReady, setIsSummaryReady] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
@@ -286,8 +265,8 @@ const Swiper: React.FC = () => {
         ...(componentsMap['footer'] ?? []),
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
 
-      if (!flatComponents.length) {
-        dispatch(loadDataFailure('No canonical components found. Check seeding.'));
+   if (!flatComponents.length) {
+        dispatch(loadDataFailure('no_components'));
         return;
       }
 
@@ -765,10 +744,25 @@ const Swiper: React.FC = () => {
     );
   }
 
-  if (loadingError) {
+if (loadingError) {
     return (
-      <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
-        <ErrorState onRetry={handleRetry} message={loadingError} />
+      <div className="w-full flex items-center justify-center px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
+        {loadingError === 'no_components' ? (
+          <SharedErrorState
+            variant="scrape_empty"
+            title="No components available"
+            message="There's nothing to swipe on yet. Your designer may still be setting things up."
+            onSecondary={() => navigate('/dashboard/client')}
+            secondaryLabel="Back to dashboard"
+          />
+        ) : (
+          <SharedErrorState
+            variant="network"
+            title="Couldn't load components"
+            message={loadingError}
+            onAction={handleRetry}
+          />
+        )}
       </div>
     );
   }

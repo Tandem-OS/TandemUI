@@ -175,8 +175,7 @@ const ProjectOverview: React.FC = () => {
       : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20';
   };
 
-  if (loading || !project) return <GlobalSpinner />;
-
+if (loading || !project) return <GlobalSpinner message="Loading project" subMessage="Fetching your project details…" />;
   return (
     <div className="min-h-screen">
       {/* Hero Section */}

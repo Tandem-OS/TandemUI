@@ -35,7 +35,7 @@ import { useTasteProfile } from '@/hooks/useTasteProfile';
 import { useBillingGate } from '@/hooks/useBillingGate';
 
 import { layoutTokens } from '@/design-system/tokens/layout';
-
+import ErrorState from '@/common-components/ErrorState';
 import {
     scrapeUrl,
     setScrapedDataFromIdea,
@@ -54,7 +54,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
     const disableAnalyze = mode === 'compose';
     const disableIdea = mode === 'scraper';
 
-    // ── Pure UI state ─────────────────────────────────────────────────────────
+    // ── Pure UI state 
     const [currentStep, setCurrentStep] = useState('welcome');
     const [inputValue, setInputValue] = useState('');
     const [isDesignerMode, setIsDesignerMode] = useState(false);
@@ -697,7 +697,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
 
                                 <div className={t.resultsSectionsCol}>
                                     <AnimatePresence mode="wait">
-                                        <motion.div
+                                  <motion.div
                                             key={isTransitioning ? 'transitioning' : isDesignerMode ? 'designer' : 'client'}
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
@@ -705,6 +705,15 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                             transition={{ duration: 0.2 }}
                                             className={t.resultsSectionsInner}
                                         >
+                                            {activeSections.length === 0 ? (
+                                                <ErrorState
+                                                    variant="scrape_empty"
+                                                    onAction={() => setCurrentStep('input')}
+                                                    actionLabel="Try another URL"
+                                                    onSecondary={() => setCurrentStep('welcome')}
+                                                    secondaryLabel="Start over"
+                                                />
+                                            ) : null}
                                             {(activeSections as any[]).map((section) => (
                                                 <SectionCard
                                                     key={section.id}

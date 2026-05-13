@@ -14,8 +14,9 @@ import { getAllProjectsByDesignerEmail } from '@/lib/requests/ProjectRequest';
 import { getDesignerStats } from '@/lib/requests/AnalyticsRequest';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
+import ErrorState from "@/common-components/ErrorState";
 
-// ─── Pipeline helpers ────────────────────────────────────────────────────────
+// ─── Pipeline helpers 
 
 type StageKey = 'intake' | 'scraping' | 'swiping' | 'embedded' | 'composing' | 'refining' | 'revisions' | 'completed' | 'handoff';
 type ProjectStage = 'swiper' | 'scraper' | 'testimonial' | 'finalReview';
@@ -56,7 +57,7 @@ const deriveStages = (apiStatus: string): Record<StageKey, { completed: boolean;
   ) as Record<StageKey, { completed: boolean; active: boolean }>;
 };
 
-// ─── Trend helper ─────────────────────────────────────────────────────────────
+// ─── Trend helper 
 // higher is better: approval_rate, conversion_rate
 // lower is better: avg_days
 
@@ -79,7 +80,7 @@ const getTrend = (value: number, threshold: number, lowerIsBetter = false): Tren
   };
 };
 
-// ─── API project shape ───────────────────────────────────────────────────────
+// ─── API project shape 
 
 interface ApiProject {
   id: string;
@@ -113,7 +114,7 @@ const normaliseProject = (p: ApiProject): UiProject => ({
   apiStatus: p.status,
 });
 
-// ─── Shared sub-components ───────────────────────────────────────────────────
+// ─── Shared sub-components 
 
 type PaddingSize = "sm" | "md" | "lg";
 
@@ -222,7 +223,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) 
   );
 };
 
-// ─── Designer stats shape ─────────────────────────────────────────────────────
+// ─── Designer stats shape 
 
 interface DesignerStats {
   approval_rate: number;
@@ -231,30 +232,34 @@ interface DesignerStats {
   total_projects: number;
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main component 
 
 function DashboardHome() {
   const data = mockDashboardData;
   const { accentColor, setAccentColor, colors } = useAccentColor();
   const [projects, setProjects] = useState<UiProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
+
   const [stats, setStats] = useState<DesignerStats>({ approval_rate: 0, avg_days: 0, conversion_rate: 0, total_projects: 0 });
   const email = useSelector((state: RootState) => state.auth.user.email);
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const result = await getAllProjectsByDesignerEmail();
-        const payload = result.data?.data ?? result.data;
-        if (result.status === 200 && Array.isArray(payload)) {
-          setProjects(payload.map((p: ApiProject) => normaliseProject(p)));
-        }
-      } catch (e) {
-        console.error('Failed to fetch projects', e);
-      } finally {
-        setIsLoading(false);
+  const fetchProjects = async () => {
+    try {
+      const result = await getAllProjectsByDesignerEmail();
+      const payload = result.data?.data ?? result.data;
+      if (result.status === 200 && Array.isArray(payload)) {
+        setProjects(payload.map((p: ApiProject) => normaliseProject(p)));
       }
-    };
+    } catch (e) {
+      console.error('Failed to fetch projects', e);
+      setFetchError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProjects();
   }, []);
 
@@ -353,8 +358,19 @@ function DashboardHome() {
             <div className="space-y-md mt-4">
               {isLoading ? (
                 <div className="py-xl text-center text-text-secondary text-para-sm">Loading projects...</div>
+              ) : fetchError ? (
+                <ErrorState
+                  variant="projects_failed"
+                  onAction={() => { setFetchError(false); fetchProjects(); }}
+                />
               ) : projects.length === 0 ? (
-                <div className="py-xl text-center text-text-secondary text-para-sm">No active projects found.</div>
+                <ErrorState
+                  variant="generic"
+                  title="No projects yet"
+                  message="Create your first project to get started. It'll appear here once you do."
+                  actionLabel="New project"
+                  onAction={() => window.location.href = '/dashboard/designer/my-project'}
+                />
               ) : (
                 projects.map((project, index) => (
                   <motion.div

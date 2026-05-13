@@ -504,17 +504,25 @@ const ChatPanel = ({
             </div>
 
             {/* Version Navigator */}
-            {compositionId && versions.length > 0 && resolvedProjectId && (
-                <VersionNavigator
-                    projectId={resolvedProjectId}
-                    versions={versions}
-                    currentVersion={currentVersion}
-                    restoreStatus={restoreStatus}
-                    isPreviewingHistory={isPreviewingHistory}
-                    onRestore={handleRestore}
-                    onVersionChange={(msgs) => setMessages(prev => [...prev, ...msgs])}
-                    onPageSchemaChange={(schema) => dispatch(setPreviewSchema(schema))}
-                />
+            {compositionId && resolvedProjectId && (
+                versions.length > 0 ? (
+                    <VersionNavigator
+                        projectId={resolvedProjectId}
+                        versions={versions}
+                        currentVersion={currentVersion}
+                        restoreStatus={restoreStatus}
+                        isPreviewingHistory={isPreviewingHistory}
+                        onRestore={handleRestore}
+                        onVersionChange={(msgs) => setMessages(prev => [...prev, ...msgs])}
+                        onPageSchemaChange={(schema) => dispatch(setPreviewSchema(schema))}
+                    />
+                ) : (
+                    <div className="px-sm py-xs border-b border-border-default bg-background-secondary flex-shrink-0">
+                        <Para size="xs" color="secondary" className="text-center">
+                            No versions yet — refinements will appear here.
+                        </Para>
+                    </div>
+                )
             )}
 
             {/* Preview Mode Banner */}
