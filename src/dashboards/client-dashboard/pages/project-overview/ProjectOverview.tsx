@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { FaClock, FaComment, FaPaperPlane, FaEye, FaStar, FaDownload, FaShare, FaPlay, FaLock, FaChartLine, FaComments, FaCheck } from 'react-icons/fa';
+import { FaClock, FaComment, FaPaperPlane, FaEye, FaStar, FaDownload, FaShare, FaPlay, FaLock, FaChartLine, FaComments, FaCheck, FaSpinner } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import BrowserMockup from '../client-home/components/BroserMockup';
-import { getProjectById } from '@/lib/requests/ProjectRequest';
+import { getProjectById, markProjectCompleted, markProjectHandoff } from '@/lib/requests/ProjectRequest';
 import { useParams } from 'react-router-dom';
 import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
+import { store } from '@/store';
 
 // ─── Pipeline helpers ─────────────────────────────────────────────────────────
 
@@ -84,6 +85,7 @@ const ProjectOverview: React.FC = () => {
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [project, setProject] = useState<ProjectOverviewUI | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<'complete' | 'handoff' | null>(null);
 
   const fetchProject = async (projectId: string) => {
     setLoading(true);
@@ -105,8 +107,8 @@ const ProjectOverview: React.FC = () => {
         progress,
         apiStatus,
         currentStage: apiStatus ?? 'Not started',
-        feedbackCount: 0,                          // notes is a string, not a comments array
-        createdAt: raw.last_updated,               // no created_at — use last_updated
+        feedbackCount: 0,
+        createdAt: raw.last_updated,
         description: raw.business_description ?? '',
         tags: [
           raw.project_type,
@@ -131,6 +133,38 @@ const ProjectOverview: React.FC = () => {
   useEffect(() => {
     if (id) fetchProject(id);
   }, [id]);
+
+  // ─── Status action handlers ───────────────────────────────────────────────
+
+  const handleMarkComplete = async () => {
+    if (!project) return;
+    const designer_email = store.getState().auth.user.email!;
+    setActionLoading('complete');
+    try {
+      await markProjectCompleted(project.id, designer_email);
+      await fetchProject(project.id);
+    } catch (err) {
+      console.error('Failed to mark project as completed:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleMarkHandoff = async () => {
+    if (!project) return;
+    const designer_email = store.getState().auth.user.email!;
+    setActionLoading('handoff');
+    try {
+      await markProjectHandoff(project.id, designer_email);
+      await fetchProject(project.id);
+    } catch (err) {
+      console.error('Failed to mark project as handoff:', err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────
 
   const handleSubmitFeedback = async () => {
     if (!feedbackText.trim()) return;
@@ -259,7 +293,8 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-md text-center">
+
+              <div className="grid grid-cols-3 gap-md text-center mb-lg">
                 <div>
                   <div className="text-h6-sm font-bold text-text-primary">{project.progress}%</div>
                   <div className="text-para-xs text-text-tertiary">Progress</div>
@@ -273,6 +308,60 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
                   <div className="text-para-xs text-text-tertiary">Status</div>
                 </div>
               </div>
+
+              {/* ─── Designer action buttons ─────────────────────────── */}
+              <div className="pt-md border-t border-border-default">
+                {project.apiStatus === 'handoff' ? (
+                  // Already delivered — static label, no action
+                  <div className="w-full flex items-center justify-center gap-xs px-md py-sm rounded-xl bg-background-muted text-text-tertiary text-btn-sm font-medium">
+                    <FaCheck className="text-icon-sm" />
+                    Delivered
+                  </div>
+                ) : project.apiStatus === 'completed' ? (
+                  // Completed — show Confirm Handoff in purple
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleMarkHandoff}
+                    disabled={actionLoading === 'handoff'}
+                    className="w-full flex items-center justify-center gap-xs px-md py-sm rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-btn-sm font-medium transition-all duration-200 shadow-sm"
+                  >
+                    {actionLoading === 'handoff' ? (
+                      <>
+                        <FaSpinner className="text-icon-sm animate-spin" />
+                        Confirming...
+                      </>
+                    ) : (
+                      <>
+                        <FaCheck className="text-icon-sm" />
+                        Confirm Handoff
+                      </>
+                    )}
+                  </motion.button>
+                ) : (
+                  // Any other status — show Mark as Complete in green
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleMarkComplete}
+                    disabled={actionLoading === 'complete'}
+                    className="w-full flex items-center justify-center gap-xs px-md py-sm rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-btn-sm font-medium transition-all duration-200 shadow-sm"
+                  >
+                    {actionLoading === 'complete' ? (
+                      <>
+                        <FaSpinner className="text-icon-sm animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <FaCheck className="text-icon-sm" />
+                        Mark as Complete
+                      </>
+                    )}
+                  </motion.button>
+                )}
+              </div>
+              {/* ─────────────────────────────────────────────────────── */}
             </motion.div>
           </div>
         </div>
@@ -332,7 +421,6 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
               className="absolute left-6 top-0 w-0.5 bg-gradient-to-b from-emerald-500 to-accent-default lg:hidden z-10"
             />
 
-            {/* 9 stages — grid-cols-9 on desktop */}
             <div className="grid grid-cols-1 lg:grid-cols-9 gap-md lg:gap-sm relative">
               {project.stages.map((stage, index) => (
                 <motion.div
@@ -345,21 +433,21 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     className={`
-                                            w-12 h-12 rounded-full flex items-center justify-center relative z-20 mb-xs lg:mb-xs mr-md lg:mr-0 cursor-pointer flex-shrink-0
-                                            ${stage.status === 'completed'
+                      w-12 h-12 rounded-full flex items-center justify-center relative z-20 mb-xs lg:mb-xs mr-md lg:mr-0 cursor-pointer flex-shrink-0
+                      ${stage.status === 'completed'
                         ? 'bg-gradient-to-r from-emerald-500 to-emerald-600'
                         : stage.status === 'current'
                           ? 'bg-gradient-to-r from-accent-default to-purple-600'
                           : 'bg-gray-300 dark:bg-gray-700'
                       }
-                                        `}
+                    `}
                   >
                     {getStageIcon(stage.status)}
                   </motion.div>
 
                   <div className="flex-1 lg:flex-none">
                     <h3 className={`text-para-sm font-semibold mb-xs
-                                            ${stage.status === 'completed'
+                      ${stage.status === 'completed'
                         ? 'text-emerald-600 dark:text-emerald-400'
                         : stage.status === 'current'
                           ? 'text-accent-default'
