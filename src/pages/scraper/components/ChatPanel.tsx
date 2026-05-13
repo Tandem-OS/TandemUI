@@ -44,7 +44,6 @@ interface ChatMessage {
     reasoning?: string;
     timestamp: Date;
 }
-
 interface ChatPanelProps {
     context?: any;
     compositionId?: string | null;
@@ -52,6 +51,8 @@ interface ChatPanelProps {
     sections?: string[];
     onRefineComplete?: (refinedSections: string[]) => void;
     onRestoreComplete?: (newCompositionId: string) => void;
+    userRole?: 'designer' | 'client';
+    designerEmail?: string | null;
 }
 
 // ─── Reasoning Toggle 
@@ -254,7 +255,7 @@ const VersionNavigator = ({
     );
 };
 
-// ─── Chat Panel ───────────────────────────────────────────────────────────────
+// ─── Chat Panel 
 
 const ChatPanel = ({
     context,
@@ -263,6 +264,8 @@ const ChatPanel = ({
     sections = [],
     onRefineComplete,
     onRestoreComplete,
+    userRole = 'designer',
+    designerEmail,
 }: ChatPanelProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([
@@ -737,6 +740,8 @@ const ChatPanel = ({
                         usageType={gateState.usage_type}
                         currentCount={gateState.current_count}
                         limit={gateState.limit}
+                        userRole={userRole}
+                        designerEmail={designerEmail}
                         isCheckoutLoading={isCheckoutLoading}
                         checkoutError={checkoutError}
                         onUpgrade={(plan) => initiateCheckout(plan)}
@@ -804,12 +809,14 @@ const ChatPanel = ({
                 )}
             </AnimatePresence>
 
-            {gateState && (
+      {gateState && (
                 <BillingGateModal
                     isOpen={true}
                     usageType={gateState.usage_type}
                     currentCount={gateState.current_count}
                     limit={gateState.limit}
+                    userRole={userRole}
+                    designerEmail={designerEmail}
                     isCheckoutLoading={isCheckoutLoading}
                     checkoutError={checkoutError}
                     onUpgrade={(plan) => initiateCheckout(plan)}

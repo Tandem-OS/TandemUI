@@ -670,12 +670,14 @@ const IntakeForm: React.FC = () => {
                 </div>
             )}
 
-            {gateState && (
+        {gateState && (
                 <BillingGateModal
                     isOpen={true}
                     usageType={gateState.usage_type}
                     currentCount={gateState.current_count}
                     limit={gateState.limit}
+                    userRole="client"
+                    designerEmail={designerEmail}
                     isCheckoutLoading={isCheckoutLoading}
                     checkoutError={checkoutError}
                     onUpgrade={(plan) => initiateCheckout(plan)}

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { FiX, FiAlertTriangle, FiCheckCircle, FiEye } from 'react-icons/fi';import SwiperStack from './components/SwiperStack';
+import { FiX, FiAlertTriangle, FiCheckCircle, FiEye } from 'react-icons/fi'; import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
@@ -210,6 +210,7 @@ const Swiper: React.FC = () => {
   const [showTransition, setShowTransition] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
+  const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
   const {
     gateState,
     warningState,
@@ -265,7 +266,7 @@ const Swiper: React.FC = () => {
         ...(componentsMap['footer'] ?? []),
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
 
-   if (!flatComponents.length) {
+      if (!flatComponents.length) {
         dispatch(loadDataFailure('no_components'));
         return;
       }
@@ -744,7 +745,7 @@ const Swiper: React.FC = () => {
     );
   }
 
-if (loadingError) {
+  if (loadingError) {
     return (
       <div className="w-full flex items-center justify-center px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
         {loadingError === 'no_components' ? (
@@ -980,6 +981,8 @@ if (loadingError) {
               usageType={gateState.usage_type}
               currentCount={gateState.current_count}
               limit={gateState.limit}
+              userRole="client"
+              designerEmail={designerEmail}
               isCheckoutLoading={isCheckoutLoading}
               checkoutError={checkoutError}
               onUpgrade={(plan) => initiateCheckout(plan)}

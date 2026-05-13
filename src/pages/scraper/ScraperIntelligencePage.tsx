@@ -690,6 +690,8 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                                 compositionId={compositionId}
                                                 sections={activeSections.map((s: any) => s.category ?? s.section_type).filter(Boolean)}
                                                 onRefineComplete={handleRefineComplete}
+                                                userRole={userRole === 'Designer' ? 'designer' : 'client'}
+                                                designerEmail={designerEmail}
                                             />
                                         </div>
                                     </div>
@@ -697,7 +699,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
 
                                 <div className={t.resultsSectionsCol}>
                                     <AnimatePresence mode="wait">
-                                  <motion.div
+                                        <motion.div
                                             key={isTransitioning ? 'transitioning' : isDesignerMode ? 'designer' : 'client'}
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
@@ -742,6 +744,8 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                                     compositionId={compositionId}
                                                     sections={activeSections.map((s: any) => s.category ?? s.section_type).filter(Boolean)}
                                                     onRefineComplete={handleRefineComplete}
+                                                    userRole={userRole === 'Designer' ? 'designer' : 'client'}
+                                                    designerEmail={designerEmail}
                                                 />
                                             </div>
                                         </motion.div>
@@ -761,6 +765,8 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                     usageType={gateState.usage_type}
                     currentCount={gateState.current_count}
                     limit={gateState.limit}
+                    userRole={userRole === 'Designer' ? 'designer' : 'client'}
+                    designerEmail={designerEmail}
                     isCheckoutLoading={isCheckoutLoading}
                     checkoutError={checkoutError}
                     onUpgrade={(plan) => initiateCheckout(plan)}
