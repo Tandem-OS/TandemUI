@@ -3,6 +3,11 @@ import {
     RiBriefcaseLine,
     RiGlobalLine,
     RiChatQuoteLine,
+    RiCurrencyLine,
+    RiSettings3Line,
+    RiBankCardLine,
+    RiShieldCheckLine,
+    RiCalendarLine,
 } from 'react-icons/ri';
 import { type IconType } from 'react-icons';
 
@@ -38,5 +43,49 @@ export const menuItems: MenuItem[] = [
         name: 'Testimonials',
         icon: RiChatQuoteLine,
         path: '/dashboard/designer/testimonials'
+    },
+   {
+        id: 'subscription',
+        name: 'Subscription Plans',
+        icon: RiCurrencyLine,
+        path: '/dashboard/designer/billing',
+        children: [
+            {
+                id: 'billing-account',
+                name: 'Account',
+                icon: RiSettings3Line,
+                path: '/dashboard/designer/profile-view'
+            },
+            {
+                id: 'billing-billing',
+                name: 'Billing',
+                icon: RiBankCardLine,
+                path: '/dashboard/designer/billing'
+            },
+            {
+                id: 'billing-subscription',
+                name: 'Subscription',
+                icon: RiShieldCheckLine,
+                path: '/dashboard/designer/billing'
+            },
+            {
+                id: 'billing-payment',
+                name: 'Payment methods',
+                icon: RiBankCardLine,
+                path: '/dashboard/designer/billing/portal'
+            },
+            {
+                id: 'billing-invoices',
+                name: 'Invoices',
+                icon: RiCalendarLine,
+                path: '/dashboard/designer/billing/portal'
+            },
+            {
+                id: 'billing-history',
+                name: 'Billing history',
+                icon: RiCalendarLine,
+                path: '/dashboard/designer/billing/portal'
+            },
+        ]
     },
 ];

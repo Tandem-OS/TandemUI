@@ -5,11 +5,8 @@ import {
   RiArrowLeftLine,
   RiShieldCheckLine,
   RiCalendarLine,
-  RiBankCardLine,
-  RiQuestionLine,
   RiExternalLinkLine,
   RiCheckLine,
-  RiSettings3Line,
 } from 'react-icons/ri';
 import CancellationConfirmModal from './CancellationConfirmModal';
 
@@ -70,16 +67,6 @@ const DEFAULT_SUBSCRIPTION: SubscriptionData = {
   ],
 };
 
-// ─── Sidebar nav 
-
-const NAV_ITEMS = [
-  { label: 'Account', icon: RiSettings3Line, path: '/dashboard/designer/profile-view' },
-  { label: 'Billing', icon: RiBankCardLine , path: '/dashboard/designer/billing' },
-  { label: 'Subscription', icon: RiShieldCheckLine, path: '/dashboard/designer/billing', active: true },
-  { label: 'Payment methods', icon: RiBankCardLine, path: '/dashboard/designer/billing/portal' },
-  { label: 'Invoices', icon: RiCalendarLine, path: '/dashboard/designer/billing/portal' },
-  { label: 'Billing history', icon: RiCalendarLine, path: '/dashboard/designer/billing/portal' },
-];
 
 // ─── Crown SVG 
 
@@ -145,48 +132,7 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-background-primary flex">
-
-      {/* Sidebar */}
-      <aside className="hidden lg:flex flex-col w-56 border-r border-border-default bg-background-primary-2 flex-shrink-0">
-        <div className="px-lg py-xl">
-          <div className="flex items-center gap-sm mb-xl">
-            <span className="text-h5-sm font-bold text-text-primary">TandemOS</span>
-            <span className="px-xs py-px bg-[#7C3AED] text-white text-para-xs font-medium rounded-md">Pro</span>
-          </div>
-
-          <nav className="space-y-xs">
-            <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-wider mb-sm">Account</p>
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => navigate(item.path)}
-                className={`w-full flex items-center gap-sm px-sm py-sm rounded-lg text-para-sm transition-colors text-left ${
-                  item.active
-                    ? 'bg-[#F5F3FF] text-[#7C3AED] font-medium'
-                    : 'text-text-secondary hover:bg-background-muted hover:text-text-primary'
-                }`}
-              >
-                <item.icon className="text-icon-sm flex-shrink-0" />
-                {item.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="mt-auto px-lg pb-lg">
-          <button className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors">
-            <RiQuestionLine className="text-icon-sm" />
-            Need help?
-          </button>
-          <button
-            onClick={() => window.location.href = 'mailto:support@trytandem.io'}
-            className="text-para-sm text-[#7C3AED] hover:underline mt-xs"
-          >
-            Contact support
-          </button>
-        </div>
-      </aside>
+    <div className="min-h-screen bg-background-primary">
 
       {/* Main content */}
       <div className="flex-1 overflow-y-auto">
