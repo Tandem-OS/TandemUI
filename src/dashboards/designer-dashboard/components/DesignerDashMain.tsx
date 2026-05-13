@@ -8,13 +8,14 @@ import AnalyticsOverview from '../pages/AnalyticsOverview';
 import AnalyticsPerformance from '../pages/AnalyticsPerformance';
 import AnalyticsReports from '../pages/AnalyticsReports';
 import SwiperPage from '../pages/SwiperPage';
-// import WebsiteScraperPage from '../pages/WebsiteScraperPage';
 import TestimonialsPage from '../pages/TestimonialsPage';
 import DaconsahPage from '../pages/DaconsahPage';
 import MyProject from '@/dashboards/client-dashboard/pages/my-project/MyProject';
 import ProjectOverview from '@/dashboards/client-dashboard/pages/project-overview/ProjectOverview';
 import ProfileView from '@/components/profile/ProfileView';
 import ScraperIntelligencePage from '@/pages/scraper/ScraperIntelligencePage';
+import SubscriptionOverviewPage from '../pages/billing/SubscriptionOverviewPage';
+import CancellationSuccessPage from '../pages/billing/CancellationSuccessPage';
 
 const DesignerDashMain: React.FC = () => {
     return (
@@ -34,7 +35,9 @@ const DesignerDashMain: React.FC = () => {
                     <Route path="/testimonials" element={<TestimonialsPage />} />
                     <Route path="/daconsah" element={<DaconsahPage />} />
                     <Route path="/profile-view" element={<ProfileView />} />
-
+                    {/* ── Billing (designer only) ── */}
+                    <Route path="/billing" element={<SubscriptionOverviewPage />} />
+                    <Route path="/billing/cancelled" element={<CancellationSuccessPage />} />
                 </Routes>
             </div>
         </main>
