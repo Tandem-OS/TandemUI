@@ -44,7 +44,7 @@ const DEFAULT_SUBSCRIPTION: SubscriptionData = {
   status: 'active',
   price: 59.50,
   billingCycle: 'monthly',
-  nextRenewal: 'May 12, 2025',
+  nextRenewal: 'May 12, 2027',
   subscriptionId: 'sub_1Qw2eR123456abc',
   paymentMethod: {
     brand: 'Visa',

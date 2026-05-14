@@ -45,47 +45,47 @@ export const menuItems: MenuItem[] = [
         path: '/dashboard/designer/testimonials'
     },
    {
-        id: 'subscription',
-        name: 'Subscription Plans',
-        icon: RiCurrencyLine,
-        path: '/dashboard/designer/billing',
-        children: [
-            {
-                id: 'billing-account',
-                name: 'Account',
-                icon: RiSettings3Line,
-                path: '/dashboard/designer/profile-view'
-            },
-            {
-                id: 'billing-billing',
-                name: 'Billing',
-                icon: RiBankCardLine,
-                path: '/dashboard/designer/billing'
-            },
-            {
-                id: 'billing-subscription',
-                name: 'Subscription',
-                icon: RiShieldCheckLine,
-                path: '/dashboard/designer/billing'
-            },
-            {
-                id: 'billing-payment',
-                name: 'Payment methods',
-                icon: RiBankCardLine,
-                path: '/dashboard/designer/billing/portal'
-            },
-            {
-                id: 'billing-invoices',
-                name: 'Invoices',
-                icon: RiCalendarLine,
-                path: '/dashboard/designer/billing/portal'
-            },
-            {
-                id: 'billing-history',
-                name: 'Billing history',
-                icon: RiCalendarLine,
-                path: '/dashboard/designer/billing/portal'
-            },
-        ]
-    },
+id: 'subscription',
+    name: 'Subscription Plans',
+    icon: RiCurrencyLine,
+    path: '',  
+    children: [
+        {
+            id: 'billing-account',
+            name: 'Account',
+            icon: RiSettings3Line,
+            path: '/dashboard/designer/billing/account'        
+        },
+        {
+            id: 'billing-billing',
+            name: 'Billing',
+            icon: RiBankCardLine,
+            path: '/dashboard/designer/billing/overview'       // SubscriptionOverviewPage
+        },
+        {
+            id: 'billing-subscription',
+            name: 'Subscription',
+            icon: RiShieldCheckLine,
+            path: '/dashboard/designer/billing/subscription'   
+        },
+        {
+            id: 'billing-payment',
+            name: 'Payment methods',
+            icon: RiBankCardLine,
+            path: '/dashboard/designer/billing/payment-methods' 
+        },
+        {
+            id: 'billing-invoices',
+            name: 'Invoices',
+            icon: RiCalendarLine,
+            path: '/dashboard/designer/billing/invoices'      
+        },
+        {
+            id: 'billing-history',
+            name: 'Billing history',
+            icon: RiCalendarLine,
+            path: '/dashboard/designer/billing/history'        
+        },
+    ]
+},
 ];
