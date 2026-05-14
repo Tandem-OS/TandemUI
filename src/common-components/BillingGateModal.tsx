@@ -30,7 +30,7 @@ interface BillingGateModalProps {
   resetsInDays?: number | null;
 }
 
-// ─── Gate config ──────────────────────────────────────────────────────────────
+// ─── Gate config 
 
 interface GateConfig {
   gateLabel: string;
@@ -122,7 +122,7 @@ const IntakeIllustration = () => (
   </svg>
 );
 
-// ─── Icon components for bullets ─────────────────────────────────────────────
+// ─── Icon components for bullets 
 
 const InfinityIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -164,7 +164,7 @@ const TargetIcon = () => (
   </svg>
 );
 
-// ─── Gate configs ─────────────────────────────────────────────────────────────
+// ─── Gate configs 
 
 const GATE_CONFIGS: Record<BillingUsageType, GateConfig> = {
   swiper_session: {
@@ -254,7 +254,7 @@ const GATE_CONFIGS: Record<BillingUsageType, GateConfig> = {
   },
 };
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main component 
 
 const BillingGateModal: React.FC<BillingGateModalProps> = ({
   isOpen,
@@ -299,7 +299,7 @@ const BillingGateModal: React.FC<BillingGateModalProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
           />
 
           {/* Modal */}
@@ -432,9 +432,15 @@ const BillingGateModal: React.FC<BillingGateModalProps> = ({
               {/* Footer reassurance */}
               <div className="px-lg pb-lg flex items-center justify-center gap-xs text-text-muted text-para-xs">
                 <RiLockLine className="text-[10px]" />
-                <span>Secure checkout</span>
-                <span>·</span>
-                <span>Cancel anytime</span>
+                {isClient ? (
+                  <span>Your current progress stays saved</span>
+                ) : (
+                  <>
+                    <span>Secure checkout</span>
+                    <span>·</span>
+                    <span>Cancel anytime</span>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

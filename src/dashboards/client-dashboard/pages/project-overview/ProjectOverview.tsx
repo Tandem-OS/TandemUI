@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import BrowserMockup from '../client-home/components/BroserMockup';
 import { getProjectById, markProjectCompleted, markProjectHandoff } from '@/lib/requests/ProjectRequest';
 import { useParams } from 'react-router-dom';
-import GlobalSpinner from '@/components/ant-design-spinner/Spinner';
 import { store } from '@/store';
+import { ProjectOverviewSkeleton } from '@/dashboards/designer-dashboard/components/skeletons';
 
 // ─── Pipeline helpers ─────────────────────────────────────────────────────────
 
@@ -164,8 +164,6 @@ const ProjectOverview: React.FC = () => {
     }
   };
 
-  // ─────────────────────────────────────────────────────────────────────────
-
   const handleSubmitFeedback = async () => {
     if (!feedbackText.trim()) return;
     setIsSubmittingFeedback(true);
@@ -209,7 +207,9 @@ const ProjectOverview: React.FC = () => {
       : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20';
   };
 
-if (loading || !project) return <GlobalSpinner message="Loading project" subMessage="Fetching your project details…" />;
+  // ─── Skeleton while loading ───────────────────────────────────────────────
+  if (loading || !project) return <ProjectOverviewSkeleton />;
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -309,16 +309,13 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
                 </div>
               </div>
 
-              {/* ─── Designer action buttons ─────────────────────────── */}
               <div className="pt-md border-t border-border-default">
                 {project.apiStatus === 'handoff' ? (
-                  // Already delivered — static label, no action
                   <div className="w-full flex items-center justify-center gap-xs px-md py-sm rounded-xl bg-background-muted text-text-tertiary text-btn-sm font-medium">
                     <FaCheck className="text-icon-sm" />
                     Delivered
                   </div>
                 ) : project.apiStatus === 'completed' ? (
-                  // Completed — show Confirm Handoff in purple
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -339,7 +336,6 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
                     )}
                   </motion.button>
                 ) : (
-                  // Any other status — show Mark as Complete in green
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -361,7 +357,6 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
                   </motion.button>
                 )}
               </div>
-              {/* ─────────────────────────────────────────────────────── */}
             </motion.div>
           </div>
         </div>
@@ -393,7 +388,6 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
             </div>
           </div>
 
-          {/* Progress Bar */}
           <div className="w-full bg-background-muted dark:bg-background-primary rounded-full h-2 mb-xl overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
@@ -403,7 +397,6 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
             />
           </div>
 
-          {/* Timeline */}
           <div className="relative">
             <div className="absolute top-6 left-0 right-0 h-0.5 bg-border-default hidden lg:block" />
             <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-border-default lg:hidden" />
@@ -466,7 +459,6 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-xl items-start">
-          {/* Preview Section */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -487,7 +479,6 @@ if (loading || !project) return <GlobalSpinner message="Loading project" subMess
             <BrowserMockup projectId={id} />
           </motion.div>
 
-          {/* Feedback Section */}
           <div className="space-y-md">
             <motion.div
               initial={{ opacity: 0, x: 20 }}

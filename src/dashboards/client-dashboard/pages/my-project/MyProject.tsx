@@ -8,6 +8,7 @@ import SearchBox from '../../../../common-components/SearchBox';
 import { getAllProjectsByDesignerEmail } from '@/lib/requests/ProjectRequest';
 import type { Project } from '@/types/project.type';
 import MagicLinkModal from '@/dashboards/designer-dashboard/components/MagicLinkModal';
+import { ProjectCardSkeleton } from '@/dashboards/designer-dashboard/components/skeletons';
 
 // ─── Pipeline helpers ─────────────────────────────────────────────────────────
 
@@ -185,29 +186,10 @@ const MyProject: React.FC = () => {
         </motion.div>
     );
 
-    // ── Skeleton card for loading state ───────────────────────────────────────
-    const SkeletonCard = () => (
-        <div className="bg-background-primary-2 rounded-2xl border border-border-default p-lg animate-pulse">
-            <div className="flex items-center gap-md mb-lg">
-                <div className="w-10 h-10 rounded-full bg-background-muted" />
-                <div className="flex-1 space-y-xs">
-                    <div className="h-3 bg-background-muted rounded w-3/4" />
-                    <div className="h-2 bg-background-muted rounded w-1/2" />
-                </div>
-            </div>
-            <div className="h-2 bg-background-muted rounded mb-md" />
-            <div className="h-2 bg-background-muted rounded w-4/5 mb-lg" />
-            <div className="flex gap-sm">
-                <div className="h-6 w-16 bg-background-muted rounded-full" />
-                <div className="h-6 w-12 bg-background-muted rounded-full" />
-            </div>
-        </div>
-    );
-
     return (
         <div className="min-h-screen">
             <div className="container mx-auto px-md sm:px-lg lg:px-xl py-lg sm:py-xl lg:py-2xl">
-                {/* Header */}
+                {/* Header — always visible, never skeletonised */}
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -310,24 +292,30 @@ const MyProject: React.FC = () => {
                     </div>
                 </motion.div>
 
-                {/* Content — spinner only on card area */}
+                {/* Content — skeleton only on card grid, header stays put */}
                 <AnimatePresence mode="wait">
                     {state.isLoading ? (
                         <motion.div
+                            key="skeleton"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2xl"
                         >
                             {Array.from({ length: INITIAL_CARDS }).map((_, i) => (
-                                <SkeletonCard key={i} />
+                                <ProjectCardSkeleton key={i} />
                             ))}
                         </motion.div>
                     ) : filteredProjects.length === 0 ? (
                         <EmptyState />
                     ) : (
                         <>
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2xl">
+                            <motion.div
+                                key="cards"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2xl"
+                            >
                                 {visibleProjects.map((project, index) => (
                                     <motion.div
                                         key={project.id}

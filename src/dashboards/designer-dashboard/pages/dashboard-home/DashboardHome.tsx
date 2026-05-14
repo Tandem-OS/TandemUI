@@ -15,8 +15,8 @@ import { getDesignerStats } from '@/lib/requests/AnalyticsRequest';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import ErrorState from "@/common-components/ErrorState";
-
-// ─── Pipeline helpers ─────────────────────────────────────────────────────────
+import { DashboardProjectRowSkeleton } from '../../components/skeletons';
+// ─── Pipeline helpers 
 
 type StageKey = 'intake' | 'scraping' | 'swiping' | 'embedded' | 'composing' | 'refining' | 'revisions' | 'completed' | 'handoff';
 type ProjectStage = 'swiper' | 'scraper' | 'testimonial' | 'finalReview';
@@ -57,7 +57,7 @@ const deriveStages = (apiStatus: string): Record<StageKey, { completed: boolean;
   ) as Record<StageKey, { completed: boolean; active: boolean }>;
 };
 
-// ─── Trend helper ─────────────────────────────────────────────────────────────
+// ─── Trend helper 
 
 interface TrendResult {
   isUp: boolean;
@@ -78,7 +78,7 @@ const getTrend = (value: number, threshold: number, lowerIsBetter = false): Tren
   };
 };
 
-// ─── API project shape ────────────────────────────────────────────────────────
+// ─── API project shape 
 
 interface ApiProject {
   id: string;
@@ -112,7 +112,7 @@ const normaliseProject = (p: ApiProject): UiProject => ({
   apiStatus: p.status,
 });
 
-// ─── Shared sub-components ────────────────────────────────────────────────────
+// ─── Shared sub-components 
 
 type PaddingSize = "sm" | "md" | "lg";
 
@@ -221,7 +221,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) 
   );
 };
 
-// ─── Designer stats shape ─────────────────────────────────────────────────────
+// ─── Designer stats shape 
 
 interface DesignerStats {
   approval_rate: number;
@@ -230,7 +230,7 @@ interface DesignerStats {
   total_projects: number;
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Main component 
 
 function DashboardHome() {
   // const data = mockDashboardData; // ⛔ mock data — removed until real API available
@@ -351,7 +351,11 @@ function DashboardHome() {
 
             <div className="space-y-md mt-4">
               {isLoading ? (
-                <div className="py-xl text-center text-text-secondary text-para-sm">Loading projects...</div>
+                <>
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <DashboardProjectRowSkeleton key={i} />
+                  ))}
+                </>
               ) : fetchError ? (
                 <ErrorState
                   variant="projects_failed"
