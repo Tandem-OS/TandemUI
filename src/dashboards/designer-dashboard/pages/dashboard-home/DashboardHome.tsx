@@ -16,48 +16,20 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import ErrorState from "@/common-components/ErrorState";
 import { DashboardProjectRowSkeleton } from '../../components/skeletons';
-// ─── Pipeline helpers 
+import {
+  PIPELINE_ORDER,
+  STATUS_TO_PROGRESS,
+  STATUS_TO_STAGE,
+  STATUS_TO_UI_STATUS,
+  STATUS_LABEL,
+  STAGE_LABEL,
+  deriveStages,
+  type ApiStatus,
+  type UiStatus,
+  type ProjectStage,
+} from '@/lib/config/projectStatus';
 
-type StageKey = 'intake' | 'scraping' | 'swiping' | 'embedded' | 'composing' | 'refining' | 'revisions' | 'completed' | 'handoff';
-type ProjectStage = 'swiper' | 'scraper' | 'testimonial' | 'finalReview';
-type ProjectStatus = 'in-progress' | 'reviewing' | 'final-review' | 'completed';
-
-const PIPELINE_ORDER: StageKey[] = ['intake', 'scraping', 'swiping', 'embedded', 'composing', 'refining', 'revisions', 'completed', 'handoff'];
-
-const STATUS_TO_PROGRESS: Record<string, number> = {
-  intake: 10, scraping: 20, swiping: 35, embedded: 45,
-  composing: 55, refining: 65, revisions: 75, completed: 90, handoff: 100,
-};
-
-const STATUS_TO_STAGE: Record<string, ProjectStage> = {
-  intake: 'scraper', scraping: 'scraper', swiping: 'swiper',
-  embedded: 'swiper', composing: 'swiper', refining: 'swiper',
-  revisions: 'finalReview', completed: 'finalReview', handoff: 'finalReview',
-};
-
-const STATUS_TO_UI: Record<string, { status: ProjectStatus; label: string }> = {
-  intake: { status: 'in-progress', label: 'In Progress' },
-  scraping: { status: 'in-progress', label: 'In Progress' },
-  swiping: { status: 'in-progress', label: 'In Progress' },
-  embedded: { status: 'reviewing', label: 'Reviewing' },
-  composing: { status: 'reviewing', label: 'Reviewing' },
-  refining: { status: 'reviewing', label: 'Reviewing' },
-  revisions: { status: 'final-review', label: 'Final Review' },
-  completed: { status: 'completed', label: 'Completed' },
-  handoff: { status: 'completed', label: 'Completed' },
-};
-
-const deriveStages = (apiStatus: string): Record<StageKey, { completed: boolean; active: boolean }> => {
-  const currentIdx = PIPELINE_ORDER.indexOf(apiStatus as StageKey);
-  return Object.fromEntries(
-    PIPELINE_ORDER.map((stage, idx) => [
-      stage,
-      { completed: idx < currentIdx, active: idx === currentIdx }
-    ])
-  ) as Record<StageKey, { completed: boolean; active: boolean }>;
-};
-
-// ─── Trend helper 
+// ─── Trend helper ─────────────────────────────────────────────────────────────
 
 interface TrendResult {
   isUp: boolean;
@@ -78,7 +50,7 @@ const getTrend = (value: number, threshold: number, lowerIsBetter = false): Tren
   };
 };
 
-// ─── API project shape 
+// ─── API project shape ────────────────────────────────────────────────────────
 
 interface ApiProject {
   id: string;
@@ -88,13 +60,15 @@ interface ApiProject {
   last_updated: string;
 }
 
+type ProjectStatus = UiStatus;
+
 interface UiProject {
   id: string;
   name: string;
   status: ProjectStatus;
   statusLabel: string;
   progress: number;
-  stages: Record<StageKey, { completed: boolean; active: boolean }>;
+  stages: Record<ApiStatus, { completed: boolean; active: boolean }>;
   feedbackThreads: number;
   currentStage: ProjectStage;
   apiStatus: string;
@@ -103,16 +77,16 @@ interface UiProject {
 const normaliseProject = (p: ApiProject): UiProject => ({
   id: p.id,
   name: p.project_name,
-  status: STATUS_TO_UI[p.status]?.status ?? 'in-progress',
-  statusLabel: STATUS_TO_UI[p.status]?.label ?? p.status,
-  progress: STATUS_TO_PROGRESS[p.status] ?? 0,
+  status: STATUS_TO_UI_STATUS[p.status as ApiStatus] ?? 'in-progress',
+  statusLabel: STATUS_LABEL[p.status as ApiStatus] ?? p.status,
+  progress: STATUS_TO_PROGRESS[p.status as ApiStatus] ?? 0,
   stages: deriveStages(p.status),
   feedbackThreads: 0,
-  currentStage: STATUS_TO_STAGE[p.status] ?? 'scraper',
+  currentStage: STATUS_TO_STAGE[p.status as ApiStatus] ?? 'scraper',
   apiStatus: p.status,
 });
 
-// ─── Shared sub-components 
+// ─── Shared sub-components ────────────────────────────────────────────────────
 
 type PaddingSize = "sm" | "md" | "lg";
 
@@ -177,18 +151,12 @@ const ContinueButton: React.FC<ContinueButtonProps> = ({ stage, colors, onClick 
 };
 
 interface ProjectTimelineProps {
-  stages: Record<StageKey, { completed: boolean; active: boolean }>;
+  stages: Record<ApiStatus, { completed: boolean; active: boolean }>;
   colors: any;
   apiStatus: string;
 }
 const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) => {
-  const stageLabels: Record<StageKey, string> = {
-    intake: 'Intake', scraping: 'Scraping', swiping: 'Swiping',
-    embedded: 'Embedded', composing: 'Composing', refining: 'Refining',
-    revisions: 'Revisions', completed: 'Completed', handoff: 'Handoff',
-  };
-
-  const currentIdx = PIPELINE_ORDER.indexOf(apiStatus as StageKey);
+  const currentIdx = PIPELINE_ORDER.indexOf(apiStatus as ApiStatus);
   const progressWidth = currentIdx >= 0 ? (currentIdx / (PIPELINE_ORDER.length - 1)) * 100 : 0;
 
   return (
@@ -212,7 +180,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) 
           const isActive = idx === currentIdx;
           return (
             <span key={stage} className={`text-[9px] font-medium whitespace-nowrap ${isActive ? `${colors.text} font-bold` : 'text-text-secondary'}`}>
-              {stageLabels[stage]}
+              {STAGE_LABEL[stage]}
             </span>
           );
         })}
@@ -221,7 +189,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) 
   );
 };
 
-// ─── Designer stats shape 
+// ─── Designer stats shape ─────────────────────────────────────────────────────
 
 interface DesignerStats {
   approval_rate: number;
@@ -230,15 +198,13 @@ interface DesignerStats {
   total_projects: number;
 }
 
-// ─── Main component 
+// ─── Main component ───────────────────────────────────────────────────────────
 
 function DashboardHome() {
-  // const data = mockDashboardData; // ⛔ mock data — removed until real API available
   const { accentColor, setAccentColor, colors } = useAccentColor();
   const [projects, setProjects] = useState<UiProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
-
   const [stats, setStats] = useState<DesignerStats>({ approval_rate: 0, avg_days: 0, project_progression: 0, total_projects: 0 });
   const email = useSelector((state: RootState) => state.auth.user.email);
 
@@ -257,15 +223,11 @@ function DashboardHome() {
     }
   };
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+  useEffect(() => { fetchProjects(); }, []);
 
   useEffect(() => {
     if (!email) return;
-    getDesignerStats(email)
-      .then((res) => setStats(res.data))
-      .catch(() => { });
+    getDesignerStats(email).then((res) => setStats(res.data)).catch(() => {});
   }, [email]);
 
   const approvalTrend = getTrend(stats.approval_rate, 70);
@@ -278,15 +240,12 @@ function DashboardHome() {
 
         {/* Top 3 Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-lg">
-
-          {/* Card 1 — Approval Rate */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }} transition={{ duration: 0.4, delay: 0.1 }} className="h-full">
             <div className={`relative ${colors.light} rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px]`}>
               <div className="absolute top-4 left-4 flex gap-2">
                 <div className="bg-background-secondary-2 p-2 rounded-full flex items-center justify-center text-text-secondary dark:text-lightSecondary"><BsTags /></div>
                 <div className={`bg-background-secondary-2 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2 ${approvalTrend.color}`}>
-                  {approvalTrend.icon}
-                  {approvalTrend.label}
+                  {approvalTrend.icon}{approvalTrend.label}
                 </div>
               </div>
               <div className="mt-12">
@@ -299,14 +258,12 @@ function DashboardHome() {
             </div>
           </motion.div>
 
-          {/* Card 2 — Avg Days */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }} whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }} className="h-full">
             <div className={`relative ${colors.light} rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px]`}>
               <div className="absolute top-4 left-4 flex gap-2">
                 <div className="bg-background-secondary-2 text-gray-600 p-2 rounded-full flex items-center justify-center"><BsTags /></div>
                 <div className={`bg-background-secondary-2 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2 ${avgDaysTrend.color}`}>
-                  {avgDaysTrend.icon}
-                  {stats.avg_days > 0 ? `${stats.avg_days} day avg` : 'No data yet'}
+                  {avgDaysTrend.icon}{stats.avg_days > 0 ? `${stats.avg_days} day avg` : 'No data yet'}
                 </div>
               </div>
               <div className="mt-12">
@@ -319,14 +276,12 @@ function DashboardHome() {
             </div>
           </motion.div>
 
-          {/* Card 3 — Project Progression */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }} whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }} className="h-full">
             <div className="relative bg-card-gradient text-white rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px] bg-[linear-gradient(180deg,_#4D43E4_26.44%,_rgba(132,_125,_236,_0.689189)_99.99%,_rgba(255,_255,_255,_0)_100%)]">
               <div className="absolute top-4 left-4 flex gap-2">
                 <div className="bg-background-secondary-2 text-blue-violet p-2 rounded-full flex items-center justify-center"><BsTags /></div>
                 <div className={`bg-background-secondary-2 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-2 ${conversionTrend.color}`}>
-                  {conversionTrend.icon}
-                  {stats.total_projects} total projects
+                  {conversionTrend.icon}{stats.total_projects} total projects
                 </div>
               </div>
               <div className="mt-12">
@@ -338,7 +293,6 @@ function DashboardHome() {
               </div>
             </div>
           </motion.div>
-
         </div>
 
         {/* Active Projects */}
@@ -348,19 +302,11 @@ function DashboardHome() {
               <ActiveProjectIcon />
               <h2 className="text-h4-sm font-bold text-text-primary">Active Projects</h2>
             </div>
-
             <div className="space-y-md mt-4">
               {isLoading ? (
-                <>
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <DashboardProjectRowSkeleton key={i} />
-                  ))}
-                </>
+                <>{Array.from({ length: 3 }).map((_, i) => <DashboardProjectRowSkeleton key={i} />)}</>
               ) : fetchError ? (
-                <ErrorState
-                  variant="projects_failed"
-                  onAction={() => { setFetchError(false); fetchProjects(); }}
-                />
+                <ErrorState variant="projects_failed" onAction={() => { setFetchError(false); fetchProjects(); }} />
               ) : projects.length === 0 ? (
                 <ErrorState
                   variant="generic"
@@ -390,9 +336,7 @@ function DashboardHome() {
                         <ProjectTimeline stages={project.stages} colors={colors} apiStatus={project.apiStatus} />
                       </div>
                       <div className="lg:col-span-2 flex justify-between items-center w-full lg:justify-center">
-                        <span className="text-para-xs font-semibold underline text-text-secondary">
-                          {project.feedbackThreads} Feedback
-                        </span>
+                        <span className="text-para-xs font-semibold underline text-text-secondary">{project.feedbackThreads} Feedback</span>
                       </div>
                       <div className="lg:col-span-2 w-full lg:w-auto">
                         <div className="max-w-[140px] lg:max-w-full ml-auto lg:ml-0">
@@ -404,7 +348,6 @@ function DashboardHome() {
                 ))
               )}
             </div>
-
             <div className="flex justify-center mt-md">
               <motion.a href="#" className={`inline-flex items-center gap-sm rounded-full px-sm py-xs font-medium border transition-all duration-200 ${colors.border} ${colors.text} ${colors.hover}`} whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
                 View All Projects
@@ -425,27 +368,21 @@ function DashboardHome() {
               <div className="flex gap-4 items-center">
                 <img src={linkChartIcon} alt="" className="w-[40px] h-[40px]" />
                 <div>
-                  <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6, duration: 0.3 }}>
-                    {stats.total_projects}
-                  </motion.div>
+                  <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6, duration: 0.3 }}>{stats.total_projects}</motion.div>
                   <p className="text-para-sm font-medium text-text-primary">Active Projects</p>
                 </div>
               </div>
               <div className="border-x border-border-default flex gap-4 items-center">
                 <img src={orangeLinkChart} alt="" className="w-[40px] h-[40px]" />
                 <div>
-                  <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
-                    {stats.approval_rate}%
-                  </motion.div>
+                  <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>{stats.approval_rate}%</motion.div>
                   <p className="text-para-sm font-medium text-text-primary">Approval Rate</p>
                 </div>
               </div>
               <div className="flex gap-4 items-center">
                 <img src={blueLineChart} alt="" className="w-[40px] h-[40px]" />
                 <div>
-                  <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
-                    {stats.avg_days > 0 ? `${stats.avg_days}` : '—'}
-                  </motion.div>
+                  <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>{stats.avg_days > 0 ? `${stats.avg_days}` : '—'}</motion.div>
                   <p className="text-para-sm font-medium text-text-primary">Avg Time To Complete</p>
                 </div>
               </div>
@@ -456,38 +393,6 @@ function DashboardHome() {
         {/*
           ⛔ COMMENTED OUT — Customer Satisfaction and Taste Trends use mock data.
           Restore when real API endpoints are available.
-          See: mockDashboardData.customerSatisfaction and mockDashboardData.tasteTrend
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2">
-            <Card className={`${colors.light} ${colors.border}`}>
-              <div className="flex items-center justify-between mb-lg">
-                <div className="flex gap-4 items-center">
-                  <ActiveProjectIcon />
-                  <h3 className="text-h4-sm font-bold text-text-primary">Customer Satisfaction</h3>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-md">
-                {Object.entries(data.customerSatisfaction.byStage).map(([stage, stats], index) => (
-                  <motion.div key={stage} ...>
-                    <p>After {stage}</p>
-                    <div>{stats.rating}/10</div>
-                    <p>{stats.happy}/{stats.total} happy</p>
-                  </motion.div>
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          <div className="lg:col-span-1">
-            <Card className={`${colors.light} ${colors.border} h-full flex flex-col`}>
-              <h3>Taste Trends</h3>
-              <p>{data.tasteTrend.percentage}% of clients chose</p>
-              ... donut chart using data.tasteTrend.percentage ...
-              <p>{data.tasteTrend.trend}</p>
-            </Card>
-          </div>
-        </div>
         */}
 
         <motion.div className="flex justify-end pt-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.6 }}>
@@ -498,7 +403,6 @@ function DashboardHome() {
         </motion.div>
 
       </div>
-
       <ColorPicker accentColor={accentColor} setAccentColor={setAccentColor} />
     </div>
   );
