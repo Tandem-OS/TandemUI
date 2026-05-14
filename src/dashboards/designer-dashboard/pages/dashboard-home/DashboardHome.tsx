@@ -1,7 +1,7 @@
 import React, { type ReactNode, useState, useEffect } from 'react';
 import { RiArrowRightLine } from 'react-icons/ri';
 import { motion } from 'framer-motion';
-import { mockDashboardData } from '../../../../mock-data/designer-dash-home.mock.';
+// import { mockDashboardData } from '../../../../mock-data/designer-dash-home.mock.'; // ⛔ mock data — removed until real API available
 import { type AccentColor } from '../../../../types/component.types';
 import { FaArrowTrendUp, FaArrowTrendDown } from "react-icons/fa6";
 import { BsTags } from "react-icons/bs";
@@ -16,7 +16,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import ErrorState from "@/common-components/ErrorState";
 
-// ─── Pipeline helpers 
+// ─── Pipeline helpers ─────────────────────────────────────────────────────────
 
 type StageKey = 'intake' | 'scraping' | 'swiping' | 'embedded' | 'composing' | 'refining' | 'revisions' | 'completed' | 'handoff';
 type ProjectStage = 'swiper' | 'scraper' | 'testimonial' | 'finalReview';
@@ -57,9 +57,7 @@ const deriveStages = (apiStatus: string): Record<StageKey, { completed: boolean;
   ) as Record<StageKey, { completed: boolean; active: boolean }>;
 };
 
-// ─── Trend helper 
-// higher is better: approval_rate, conversion_rate
-// lower is better: avg_days
+// ─── Trend helper ─────────────────────────────────────────────────────────────
 
 interface TrendResult {
   isUp: boolean;
@@ -80,7 +78,7 @@ const getTrend = (value: number, threshold: number, lowerIsBetter = false): Tren
   };
 };
 
-// ─── API project shape 
+// ─── API project shape ────────────────────────────────────────────────────────
 
 interface ApiProject {
   id: string;
@@ -114,7 +112,7 @@ const normaliseProject = (p: ApiProject): UiProject => ({
   apiStatus: p.status,
 });
 
-// ─── Shared sub-components 
+// ─── Shared sub-components ────────────────────────────────────────────────────
 
 type PaddingSize = "sm" | "md" | "lg";
 
@@ -223,7 +221,7 @@ const ProjectTimeline: React.FC<ProjectTimelineProps> = ({ colors, apiStatus }) 
   );
 };
 
-// ─── Designer stats shape 
+// ─── Designer stats shape ─────────────────────────────────────────────────────
 
 interface DesignerStats {
   approval_rate: number;
@@ -232,10 +230,10 @@ interface DesignerStats {
   total_projects: number;
 }
 
-// ─── Main component 
+// ─── Main component ───────────────────────────────────────────────────────────
 
 function DashboardHome() {
-  const data = mockDashboardData;
+  // const data = mockDashboardData; // ⛔ mock data — removed until real API available
   const { accentColor, setAccentColor, colors } = useAccentColor();
   const [projects, setProjects] = useState<UiProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -270,10 +268,6 @@ function DashboardHome() {
       .catch(() => { });
   }, [email]);
 
-  // ── Trend calculations ────────────────────────────────────────────────────
-  // approval_rate: good if >= 70%
-  // avg_days: good if <= 7 days (lower is better)
-  // conversion_rate: good if >= 60%
   const approvalTrend = getTrend(stats.approval_rate, 70);
   const avgDaysTrend = getTrend(stats.avg_days, 7, true);
   const conversionTrend = getTrend(stats.project_progression, 60);
@@ -325,7 +319,7 @@ function DashboardHome() {
             </div>
           </motion.div>
 
-          {/* Card 3 — Conversion Rate */}
+          {/* Card 3 — Project Progression */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }} whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }} className="h-full">
             <div className="relative bg-card-gradient text-white rounded-2xl p-6 shadow-md flex flex-col justify-between h-full min-h-[200px] bg-[linear-gradient(180deg,_#4D43E4_26.44%,_rgba(132,_125,_236,_0.689189)_99.99%,_rgba(255,_255,_255,_0)_100%)]">
               <div className="absolute top-4 left-4 flex gap-2">
@@ -416,106 +410,89 @@ function DashboardHome() {
           </Card>
         </motion.div>
 
-        {/* Customer Satisfaction + Project Overview + Taste Trends */}
+        {/* Project Overview — real API data */}
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.5 }}>
+          <Card className={`${colors.light} ${colors.border}`}>
+            <div className="flex gap-4 items-center mb-md">
+              <ActiveProjectIcon />
+              <h3 className="text-h4-sm font-bold text-text-primary">Project Overview</h3>
+            </div>
+            <div className="grid grid-cols-3 gap-md">
+              <div className="flex gap-4 items-center">
+                <img src={linkChartIcon} alt="" className="w-[40px] h-[40px]" />
+                <div>
+                  <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6, duration: 0.3 }}>
+                    {stats.total_projects}
+                  </motion.div>
+                  <p className="text-para-sm font-medium text-text-primary">Active Projects</p>
+                </div>
+              </div>
+              <div className="border-x border-border-default flex gap-4 items-center">
+                <img src={orangeLinkChart} alt="" className="w-[40px] h-[40px]" />
+                <div>
+                  <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
+                    {stats.approval_rate}%
+                  </motion.div>
+                  <p className="text-para-sm font-medium text-text-primary">Approval Rate</p>
+                </div>
+              </div>
+              <div className="flex gap-4 items-center">
+                <img src={blueLineChart} alt="" className="w-[40px] h-[40px]" />
+                <div>
+                  <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
+                    {stats.avg_days > 0 ? `${stats.avg_days}` : '—'}
+                  </motion.div>
+                  <p className="text-para-sm font-medium text-text-primary">Avg Time To Complete</p>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
+        {/*
+          ⛔ COMMENTED OUT — Customer Satisfaction and Taste Trends use mock data.
+          Restore when real API endpoints are available.
+          See: mockDashboardData.customerSatisfaction and mockDashboardData.tasteTrend
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.5 }}>
-              <Card className={`${colors.light} ${colors.border}`}>
-                <div className="flex items-center justify-between mb-lg">
-                  <div className="flex gap-4 items-center">
-                    <ActiveProjectIcon />
-                    <h3 className="text-h4-sm font-bold text-text-primary">Customer Satisfaction</h3>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-md">
-                  {Object.entries(data.customerSatisfaction.byStage).map(([stage, stats], index) => (
-                    <motion.div key={stage} className="bg-background-primary-2 rounded-lg p-lg text-center border border-border-default hover:shadow-lg duration-300" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }} transition={{ delay: index * 0.1, duration: 0.3 }}>
-                      <p className="text-para-sm font-medium text-text-secondary capitalize mb-sm">After {stage}</p>
-                      <div className="text-h3-sm font-bold text-text-primary mb-xs">{stats.rating}/10</div>
-                      <p className="text-para-sm text-text-tertiary">{stats.happy}/{stats.total} happy</p>
-                    </motion.div>
-                  ))}
-                </div>
-              </Card>
-            </motion.div>
-
-            <div className="mt-4">
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.6 }}>
-                <Card className={`${colors.light} ${colors.border} h-full`}>
-                  <div className="flex gap-4 items-center mb-md">
-                    <ActiveProjectIcon />
-                    <h3 className="text-h4-sm font-bold text-text-primary">Project Overview</h3>
-                  </div>
-                  <div className="grid grid-cols-3 gap-md">
-                    <div className="flex gap-4 items-center">
-                      <img src={linkChartIcon} alt="" className="w-[40px] h-[40px]" />
-                      <div>
-                        <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7, duration: 0.3 }}>
-                          {stats.total_projects}
-                        </motion.div>
-                        <p className="text-para-sm font-medium text-text-primary">Active Projects</p>
-                      </div>
-                    </div>
-                    <div className="border-x border-border-default flex gap-4 items-center">
-                      <img src={orangeLinkChart} alt="" className="w-[40px] h-[40px]" />
-                      <div>
-                        <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8, duration: 0.3 }}>
-                          {stats.approval_rate}%
-                        </motion.div>
-                        <p className="text-para-sm font-medium text-text-primary">Approval Rate</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-4 items-center">
-                      <img src={blueLineChart} alt="" className="w-[40px] h-[40px]" />
-                      <div>
-                        <motion.div className={`text-h1-sm font-bold ${colors.text} mb-xs`} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.9, duration: 0.3 }}>
-                          {stats.avg_days > 0 ? `${stats.avg_days}` : '—'}
-                        </motion.div>
-                        <p className="text-para-sm font-medium text-text-primary">Avg Time To Complete</p>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-1 flex flex-col h-full">
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: 0.7 }} className="h-full">
-              <Card className={`${colors.light} ${colors.border} h-full flex flex-col`}>
+            <Card className={`${colors.light} ${colors.border}`}>
+              <div className="flex items-center justify-between mb-lg">
                 <div className="flex gap-4 items-center">
                   <ActiveProjectIcon />
-                  <h3 className="text-h4-sm font-bold text-text-primary">Taste Trends</h3>
+                  <h3 className="text-h4-sm font-bold text-text-primary">Customer Satisfaction</h3>
                 </div>
-                <div className="flex flex-col justify-center items-center text-center flex-grow">
-                  <p className="text-para-md text-text-secondary mb-md">
-                    This week, <span className={`font-semibold ${colors.text} text-para-lg`}>{data.tasteTrend.percentage}%</span> of clients chose
-                  </p>
-                  <div className="relative w-36 h-36 flex items-center justify-center">
-                    <svg viewBox="0 0 36 36" className="w-full h-full">
-                      <defs>
-                        <linearGradient id="gradientStroke" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#7F5AF0" />
-                          <stop offset="100%" stopColor="#2CBDF9" />
-                        </linearGradient>
-                      </defs>
-                      <circle cx="18" cy="18" r="15.915" fill="none" stroke="#E5E7EB" strokeWidth="3.5" />
-                      <motion.circle cx="18" cy="18" r="15.915" fill="none" stroke="url(#gradientStroke)" strokeWidth="3.5" strokeDasharray={`${2 * Math.PI * 15.915}`} strokeDashoffset={2 * Math.PI * 15.915} initial={{ strokeDashoffset: 2 * Math.PI * 15.915 }} animate={{ strokeDashoffset: (1 - data.tasteTrend.percentage / 100) * 2 * Math.PI * 15.915 }} transition={{ duration: 1.5, ease: "easeOut", delay: 0.6 }} strokeLinecap="round" />
-                    </svg>
-                  </div>
-                  <p className={`mt-md text-h3-sm font-bold ${colors.text}`}>{data.tasteTrend.trend}</p>
-                </div>
-              </Card>
-            </motion.div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-md">
+                {Object.entries(data.customerSatisfaction.byStage).map(([stage, stats], index) => (
+                  <motion.div key={stage} ...>
+                    <p>After {stage}</p>
+                    <div>{stats.rating}/10</div>
+                    <p>{stats.happy}/{stats.total} happy</p>
+                  </motion.div>
+                ))}
+              </div>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-1">
+            <Card className={`${colors.light} ${colors.border} h-full flex flex-col`}>
+              <h3>Taste Trends</h3>
+              <p>{data.tasteTrend.percentage}% of clients chose</p>
+              ... donut chart using data.tasteTrend.percentage ...
+              <p>{data.tasteTrend.trend}</p>
+            </Card>
           </div>
         </div>
+        */}
 
-        <motion.div className="flex justify-end pt-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.8 }}>
+        <motion.div className="flex justify-end pt-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay: 0.6 }}>
           <motion.a href="/dashboard/designer/my-project" className={`inline-flex items-center gap-sm ${colors.text} font-medium hover:gap-sm transition-all duration-200`} whileHover={{ x: 5 }} transition={{ duration: 0.2 }}>
             View Recent Projects
             <RiArrowRightLine className="w-4 h-4" />
           </motion.a>
         </motion.div>
+
       </div>
 
       <ColorPicker accentColor={accentColor} setAccentColor={setAccentColor} />

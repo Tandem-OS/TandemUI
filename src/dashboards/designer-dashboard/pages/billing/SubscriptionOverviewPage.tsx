@@ -9,8 +9,9 @@ import {
   RiCheckLine,
 } from 'react-icons/ri';
 import CancellationConfirmModal from './CancellationConfirmModal';
+import { createPortalSession, cancelSubscription } from '@/lib/requests/BillingRequest';
 
-// ─── Types 
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SubscriptionData {
   plan: string;
@@ -33,18 +34,16 @@ interface SubscriptionData {
 
 interface SubscriptionOverviewPageProps {
   subscription?: SubscriptionData;
-  onManagePortal?: () => void;
-  onCancelSubscription?: () => Promise<void>;
 }
 
-// ─── Mock data (replaced by real API) 
+// ─── Mock data (replaced by real API) ────────────────────────────────────────
 
 const DEFAULT_SUBSCRIPTION: SubscriptionData = {
   plan: 'Pro Plan',
   status: 'active',
   price: 59.50,
   billingCycle: 'monthly',
-  nextRenewal: 'May 12, 2027',
+  nextRenewal: 'May 12, 2025',
   subscriptionId: 'sub_1Qw2eR123456abc',
   paymentMethod: {
     brand: 'Visa',
@@ -67,8 +66,7 @@ const DEFAULT_SUBSCRIPTION: SubscriptionData = {
   ],
 };
 
-
-// ─── Crown SVG 
+// ─── Crown SVG ────────────────────────────────────────────────────────────────
 
 const CrownIcon = () => (
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -80,7 +78,7 @@ const CrownIcon = () => (
   </svg>
 );
 
-// ─── Usage bar 
+// ─── Usage bar ────────────────────────────────────────────────────────────────
 
 const UsageBar: React.FC<{ label: string; used: number; limit: number }> = ({ label, used, limit }) => {
   const pct = Math.min(100, Math.round((used / limit) * 100));
@@ -103,29 +101,40 @@ const UsageBar: React.FC<{ label: string; used: number; limit: number }> = ({ la
   );
 };
 
-// ─── Main 
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
   subscription = DEFAULT_SUBSCRIPTION,
-  onManagePortal,
-  onCancelSubscription,
 }) => {
   const navigate = useNavigate();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  const handleManagePortal = async () => {
+    setIsPortalLoading(true);
+    setPortalError(null);
+    try {
+      const { url } = await createPortalSession();
+      window.location.href = url;
+    } catch {
+      setPortalError('Unable to open the customer portal. Please try again.');
+    } finally {
+      setIsPortalLoading(false);
+    }
+  };
 
   const handleCancel = async () => {
-    if (!onCancelSubscription) {
-      navigate('/dashboard/designer/billing/cancelled');
-      return;
-    }
     setIsCancelling(true);
+    setCancelError(null);
     try {
-      await onCancelSubscription();
+      await cancelSubscription();
       setShowCancelModal(false);
       navigate('/dashboard/designer/billing/cancelled');
     } catch {
-      // error handled by parent
+      setCancelError('Unable to cancel your subscription. Please try again.');
     } finally {
       setIsCancelling(false);
     }
@@ -134,7 +143,6 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
   return (
     <div className="min-h-screen bg-background-primary">
 
-      {/* Main content */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto px-xl py-xl">
 
@@ -155,6 +163,13 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
             </p>
           </div>
 
+          {/* Portal error */}
+          {portalError && (
+            <div className="mb-lg px-md py-sm bg-red-50 border border-red-200 rounded-xl text-para-sm text-red-700">
+              {portalError}
+            </div>
+          )}
+
           {/* Subscription card */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -168,7 +183,6 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
                 <div className="flex items-center gap-md">
                   <h2 className="text-h4-sm font-bold text-text-primary">{subscription.plan}</h2>
                   <div className="relative w-16 h-16 flex items-center justify-center">
-                    {/* Decorative dots */}
                     {['#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#3B82F6'].map((color, i) => (
                       <div
                         key={i}
@@ -203,13 +217,20 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
 
             <div className="flex items-center gap-md">
               <motion.button
-                onClick={onManagePortal}
+                onClick={handleManagePortal}
+                disabled={isPortalLoading}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-xs px-md py-sm rounded-lg border border-[#C4B5FD] text-[#7C3AED] text-para-sm font-medium hover:bg-[#F5F3FF] transition-colors"
+                className="flex items-center gap-xs px-md py-sm rounded-lg border border-[#C4B5FD] text-[#7C3AED] text-para-sm font-medium hover:bg-[#F5F3FF] transition-colors disabled:opacity-60"
               >
-                Manage in Customer Portal
-                <RiExternalLinkLine className="text-icon-xs" />
+                {isPortalLoading ? (
+                  <span className="w-4 h-4 border-2 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    Manage in Customer Portal
+                    <RiExternalLinkLine className="text-icon-xs" />
+                  </>
+                )}
               </motion.button>
               <button
                 onClick={() => setShowCancelModal(true)}
@@ -246,8 +267,9 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
                 ))}
               </div>
               <button
-                onClick={onManagePortal}
-                className="mt-md text-para-sm text-[#7C3AED] hover:underline"
+                onClick={handleManagePortal}
+                disabled={isPortalLoading}
+                className="mt-md text-para-sm text-[#7C3AED] hover:underline disabled:opacity-60"
               >
                 View all features
               </button>
@@ -281,8 +303,9 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
                   ))}
                 </div>
                 <button
-                  onClick={onManagePortal}
-                  className="mt-md text-para-sm text-[#7C3AED] hover:underline"
+                  onClick={handleManagePortal}
+                  disabled={isPortalLoading}
+                  className="mt-md text-para-sm text-[#7C3AED] hover:underline disabled:opacity-60"
                 >
                   Manage payment methods
                 </button>
@@ -304,8 +327,9 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
                   />
                 </div>
                 <button
-                  onClick={onManagePortal}
-                  className="mt-md text-para-sm text-[#7C3AED] hover:underline"
+                  onClick={handleManagePortal}
+                  disabled={isPortalLoading}
+                  className="mt-md text-para-sm text-[#7C3AED] hover:underline disabled:opacity-60"
                 >
                   View usage details
                 </button>
@@ -329,13 +353,24 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
               </p>
               <p className="text-para-xs text-text-secondary mt-xs">
                 Need to make changes to your plan, update billing details, or view more options?{' '}
-                <button onClick={onManagePortal} className="text-[#7C3AED] hover:underline">
+                <button
+                  onClick={handleManagePortal}
+                  disabled={isPortalLoading}
+                  className="text-[#7C3AED] hover:underline disabled:opacity-60"
+                >
                   Open Customer Portal
                   <RiExternalLinkLine className="inline ml-xs text-[10px]" />
                 </button>
               </p>
             </div>
           </motion.div>
+
+          {/* Cancel error */}
+          {cancelError && (
+            <div className="mt-lg px-md py-sm bg-red-50 border border-red-200 rounded-xl text-para-sm text-red-700">
+              {cancelError}
+            </div>
+          )}
 
         </div>
       </div>

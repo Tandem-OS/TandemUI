@@ -10,3 +10,20 @@ export const createCheckoutSession = async (
   );
   return response.data;
 };
+
+export const createPortalSession = async (): Promise<{ url: string }> => {
+  const response = await api.post<{ url: string }>(
+    "/stripe/create-portal-session"
+  );
+  return response.data;
+};
+
+export const cancelSubscription = async (): Promise<{
+  success: boolean;
+  cancel_at: string;
+}> => {
+  const response = await api.post<{ success: boolean; cancel_at: string }>(
+    "/stripe/cancel-subscription"
+  );
+  return response.data;
+};
