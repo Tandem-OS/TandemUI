@@ -28,7 +28,7 @@ const BrowserMockup: React.FC<BrowserMockupProps> = ({ projectId }) => {
             transition={{ duration: 0.8, delay: 0.3 }}
             style={{ willChange: 'opacity' }}
         >
-            {/* Browser Chrome — untouched */}
+            {/* Browser Chrome */}
             <div className="bg-gradient-to-r from-background-muted to-background-secondary rounded-t-xl sm:rounded-t-2xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3 border-b border-border-default">
                 <div className="flex gap-1.5 sm:gap-2">
                     {['bg-red-500', 'bg-yellow-500', 'bg-green-500'].map((color) => (
@@ -56,15 +56,13 @@ const BrowserMockup: React.FC<BrowserMockupProps> = ({ projectId }) => {
                 <RiMore2Fill className="text-text-tertiary text-sm sm:text-base" />
             </div>
 
-            {/* Browser Content — only this div's children change */}
+            {/* Browser Content */}
             <div className="flex-1 bg-gradient-to-br from-background-secondary via-background-muted to-background-secondary rounded-b-xl sm:rounded-b-2xl flex items-center justify-center relative overflow-hidden">
 
                 {loading ? (
-                    /* Spinner while fetching */
                     <div className="w-8 h-8 border-4 border-border-muted border-t-accent-default rounded-full animate-spin" />
 
                 ) : compose?.page_schema?.sections?.length ? (
-                    /* Compose exists — zoom shrinks layout + visual, no phantom space, no horizontal scroll */
                     <div className="absolute inset-0 overflow-y-auto overflow-x-hidden">
                         <div
                             style={{
@@ -80,7 +78,7 @@ const BrowserMockup: React.FC<BrowserMockupProps> = ({ projectId }) => {
                     </div>
 
                 ) : (
-                    /* No compose — original mockup content, untouched */
+                    /* ✅ Empty state — "Preview not ready yet" per Syed's spec */
                     <div className="p-6 sm:p-8 lg:p-12 w-full h-full flex items-center justify-center relative">
                         <motion.div
                             className="absolute top-4 left-4 w-6 h-6 sm:w-8 sm:h-8 bg-blue-500/20 rounded-full"
@@ -104,22 +102,14 @@ const BrowserMockup: React.FC<BrowserMockupProps> = ({ projectId }) => {
                                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                                 />
                             </motion.div>
-                            <motion.h3
-                                className="text-lg sm:text-xl lg:text-2xl font-bold text-text-secondary mb-2 sm:mb-3"
-                                animate={{ opacity: [0.7, 1, 0.7] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                            >
-                                Live Preview Loading...
-                            </motion.h3>
-                            <motion.p
+                            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-secondary mb-2 sm:mb-3">
+                                Preview not ready yet
+                            </h3>
+                            <p
                                 className="text-xs sm:text-sm text-text-tertiary max-w-xs mx-auto px-4"
-                                initial={{ opacity: 0, transform: 'translateY(10px)' }}
-                                animate={{ opacity: 1, transform: 'translateY(0)' }}
-                                transition={{ delay: 0.5, duration: 0.5 }}
-                                style={{ willChange: 'transform, opacity' }}
                             >
-                                Your website design will appear here as our team builds it
-                            </motion.p>
+                                Your designer is still working on the layout. Check back soon.
+                            </p>
                         </div>
                     </div>
                 )}

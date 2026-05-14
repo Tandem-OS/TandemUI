@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, type Dispatch, type SetStateA
 import { FaStar, FaCheckCircle, FaArrowRight, FaPaperPlane } from 'react-icons/fa';
 import FormButton from '../../../../components/auth/form/components/FormButton';
 import SimpleButton from '../../../../components/demos/buttons/SimpleButton';
-import { motion, useInView } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { mockDesignerFeedbackQuestions } from '../../../../mock-data/testimonial-questions-mock';
 import { designerTestimonialSubmission } from '@/lib/requests/TestimonialRequest';
@@ -13,6 +13,7 @@ interface RatingBoxProps {
     setRating: (rating: number) => void;
     question: string;
     emojiMap: Record<number, string>;
+    error?: string;
 }
 
 interface FeedbackAnswers {
@@ -24,30 +25,44 @@ interface ReviewStepProps {
     rating: number;
     setRating: (rating: number) => void;
     answers: FeedbackAnswers;
-    // FIX 1: Updated type for setAnswers to allow functional updates like (prev => ...)
     setAnswers: Dispatch<SetStateAction<FeedbackAnswers>>;
     handleSubmit: () => Promise<void>;
     isSubmitting: boolean;
     canSubmit: () => boolean;
+    ratingError?: string;
+    clearRatingError: () => void;
 }
+
+// ─── Inline error ─────────────────────────────────────────────────────────────
+
+const FieldError: FC<{ message?: string }> = ({ message }) => {
+    if (!message) return null;
+    return (
+        <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-para-xs text-text-error mt-xs"
+        >
+            {message}
+        </motion.p>
+    );
+};
 
 // --- REUSABLE SUB-COMPONENTS ---
 
-// New RatingBox Component with Emoji
-const RatingBox: FC<RatingBoxProps> = ({ rating, setRating, question, emojiMap }) => {
+const RatingBox: FC<RatingBoxProps> = ({ rating, setRating, question, emojiMap, error }) => {
     const [hoveredRating, setHoveredRating] = useState(0);
     const [emojiKey, setEmojiKey] = useState(0);
 
     const getEmoji = (r: number) => emojiMap[r as keyof typeof emojiMap] || '😊';
 
     useEffect(() => {
-        if (rating > 0) {
-            setEmojiKey(prev => prev + 1);
-        }
+        if (rating > 0) setEmojiKey(prev => prev + 1);
     }, [rating]);
 
     return (
-        <div className="bg-accent-default rounded-xl p-md sm:p-lg lg:p-xl border border-border-default shadow-lg">
+        <div className={`bg-accent-default rounded-xl p-md sm:p-lg lg:p-xl border shadow-lg ${error ? 'border-text-error' : 'border-border-default'}`}>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-md sm:gap-lg">
                 <motion.div
                     key={emojiKey}
@@ -90,9 +105,8 @@ const RatingBox: FC<RatingBoxProps> = ({ rating, setRating, question, emojiMap }
     );
 };
 
-
 // Step 1: Initial Prompt Screen
-const PromptStep = ({ onContinue, onSkip }: { onContinue: () => void; onSkip: () => void; }) => {
+const PromptStep = ({ onContinue, onSkip }: { onContinue: () => void; onSkip: () => void }) => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -108,24 +122,10 @@ const PromptStep = ({ onContinue, onSkip }: { onContinue: () => void; onSkip: ()
                 Would you also like to leave a testimonial for your designer?
             </h1>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-md mt-lg">
-                <SimpleButton
-                    variant="outline"
-                    // FIX 2: Changed button size to a string ('lg') to match your SimpleButton component props
-                    size="lg"
-                    onClick={onSkip}
-                    fullWidth
-                    className="sm:w-auto"
-                >
+                <SimpleButton variant="outline" size="lg" onClick={onSkip} fullWidth className="sm:w-auto">
                     Skip for now
                 </SimpleButton>
-                <SimpleButton
-                    variant="solid"
-                    // FIX 2: Changed button size to a string ('lg') to match your SimpleButton component props
-                    size="lg"
-                    onClick={onContinue}
-                    fullWidth
-                    className="sm:w-auto flex items-center gap-sm"
-                >
+                <SimpleButton variant="solid" size="lg" onClick={onContinue} fullWidth className="sm:w-auto flex items-center gap-sm">
                     <span>Yes, Continue</span>
                     <FaArrowRight />
                 </SimpleButton>
@@ -135,10 +135,11 @@ const PromptStep = ({ onContinue, onSkip }: { onContinue: () => void; onSkip: ()
 };
 
 // Step 2: The Main Review Form
-// Step 2: The Main Review Form
-const ReviewStep: FC<ReviewStepProps> = ({ designer, rating, setRating, answers, setAnswers, handleSubmit, isSubmitting, canSubmit }) => {
+const ReviewStep: FC<ReviewStepProps> = ({
+    designer, rating, setRating, answers, setAnswers,
+    handleSubmit, isSubmitting, canSubmit, ratingError, clearRatingError
+}) => {
     const handleAnswerChange = (questionId: string, value: string) => {
-        // Enforce 500 character limit
         if (value.length <= 500) {
             setAnswers(prev => ({ ...prev, [questionId]: value }));
         }
@@ -155,12 +156,18 @@ const ReviewStep: FC<ReviewStepProps> = ({ designer, rating, setRating, answers,
             </header>
 
             {designer.enableRating && (
-                <RatingBox
-                    rating={rating}
-                    setRating={setRating}
-                    question={designer.ratingQuestion}
-                    emojiMap={designer.emojiMap}
-                />
+                <div>
+                    <RatingBox
+                        rating={rating}
+                        setRating={(r) => { setRating(r); clearRatingError(); }}
+                        question={designer.ratingQuestion}
+                        emojiMap={designer.emojiMap}
+                        error={ratingError}
+                    />
+                    <AnimatePresence>
+                        {ratingError && <FieldError message={ratingError} />}
+                    </AnimatePresence>
+                </div>
             )}
 
             <div className="space-y-lg">
@@ -177,7 +184,6 @@ const ReviewStep: FC<ReviewStepProps> = ({ designer, rating, setRating, answers,
                             className="w-full h-32 p-md lg:p-lg text-para-md text-text-primary bg-background-secondary border border-border-default rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-accent-default focus:border-transparent transition-all placeholder:text-text-tertiary"
                             maxLength={500}
                         />
-
                         <div className="flex justify-between text-para-sm text-text-tertiary">
                             <span>Optional</span>
                             <span>{(answers[q.id]?.length || 0)}/500</span>
@@ -190,7 +196,7 @@ const ReviewStep: FC<ReviewStepProps> = ({ designer, rating, setRating, answers,
                 <FormButton
                     onClick={handleSubmit}
                     isLoading={isSubmitting}
-                    disabled={!canSubmit() || isSubmitting}
+                    disabled={isSubmitting}
                     size="lg"
                     fullWidth
                     className="flex items-center justify-center gap-sm"
@@ -224,54 +230,49 @@ const SuccessStep = ({ onFinish }: { onFinish: () => void }) => {
             <p className="text-para-md sm:text-para-lg text-text-secondary mt-sm mb-lg">
                 Your words help your designer grow and showcase their unique talents.
             </p>
-            <SimpleButton
-                // FIX 2: Changed button size to a string ('lg') to match your SimpleButton component props
-                size="lg"
-                onClick={onFinish}
-                className="flex items-center gap-sm"
-            >
+            <SimpleButton size="lg" onClick={onFinish} className="flex items-center gap-sm">
                 <span>Back to Dashboard</span>
                 <FaArrowRight />
             </SimpleButton>
         </motion.div>
     );
-}
+};
 
 // --- MAIN PAGE COMPONENT ---
 
 const DesignerTestimonial: FC = () => {
-    const [step, setStep] = useState(0); // 0: Prompt, 1: Review, 2: Success
+    const [step, setStep] = useState(0);
     const [rating, setRating] = useState(0);
     const [answers, setAnswers] = useState<FeedbackAnswers>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [ratingError, setRatingError] = useState<string | undefined>();
 
     const navigate = useNavigate();
 
     const canSubmit = useCallback(() => rating > 0, [rating]);
 
-    const handleSkip = () => {
-        console.log("User skipped designer testimonial.");
-        navigate('/dashboard/client');
-    };
-
-    const handleContinue = () => {
-        setStep(1);
-    };
+    const handleSkip = () => navigate('/dashboard/client');
+    const handleContinue = () => setStep(1);
+    const handleFinish = () => navigate('/dashboard/client');
 
     const handleSubmit = useCallback(async () => {
-        if (!canSubmit()) return;
+        // ── Inline validation ─────────────────────────────────────────────
+        if (!canSubmit()) {
+            setRatingError('Please select a rating before submitting');
+            return;
+        }
+        setRatingError(undefined);
+
         setIsSubmitting(true);
         setStep(2);
         try {
             const submissionData = {
-                // designerName: mockDesignerFeedbackQuestions.name,
                 rating,
                 standout: answers.unique,
                 recommend: answers.recommend,
                 submittedAt: new Date().toISOString()
             };
-            console.log("Submitting designer feedback:", submissionData);
-               designerTestimonialSubmission(submissionData)
+            designerTestimonialSubmission(submissionData);
         } catch (error) {
             console.error("Submission failed:", error);
         } finally {
@@ -279,31 +280,25 @@ const DesignerTestimonial: FC = () => {
         }
     }, [rating, answers, canSubmit]);
 
-    const handleFinish = () => {
-        navigate('/dashboard/client');
-    };
-
     const renderStep = () => {
         switch (step) {
-            case 0:
-                return <PromptStep onContinue={handleContinue} onSkip={handleSkip} />;
-            case 1:
-                return (
-                    <ReviewStep
-                        designer={mockDesignerFeedbackQuestions}
-                        rating={rating}
-                        setRating={setRating}
-                        answers={answers}
-                        setAnswers={setAnswers}
-                        handleSubmit={handleSubmit}
-                        isSubmitting={isSubmitting}
-                        canSubmit={canSubmit}
-                    />
-                );
-            case 2:
-                return <SuccessStep onFinish={handleFinish} />;
-            default:
-                return <PromptStep onContinue={handleContinue} onSkip={handleSkip} />;
+            case 0: return <PromptStep onContinue={handleContinue} onSkip={handleSkip} />;
+            case 1: return (
+                <ReviewStep
+                    designer={mockDesignerFeedbackQuestions}
+                    rating={rating}
+                    setRating={setRating}
+                    answers={answers}
+                    setAnswers={setAnswers}
+                    handleSubmit={handleSubmit}
+                    isSubmitting={isSubmitting}
+                    canSubmit={canSubmit}
+                    ratingError={ratingError}
+                    clearRatingError={() => setRatingError(undefined)}
+                />
+            );
+            case 2: return <SuccessStep onFinish={handleFinish} />;
+            default: return <PromptStep onContinue={handleContinue} onSkip={handleSkip} />;
         }
     };
 

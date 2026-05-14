@@ -30,6 +30,80 @@ const getButtonClass = (isSelected: boolean, disabled = false) =>
 const getDropzoneClass = (isDragActive: boolean) =>
     `${t.dropzoneBase} ${isDragActive ? t.dropzoneActive : t.dropzoneInactive}`;
 
+// ─── Inline error message ─────────────────────────────────────────────────────
+
+const FieldError: React.FC<{ message?: string }> = ({ message }) => {
+    if (!message) return null;
+    return (
+        <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-para-xs text-text-error mt-xs"
+        >
+            {message}
+        </motion.p>
+    );
+};
+
+// ─── Validation helpers ───────────────────────────────────────────────────────
+
+const isValidUrl = (url: string): boolean => {
+    if (!url.trim()) return true; // empty is allowed (optional)
+    try {
+        const u = new URL(url);
+        return u.protocol === 'http:' || u.protocol === 'https:';
+    } catch {
+        return false;
+    }
+};
+
+const isFutureDate = (date: string): boolean => {
+    if (!date) return true; // empty is allowed
+    return new Date(date) > new Date();
+};
+
+interface FieldErrors {
+    inspirationUrls?: string[];
+    customColors?: string;
+    currentSiteUrl?: string;
+    deadline?: string;
+}
+
+const validateScreen = (screen: number, formData: IntakeFormData): FieldErrors => {
+    const errors: FieldErrors = {};
+
+    if (screen === 3) {
+        const urlErrors = formData.inspirationUrls.map(url =>
+            url.trim() && !isValidUrl(url) ? 'Please enter a valid URL (e.g. https://example.com)' : ''
+        );
+        if (urlErrors.some(e => e)) errors.inspirationUrls = urlErrors;
+
+        if (formData.colorStrategy === 'custom' && !formData.customColors.trim()) {
+            errors.customColors = 'Please enter at least one color (e.g. #3B82F6 or navy)';
+        }
+    }
+
+    if (screen === 4) {
+        if (formData.currentSiteUrl.trim() && !isValidUrl(formData.currentSiteUrl)) {
+            errors.currentSiteUrl = 'Please enter a valid URL (e.g. https://yoursite.com)';
+        }
+    }
+
+    if (screen === 5) {
+        if (!formData.notSureDeadline && formData.deadline && !isFutureDate(formData.deadline)) {
+            errors.deadline = 'Please select a future date';
+        }
+    }
+
+    return errors;
+};
+
+const hasErrors = (errors: FieldErrors): boolean =>
+    Object.values(errors).some(v => Array.isArray(v) ? v.some(Boolean) : Boolean(v));
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
 const ScreenHeader = ({ title, subtitle, canSkip, onSkip, buttonState, isLastStep }: any) => (
     <motion.div variants={fadeInLeft} className="mb-lg">
         <div className='flex justify-between items-start gap-sm'>
@@ -98,6 +172,8 @@ const FileUpload = ({ file, onFile }: any) => {
     );
 };
 
+// ─── Main component ───────────────────────────────────────────────────────────
+
 const IntakeForm: React.FC = () => {
     const navigateHook = useNavigate();
     const [currentScreen, setCurrentScreen] = useState(1);
@@ -107,6 +183,8 @@ const IntakeForm: React.FC = () => {
     const [vibeSelectionComplete, setVibeSelectionComplete] = useState(false);
     const [showVibeResults, setShowVibeResults] = useState(false);
     const [showFeedback] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
     const {
         gateState,
         warningState,
@@ -117,7 +195,9 @@ const IntakeForm: React.FC = () => {
         isCheckoutLoading,
         checkoutError,
         initiateCheckout,
-    } = useBillingGate(); const [toastMessage, setToastMessage] = useState<{
+    } = useBillingGate();
+
+    const [toastMessage, setToastMessage] = useState<{
         message: string;
         type: 'success' | 'error';
     } | null>(null);
@@ -141,15 +221,12 @@ const IntakeForm: React.FC = () => {
                     additionalDetails: data.additional_details || '',
                 };
                 setFormData(transformed);
-                setLoading(false);
             } else {
                 setFormData(initialFormData);
-                setLoading(false);
             }
         } catch (err) {
             console.error("Error loading form data:", err);
             setFormData(initialFormData);
-            setLoading(false);
         }
         setLoading(false);
     };
@@ -161,17 +238,17 @@ const IntakeForm: React.FC = () => {
         if (clientEmail) fetchForm(clientEmail);
     }, [clientEmail]);
 
+    // Clear field errors when screen changes
+    useEffect(() => {
+        setFieldErrors({});
+    }, [currentScreen]);
+
     const totalScreens = 5;
     const canSkip = currentScreen > 1;
-    const showToast = (
-        message: string,
-        type: 'success' | 'error' = 'success'
-    ) => {
-        setToastMessage({ message, type });
 
-        setTimeout(() => {
-            setToastMessage(null);
-        }, 3000);
+    const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+        setToastMessage({ message, type });
+        setTimeout(() => setToastMessage(null), 3000);
     };
 
     const updateForm = (updates: Partial<IntakeFormData>) =>
@@ -200,6 +277,7 @@ const IntakeForm: React.FC = () => {
         console.log('Feedback skipped for Intake Form');
         navigateHook('/dashboard/client');
     };
+
     const navigateScreen = async (next: boolean) => {
         if (!next) {
             if (currentScreen > 1) setCurrentScreen(currentScreen - 1);
@@ -207,6 +285,14 @@ const IntakeForm: React.FC = () => {
         }
 
         if (currentScreen === 1 && !vibeSelectionComplete) return;
+
+        // ── Validate before proceeding ────────────────────────────────────────
+        const errors = validateScreen(currentScreen, formData);
+        if (hasErrors(errors)) {
+            setFieldErrors(errors);
+            return;
+        }
+        setFieldErrors({});
 
         if (currentScreen === totalScreens) {
             try {
@@ -233,15 +319,9 @@ const IntakeForm: React.FC = () => {
                     });
                 }
                 showToast('Intake form submitted successfully!', 'success');
-
-                setTimeout(() => {
-                    navigateHook("/dashboard/client");
-                }, 1200);
+                setTimeout(() => navigateHook("/dashboard/client"), 1200);
             } catch (error: any) {
-                if (handleBillingError(error)) {
-                    return;
-                }
-
+                if (handleBillingError(error)) return;
                 console.error('Error submitting intake form:', error);
                 showToast('Submission failed. Please try again.', 'error');
             }
@@ -270,12 +350,7 @@ const IntakeForm: React.FC = () => {
                 deadline,
                 not_sure_deadline: notSureDeadline,
                 brand_guide_metadata: brandGuide
-                    ? {
-                        name: brandGuide.name,
-                        type: brandGuide.type,
-                        size: brandGuide.size,
-                        lastModified: brandGuide.lastModified,
-                    }
+                    ? { name: brandGuide.name, type: brandGuide.type, size: brandGuide.size, lastModified: brandGuide.lastModified }
                     : null,
                 is_last_stage: false
             };
@@ -299,12 +374,8 @@ const IntakeForm: React.FC = () => {
                 setButtonState('default');
                 return;
             }
-
             console.error("Intake submission failed", err);
-            showToast(
-                "Something went wrong while saving this step. Please try again.",
-                'error'
-            );
+            showToast("Something went wrong while saving this step. Please try again.", 'error');
             setButtonState('default');
         }
     };
@@ -404,32 +475,45 @@ const IntakeForm: React.FC = () => {
                         <p className="text-text-tertiary text-para-sm mb-sm">Drop any links that inspire you</p>
                         <div className="space-y-xs">
                             {formData.inspirationUrls.map((url, index) => (
-                                <div key={index} className="flex gap-xs">
-                                    <div className="relative flex-1">
-                                        <Input
-                                            type="url"
-                                            value={url}
-                                            onChange={(e) => {
-                                                const newUrls = [...formData.inspirationUrls];
-                                                newUrls[index] = e.target.value;
-                                                updateForm({ inspirationUrls: newUrls });
-                                            }}
-                                            placeholder="https://inspiration-site.com"
-                                            variant='filled'
-                                            icon={<FaLink />}
-                                        />
+                                <div key={index}>
+                                    <div className="flex gap-xs">
+                                        <div className="relative flex-1">
+                                            <Input
+                                                type="url"
+                                                value={url}
+                                                onChange={(e) => {
+                                                    const newUrls = [...formData.inspirationUrls];
+                                                    newUrls[index] = e.target.value;
+                                                    updateForm({ inspirationUrls: newUrls });
+                                                    // Clear error for this index on change
+                                                    if (fieldErrors.inspirationUrls) {
+                                                        const newErrs = [...(fieldErrors.inspirationUrls ?? [])];
+                                                        newErrs[index] = '';
+                                                        setFieldErrors(prev => ({ ...prev, inspirationUrls: newErrs }));
+                                                    }
+                                                }}
+                                                placeholder="https://inspiration-site.com"
+                                                variant='filled'
+                                                icon={<FaLink />}
+                                            />
+                                        </div>
+                                        {formData.inspirationUrls.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => updateForm({
+                                                    inspirationUrls: formData.inspirationUrls.filter((_, i) => i !== index)
+                                                })}
+                                                className="text-text-tertiary hover:text-text-error transition-colors"
+                                            >
+                                                <FaTimesCircle className="text-icon-lg" />
+                                            </button>
+                                        )}
                                     </div>
-                                    {formData.inspirationUrls.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => updateForm({
-                                                inspirationUrls: formData.inspirationUrls.filter((_, i) => i !== index)
-                                            })}
-                                            className="text-text-tertiary hover:text-text-error transition-colors"
-                                        >
-                                            <FaTimesCircle className="text-icon-lg" />
-                                        </button>
-                                    )}
+                                    <AnimatePresence>
+                                        {fieldErrors.inspirationUrls?.[index] && (
+                                            <FieldError message={fieldErrors.inspirationUrls[index]} />
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             ))}
                             {formData.inspirationUrls.length < 5 && (
@@ -465,10 +549,20 @@ const IntakeForm: React.FC = () => {
                                     <Input
                                         type="text"
                                         value={formData.customColors}
-                                        onChange={(e) => updateForm({ customColors: e.target.value })}
+                                        onChange={(e) => {
+                                            updateForm({ customColors: e.target.value });
+                                            if (fieldErrors.customColors) {
+                                                setFieldErrors(prev => ({ ...prev, customColors: undefined }));
+                                            }
+                                        }}
                                         placeholder="Enter hex values or color names (e.g., #3B82F6, navy, coral)"
                                         variant='filled'
                                     />
+                                    <AnimatePresence>
+                                        {fieldErrors.customColors && (
+                                            <FieldError message={fieldErrors.customColors} />
+                                        )}
+                                    </AnimatePresence>
                                 </motion.div>
                             )}
                         </div>
@@ -487,12 +581,22 @@ const IntakeForm: React.FC = () => {
                             <Input
                                 type="url"
                                 value={formData.currentSiteUrl}
-                                onChange={(e) => updateForm({ currentSiteUrl: e.target.value })}
+                                onChange={(e) => {
+                                    updateForm({ currentSiteUrl: e.target.value });
+                                    if (fieldErrors.currentSiteUrl) {
+                                        setFieldErrors(prev => ({ ...prev, currentSiteUrl: undefined }));
+                                    }
+                                }}
                                 placeholder="https://your-current-site.com"
                                 variant='filled'
                                 icon={<FaLink />}
                             />
                         </div>
+                        <AnimatePresence>
+                            {fieldErrors.currentSiteUrl && (
+                                <FieldError message={fieldErrors.currentSiteUrl} />
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                     <motion.div variants={fadeInLeft} className="mb-lg">
                         <label className="block mb-sm text-para-sm text-text-secondary">Upload brand guide (optional)</label>
@@ -513,15 +617,27 @@ const IntakeForm: React.FC = () => {
                         <label className="block mb-sm text-para-sm text-text-secondary">When do you need this delivered?</label>
                         <div className="space-y-sm">
                             {!formData.notSureDeadline && (
-                                <div className="relative">
-                                    <input
-                                        type="date"
-                                        value={formData.deadline}
-                                        onChange={(e) => updateForm({ deadline: e.target.value })}
-                                        className="w-full bg-background-primary text-text-primary rounded-lg py-sm px-md border border-border-default focus:border-border-focus outline-none transition-all"
-                                    />
-                                    <FaCalendarAlt className="absolute right-md top-1/2 transform -translate-y-1/2 text-text-tertiary pointer-events-none" />
-                                </div>
+                                <>
+                                    <div className="relative">
+                                        <input
+                                            type="date"
+                                            value={formData.deadline}
+                                            onChange={(e) => {
+                                                updateForm({ deadline: e.target.value });
+                                                if (fieldErrors.deadline) {
+                                                    setFieldErrors(prev => ({ ...prev, deadline: undefined }));
+                                                }
+                                            }}
+                                            className={`w-full bg-background-primary text-text-primary rounded-lg py-sm px-md border focus:border-border-focus outline-none transition-all ${fieldErrors.deadline ? 'border-text-error' : 'border-border-default'}`}
+                                        />
+                                        <FaCalendarAlt className="absolute right-md top-1/2 transform -translate-y-1/2 text-text-tertiary pointer-events-none" />
+                                    </div>
+                                    <AnimatePresence>
+                                        {fieldErrors.deadline && (
+                                            <FieldError message={fieldErrors.deadline} />
+                                        )}
+                                    </AnimatePresence>
+                                </>
                             )}
                             <label className="flex items-center gap-sm cursor-pointer">
                                 <input
@@ -561,10 +677,7 @@ const IntakeForm: React.FC = () => {
         <>
             <AnimatePresence>
                 {toastMessage && (
-                    <Toast
-                        message={toastMessage.message}
-                        type={toastMessage.type}
-                    />
+                    <Toast message={toastMessage.message} type={toastMessage.type} />
                 )}
             </AnimatePresence>
 
@@ -588,9 +701,7 @@ const IntakeForm: React.FC = () => {
             </AnimatePresence>
 
             {loading ? (
-                <div className={t.loadingWrapper}>
-                    Loading
-                </div>
+                <div className={t.loadingWrapper}>Loading</div>
             ) : (
                 <div className={t.root}>
                     <div className={t.inner}>
@@ -670,7 +781,7 @@ const IntakeForm: React.FC = () => {
                 </div>
             )}
 
-        {gateState && (
+            {gateState && (
                 <BillingGateModal
                     isOpen={true}
                     usageType={gateState.usage_type}

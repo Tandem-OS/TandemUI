@@ -387,9 +387,7 @@ const ClientDashHome: React.FC = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              You're making incredible progress on your project. Let's continue building something
-              <span className="text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-semibold"> amazing </span>
-              together!
+              Here's where your project stands. Pick up right where you left off.
             </motion.p>
           </div>
 
@@ -441,7 +439,7 @@ const ClientDashHome: React.FC = () => {
         >
           {/* Progress Section */}
           <div className="lg:col-span-1">
-           <Card className="h-full flex flex-col bg-background-primary-2 border-0 shadow-xl">
+            <Card className="h-full flex flex-col bg-background-primary-2 border-0 shadow-xl">
               {!projectStatus ? (
                 <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
                   <ErrorState
