@@ -11,7 +11,7 @@ import {
 import CancellationConfirmModal from './CancellationConfirmModal';
 import { createPortalSession, cancelSubscription } from '@/lib/requests/BillingRequest';
 
-// ─── Types 
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface SubscriptionData {
   plan: string;
@@ -36,7 +36,7 @@ interface SubscriptionOverviewPageProps {
   subscription?: SubscriptionData;
 }
 
-// ─── Mock data (replaced by real API) 
+// ─── Mock data (replaced by real API) ────────────────────────────────────────
 
 const DEFAULT_SUBSCRIPTION: SubscriptionData = {
   plan: 'Pro Plan',
@@ -66,7 +66,7 @@ const DEFAULT_SUBSCRIPTION: SubscriptionData = {
   ],
 };
 
-// ─── Crown SVG 
+// ─── Crown SVG ────────────────────────────────────────────────────────────────
 
 const CrownIcon = () => (
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -78,7 +78,7 @@ const CrownIcon = () => (
   </svg>
 );
 
-// ─── Usage bar 
+// ─── Usage bar ────────────────────────────────────────────────────────────────
 
 const UsageBar: React.FC<{ label: string; used: number; limit: number }> = ({ label, used, limit }) => {
   const pct = Math.min(100, Math.round((used / limit) * 100));
@@ -101,7 +101,7 @@ const UsageBar: React.FC<{ label: string; used: number; limit: number }> = ({ la
   );
 };
 
-// ─── Main 
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
   subscription = DEFAULT_SUBSCRIPTION,
@@ -130,9 +130,20 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
     setIsCancelling(true);
     setCancelError(null);
     try {
-      await cancelSubscription();
+      const result = await cancelSubscription();
       setShowCancelModal(false);
-      navigate('/dashboard/designer/billing/cancelled');
+      // Format the period-end timestamp into a human-readable date
+      // current_period_end is a Unix timestamp (seconds)
+      const downgradeDate = result.current_period_end
+        ? new Date(result.current_period_end * 1000).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+          })
+        : subscription.nextRenewal;
+      navigate('/dashboard/designer/billing/cancelled', {
+        state: { downgradeDate },
+      });
     } catch {
       setCancelError('Unable to cancel your subscription. Please try again.');
     } finally {

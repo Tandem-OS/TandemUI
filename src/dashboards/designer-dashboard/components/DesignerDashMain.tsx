@@ -8,7 +8,7 @@ import TestimonialsPage from '../pages/TestimonialsPage';
 import ProfileView from '@/components/profile/ProfileView';
 import ScraperIntelligencePage from '@/pages/scraper/ScraperIntelligencePage';
 import SubscriptionOverviewPage from '../pages/billing/SubscriptionOverviewPage';
-import CancellationSuccessPage from '../pages/billing/CancellationSuccessPage';
+import CancellationConfirmedPage from '../pages/billing/CancellationConfirmedPage';
 import BillingWarningBanner from '../components/BillingWarningBanner';
 import { useBilling } from '../context/BillingContext';
 
@@ -45,7 +45,7 @@ const DesignerDashMain: React.FC = () => {
                     <Route path="/profile-view" element={<ProfileView />} />
                     {/* ── Billing (designer only) ── */}
                     <Route path="/billing/overview" element={<SubscriptionOverviewPage />} />
-                    <Route path="/billing/cancelled" element={<CancellationSuccessPage />} />
+                    <Route path="/billing/cancelled" element={<CancellationConfirmedPage />} />
                 </Routes>
             </div>
         </main>

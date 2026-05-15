@@ -20,10 +20,13 @@ export const createPortalSession = async (): Promise<{ url: string }> => {
 
 export const cancelSubscription = async (): Promise<{
   success: boolean;
-  cancel_at: string;
+  cancel_at: number;
+  current_period_end: number;
 }> => {
-  const response = await api.post<{ success: boolean; cancel_at: string }>(
-    "/stripe/cancel-subscription"
-  );
+  const response = await api.post<{
+    success: boolean;
+    cancel_at: number;
+    current_period_end: number;
+  }>("/stripe/cancel-subscription");
   return response.data;
 };
