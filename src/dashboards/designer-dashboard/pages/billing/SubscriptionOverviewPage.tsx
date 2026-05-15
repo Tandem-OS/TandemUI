@@ -307,7 +307,10 @@ const SubscriptionOverviewPage: React.FC = () => {
                     <div className="space-y-sm">
                       {[
                         { label: 'Plan', value: planName },
-                        { label: 'Billing cycle', value: `Billed ${formatBillingCycle(subscription.billing_cycle)}` },
+                        ...(subscription.plan !== 'free' ? [{
+                          label: 'Billing cycle',
+                          value: `Billed ${formatBillingCycle(subscription.billing_cycle)}`,
+                        }] : []),
                         { label: 'Price', value: priceDisplay },
                         { label: 'Next renewal', value: renewalDate },
                         ...(subscription.payment_method ? [{

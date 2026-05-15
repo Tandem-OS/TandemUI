@@ -724,8 +724,7 @@ const ChatPanel = ({
                             initial={{ opacity: 0, y: -8 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -8 }}
-                            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
-                        >
+                            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm w-[calc(100vw-2rem)] max-w-md"                        >
                             <span>⚠️ {warningState.remaining} {warningState.usage_type === 'refine' ? 'refinement' : 'restore'}{warningState.remaining === 1 ? '' : 's'} left on your free plan.</span>
                             <button onClick={dismissWarning} className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline">
                                 Dismiss
@@ -799,8 +798,7 @@ const ChatPanel = ({
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
-                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
-                    >
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm w-[calc(100vw-2rem)] max-w-md"                    >
                         <span>⚠️ {warningState.remaining} {warningState.usage_type === 'refine' ? 'refinement' : 'restore'}{warningState.remaining === 1 ? '' : 's'} left on your free plan.</span>
                         <button onClick={dismissWarning} className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline">
                             Dismiss
@@ -809,7 +807,7 @@ const ChatPanel = ({
                 )}
             </AnimatePresence>
 
-      {gateState && (
+            {gateState && (
                 <BillingGateModal
                     isOpen={true}
                     usageType={gateState.usage_type}

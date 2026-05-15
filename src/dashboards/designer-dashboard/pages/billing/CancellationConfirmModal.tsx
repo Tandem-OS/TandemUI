@@ -19,6 +19,9 @@ const CancellationConfirmModal: React.FC<CancellationConfirmModalProps> = ({
   onKeep,
   onClose,
 }) => {
+  // Guard — treat '—' as no date
+  const hasDate = nextRenewalDate && nextRenewalDate !== '—';
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -65,14 +68,18 @@ const CancellationConfirmModal: React.FC<CancellationConfirmModalProps> = ({
               <div className="px-xl text-center space-y-xs pb-lg">
                 <h2 className="text-h5-sm font-bold text-text-primary">Cancel Pro Plan?</h2>
                 <p className="text-text-secondary text-para-sm leading-relaxed">
-                  You'll keep Pro benefits until {nextRenewalDate}.
-                  After that, you'll move to the Free plan.
+                  {hasDate
+                    ? `You'll keep Pro benefits until ${nextRenewalDate}. After that, you'll move to the Free plan.`
+                    : "You'll keep Pro benefits until your current billing period ends. After that, you'll move to the Free plan."
+                  }
                 </p>
               </div>
 
               {/* What happens */}
               <div className="mx-lg mb-lg bg-[#F5F3FF] rounded-xl p-md space-y-sm">
-                <p className="text-para-sm font-semibold text-[#7C3AED]">After {nextRenewalDate}:</p>
+                <p className="text-para-sm font-semibold text-[#7C3AED]">
+                  {hasDate ? `After ${nextRenewalDate}:` : 'After your billing period ends:'}
+                </p>
                 {[
                   { icon: RiSparklingLine, text: 'AI credits reset to Free limits' },
                   { icon: RiShieldLine, text: 'Access to Pro features will end' },

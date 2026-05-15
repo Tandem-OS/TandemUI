@@ -9,8 +9,9 @@ import Drawer from '../../common-components/Drawer';
 import UpgradeSuccessModal from '@/common-components/UpgradeSuccessModal';
 import { layoutTokens } from "@/design-system/tokens/layout";
 import { BillingProvider } from './context/BillingContext';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/store';
+import { updatePlan } from '@/features/authentication/authSlice';
 
 // ─── Upgrade param values ─────────────────────────────────────────────────────
 
@@ -50,6 +51,7 @@ const DesignerDashboardLayout: React.FC = () => {
   const [showCancelledToast, setShowCancelledToast] = useState(false);
 
   const userEmail = useSelector((state: RootState) => state.auth.user.email);
+  const dispatch = useDispatch();
 
   // ── Read ?upgrade= on mount, then immediately clean the URL ──────────────
   useEffect(() => {
@@ -57,6 +59,7 @@ const DesignerDashboardLayout: React.FC = () => {
 
     if (param === 'success') {
       setUpgradeState('success');
+      dispatch(updatePlan('pro')); // update Pro badge immediately
       window.history.replaceState({}, '', '/dashboard');
     } else if (param === 'cancelled') {
       setShowCancelledToast(true);
