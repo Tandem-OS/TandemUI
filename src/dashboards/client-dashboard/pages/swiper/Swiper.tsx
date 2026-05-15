@@ -58,6 +58,7 @@ import Modal from '@/common-components/Modal';
 import { useNavigate } from 'react-router-dom';
 import TransitionMoment from './components/TransitionMoment';
 import { useBillingGate } from '@/hooks/useBillingGate';
+import Toast from '@/common-components/Toast';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
@@ -204,6 +205,11 @@ const SkeletonCard: React.FC = () => (
 
 const Swiper: React.FC = () => {
   const [isSummaryReady, setIsSummaryReady] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+    setToastMessage({ message, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
@@ -456,7 +462,7 @@ const Swiper: React.FC = () => {
         setKingOfHillSessions(prev => [...prev, sessionSummary]);
       } catch (error) {
         console.error('❌ Error saving components', error);
-        alert("Try again Save unsuccssfull");
+        showToast('Failed to save. Please try again.');
         setLoading(false);
         dispatch(endKingOfHill());
         if (currentRoundData?.components) {
@@ -633,7 +639,7 @@ const Swiper: React.FC = () => {
           }
 
           console.error("❌ Backend save/check failed:", error);
-          alert("Failed to save round. Please try again.");
+          showToast('Failed to save round. Please try again.');
           await loadData();
           dispatch(setShowRoundCompletion(false));
         }
@@ -810,6 +816,9 @@ const Swiper: React.FC = () => {
 
   return (
     <>
+      {toastMessage && (
+        <Toast message={toastMessage.message} type={toastMessage.type} />
+      )}
       {/* FIX 2 — warning toast constrained so it never bleeds off-screen on 375px */}
       <AnimatePresence>
         {warningState && (
