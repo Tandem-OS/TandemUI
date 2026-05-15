@@ -49,7 +49,7 @@ const FieldError: React.FC<{ message?: string }> = ({ message }) => {
 // ─── Validation helpers ───────────────────────────────────────────────────────
 
 const isValidUrl = (url: string): boolean => {
-    if (!url.trim()) return true; // empty is allowed (optional)
+    if (!url.trim()) return true;
     try {
         const u = new URL(url);
         return u.protocol === 'http:' || u.protocol === 'https:';
@@ -59,7 +59,7 @@ const isValidUrl = (url: string): boolean => {
 };
 
 const isFutureDate = (date: string): boolean => {
-    if (!date) return true; // empty is allowed
+    if (!date) return true;
     return new Date(date) > new Date();
 };
 
@@ -238,7 +238,6 @@ const IntakeForm: React.FC = () => {
         if (clientEmail) fetchForm(clientEmail);
     }, [clientEmail]);
 
-    // Clear field errors when screen changes
     useEffect(() => {
         setFieldErrors({});
     }, [currentScreen]);
@@ -286,7 +285,6 @@ const IntakeForm: React.FC = () => {
 
         if (currentScreen === 1 && !vibeSelectionComplete) return;
 
-        // ── Validate before proceeding ────────────────────────────────────────
         const errors = validateScreen(currentScreen, formData);
         if (hasErrors(errors)) {
             setFieldErrors(errors);
@@ -485,7 +483,6 @@ const IntakeForm: React.FC = () => {
                                                     const newUrls = [...formData.inspirationUrls];
                                                     newUrls[index] = e.target.value;
                                                     updateForm({ inspirationUrls: newUrls });
-                                                    // Clear error for this index on change
                                                     if (fieldErrors.inspirationUrls) {
                                                         const newErrs = [...(fieldErrors.inspirationUrls ?? [])];
                                                         newErrs[index] = '';
@@ -532,13 +529,14 @@ const IntakeForm: React.FC = () => {
                     <motion.div variants={fadeInLeft} className="mb-lg">
                         <label className="block mb-sm text-para-sm text-text-secondary">Do you have any brand colors in mind?</label>
                         <div className="space-y-sm">
-                            <div className="flex gap-sm">
+                            {/* FIX 2 — flex-wrap so color strategy buttons don't crush to unreadable widths on 375px */}
+                            <div className="flex flex-wrap gap-sm">
                                 {OPTIONS.colorStrategies.map(strategy => (
                                     <button
                                         key={strategy.id}
                                         type="button"
                                         onClick={() => updateForm({ colorStrategy: strategy.id as any })}
-                                        className={`flex-1 p-sm rounded-lg border-2 ${getButtonClass(formData.colorStrategy === strategy.id)}`}
+                                        className={`flex-1 min-w-[100px] p-sm rounded-lg border-2 ${getButtonClass(formData.colorStrategy === strategy.id)}`}
                                     >
                                         {strategy.label}
                                     </button>
@@ -681,18 +679,19 @@ const IntakeForm: React.FC = () => {
                 )}
             </AnimatePresence>
 
+            {/* FIX 1 — warning toast constrained to never bleed off 375px screen */}
             <AnimatePresence>
                 {warningState && (
                     <motion.div
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
-                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm w-[calc(100vw-2rem)] max-w-md"
                     >
                         <span>⚠️ {warningState.remaining} intake {warningState.remaining === 1 ? 'edit' : 'edits'} left on your free plan.</span>
                         <button
                             onClick={dismissWarning}
-                            className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline"
+                            className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline flex-shrink-0"
                         >
                             Dismiss
                         </button>
@@ -746,7 +745,8 @@ const IntakeForm: React.FC = () => {
 
                                         {currentScreenData.content}
 
-                                        <motion.div variants={fadeInLeft} className="flex justify-between mt-md">
+                                        {/* FIX 3 — flex-wrap so Back + Next don't squeeze each other on very narrow screens */}
+                                        <motion.div variants={fadeInLeft} className="flex flex-wrap justify-between gap-sm mt-md">
                                             {currentScreen > 1 && (
                                                 <SimpleButton
                                                     variant="outline"

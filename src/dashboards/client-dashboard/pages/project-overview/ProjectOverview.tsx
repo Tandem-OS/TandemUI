@@ -232,27 +232,34 @@ const ProjectOverview: React.FC = () => {
                   <img src={project.designerImage} alt={project.designer} className="w-16 h-16 rounded-xl object-cover border-2 border-background-primary" />
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-background-primary" />
                 </div>
-                <div>
-                  <h3 className="text-para-lg font-semibold text-text-primary">{project.designer}</h3>
+                <div className="min-w-0">
+                  <h3 className="text-para-lg font-semibold text-text-primary truncate">{project.designer}</h3>
                   <div className="flex items-center gap-xs">
-                    <FaStar className="text-icon-sm text-amber-500" />
+                    <FaStar className="text-icon-sm text-amber-500 flex-shrink-0" />
                     <span className="text-para-sm text-text-secondary font-medium">{project.designerRating}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-md text-center mb-lg">
-                <div>
-                  <div className="text-h6-sm font-bold text-text-primary">{project.progress}%</div>
+              {/*
+                FIX — designer card stats: status label can be multi-word ("In Progress",
+                "Under Review") which overflows the rigid grid-cols-3 cell on 375px.
+                Added break-words + min-w-0 on each cell, and text-para-xs fallback on
+                the value so it never clips or pushes the grid wider than the card.
+              */}
+              <div className="grid grid-cols-3 gap-xs text-center mb-lg">
+                <div className="min-w-0">
+                  <div className="text-h6-sm font-bold text-text-primary truncate">{project.progress}%</div>
                   <div className="text-para-xs text-text-tertiary">Progress</div>
                 </div>
-                <div>
-                  <div className="text-h6-sm font-bold text-text-primary">{project.completedStages}</div>
+                <div className="min-w-0">
+                  <div className="text-h6-sm font-bold text-text-primary truncate">{project.completedStages}</div>
                   <div className="text-para-xs text-text-tertiary">Stages Done</div>
                 </div>
-                <div>
-                  {/* ✅ Raw status replaced with human-readable label */}
-                  <div className="text-h6-sm font-bold text-text-primary">{getStatusLabel(project.apiStatus)}</div>
+                <div className="min-w-0">
+                  <div className="text-para-xs sm:text-h6-sm font-bold text-text-primary break-words leading-tight">
+                    {getStatusLabel(project.apiStatus)}
+                  </div>
                   <div className="text-para-xs text-text-tertiary">Status</div>
                 </div>
               </div>

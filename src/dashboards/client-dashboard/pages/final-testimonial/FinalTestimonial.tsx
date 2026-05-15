@@ -162,16 +162,13 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                 <motion.div animate={isInView ? "visible" : "hidden"} variants={variants} transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}>
                     <div className={`bg-accent-default rounded-xl p-md sm:p-lg lg:p-xl border shadow-lg ${ratingError ? 'border-text-error' : 'border-border-default'}`}>
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-md sm:gap-lg">
-                            <motion.div
-                                key={emojiKey}
-                                initial={{ scale: 0.5, rotate: -180 }}
-                                animate={{ scale: 1, rotate: 0 }}
-                                transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                                className="text-6xl sm:text-7xl order-1 sm:order-2"
-                            >
-                                {getEmojiForRating(hoveredRating || overallRating)}
-                            </motion.div>
-                            <div className="space-y-md text-center sm:text-left order-2 sm:order-1">
+                            {/*
+                              FIX — same issue as DesignerTestimonial: emoji had order-1 sm:order-2
+                              which showed it above the question on mobile. Question should always lead.
+                              Mobile: question (order-1) → emoji (order-2).
+                              sm+: flex-row puts them side by side naturally — question left, emoji right.
+                            */}
+                            <div className="space-y-md text-center sm:text-left order-1">
                                 <h3 className="text-para-lg sm:text-h5-sm lg:text-h4-sm font-medium text-white">{data.ratingQuestion}</h3>
                                 <p className="text-para-md lg:text-para-lg text-white/90 font-semibold hidden sm:block">Your rating</p>
                                 <StarRating
@@ -181,6 +178,15 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                                     setHoveredRating={setHoveredRating}
                                 />
                             </div>
+                            <motion.div
+                                key={emojiKey}
+                                initial={{ scale: 0.5, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                                className="text-6xl sm:text-7xl order-2"
+                            >
+                                {getEmojiForRating(hoveredRating || overallRating)}
+                            </motion.div>
                         </div>
                     </div>
                     <AnimatePresence>
@@ -242,7 +248,6 @@ const FinalTestimonial: React.FC = () => {
     const canSubmit = useCallback((): boolean => overallRating > 0, [overallRating]);
 
     const handleSubmit = useCallback(async () => {
-        // ── Inline validation ─────────────────────────────────────────────
         if (!canSubmit()) {
             setRatingError('Please select a rating before submitting');
             return;

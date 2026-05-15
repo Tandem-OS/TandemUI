@@ -64,17 +64,13 @@ const RatingBox: FC<RatingBoxProps> = ({ rating, setRating, question, emojiMap, 
     return (
         <div className={`bg-accent-default rounded-xl p-md sm:p-lg lg:p-xl border shadow-lg ${error ? 'border-text-error' : 'border-border-default'}`}>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-md sm:gap-lg">
-                <motion.div
-                    key={emojiKey}
-                    initial={{ scale: 0.5, rotate: -180 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                    className="text-6xl sm:text-7xl order-1 sm:order-2"
-                >
-                    {getEmoji(hoveredRating || rating)}
-                </motion.div>
-
-                <div className="space-y-md text-center sm:text-left order-2 sm:order-1">
+                {/*
+                  FIX — on mobile the emoji was order-1 (shown first, above the question).
+                  Question should lead on all breakpoints.
+                  Mobile: question (order-1) → emoji (order-2).
+                  sm+: question stays left (order-1), emoji moves right (order-2) — same as before.
+                */}
+                <div className="space-y-md text-center sm:text-left order-1">
                     <h3 className="text-para-lg sm:text-h5-sm lg:text-h4-sm font-medium text-white">
                         {question}
                     </h3>
@@ -100,6 +96,16 @@ const RatingBox: FC<RatingBoxProps> = ({ rating, setRating, question, emojiMap, 
                         </span>
                     </div>
                 </div>
+
+                <motion.div
+                    key={emojiKey}
+                    initial={{ scale: 0.5, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                    className="text-6xl sm:text-7xl order-2"
+                >
+                    {getEmoji(hoveredRating || rating)}
+                </motion.div>
             </div>
         </div>
     );
@@ -256,7 +262,6 @@ const DesignerTestimonial: FC = () => {
     const handleFinish = () => navigate('/dashboard/client');
 
     const handleSubmit = useCallback(async () => {
-        // ── Inline validation ─────────────────────────────────────────────
         if (!canSubmit()) {
             setRatingError('Please select a rating before submitting');
             return;

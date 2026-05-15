@@ -54,7 +54,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
     const disableAnalyze = mode === 'compose';
     const disableIdea = mode === 'scraper';
 
-    // ── Pure UI state 
+    // ── Pure UI state
     const [currentStep, setCurrentStep] = useState('welcome');
     const [inputValue, setInputValue] = useState('');
     const [isDesignerMode, setIsDesignerMode] = useState(false);
@@ -99,13 +99,13 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
         checkoutError,
         initiateCheckout,
     } = useBillingGate();
-    // ── Composition schema 
+    // ── Composition schema
     const pageSchema = useSelector(selectActiveOrPreviewSchema);
     const activeSections = compositionId && pageSchema?.sections
         ? pageSchema.sections
         : (scrapedData?.sections ?? []);
 
-    // ── Sync scraper status → currentStep 
+    // ── Sync scraper status → currentStep
     useEffect(() => {
         if (scraperStatus === 'success' && currentStep === 'processing') {
             setCurrentStep('results');
@@ -120,12 +120,12 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
         }
     }, [userRole]);
 
-    // ── Reset scraper on mount 
+    // ── Reset scraper on mount
     useEffect(() => {
         dispatch(resetScraper());
     }, []);
 
-    // ── Helpers 
+    // ── Helpers
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);
@@ -223,17 +223,18 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
     return (
         <div className={t.root}>
             <AnimatePresence>
+                {/* FIX 1 — warning toast constrained to never bleed off 375px screen */}
                 {warningState && (
                     <motion.div
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
-                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm w-[calc(100vw-2rem)] max-w-md"
                     >
                         <span>⚠️ {warningState.remaining} scraper {warningState.remaining === 1 ? 'run' : 'runs'} left on your free plan.</span>
                         <button
                             onClick={dismissWarning}
-                            className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline"
+                            className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline flex-shrink-0"
                         >
                             Dismiss
                         </button>
@@ -583,7 +584,13 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                             <Para size="sm" color="secondary">{scrapedData.sections.length} sections found on {scrapedData.url}</Para>
                                         </div>
                                     </div>
-                                    <div className={t.resultsHeaderRight}>
+                                    {/*
+                                      FIX 2 — results header right: override token class with flex-wrap
+                                      so StartFromIdea + Preview Hero + toggle don't overflow on tablet.
+                                      The token class (t.resultsHeaderRight) likely has no flex-wrap;
+                                      we add it inline here so the token file stays untouched.
+                                    */}
+                                    <div className={`${t.resultsHeaderRight} flex-wrap`}>
                                         {/* Generate with Idea — disabled when mode is scraper */}
                                         <StartFromIdea
                                             onGenerateLayout={handleGenerateLayout}

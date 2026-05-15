@@ -11,7 +11,7 @@ import {
 import CancellationConfirmModal from './CancellationConfirmModal';
 import { createPortalSession, cancelSubscription } from '@/lib/requests/BillingRequest';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types 
 
 interface SubscriptionData {
   plan: string;
@@ -36,7 +36,7 @@ interface SubscriptionOverviewPageProps {
   subscription?: SubscriptionData;
 }
 
-// ─── Mock data (replaced by real API) ────────────────────────────────────────
+// ─── Mock data (replaced by real API) 
 
 const DEFAULT_SUBSCRIPTION: SubscriptionData = {
   plan: 'Pro Plan',
@@ -66,7 +66,7 @@ const DEFAULT_SUBSCRIPTION: SubscriptionData = {
   ],
 };
 
-// ─── Crown SVG ────────────────────────────────────────────────────────────────
+// ─── Crown SVG 
 
 const CrownIcon = () => (
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -78,7 +78,7 @@ const CrownIcon = () => (
   </svg>
 );
 
-// ─── Usage bar ────────────────────────────────────────────────────────────────
+// ─── Usage bar 
 
 const UsageBar: React.FC<{ label: string; used: number; limit: number }> = ({ label, used, limit }) => {
   const pct = Math.min(100, Math.round((used / limit) * 100));
@@ -101,7 +101,7 @@ const UsageBar: React.FC<{ label: string; used: number; limit: number }> = ({ la
   );
 };
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+// ─── Main 
 
 const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
   subscription = DEFAULT_SUBSCRIPTION,
@@ -210,12 +210,13 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
                 </div>
                 <p className="text-para-xs text-text-secondary mt-xs">Your plan renews automatically.</p>
               </div>
-              <span className="px-sm py-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-para-xs font-medium">
+              <span className="px-sm py-xs bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-para-xs font-medium flex-shrink-0">
                 Active
               </span>
             </div>
 
-            <div className="flex items-center gap-md">
+            {/* FIX 1 — flex-wrap so both buttons stack on 375px instead of overflowing */}
+            <div className="flex flex-wrap items-center gap-sm">
               <motion.button
                 onClick={handleManagePortal}
                 disabled={isPortalLoading}
@@ -296,9 +297,10 @@ const SubscriptionOverviewPage: React.FC<SubscriptionOverviewPageProps> = ({
                       value: `${subscription.paymentMethod.brand} ···· ${subscription.paymentMethod.last4}`,
                     },
                   ].map(({ label, value }) => (
-                    <div key={label} className="flex items-center justify-between">
-                      <span className="text-para-sm text-text-secondary">{label}</span>
-                      <span className="text-para-sm text-text-primary font-medium">{value}</span>
+                    // FIX 2 — min-w-0 + text-right on value so long strings don't push layout
+                    <div key={label} className="flex items-center justify-between gap-sm">
+                      <span className="text-para-sm text-text-secondary flex-shrink-0">{label}</span>
+                      <span className="text-para-sm text-text-primary font-medium text-right min-w-0 break-words">{value}</span>
                     </div>
                   ))}
                 </div>

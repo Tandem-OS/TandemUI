@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RiCloseLine, RiLockLine } from "react-icons/ri";
 import type { BillingPlan } from "@/lib/requests/BillingRequest";
+import ContactDesignerModal from "@/common-components/ContactDesignerModal";
 
 // ─── Types 
 
@@ -24,7 +25,7 @@ interface BillingGateModalProps {
   onUpgrade: (plan: BillingPlan) => void;
   onSecondary: () => void;
   onClose: () => void;
-  /** Designer email for mailto link (client variant only) */
+  /** Designer email for Contact Designer modal (client variant only) */
   designerEmail?: string | null;
   /** Days until usage resets */
   resetsInDays?: number | null;
@@ -41,13 +42,14 @@ interface GateConfig {
   bullets: { icon: React.ReactNode; title: string; subtitle: string }[];
   primaryLabel: string;
   secondaryLabel: string;
-  // Client-side overrides
   clientTitle: string;
   clientBody: string;
   clientPrimaryLabel: string;
+  /** Pre-populated message for the Contact Designer modal */
+  clientDefaultMessage: string;
 }
 
-// ─── Inline SVG illustrations (purple/lavender, matches Dylan's style) ────────
+// ─── Inline SVG illustrations 
 
 const SwiperIllustration = () => (
   <svg width="120" height="100" viewBox="0 0 120 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -122,7 +124,7 @@ const IntakeIllustration = () => (
   </svg>
 );
 
-// ─── Icon components for bullets 
+// ─── Icon components 
 
 const InfinityIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -183,6 +185,7 @@ const GATE_CONFIGS: Record<BillingUsageType, GateConfig> = {
     clientTitle: "You've reached the swipe limit",
     clientBody: "You've used all your swipe rounds for this project. Ask your designer to upgrade to Pro so you can continue training Tandem on your visual preferences.",
     clientPrimaryLabel: "Contact Designer",
+    clientDefaultMessage: "Hi! I've hit the swipe limit on this project. Could you upgrade the plan so I can continue training Tandem on my visual preferences?",
   },
   scraper_run: {
     gateLabel: "Scraper Gate",
@@ -200,6 +203,7 @@ const GATE_CONFIGS: Record<BillingUsageType, GateConfig> = {
     clientTitle: "You've reached the scraper limit",
     clientBody: "You've used all scraper runs for this project. Ask your designer to upgrade to Pro to continue discovering design inspiration.",
     clientPrimaryLabel: "Contact Designer",
+    clientDefaultMessage: "Hi! I've hit the scraper limit on this project. Could you upgrade the plan so I can keep discovering design inspiration?",
   },
   refine: {
     gateLabel: "Refine Gate",
@@ -217,6 +221,7 @@ const GATE_CONFIGS: Record<BillingUsageType, GateConfig> = {
     clientTitle: "You've reached the refinement limit",
     clientBody: "You've used all refinements for this project. Ask your designer to upgrade to Pro so you can continue improving your layout.",
     clientPrimaryLabel: "Contact Designer",
+    clientDefaultMessage: "Hi! I've hit the refinement limit on this project. Could you upgrade the plan so I can keep iterating on the layout?",
   },
   version_restore: {
     gateLabel: "Version Restore",
@@ -234,6 +239,7 @@ const GATE_CONFIGS: Record<BillingUsageType, GateConfig> = {
     clientTitle: "You've reached the restore limit",
     clientBody: "You've used all version restores for this project. Ask your designer to upgrade to Pro to continue accessing version history.",
     clientPrimaryLabel: "Contact Designer",
+    clientDefaultMessage: "Hi! I've hit the version restore limit on this project. Could you upgrade the plan so I can access the version history?",
   },
   intake_update: {
     gateLabel: "Intake Update",
@@ -251,6 +257,7 @@ const GATE_CONFIGS: Record<BillingUsageType, GateConfig> = {
     clientTitle: "You've reached the intake update limit",
     clientBody: "You've used all intake updates for this project. Ask your designer to upgrade to Pro to continue refining the project brief.",
     clientPrimaryLabel: "Contact Designer",
+    clientDefaultMessage: "Hi! I've hit the intake update limit on this project. Could you upgrade the plan so we can continue refining the brief?",
   },
 };
 
@@ -270,6 +277,8 @@ const BillingGateModal: React.FC<BillingGateModalProps> = ({
   designerEmail,
   resetsInDays,
 }) => {
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+
   const cfg = GATE_CONFIGS[usageType] ?? GATE_CONFIGS.refine;
   const isClient = userRole === "client";
 
@@ -279,174 +288,190 @@ const BillingGateModal: React.FC<BillingGateModalProps> = ({
 
   const handlePrimary = () => {
     if (isClient) {
-      const mailto = designerEmail
-        ? `mailto:${designerEmail}?subject=Please upgrade to Tandem Pro`
-        : `mailto:support@trytandem.io`;
-      window.location.href = mailto;
+      // Open real Contact Designer modal — no more mailto fallback
+      setContactModalOpen(true);
     } else {
       onUpgrade("monthly");
     }
   };
 
+  const handleContactModalClose = () => {
+    setContactModalOpen(false);
+  };
+
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            key="backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
-          />
+    <>
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+            />
 
-          {/* Modal */}
-          <motion.div
-            key="modal"
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 12 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-50 flex items-center justify-center px-md py-lg pointer-events-none"
-          >
-            <div
-              className="relative w-full max-w-[440px] bg-white rounded-2xl shadow-2xl pointer-events-auto overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
+            {/* Modal */}
+            <motion.div
+              key="modal"
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed inset-0 z-50 flex items-start sm:items-center justify-center px-4 sm:px-md pt-4 sm:pt-0 pb-4 pointer-events-none"
             >
-              {/* Gate label pill + close */}
-              <div className="flex items-center justify-between px-lg pt-lg pb-xs">
-                <div className="flex items-center gap-xs px-sm py-xs bg-[#F5F3FF] rounded-full border border-[#EDE9FE]">
-                  <SparkleIcon />
-                  <span className="text-[#7C3AED] text-para-xs font-medium">{cfg.gateLabel}</span>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-[#F5F3FF] text-[#7C3AED] hover:bg-[#EDE9FE] transition-colors"
-                >
-                  <RiCloseLine className="text-icon-sm" />
-                </button>
-              </div>
-
-              {/* Illustration */}
-              <div className="flex justify-center pt-md pb-xs">
-                {cfg.illustration}
-              </div>
-
-              {/* Title + body */}
-              <div className="px-lg text-center space-y-xs pb-md">
-                <h2 className="text-h5-sm font-bold text-[#0F0F1A]">{title}</h2>
-                <p className="text-text-secondary text-para-sm leading-relaxed">{body}</p>
-              </div>
-
-              {/* Usage pill — designer only */}
-              {!isClient && (
-                <div className="flex justify-center pb-md">
-                  <div className="flex items-center gap-sm px-md py-sm rounded-full border border-[#EDE9FE] bg-white">
+              <div
+                className="relative w-full max-w-[440px] bg-white rounded-2xl shadow-2xl pointer-events-auto overflow-y-auto max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-4rem)]"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Gate label pill + close */}
+                <div className="flex items-center justify-between px-lg pt-lg pb-xs">
+                  <div className="flex items-center gap-xs px-sm py-xs bg-[#F5F3FF] rounded-full border border-[#EDE9FE]">
                     <SparkleIcon />
-                    <span className="text-text-secondary text-para-sm">
-                      {cfg.usageLabel}
-                    </span>
-                    <span className="text-[#7C3AED] font-bold text-para-sm">
-                      {currentCount} of {limit}
-                    </span>
-                    {resetsInDays != null && (
-                      <>
-                        <span className="text-text-muted text-para-sm">·</span>
-                        <span className="text-text-secondary text-para-sm">Resets in</span>
-                        <span className="text-[#7C3AED] font-bold text-para-sm">{resetsInDays} {resetsInDays === 1 ? "day" : "days"}</span>
-                      </>
-                    )}
+                    <span className="text-[#7C3AED] text-para-xs font-medium">{cfg.gateLabel}</span>
                   </div>
+                  <button
+                    onClick={onClose}
+                    className="w-8 h-8 flex items-center justify-center rounded-full bg-[#F5F3FF] text-[#7C3AED] hover:bg-[#EDE9FE] transition-colors"
+                  >
+                    <RiCloseLine className="text-icon-sm" />
+                  </button>
                 </div>
-              )}
 
-              {/* Divider */}
-              <div className="mx-lg border-t border-[#F0EEFF]" />
+                {/* Illustration */}
+                <div className="flex justify-center pt-md pb-xs">
+                  {cfg.illustration}
+                </div>
 
-              {/* Feature bullets — designer only */}
-              {!isClient && (
-                <div className="px-lg py-md space-y-md">
-                  {cfg.bullets.map((bullet, i) => (
-                    <div key={i} className="flex items-start gap-md">
-                      <div className="w-8 h-8 rounded-full bg-[#F5F3FF] flex items-center justify-center flex-shrink-0">
-                        {bullet.icon}
+                {/* Title + body */}
+                <div className="px-lg text-center space-y-xs pb-md">
+                  <h2 className="text-h5-sm font-bold text-[#0F0F1A]">{title}</h2>
+                  <p className="text-text-secondary text-para-sm leading-relaxed">{body}</p>
+                </div>
+
+                {/* Usage pill — designer only */}
+                {!isClient && (
+                  <div className="flex justify-center pb-md">
+                    <div className="flex items-center gap-sm px-md py-sm rounded-full border border-[#EDE9FE] bg-white">
+                      <SparkleIcon />
+                      <span className="text-text-secondary text-para-sm">
+                        {cfg.usageLabel}
+                      </span>
+                      <span className="text-[#7C3AED] font-bold text-para-sm">
+                        {currentCount} of {limit}
+                      </span>
+                      {resetsInDays != null && (
+                        <>
+                          <span className="text-text-muted text-para-sm">·</span>
+                          <span className="text-text-secondary text-para-sm">Resets in</span>
+                          <span className="text-[#7C3AED] font-bold text-para-sm">
+                            {resetsInDays} {resetsInDays === 1 ? "day" : "days"}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Divider */}
+                <div className="mx-lg border-t border-[#F0EEFF]" />
+
+                {/* Feature bullets — designer only */}
+                {!isClient && (
+                  <div className="px-lg py-md space-y-md">
+                    {cfg.bullets.map((bullet, i) => (
+                      <div key={i} className="flex items-start gap-md">
+                        <div className="w-8 h-8 rounded-full bg-[#F5F3FF] flex items-center justify-center flex-shrink-0">
+                          {bullet.icon}
+                        </div>
+                        <div>
+                          <p className="text-para-sm font-semibold text-[#0F0F1A]">{bullet.title}</p>
+                          <p className="text-para-xs text-text-secondary">{bullet.subtitle}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Client bullet — simplified */}
+                {isClient && (
+                  <div className="px-lg py-md">
+                    <div className="flex items-start gap-md p-md rounded-xl bg-[#F5F3FF]">
+                      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                        <ShieldIcon />
                       </div>
                       <div>
-                        <p className="text-para-sm font-semibold text-[#0F0F1A]">{bullet.title}</p>
-                        <p className="text-para-xs text-text-secondary">{bullet.subtitle}</p>
+                        <p className="text-para-sm font-semibold text-[#0F0F1A]">Your work is safe</p>
+                        <p className="text-para-xs text-text-secondary">
+                          Your current progress and selections are saved. Nothing will be lost.
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Client bullet — simplified */}
-              {isClient && (
-                <div className="px-lg py-md">
-                  <div className="flex items-start gap-md p-md rounded-xl bg-[#F5F3FF]">
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-                      <ShieldIcon />
-                    </div>
-                    <div>
-                      <p className="text-para-sm font-semibold text-[#0F0F1A]">Your work is safe</p>
-                      <p className="text-para-xs text-text-secondary">Your current progress and selections are saved. Nothing will be lost.</p>
-                    </div>
                   </div>
-                </div>
-              )}
-
-              {/* CTAs */}
-              <div className="px-lg pb-md space-y-sm">
-                {checkoutError && (
-                  <p className="text-text-error text-para-xs text-center">{checkoutError}</p>
                 )}
 
-                {/* Primary */}
-                <button
-                  onClick={handlePrimary}
-                  disabled={isCheckoutLoading}
-                  className="w-full py-md rounded-xl bg-[#4F3FE8] hover:bg-[#3D2FD6] text-white font-semibold text-para-md transition-colors disabled:opacity-60 flex items-center justify-center gap-sm"
-                >
-                  {isCheckoutLoading ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Redirecting…</span>
-                    </>
-                  ) : (
-                    primaryLabel
+                {/* CTAs */}
+                <div className="px-lg pb-md space-y-sm">
+                  {checkoutError && (
+                    <p className="text-text-error text-para-xs text-center">{checkoutError}</p>
                   )}
-                </button>
 
-                {/* Secondary */}
-                <button
-                  onClick={onSecondary}
-                  disabled={isCheckoutLoading}
-                  className="w-full py-md rounded-xl border border-[#C4B5FD] text-[#4F3FE8] font-semibold text-para-md hover:bg-[#F5F3FF] transition-colors disabled:opacity-50"
-                >
-                  {cfg.secondaryLabel}
-                </button>
-              </div>
+                  {/* Primary */}
+                  <button
+                    onClick={handlePrimary}
+                    disabled={isCheckoutLoading}
+                    className="w-full py-md rounded-xl bg-[#4F3FE8] hover:bg-[#3D2FD6] text-white font-semibold text-para-md transition-colors disabled:opacity-60 flex items-center justify-center gap-sm"
+                  >
+                    {isCheckoutLoading ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Redirecting…</span>
+                      </>
+                    ) : (
+                      primaryLabel
+                    )}
+                  </button>
 
-              {/* Footer reassurance */}
-              <div className="px-lg pb-lg flex items-center justify-center gap-xs text-text-muted text-para-xs">
-                <RiLockLine className="text-[10px]" />
-                {isClient ? (
-                  <span>Your current progress stays saved</span>
-                ) : (
-                  <>
-                    <span>Secure checkout</span>
-                    <span>·</span>
-                    <span>Cancel anytime</span>
-                  </>
-                )}
+                  {/* Secondary */}
+                  <button
+                    onClick={onSecondary}
+                    disabled={isCheckoutLoading}
+                    className="w-full py-md rounded-xl border border-[#C4B5FD] text-[#4F3FE8] font-semibold text-para-md hover:bg-[#F5F3FF] transition-colors disabled:opacity-50"
+                  >
+                    {cfg.secondaryLabel}
+                  </button>
+                </div>
+
+                {/* Footer reassurance */}
+                <div className="px-lg pb-lg flex items-center justify-center gap-xs text-text-muted text-para-xs">
+                  <RiLockLine className="text-[10px]" />
+                  {isClient ? (
+                    <span>Your current progress stays saved</span>
+                  ) : (
+                    <>
+                      <span>Secure checkout</span>
+                      <span>·</span>
+                      <span>Cancel anytime</span>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Contact Designer modal — mounts above BillingGateModal (z-[60]) */}
+      <ContactDesignerModal
+        isOpen={contactModalOpen}
+        onClose={handleContactModalClose}
+        designerEmail={designerEmail}
+        gateContext={cfg.clientDefaultMessage}
+      />
+    </>
   );
 };
 

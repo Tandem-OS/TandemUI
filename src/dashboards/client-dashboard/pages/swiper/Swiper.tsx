@@ -61,7 +61,8 @@ import { useBillingGate } from '@/hooks/useBillingGate';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
-const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
+// FIX 1 — use 100dvh so mobile browser chrome is excluded from the height calculation
+const CONTAINER_HEIGHT = 'calc(100dvh - 65px)';
 const KOH_SNAP_KEY = 'tandem_koh_snap';
 
 
@@ -702,7 +703,8 @@ const Swiper: React.FC = () => {
 
   if (isInitialLoading) {
     return (
-      <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
+      // FIX 1 also applied here — dvh in skeleton loading state
+      <div className="w-full overflow-hidden relative flex flex-col" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
         <div className="w-full flex-shrink-0 relative z-10">
           <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
             <div className="flex items-center justify-between gap-sm">
@@ -728,7 +730,7 @@ const Swiper: React.FC = () => {
         </div>
         <div className="flex items-center justify-center px-xs py-xs sm:p-md md:p-xl relative z-20">
           <div className="relative w-full max-w-4xl 2xl:max-w-6xl mx-auto px-xs sm:px-sm md:px-0">
-            <div className="relative" style={{ height: 'clamp(380px, calc(100vh - 180px), 600px)' }}>
+            <div className="relative" style={{ height: 'clamp(380px, calc(100dvh - 180px), 600px)' }}>
               {[0, 1, 2].map(i => (
                 <motion.div
                   key={i}
@@ -808,18 +810,19 @@ const Swiper: React.FC = () => {
 
   return (
     <>
+      {/* FIX 2 — warning toast constrained so it never bleeds off-screen on 375px */}
       <AnimatePresence>
         {warningState && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm w-[calc(100vw-2rem)] max-w-md"
           >
             <span>⚠️ {warningState.remaining} swiper {warningState.remaining === 1 ? 'session' : 'sessions'} left on your free plan.</span>
             <button
               onClick={dismissWarning}
-              className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline"
+              className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline flex-shrink-0"
             >
               Dismiss
             </button>
@@ -828,7 +831,8 @@ const Swiper: React.FC = () => {
       </AnimatePresence>
       {loading ? (<GlobalSpinner {...LOADING_COPY.savingRound} />) :
         <>
-          <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
+          {/* FIX 3 — removed max-lg:p-md which double-padded on mobile alongside children's own px-sm */}
+          <div className="w-full overflow-hidden relative flex flex-col" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
             <div className="w-full flex-shrink-0 relative z-10">
               <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
                 <div className="flex items-center justify-between gap-sm">
@@ -876,7 +880,8 @@ const Swiper: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-center 2xl:p-xl relative z-20 h-[-webkit-fill-available]">
+            {/* FIX 4 — replaced h-[-webkit-fill-available] (non-standard, won't compile) with flex-1 min-h-0 */}
+            <div className="flex items-center justify-center 2xl:p-xl relative z-20 flex-1 min-h-0">
               <AnimatePresence mode="wait">
                 {showRoundCompletion ? (
                   <RoundCompletionCelebration />
@@ -910,6 +915,7 @@ const Swiper: React.FC = () => {
             </div>
           </div>
 
+          {/* FIX 5 — added flex-wrap to modal footers so buttons don't overflow at 375px */}
           <Modal
             isOpen={shouldAskForPreview}
             onClose={() => {
@@ -920,7 +926,7 @@ const Swiper: React.FC = () => {
             title="Preview Your Design?"
             size="sm"
             footer={
-              <div className="flex gap-sm justify-end">
+              <div className="flex flex-wrap gap-sm justify-end">
                 <motion.button
                   onClick={() => {
                     dispatch(handleSkipPreview());
@@ -999,7 +1005,7 @@ const Swiper: React.FC = () => {
             title="Exit Design Discovery?"
             size="sm"
             footer={
-              <div className="flex gap-sm justify-end">
+              <div className="flex flex-wrap gap-sm justify-end">
                 <motion.button
                   onClick={() => dispatch(setShowExitModal(false))}
                   className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"
