@@ -9,16 +9,21 @@ export const vibesImages = [
     { id: 5, name: "Clean", src: "/images/vibeImages/clean.webp" },
     { id: 6, name: "Earthy", src: "/images/vibeImages/earthy.webp" },
     { id: 7, name: "Elegant", src: "/images/vibeImages/elegent.webp" },
-    { id: 8, name: "Luxury", src: "/images/vibeImages/luxury.webp" }
+    { id: 8, name: "Luxury", src: "/images/vibeImages/luxury.webp" },
+    { id: 9, name: "Corporate", src: "/images/vibeImages/corporate.png" }
 ];
 
 export const suggestedPageChips = [
-    'Homepage', 'About Us', 'Contact Page', 'Services',
-    'Portfolio / Case Studies', 'Blog', 'FAQ', 'Testimonials',
-    'Pricing Page', 'Product Page', 'E-commerce Shop', 'Booking System',
-    'Newsletter Signup', 'Careers / Jobs Page', 'Events / Calendar',
-    'Photo Gallery', 'Resources / Downloads', 'Dashboard',
-    'Member Login / Signup', 'Custom Feature'
+    'Homepage',
+    'About Us',
+    'Contact Page',
+    'Services',
+    'Portfolio',
+    'Blog',
+    'FAQ',
+    'Testimonials',
+    'Pricing Page',
+    'Custom Request',
 ];
 
 export const initialFormData: IntakeFormData = {
