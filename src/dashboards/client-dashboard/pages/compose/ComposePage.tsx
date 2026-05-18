@@ -6,6 +6,8 @@ import {
   FiMonitor, FiTablet, FiSmartphone,
   FiCheck, FiEdit2, FiRefreshCw, FiAlertTriangle,
 } from 'react-icons/fi';
+import ErrorState from '@/common-components/ErrorState';
+
 import { type AppDispatch, type RootState } from '@/store';
 import {
   pollForThumbnails,
@@ -35,8 +37,8 @@ interface BreakpointConfig {
 
 const BREAKPOINTS: BreakpointConfig[] = [
   { key: 'desktop', label: 'Desktop', Icon: ({ className }) => <FiMonitor className={className} />, width: '1440px', previewClass: 'w-full' },
-  { key: 'tablet', label: 'Tablet', Icon: ({ className }) => <FiTablet className={className} />, width: '768px', previewClass: 'w-[53%]' },
-  { key: 'mobile', label: 'Mobile', Icon: ({ className }) => <FiSmartphone className={className} />, width: '375px', previewClass: 'w-[26%]' },
+  { key: 'tablet',  label: 'Tablet',  Icon: ({ className }) => <FiTablet className={className} />,  width: '768px',  previewClass: 'w-[53%]' },
+  { key: 'mobile',  label: 'Mobile',  Icon: ({ className }) => <FiSmartphone className={className} />, width: '375px', previewClass: 'w-[26%]' },
 ];
 
 const btn = { whileHover: { scale: 1.02 }, whileTap: { scale: 0.98 } };
@@ -106,7 +108,6 @@ const ThumbnailPreview: React.FC<{
   return (
     <div className="flex justify-center w-full">
       <div className={`${cfg.previewClass} transition-all duration-300`}>
-        {/* Screenshot only — no iframe in V1 per spec */}
         <img
           src={thumbnails[active]}
           alt={`${cfg.label} preview`}
@@ -125,15 +126,16 @@ const PageShell: React.FC<{
 }> = ({ title, subtitle, headerRight, children }) => (
   <div className="min-h-screen bg-background-primary">
     {(title || headerRight) && (
-      <div className="border-b border-border-default px-xl py-lg flex items-center justify-between">
+      // FIX — flex-wrap so BreakpointSwitcher doesn't squeeze title on mobile
+      <div className="border-b border-border-default px-md sm:px-xl py-lg flex flex-wrap items-center justify-between gap-sm">
         <div>
           {title && <h1 className="text-h4-sm font-bold text-text-primary">{title}</h1>}
           {subtitle && <p className="text-text-secondary text-para-sm mt-xs">{subtitle}</p>}
         </div>
-        {headerRight && <div>{headerRight}</div>}
+        {headerRight && <div className="flex-shrink-0">{headerRight}</div>}
       </div>
     )}
-    <div className="max-w-5xl mx-auto px-xl py-xl">
+    <div className="max-w-5xl mx-auto px-md sm:px-xl py-xl">
       {children}
     </div>
   </div>
@@ -174,6 +176,7 @@ const ComposePage: React.FC = () => {
 
     return { topVibe, superlikeRate, quickRate, likeRate, totalSwipes: swiperChoices.length, superLikedCount: superLiked.length };
   }, [swiperChoices]);
+
   // Guard: if user hard-refreshes, Redux is empty but we have the ID from the URL.
   // Restart polling via GET only — never re-POST.
   useEffect(() => {
@@ -205,6 +208,7 @@ const ComposePage: React.FC = () => {
       </PageShell>
     );
   }
+
   // ── generating ─────────────────────────────────────────────────────────────
   if (status === 'generating') {
     return (
@@ -298,9 +302,19 @@ const ComposePage: React.FC = () => {
               </span>
             </span>
           </div>
-          {thumbnails && <ThumbnailPreview thumbnails={thumbnails} active={activeBp} />}
+          {thumbnails ? (
+            <ThumbnailPreview thumbnails={thumbnails} active={activeBp} />
+          ) : (
+            <ErrorState
+              variant="compose_failed"
+              title="No preview available"
+              message="Thumbnails weren't generated for this composition. Try generating again."
+              onAction={() => navigate('/client/swiper')}
+              onSecondary={handleRetry}
+              secondaryLabel="Retry thumbnails"
+            />
+          )}
         </div>
-
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-md">

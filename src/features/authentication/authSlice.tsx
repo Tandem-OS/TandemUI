@@ -54,7 +54,7 @@ const authSlice = createSlice({
         user?: {
           id?: string;
           email?: string;
-          name?: string
+          name?: string;
           role?: string;
           designerId?: string | null;
           designerEmail?: string | null;
@@ -68,15 +68,17 @@ const authSlice = createSlice({
       state.user.email = action.payload.user?.email ?? null;
       state.user.name = action.payload.user?.name ?? null;
       state.user.role = action.payload.user?.role ?? null;
-
-      // Only for clients with linked designers
       state.user.designerId = action.payload.user?.designerId ?? null;
       state.user.designerEmail = action.payload.user?.designerEmail ?? null;
-
       state.loginTime = action.payload.login_time ?? null;
       state.isAuthenticated = true;
       state.user.plan = action.payload.user?.plan ?? null;
+    },
 
+    // ── Update plan after upgrade or cancellation ──────────────────────────
+    // Call this after ?upgrade=success (set 'pro') or after cancel confirmed (set 'free')
+    updatePlan: (state, action: PayloadAction<string>) => {
+      state.user.plan = action.payload;
     },
 
     logout: (state) => {
@@ -88,12 +90,12 @@ const authSlice = createSlice({
         role: null,
         designerId: null,
         designerEmail: null,
-        plan: null,  // add this
-
+        plan: null,
       };
       state.loginTime = null;
       state.isAuthenticated = false;
     },
+
     updateTokens: (
       state,
       action: PayloadAction<{
@@ -107,9 +109,9 @@ const authSlice = createSlice({
       if (action.payload.refresh_token !== undefined) {
         state.tokens.refresh = action.payload.refresh_token;
       }
-    }
+    },
   },
 });
 
-export const { setAuth, logout, updateTokens } = authSlice.actions;
+export const { setAuth, logout, updateTokens, updatePlan } = authSlice.actions;
 export default authSlice.reducer;

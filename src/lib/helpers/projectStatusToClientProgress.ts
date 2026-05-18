@@ -1,13 +1,15 @@
 /**
  * projectStatusToClientProgress
  *
- * Single source of truth for mapping backend project status
- * to a human-readable label and percentage.
+ * Maps backend project status to client-facing progress info.
+ * Imports pipeline order and progress percentages from the single
+ * source of truth — projectStatus.ts — instead of redefining them.
  *
  * Used by: ProgressCircle, ProgressChart, ClientDashHome, ProjectCard
  */
 
 import type { ProjectStatus } from "@/lib/helpers/canPerformAction";
+import { PIPELINE_ORDER, STATUS_TO_PROGRESS } from "@/lib/config/projectStatus";
 
 export interface ProgressInfo {
   percentage: number;
@@ -15,57 +17,25 @@ export interface ProgressInfo {
   stage: ProjectStatus;
 }
 
-const PROGRESS_MAP: Record<NonNullable<ProjectStatus>, ProgressInfo> = {
-  intake: {
-    percentage: 10,
-    label: "Brief received",
-    stage: "intake",
-  },
-  scraping: {
-    percentage: 20,
-    label: "Scanning site",
-    stage: "scraping",
-  },
-  swiping: {
-    percentage: 35,
-    label: "Reviewing taste",
-    stage: "swiping",
-  },
-  embedded: {
-    percentage: 45,
-    label: "Reviewing taste",
-    stage: "embedded",
-  },
-  composing: {
-    percentage: 55,
-    label: "Building page",
-    stage: "composing",
-  },
-  refining: {
-    percentage: 65,
-    label: "Refining",
-    stage: "refining",
-  },
-  revisions: {
-    percentage: 75,
-    label: "Refining",
-    stage: "revisions",
-  },
-  completed: {
-    percentage: 90,
-    label: "Ready",
-    stage: "completed",
-  },
-  handoff: {
-    percentage: 100,
-    label: "Delivered",
-    stage: "handoff",
-  },
+// ─── Client-facing labels ─────────────────────────────────────────────────────
+// These are intentionally different from designer-facing STATUS_LABEL.
+// They use simpler, client-friendly language.
+
+const CLIENT_LABEL: Record<NonNullable<ProjectStatus>, string> = {
+  intake:    'Brief received',
+  scraping:  'Scanning site',
+  swiping:   'Reviewing taste',
+  embedded:  'Reviewing taste',
+  composing: 'Building page',
+  refining:  'Refining',
+  revisions: 'Refining',
+  completed: 'Ready',
+  handoff:   'Delivered',
 };
 
 const NULL_PROGRESS: ProgressInfo = {
   percentage: 0,
-  label: "Getting started",
+  label: 'Getting started',
   stage: null,
 };
 
@@ -73,13 +43,15 @@ export const projectStatusToClientProgress = (
   status: ProjectStatus
 ): ProgressInfo => {
   if (status === null) return NULL_PROGRESS;
-  return PROGRESS_MAP[status] ?? NULL_PROGRESS;
+  return {
+    percentage: STATUS_TO_PROGRESS[status] ?? 0,
+    label: CLIENT_LABEL[status] ?? status,
+    stage: status,
+  };
 };
 
-/**
- * Full ordered list for ProgressChart rendering.
- * Each entry includes whether it's the current active stage.
- */
+// ─── Chart stages ─────────────────────────────────────────────────────────────
+
 export interface ChartStage {
   name: string;
   progress: number;
@@ -88,41 +60,16 @@ export interface ChartStage {
   isPast: boolean;
 }
 
-const PIPELINE_STAGES: { status: NonNullable<ProjectStatus>; name: string; progress: number }[] = [
-  { status: "intake",    name: "Brief received",   progress: 10 },
-  { status: "scraping",  name: "Scanning site",    progress: 20 },
-  { status: "swiping",   name: "Reviewing taste",  progress: 35 },
-  { status: "embedded",  name: "Taste locked",     progress: 45 },
-  { status: "composing", name: "Building page",    progress: 55 },
-  { status: "refining",  name: "Refining",         progress: 65 },
-  { status: "revisions", name: "Revisions",        progress: 75 },
-  { status: "completed", name: "Ready",            progress: 90 },
-  { status: "handoff",   name: "Delivered",        progress: 100 },
-];
-
-const PIPELINE_ORDER: ProjectStatus[] = [
-  null,
-  "intake",
-  "scraping",
-  "swiping",
-  "embedded",
-  "composing",
-  "refining",
-  "revisions",
-  "completed",
-  "handoff",
-];
-
 export const getChartStages = (currentStatus: ProjectStatus): ChartStage[] => {
-  const currentIndex = PIPELINE_ORDER.indexOf(currentStatus);
+  const currentIndex = PIPELINE_ORDER.indexOf(currentStatus as any);
 
-  return PIPELINE_STAGES.map((stage) => {
-    const stageIndex = PIPELINE_ORDER.indexOf(stage.status);
+  return PIPELINE_ORDER.map((s) => {
+    const stageIndex = PIPELINE_ORDER.indexOf(s);
     return {
-      name: stage.name,
-      progress: stage.progress,
-      status: stage.status,
-      isActive: stage.status === currentStatus,
+      name: CLIENT_LABEL[s],
+      progress: STATUS_TO_PROGRESS[s],
+      status: s as ProjectStatus,
+      isActive: s === currentStatus,
       isPast: stageIndex < currentIndex,
     };
   });

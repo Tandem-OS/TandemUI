@@ -9,12 +9,15 @@ import Dropdown from '../../../common-components/Dropdown';
 import ThemeToggle from '../../../components/theme-toggle/ThemeToggle';
 import ProBadge from '../../../common-components/ProBadge';
 import { menuItems } from '../config/menuItems';
+import tandemLogoLight from '@/assets/images/tandem-logo-light.png';
 
 const Header = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const navigate = useNavigate();
 
     const plan = useSelector((state: RootState) => state.auth.user?.plan);
+    const userName = useSelector((state: RootState) => state.auth.user?.name);
+    const userEmail = useSelector((state: RootState) => state.auth.user?.email);
     const isPro = plan?.toLowerCase() === 'pro';
 
     const avatarUrl = "/images/avatar.png";
@@ -42,12 +45,12 @@ const Header = () => {
             <header className="bg-background-primary-2 sticky top-0 border-b border-border-default leading-none z-20">
                 <div className="container mx-auto px-md">
                     <div className="flex items-center justify-between h-16">
-                        {/* Logo */}
+                        {/* Logo — new Tandem branding */}
                         <Link to="/dashboard/client" className="flex items-center">
                             <img
-                                src="/images/logo.png"
-                                alt="Logo"
-                                className="h-8 w-auto"
+                                src={tandemLogoLight}
+                                alt="Tandem"
+                                className="h-8 w-auto object-contain"
                             />
                         </Link>
 
@@ -135,15 +138,15 @@ const Header = () => {
                                 />
                             )}
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <div className="flex items-center gap-xs">
-                                <p className="text-para-md font-poppins text-text-primary">
-                                    John Doe
+                                <p className="text-para-md font-poppins text-text-primary truncate">
+                                    {userName ?? 'User'}
                                 </p>
                                 {isPro && <ProBadge size="md" />}
                             </div>
-                            <p className="text-para-sm text-text-tertiary">
-                                john@example.com
+                            <p className="text-para-sm text-text-tertiary truncate">
+                                {userEmail ?? ''}
                             </p>
                         </div>
                     </div>

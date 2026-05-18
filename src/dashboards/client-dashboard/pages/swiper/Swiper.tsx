@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
-import { FiX, FiRefreshCw, FiAlertTriangle, FiCheckCircle, FiWifi, FiEye } from 'react-icons/fi';
-import SwiperStack from './components/SwiperStack';
+import { FiX, FiAlertTriangle, FiCheckCircle, FiEye } from 'react-icons/fi'; import SwiperStack from './components/SwiperStack';
 import SwipeProgress from './components/SwipeProgress';
 import KingOfTheHill from './components/KingOfHill';
 import SwiperSummary from './components/SwiperSummary';
@@ -10,6 +9,7 @@ import PreviewModal from './components/PreviewModal';
 import { roundMessages } from './mockData';
 import BillingGateModal from '@/common-components/BillingGateModal';
 import { LOADING_COPY } from '@/lib/config/loadingCopy';
+import SharedErrorState from '@/common-components/ErrorState';
 
 import {
   type SwipeAction,
@@ -58,10 +58,12 @@ import Modal from '@/common-components/Modal';
 import { useNavigate } from 'react-router-dom';
 import TransitionMoment from './components/TransitionMoment';
 import { useBillingGate } from '@/hooks/useBillingGate';
+import Toast from '@/common-components/Toast';
 
 // Constants
 const TIMINGS = { CELEBRATION: 2000, TRANSITION: 300, INSTRUCTION_DELAY: 1500, LOADING_SIMULATION: 1500 };
-const CONTAINER_HEIGHT = 'calc(100vh - 65px)';
+// FIX 1 — use 100dvh so mobile browser chrome is excluded from the height calculation
+const CONTAINER_HEIGHT = 'calc(100dvh - 65px)';
 const KOH_SNAP_KEY = 'tandem_koh_snap';
 
 
@@ -201,29 +203,13 @@ const SkeletonCard: React.FC = () => (
   </div>
 );
 
-// Error State Component
-const ErrorState: React.FC<{ onRetry: () => void; message: string }> = ({ onRetry, message }) => (
-  <motion.div {...animations.page} className="flex flex-col items-center justify-center text-center space-y-md px-lg">
-    <div className="w-20 h-20 bg-background-error rounded-full flex items-center justify-center">
-      <FiWifi className="text-icon-2xl text-text-error" />
-    </div>
-    <div className="space-y-sm">
-      <h3 className="text-h4-sm font-semibold text-text-primary">Oops! Something went wrong</h3>
-      <p className="text-text-secondary text-para-md max-w-md">{message}</p>
-    </div>
-    <motion.button
-      onClick={onRetry}
-      className="flex items-center gap-sm px-lg py-md bg-accent-subtle text-accent-default hover:bg-accent-default hover:text-accent-foreground rounded-lg border border-border-default hover:border-accent-default transition-all"
-      {...animations.button}
-    >
-      <FiRefreshCw className="text-icon-sm" />
-      <span className="text-para-md font-medium">Try Again</span>
-    </motion.button>
-  </motion.div>
-);
-
 const Swiper: React.FC = () => {
   const [isSummaryReady, setIsSummaryReady] = useState(false);
+  const [toastMessage, setToastMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+    setToastMessage({ message, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const [kingOfHillSessions, setKingOfHillSessions] = useState<KingOfHillSession[]>([]);
@@ -231,6 +217,7 @@ const Swiper: React.FC = () => {
   const [showTransition, setShowTransition] = useState(false);
   const [loading, setLoading] = useState(false);
   const hasFetched = useRef(false);
+  const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
   const {
     gateState,
     warningState,
@@ -287,7 +274,7 @@ const Swiper: React.FC = () => {
       ].map(c => mapCanonicalToPreview(c as CanonicalComponent));
 
       if (!flatComponents.length) {
-        dispatch(loadDataFailure('No canonical components found. Check seeding.'));
+        dispatch(loadDataFailure('no_components'));
         return;
       }
 
@@ -475,7 +462,7 @@ const Swiper: React.FC = () => {
         setKingOfHillSessions(prev => [...prev, sessionSummary]);
       } catch (error) {
         console.error('❌ Error saving components', error);
-        alert("Try again Save unsuccssfull");
+        showToast('Failed to save. Please try again.');
         setLoading(false);
         dispatch(endKingOfHill());
         if (currentRoundData?.components) {
@@ -652,7 +639,7 @@ const Swiper: React.FC = () => {
           }
 
           console.error("❌ Backend save/check failed:", error);
-          alert("Failed to save round. Please try again.");
+          showToast('Failed to save round. Please try again.');
           await loadData();
           dispatch(setShowRoundCompletion(false));
         }
@@ -722,7 +709,8 @@ const Swiper: React.FC = () => {
 
   if (isInitialLoading) {
     return (
-      <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
+      // FIX 1 also applied here — dvh in skeleton loading state
+      <div className="w-full overflow-hidden relative flex flex-col" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
         <div className="w-full flex-shrink-0 relative z-10">
           <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
             <div className="flex items-center justify-between gap-sm">
@@ -748,7 +736,7 @@ const Swiper: React.FC = () => {
         </div>
         <div className="flex items-center justify-center px-xs py-xs sm:p-md md:p-xl relative z-20">
           <div className="relative w-full max-w-4xl 2xl:max-w-6xl mx-auto px-xs sm:px-sm md:px-0">
-            <div className="relative" style={{ height: 'clamp(380px, calc(100vh - 180px), 600px)' }}>
+            <div className="relative" style={{ height: 'clamp(380px, calc(100dvh - 180px), 600px)' }}>
               {[0, 1, 2].map(i => (
                 <motion.div
                   key={i}
@@ -767,8 +755,23 @@ const Swiper: React.FC = () => {
 
   if (loadingError) {
     return (
-      <div className="w-full flex items-center justify-center min-h-screen px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
-        <ErrorState onRetry={handleRetry} message={loadingError} />
+      <div className="w-full flex items-center justify-center px-lg" style={{ minHeight: CONTAINER_HEIGHT }}>
+        {loadingError === 'no_components' ? (
+          <SharedErrorState
+            variant="scrape_empty"
+            title="No components available"
+            message="There's nothing to swipe on yet. Your designer may still be setting things up."
+            onSecondary={() => navigate('/dashboard/client')}
+            secondaryLabel="Back to dashboard"
+          />
+        ) : (
+          <SharedErrorState
+            variant="network"
+            title="Couldn't load components"
+            message={loadingError}
+            onAction={handleRetry}
+          />
+        )}
       </div>
     );
   }
@@ -813,18 +816,22 @@ const Swiper: React.FC = () => {
 
   return (
     <>
+      {toastMessage && (
+        <Toast message={toastMessage.message} type={toastMessage.type} />
+      )}
+      {/* FIX 2 — warning toast constrained so it never bleeds off-screen on 375px */}
       <AnimatePresence>
         {warningState && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
+            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm w-[calc(100vw-2rem)] max-w-md"
           >
             <span>⚠️ {warningState.remaining} swiper {warningState.remaining === 1 ? 'session' : 'sessions'} left on your free plan.</span>
             <button
               onClick={dismissWarning}
-              className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline"
+              className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline flex-shrink-0"
             >
               Dismiss
             </button>
@@ -833,7 +840,8 @@ const Swiper: React.FC = () => {
       </AnimatePresence>
       {loading ? (<GlobalSpinner {...LOADING_COPY.savingRound} />) :
         <>
-          <div className="w-full overflow-hidden relative flex flex-col max-lg:p-md" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
+          {/* FIX 3 — removed max-lg:p-md which double-padded on mobile alongside children's own px-sm */}
+          <div className="w-full overflow-hidden relative flex flex-col" style={{ height: CONTAINER_HEIGHT, minHeight: CONTAINER_HEIGHT }}>
             <div className="w-full flex-shrink-0 relative z-10">
               <div className="max-w-7xl mx-auto px-sm sm:px-md md:px-xl py-xs sm:py-sm md:py-md">
                 <div className="flex items-center justify-between gap-sm">
@@ -881,7 +889,8 @@ const Swiper: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-center 2xl:p-xl relative z-20 h-[-webkit-fill-available]">
+            {/* FIX 4 — replaced h-[-webkit-fill-available] (non-standard, won't compile) with flex-1 min-h-0 */}
+            <div className="flex items-center justify-center 2xl:p-xl relative z-20 flex-1 min-h-0">
               <AnimatePresence mode="wait">
                 {showRoundCompletion ? (
                   <RoundCompletionCelebration />
@@ -915,6 +924,7 @@ const Swiper: React.FC = () => {
             </div>
           </div>
 
+          {/* FIX 5 — added flex-wrap to modal footers so buttons don't overflow at 375px */}
           <Modal
             isOpen={shouldAskForPreview}
             onClose={() => {
@@ -925,7 +935,7 @@ const Swiper: React.FC = () => {
             title="Preview Your Design?"
             size="sm"
             footer={
-              <div className="flex gap-sm justify-end">
+              <div className="flex flex-wrap gap-sm justify-end">
                 <motion.button
                   onClick={() => {
                     dispatch(handleSkipPreview());
@@ -986,6 +996,8 @@ const Swiper: React.FC = () => {
               usageType={gateState.usage_type}
               currentCount={gateState.current_count}
               limit={gateState.limit}
+              userRole="client"
+              designerEmail={designerEmail}
               isCheckoutLoading={isCheckoutLoading}
               checkoutError={checkoutError}
               onUpgrade={(plan) => initiateCheckout(plan)}
@@ -1002,7 +1014,7 @@ const Swiper: React.FC = () => {
             title="Exit Design Discovery?"
             size="sm"
             footer={
-              <div className="flex gap-sm justify-end">
+              <div className="flex flex-wrap gap-sm justify-end">
                 <motion.button
                   onClick={() => dispatch(setShowExitModal(false))}
                   className="px-lg py-sm text-text-primary bg-background-secondary hover:bg-background-muted rounded-lg transition-colors"

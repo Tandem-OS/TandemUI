@@ -35,3 +35,11 @@ export const getAllProjectsByDesignerEmail = async () => {
   const designer_email = store.getState().auth.user.email!;
   return await api.post("/projects/designer_email", { designer_email });
 };
+
+export const markProjectCompleted = async (project_id: string, designer_email: string) => {
+  return await api.post(`/projects/${project_id}/complete`, { designer_email });
+};
+
+export const markProjectHandoff = async (project_id: string, designer_email: string) => {
+  return await api.post(`/projects/${project_id}/handoff`, { designer_email });
+};
