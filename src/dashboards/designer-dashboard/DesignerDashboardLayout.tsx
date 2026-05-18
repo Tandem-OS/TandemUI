@@ -12,6 +12,7 @@ import { BillingProvider } from './context/BillingContext';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/store';
 import { updatePlan } from '@/features/authentication/authSlice';
+import { getSubscription } from '@/lib/requests/BillingRequest';
 
 // ─── Upgrade param values ─────────────────────────────────────────────────────
 
@@ -59,7 +60,7 @@ const DesignerDashboardLayout: React.FC = () => {
 
     if (param === 'success') {
       setUpgradeState('success');
-      dispatch(updatePlan('pro')); // update Pro badge immediately
+      dispatch(updatePlan('pro')); // instant badge feedback — confirmed by re-fetch on close
       window.history.replaceState({}, '', '/dashboard');
     } else if (param === 'cancelled') {
       setShowCancelledToast(true);
@@ -71,7 +72,19 @@ const DesignerDashboardLayout: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount only — searchParams intentionally excluded
 
-  const handleSuccessClose = () => setUpgradeState(null);
+  // ── Re-fetch subscription after modal closes to confirm backend truth ─────
+  // updatePlan('pro') above gives instant feedback. This confirms the webhook
+  // has fired and syncs Redux with the real plan from Stripe.
+  const handleSuccessClose = async () => {
+    setUpgradeState(null);
+    try {
+      const subscription = await getSubscription();
+      dispatch(updatePlan(subscription.plan));
+    } catch {
+      // Silent fail — updatePlan('pro') already fired for instant UX.
+      // User sees Pro badge regardless; next hard refresh will re-fetch.
+    }
+  };
 
   return (
     <BillingProvider>

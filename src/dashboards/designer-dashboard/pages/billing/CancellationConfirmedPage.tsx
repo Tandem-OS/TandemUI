@@ -1,9 +1,7 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { RiCalendarLine, RiPriceTag3Line, RiQuestionLine, RiShieldCheckLine, RiArrowRightLine } from "react-icons/ri";
-import { useDispatch } from "react-redux";
-import { updatePlan } from "@/features/authentication/authSlice";
 
 // ─── Confetti dots (same amber palette as Dylan's design) ─────────────────────
 
@@ -61,12 +59,6 @@ const SummaryRow: React.FC<{
 const CancellationConfirmedPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const dispatch = useDispatch();
-
-  // Update plan state immediately so Pro badge reverts
-  useEffect(() => {
-    dispatch(updatePlan('free'));
-  }, [dispatch]);
 
   // Accept downgrade date from navigation state (passed from SubscriptionOverviewPage)
   // or fall back to a formatted period-end from the cancel API response
