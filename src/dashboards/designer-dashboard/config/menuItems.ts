@@ -51,22 +51,16 @@ id: 'subscription',
     path: '',  
     children: [
         {
-            id: 'billing-account',
-            name: 'Account',
-            icon: RiSettings3Line,
-            path: '/dashboard/designer/billing/account'        
+            id: 'billing-subscription',
+            name: 'Subscription',
+            icon: RiShieldCheckLine,
+            path: '/dashboard/designer/billing/subscription'   
         },
         {
             id: 'billing-billing',
             name: 'Billing',
             icon: RiBankCardLine,
             path: '/dashboard/designer/billing/overview'       // SubscriptionOverviewPage
-        },
-        {
-            id: 'billing-subscription',
-            name: 'Subscription',
-            icon: RiShieldCheckLine,
-            path: '/dashboard/designer/billing/subscription'   
         },
         {
             id: 'billing-payment',
@@ -85,6 +79,12 @@ id: 'subscription',
             name: 'Billing history',
             icon: RiCalendarLine,
             path: '/dashboard/designer/billing/history'        
+        },
+        {
+            id: 'billing-account',
+            name: 'Account',
+            icon: RiSettings3Line,
+            path: '/dashboard/designer/billing/account'        
         },
     ]
 },

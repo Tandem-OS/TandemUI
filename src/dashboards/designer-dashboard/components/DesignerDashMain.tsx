@@ -11,6 +11,10 @@ import SubscriptionOverviewPage from '../pages/billing/SubscriptionOverviewPage'
 import CancellationConfirmedPage from '../pages/billing/CancellationConfirmedPage';
 import BillingWarningBanner from '../components/BillingWarningBanner';
 import { useBilling } from '../context/BillingContext';
+import SubscriptionPage from '../pages/billing/SubscriptionPage';
+import PaymentMethodsPage from '../pages/billing/PaymentMethodsPage';
+import InvoicesPage from '../pages/billing/InvoicePage';
+import BillingHistoryPage from '../pages/billing/BillingHistoryPage';
 
 const DesignerDashMain: React.FC = () => {
     const navigate = useNavigate();
@@ -44,8 +48,13 @@ const DesignerDashMain: React.FC = () => {
                     <Route path="/testimonials" element={<TestimonialsPage />} />
                     <Route path="/profile-view" element={<ProfileView />} />
                     {/* ── Billing (designer only) ── */}
+                    <Route path="/billing/account" element={<ProfileView />} />
                     <Route path="/billing/overview" element={<SubscriptionOverviewPage />} />
                     <Route path="/billing/cancelled" element={<CancellationConfirmedPage />} />
+                    <Route path="/billing/subscription" element={<SubscriptionPage />} />
+                    <Route path="/billing/payment-methods" element={<PaymentMethodsPage />} />
+                    <Route path="/billing/invoices" element={<InvoicesPage />} />
+                    <Route path="/billing/history" element={<BillingHistoryPage />} />
                 </Routes>
             </div>
         </main>

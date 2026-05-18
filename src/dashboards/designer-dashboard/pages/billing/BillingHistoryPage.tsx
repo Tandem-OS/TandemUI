@@ -1,0 +1,228 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import {
+  RiArrowLeftLine,
+  RiCheckLine,
+  RiCloseLine,
+  RiTimeLine,
+  RiRefundLine,
+  RiArrowUpCircleLine,
+  RiHistoryLine,
+} from 'react-icons/ri';
+import { getBillingHistory, type BillingHistoryItem } from '@/lib/requests/BillingRequest';
+
+const formatUnixDate = (ts: number): string =>
+  new Date(ts * 1000).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric',
+  });
+
+const formatAmount = (cents: number, currency: string): string =>
+  `$${(cents / 100).toFixed(2)} ${currency.toUpperCase()}`;
+
+const StatusBadge = ({ status }: { status: BillingHistoryItem['status'] }) => {
+  const config = {
+    succeeded: {
+      className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+      icon: <RiCheckLine className="text-[10px]" />,
+      label: 'Succeeded',
+    },
+    failed: {
+      className: 'bg-red-50 text-red-700 border-red-200',
+      icon: <RiCloseLine className="text-[10px]" />,
+      label: 'Failed',
+    },
+    pending: {
+      className: 'bg-amber-50 text-amber-700 border-amber-200',
+      icon: <RiTimeLine className="text-[10px]" />,
+      label: 'Pending',
+    },
+  };
+
+  const { className, icon, label } = config[status] ?? config.pending;
+
+  return (
+    <span className={`inline-flex items-center gap-xs px-sm py-xs border rounded-full text-para-xs font-medium ${className}`}>
+      {icon}
+      {label}
+    </span>
+  );
+};
+
+const TypeIcon = ({ type }: { type: BillingHistoryItem['type'] }) => {
+  if (type === 'Refund') {
+    return (
+      <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
+        <RiRefundLine className="text-amber-600 text-icon-xs" />
+      </div>
+    );
+  }
+  return (
+    <div className="w-8 h-8 rounded-full bg-[#F5F3FF] flex items-center justify-center flex-shrink-0">
+      <RiArrowUpCircleLine className="text-[#7C3AED] text-icon-xs" />
+    </div>
+  );
+};
+
+const BillingHistoryPage: React.FC = () => {
+  const navigate = useNavigate();
+  const [history, setHistory] = useState<BillingHistoryItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const data = await getBillingHistory();
+        setHistory(data);
+      } catch {
+        setFetchError('Unable to load billing history. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchHistory();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-background-primary">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-xl py-xl">
+
+          {/* Back */}
+          <button
+            onClick={() => navigate('/dashboard/designer')}
+            className="flex items-center gap-xs text-para-sm text-text-secondary hover:text-text-primary transition-colors mb-xl"
+          >
+            <RiArrowLeftLine className="text-icon-sm" />
+            Back to Dashboard
+          </button>
+
+          {/* Header */}
+          <div className="mb-xl">
+            <h1 className="text-h3-sm font-bold text-text-primary">Billing History</h1>
+            <p className="text-text-secondary text-para-sm mt-xs">
+              A full record of all charges and payments on your account.
+            </p>
+          </div>
+
+          {/* Fetch error */}
+          {!isLoading && fetchError && (
+            <div className="px-md py-sm bg-red-50 border border-red-200 rounded-xl text-para-sm text-red-700 mb-lg">
+              {fetchError}
+            </div>
+          )}
+
+          {/* Loading */}
+          {isLoading && (
+            <div className="bg-background-primary-2 border border-border-default rounded-2xl overflow-hidden animate-pulse">
+              <div className="px-xl py-md border-b border-border-default">
+                <div className="h-4 bg-background-muted rounded w-1/4" />
+              </div>
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="px-xl py-lg border-b border-border-default last:border-0 flex items-center gap-md">
+                  <div className="w-8 h-8 rounded-full bg-background-muted flex-shrink-0" />
+                  <div className="flex-1 space-y-sm">
+                    <div className="h-4 bg-background-muted rounded w-1/3" />
+                    <div className="h-3 bg-background-muted rounded w-1/4" />
+                  </div>
+                  <div className="h-4 bg-background-muted rounded w-20" />
+                  <div className="h-6 bg-background-muted rounded-full w-20" />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {!isLoading && !fetchError && history.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-background-primary-2 border border-border-default rounded-2xl p-xl flex flex-col items-center justify-center text-center py-2xl"
+            >
+              <div className="w-12 h-12 rounded-full bg-[#F5F3FF] flex items-center justify-center mb-md">
+                <RiHistoryLine className="text-[#7C3AED] text-icon-md" />
+              </div>
+              <p className="text-para-sm font-medium text-text-primary mb-xs">No billing history yet</p>
+              <p className="text-para-xs text-text-secondary max-w-xs">
+                Charges will appear here once you have an active Pro subscription.
+              </p>
+            </motion.div>
+          )}
+
+          {/* History table */}
+          {!isLoading && !fetchError && history.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-background-primary-2 border border-border-default rounded-2xl overflow-hidden"
+            >
+              {/* Table header */}
+              <div className="hidden md:grid grid-cols-[auto_1fr_auto_auto] gap-md px-xl py-md border-b border-border-default">
+                <div className="w-8" />
+                <span className="text-para-xs font-semibold text-text-tertiary uppercase tracking-wide">Transaction</span>
+                <span className="text-para-xs font-semibold text-text-tertiary uppercase tracking-wide text-right">Amount</span>
+                <span className="text-para-xs font-semibold text-text-tertiary uppercase tracking-wide text-center">Status</span>
+              </div>
+
+              {/* Rows */}
+              {history.map((item, i) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: i * 0.05 }}
+                  className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto_auto] gap-sm md:gap-md items-center px-xl py-lg border-b border-border-default last:border-0 hover:bg-background-muted/40 transition-colors"
+                >
+                  {/* Type icon */}
+                  <TypeIcon type={item.type} />
+
+                  {/* Type + date */}
+                  <div>
+                    <p className="text-para-sm font-medium text-text-primary">{item.type}</p>
+                    <p className="text-para-xs text-text-secondary mt-xs">{formatUnixDate(item.date)}</p>
+                  </div>
+
+                  {/* Amount */}
+                  <div className={`text-para-sm font-semibold md:text-right ${item.type === 'Refund' ? 'text-amber-600' : 'text-text-primary'
+                    }`}>
+                    {item.type === 'Refund' ? '−' : ''}{formatAmount(item.amount, item.currency)}
+                  </div>
+
+                  {/* Status */}
+                  <div className="md:text-center">
+                    <StatusBadge status={item.status} />
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+
+          {/* Footer note */}
+          {!isLoading && !fetchError && history.length > 0 && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="text-para-xs text-text-tertiary mt-md text-center"
+            >
+              Showing last {history.length} transaction{history.length !== 1 ? 's' : ''}. For invoices and PDF receipts, visit the{' '}
+              <button
+                onClick={() => navigate('/dashboard/designer/billing/invoices')}
+                className="text-[#7C3AED] hover:underline"
+              >
+                Invoices
+              </button>{' '}
+              page.
+            </motion.p>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default BillingHistoryPage;

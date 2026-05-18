@@ -72,19 +72,19 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
         setTimeout(() => setRefinedSections(new Set()), 2500);
     };
 
-    // ── Slice state ───────────────────────────────────────────────────────────
+    // ── Slice state
     const scrapedData = useSelector((state: RootState) => state.scraper.scrapedData);
     const scraperStatus = useSelector((state: RootState) => state.scraper.status);
     const scraperError = useSelector((state: RootState) => state.scraper.error);
     const layoutPlan = useSelector((state: RootState) => state.scraper.layoutPlan ?? []);
 
-    // ── Auth / project selectors ──────────────────────────────────────────────
+    // ── Auth / project selectors
     const email = useSelector((state: RootState) => state.auth.user.email);
     const userRole = useSelector((state: RootState) => state.auth.user.role);
     const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
     const projectId = useSelector((state: RootState) => state.project.projectId);
 
-    // ── Hooks ─────────────────────────────────────────────────────────────────
+    // ── Hooks
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
@@ -99,6 +99,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
         checkoutError,
         initiateCheckout,
     } = useBillingGate();
+
     // ── Composition schema
     const pageSchema = useSelector(selectActiveOrPreviewSchema);
     const activeSections = compositionId && pageSchema?.sections
@@ -220,10 +221,12 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
     const isFeedbackComplete = scrapedData && Object.keys(userFeedback).length === scrapedData.sections.length;
     const likeCount = Object.values(userFeedback).filter(f => f === 'like').length;
 
+    // ── Role check — hide Generate Layout for designers
+    const isDesigner = userRole === 'Designer';
+
     return (
         <div className={t.root}>
             <AnimatePresence>
-                {/* FIX 1 — warning toast constrained to never bleed off 375px screen */}
                 {warningState && (
                     <motion.div
                         initial={{ opacity: 0, y: -8 }}
@@ -304,11 +307,13 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                     <span>Analyze a Website</span>
                                 </motion.button>
 
-                                {/* Generate with Idea — disabled when mode is scraper */}
-                                <StartFromIdea
-                                    onGenerateLayout={handleGenerateLayout}
-                                    disabled={disableIdea}
-                                />
+                                {/* Generate with Idea — hidden for Designer role */}
+                                {!isDesigner && (
+                                    <StartFromIdea
+                                        onGenerateLayout={handleGenerateLayout}
+                                        disabled={disableIdea}
+                                    />
+                                )}
                             </motion.div>
 
                             {Object.keys(profile).length > 0 && (
@@ -584,18 +589,14 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                             <Para size="sm" color="secondary">{scrapedData.sections.length} sections found on {scrapedData.url}</Para>
                                         </div>
                                     </div>
-                                    {/*
-                                      FIX 2 — results header right: override token class with flex-wrap
-                                      so StartFromIdea + Preview Hero + toggle don't overflow on tablet.
-                                      The token class (t.resultsHeaderRight) likely has no flex-wrap;
-                                      we add it inline here so the token file stays untouched.
-                                    */}
                                     <div className={`${t.resultsHeaderRight} flex-wrap`}>
-                                        {/* Generate with Idea — disabled when mode is scraper */}
-                                        <StartFromIdea
-                                            onGenerateLayout={handleGenerateLayout}
-                                            disabled={disableIdea}
-                                        />
+                                        {/* Generate with Idea — hidden for Designer role */}
+                                        {!isDesigner && (
+                                            <StartFromIdea
+                                                onGenerateLayout={handleGenerateLayout}
+                                                disabled={disableIdea}
+                                            />
+                                        )}
 
                                         {compositionId && (
                                             <motion.button

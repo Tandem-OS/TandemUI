@@ -96,7 +96,11 @@ interface KingOfMatches {
 
 // ─── Canonical fetch 
 export const getCanonicalComponents = async (): Promise<CanonicalComponentsResponse> => {
-  const response = await api.get("/swiper/canonical");
+  const projectId = store.getState().project?.projectId;
+  const url = projectId
+    ? `/swiper/canonical?project_id=${projectId}`
+    : `/swiper/canonical`;
+  const response = await api.get(url);
   return response.data;
 };
 
@@ -127,9 +131,9 @@ export const swiperComponentData = async (values: SwiperComponent) => {
   for (const [key, value] of Object.entries(values)) {
     if (value === null || value === undefined) continue;
     if (key === 'thumbnail_url') continue;
-    if (key === 'project_id') continue;        
-    if (key === 'client_email') continue;      
-    if (key === 'designer_email') continue;    
+    if (key === 'project_id') continue;
+    if (key === 'client_email') continue;
+    if (key === 'designer_email') continue;
     if (key === 'is_canonical') continue;
 
     if (typeof value === 'object' && !Array.isArray(value)) {
