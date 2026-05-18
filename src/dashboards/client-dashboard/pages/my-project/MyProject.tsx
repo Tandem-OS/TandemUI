@@ -8,18 +8,12 @@ import SearchBox from '../../../../common-components/SearchBox';
 import { getAllProjectsByDesignerEmail } from '@/lib/requests/ProjectRequest';
 import type { Project } from '@/types/project.type';
 import MagicLinkModal from '@/dashboards/designer-dashboard/components/MagicLinkModal';
-
-// ─── Pipeline helpers ─────────────────────────────────────────────────────────
-
-const STATUS_TO_PROGRESS: Record<string, number> = {
-    intake: 10, scraping: 20, swiping: 35, embedded: 45,
-    composing: 55, refining: 65, revisions: 75, completed: 90, handoff: 100,
-};
-
-const deriveUiStatus = (apiStatus: string | null): 'in-progress' | 'completed' => {
-    if (!apiStatus) return 'in-progress';
-    return ['completed', 'handoff'].includes(apiStatus) ? 'completed' : 'in-progress';
-};
+import { ProjectCardSkeleton } from '@/dashboards/designer-dashboard/components/skeletons';
+import {
+  STATUS_TO_PROGRESS,
+  STATUS_TO_UI_STATUS,
+  type ApiStatus,
+} from '@/lib/config/projectStatus';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -54,8 +48,8 @@ const MyProject: React.FC = () => {
                 category: raw.project_type || 'General',
                 designer: raw.designer_email,
                 designerImage: '/images/avatar.png',
-                progress: raw.status ? (STATUS_TO_PROGRESS[raw.status] ?? 0) : 0,
-                status: deriveUiStatus(raw.status ?? null),
+                progress: raw.status ? (STATUS_TO_PROGRESS[raw.status as ApiStatus] ?? 0) : 0,
+                status: STATUS_TO_UI_STATUS[raw.status as ApiStatus] === 'completed' ? 'completed' : 'in-progress',
                 currentStage: raw.status ?? 'intake',
                 feedbackCount: 0,
                 createdAt: new Date(raw.last_updated).toISOString().split('T')[0],
@@ -75,9 +69,7 @@ const MyProject: React.FC = () => {
         }
     };
 
-    useEffect(() => {
-        fetchProjects();
-    }, []);
+    useEffect(() => { fetchProjects(); }, []);
 
     const updateState = useCallback((updates: Partial<typeof state>) => {
         setState(prev => ({ ...prev, ...updates }));
@@ -155,9 +147,7 @@ const MyProject: React.FC = () => {
 
     const StatCard = ({ icon, iconClass, label, value }: any) => (
         <motion.div whileHover={{ y: -4 }} className={cardStyle}>
-            <div className={`p-sm sm:p-md ${iconClass} rounded-lg sm:rounded-xl flex-shrink-0`}>
-                {icon}
-            </div>
+            <div className={`p-sm sm:p-md ${iconClass} rounded-lg sm:rounded-xl flex-shrink-0`}>{icon}</div>
             <div>
                 <p className="text-para-xs sm:text-para-sm text-text-secondary mb-xs">{label}</p>
                 <p className="text-h6-sm sm:text-h5-sm font-bold text-text-primary">{value}</p>
@@ -185,29 +175,10 @@ const MyProject: React.FC = () => {
         </motion.div>
     );
 
-    // ── Skeleton card for loading state ───────────────────────────────────────
-    const SkeletonCard = () => (
-        <div className="bg-background-primary-2 rounded-2xl border border-border-default p-lg animate-pulse">
-            <div className="flex items-center gap-md mb-lg">
-                <div className="w-10 h-10 rounded-full bg-background-muted" />
-                <div className="flex-1 space-y-xs">
-                    <div className="h-3 bg-background-muted rounded w-3/4" />
-                    <div className="h-2 bg-background-muted rounded w-1/2" />
-                </div>
-            </div>
-            <div className="h-2 bg-background-muted rounded mb-md" />
-            <div className="h-2 bg-background-muted rounded w-4/5 mb-lg" />
-            <div className="flex gap-sm">
-                <div className="h-6 w-16 bg-background-muted rounded-full" />
-                <div className="h-6 w-12 bg-background-muted rounded-full" />
-            </div>
-        </div>
-    );
-
     return (
         <div className="min-h-screen">
             <div className="container mx-auto px-md sm:px-lg lg:px-xl py-lg sm:py-xl lg:py-2xl">
-                {/* Header */}
+                {/* Header — always visible, never skeletonised */}
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -248,7 +219,6 @@ const MyProject: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Controls */}
                     <div className="flex flex-col lg:flex-row gap-lg mb-lg">
                         <SearchBox
                             value={state.searchTerm}
@@ -265,9 +235,7 @@ const MyProject: React.FC = () => {
                             <Dropdown
                                 trigger={
                                     <motion.div {...motionProps} className="flex items-center gap-md px-lg py-md bg-background-primary-2 border border-border-default rounded-xl text-text-primary hover:shadow-md transition-all duration-200 cursor-pointer min-w-[140px]">
-                                        <span className="text-para-sm font-medium">
-                                            {sortOptions.find(opt => opt.id === state.sortBy)?.label}
-                                        </span>
+                                        <span className="text-para-sm font-medium">{sortOptions.find(opt => opt.id === state.sortBy)?.label}</span>
                                         <FaChevronDown className="text-icon-sm text-text-secondary" />
                                     </motion.div>
                                 }
@@ -286,7 +254,6 @@ const MyProject: React.FC = () => {
                         </motion.button>
                     </div>
 
-                    {/* Filters */}
                     <div className={`flex flex-wrap gap-md ${state.showFilters ? 'block' : 'hidden lg:flex'}`}>
                         {filterButtons.map(({ key, label, count }) => (
                             <motion.button
@@ -310,24 +277,16 @@ const MyProject: React.FC = () => {
                     </div>
                 </motion.div>
 
-                {/* Content — spinner only on card area */}
                 <AnimatePresence mode="wait">
                     {state.isLoading ? (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2xl"
-                        >
-                            {Array.from({ length: INITIAL_CARDS }).map((_, i) => (
-                                <SkeletonCard key={i} />
-                            ))}
+                        <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2xl">
+                            {Array.from({ length: INITIAL_CARDS }).map((_, i) => <ProjectCardSkeleton key={i} />)}
                         </motion.div>
                     ) : filteredProjects.length === 0 ? (
                         <EmptyState />
                     ) : (
                         <>
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2xl">
+                            <motion.div key="cards" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2xl">
                                 {visibleProjects.map((project, index) => (
                                     <motion.div
                                         key={project.id}
@@ -340,7 +299,6 @@ const MyProject: React.FC = () => {
                                 ))}
                             </motion.div>
 
-                            {/* Footer */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -348,15 +306,11 @@ const MyProject: React.FC = () => {
                                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-lg pt-2xl mt-3xl border-t border-border-default"
                             >
                                 <p className="text-text-secondary text-para-md max-md:text-center">
-                                    {hasMore ? (
-                                        <>Showing <span className="font-semibold text-text-primary">{visibleProjects.length}</span> of </>
-                                    ) : 'All '}
+                                    {hasMore ? (<>Showing <span className="font-semibold text-text-primary">{visibleProjects.length}</span> of </>) : 'All '}
                                     <span className="font-semibold text-text-primary">{filteredProjects.length}</span> projects
                                     {hasMore ? '' : ' displayed'}
                                     {state.searchTerm && (
-                                        <span className="text-text-tertiary">
-                                            {' '}matching "<span className="font-semibold text-text-primary">{state.searchTerm}</span>"
-                                        </span>
+                                        <span className="text-text-tertiary"> matching "<span className="font-semibold text-text-primary">{state.searchTerm}</span>"</span>
                                     )}
                                 </p>
                                 {hasMore && (
@@ -370,10 +324,7 @@ const MyProject: React.FC = () => {
                                             }`}
                                     >
                                         {state.isLoading ? (
-                                            <>
-                                                <FaSpinner className="text-icon-xs animate-spin" />
-                                                <span>Loading...</span>
-                                            </>
+                                            <><FaSpinner className="text-icon-xs animate-spin" /><span>Loading...</span></>
                                         ) : 'Load More'}
                                     </motion.button>
                                 )}

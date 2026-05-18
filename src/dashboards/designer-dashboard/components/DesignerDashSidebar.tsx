@@ -5,7 +5,7 @@ import { RiArrowDownSLine } from 'react-icons/ri';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { menuItems, type MenuItem } from '../config/menuItems';
-import tandem from '@/assets/images/tandem.svg'
+import tandemLogoDark from '@/assets/images/tandem-logo-dark.png';
 
 // ===== CONSTANTS =====
 const ANIMATION_CONFIG = { duration: 0.3, ease: "easeInOut" as const };
@@ -47,7 +47,7 @@ interface DesignerDashSidebarProps {
 // ===== STYLE CONFIGURATION =====
 const styles = {
     menuItem: {
-        base: 'flex items-center rounded-[38px] transition-all duration-300 cursor-pointer  relative group',
+        base: 'flex items-center rounded-[38px] transition-all duration-300 cursor-pointer relative group',
         active: {
             expanded: 'bg-blue-violet border-l-accent-default',
             collapsed: 'bg-blue-violet border-l-accent-default'
@@ -68,8 +68,7 @@ const styles = {
         base: 'transition-colors duration-200',
         active: 'text-accent-foreground',
         inactive: 'text-text-tertiary group-hover:text-accent-foreground'
-    }
-    ,
+    },
     text: {
         active: 'text-text-light',
         inactive: 'text-text-tertiary group-hover:text-text-light'
@@ -88,7 +87,6 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
             setIsPositioned(false);
             return;
         }
-
         const rect = triggerRef.current.getBoundingClientRect();
         setPosition({
             top: rect.top + rect.height / 2,
@@ -98,9 +96,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
     }, [isHovered]);
 
     useEffect(() => {
-        if (!isHovered) {
-            setIsPositioned(false);
-        }
+        if (!isHovered) setIsPositioned(false);
     }, [isHovered]);
 
     if (!show) return <>{children}</>;
@@ -147,8 +143,12 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
 
     const itemClasses = clsx(
         styles.menuItem.base,
-        isActive ? (isCollapsed ? styles.menuItem.active.collapsed : styles.menuItem.active.expanded) : styles.menuItem.inactive,
-        isCollapsed ? styles.menuItem.padding.collapsed : (level === 0 ? styles.menuItem.padding.level0 : styles.menuItem.padding.nested)
+        isActive
+            ? (isCollapsed ? styles.menuItem.active.collapsed : styles.menuItem.active.expanded)
+            : styles.menuItem.inactive,
+        isCollapsed
+            ? styles.menuItem.padding.collapsed
+            : (level === 0 ? styles.menuItem.padding.level0 : styles.menuItem.padding.nested)
     );
 
     const iconBoxClasses = clsx(
@@ -161,7 +161,10 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
         isActive ? styles.icon.active : styles.icon.inactive
     );
 
-    const textClasses = clsx('text-para-md font-medium leading-[1] transition-colors duration-200', isActive ? styles.text.active : styles.text.inactive);
+    const textClasses = clsx(
+        'text-para-md font-medium leading-[1] transition-colors duration-200',
+        isActive ? styles.text.active : styles.text.inactive
+    );
 
     const content = (
         <>
@@ -174,7 +177,10 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
             {!isCollapsed && hasChildren && (
                 <RiArrowDownSLine
                     style={ICON_SIZE}
-                    className={clsx('text-text-tertiary transition-all duration-200 group-hover:text-text-primary', isExpanded && 'rotate-180')}
+                    className={clsx(
+                        'text-text-tertiary transition-all duration-200 group-hover:text-text-primary',
+                        isExpanded && 'rotate-180'
+                    )}
                 />
             )}
         </>
@@ -196,6 +202,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
 };
 
 // ===== LOGO COMPONENT =====
+// Uses new Tandem transparent logo — Dylan's updated branding
 const Logo: React.FC<LogoProps> = ({ isCollapsed }) => (
     <AnimatePresence mode="wait">
         <motion.div
@@ -204,13 +211,22 @@ const Logo: React.FC<LogoProps> = ({ isCollapsed }) => (
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className={isCollapsed ? 'flex justify-center' : 'flex items-center gap-sm'}
+            className={isCollapsed ? 'flex justify-center' : 'flex items-center'}
         >
-            <img src={tandem} alt="Logo" className="w-11 h-11 " />
-            {!isCollapsed && (
-                <div className="flex flex-col">
-                    <span className="text-xl font-semibold font-inter text-white">Tandem</span>
-                </div>
+            {isCollapsed ? (
+                // Collapsed: show dark logo cropped to icon area
+                <img
+                    src={tandemLogoDark}
+                    alt="Tandem"
+                    className="w-9 h-9 object-cover object-left"
+                />
+            ) : (
+                // Expanded: show full dark logo — transparent background, white text
+                <img
+                    src={tandemLogoDark}
+                    alt="Tandem"
+                    className="h-8 w-auto object-contain"
+                />
             )}
         </motion.div>
     </AnimatePresence>
@@ -224,13 +240,23 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
 }) => {
     const location = useLocation();
     const [isCollapsed, setIsCollapsed] = useState<boolean>(externalCollapsed || false);
-    const [expandedItems, setExpandedItems] = useState<string[]>(() => {
-        return menuItems
-            .filter(item => item.children?.some(child => location.pathname === child.path))
-            .map(item => item.id);
-    });
+    const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-    // Sync with external collapsed state
+    useEffect(() => {
+        const parentsToExpand = menuItems
+            .filter(item =>
+                item.children?.some(child => location.pathname === (child.path ?? ''))
+            )
+            .map(item => item.id);
+
+        setExpandedItems(prev => {
+            const merged = Array.from(new Set([...prev, ...parentsToExpand]));
+            return merged.length === prev.length && parentsToExpand.every(id => prev.includes(id))
+                ? prev
+                : merged;
+        });
+    }, [location.pathname]);
+
     useEffect(() => {
         if (externalCollapsed !== undefined) {
             setIsCollapsed(externalCollapsed);
@@ -239,13 +265,7 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
     }, [externalCollapsed]);
 
     const isItemActive = useCallback((item: MenuItem): boolean => {
-        const matchBasePath = location.pathname === (item.path ?? '');
-
-        const matchDirectChild = item.children?.some(child =>
-            location.pathname === (child.path ?? '')
-        );
-
-        return matchBasePath || !!matchDirectChild;
+        return location.pathname === (item.path ?? '');
     }, [location.pathname]);
 
     const toggleExpanded = useCallback((itemId: string): void => {
@@ -270,7 +290,6 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
         const hasChildren = !!item.children?.length;
         const isExpanded = expandedItems.includes(item.id);
 
-        // Skip nested items in collapsed view
         if (isCollapsed && level > 0) return null;
 
         const handleToggle = (): void => {
@@ -310,7 +329,6 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
             transition={ANIMATION_CONFIG}
             className="h-screen bg-background-primary-3 border-r border-border-default flex flex-col"
         >
-
             {/* Header */}
             <div className="border-border-default flex flex-col">
                 <div className="px-md py-2.5">

@@ -44,7 +44,6 @@ interface ChatMessage {
     reasoning?: string;
     timestamp: Date;
 }
-
 interface ChatPanelProps {
     context?: any;
     compositionId?: string | null;
@@ -52,6 +51,8 @@ interface ChatPanelProps {
     sections?: string[];
     onRefineComplete?: (refinedSections: string[]) => void;
     onRestoreComplete?: (newCompositionId: string) => void;
+    userRole?: 'designer' | 'client';
+    designerEmail?: string | null;
 }
 
 // ─── Reasoning Toggle 
@@ -254,7 +255,7 @@ const VersionNavigator = ({
     );
 };
 
-// ─── Chat Panel ───────────────────────────────────────────────────────────────
+// ─── Chat Panel 
 
 const ChatPanel = ({
     context,
@@ -263,6 +264,8 @@ const ChatPanel = ({
     sections = [],
     onRefineComplete,
     onRestoreComplete,
+    userRole = 'designer',
+    designerEmail,
 }: ChatPanelProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([
@@ -504,17 +507,25 @@ const ChatPanel = ({
             </div>
 
             {/* Version Navigator */}
-            {compositionId && versions.length > 0 && resolvedProjectId && (
-                <VersionNavigator
-                    projectId={resolvedProjectId}
-                    versions={versions}
-                    currentVersion={currentVersion}
-                    restoreStatus={restoreStatus}
-                    isPreviewingHistory={isPreviewingHistory}
-                    onRestore={handleRestore}
-                    onVersionChange={(msgs) => setMessages(prev => [...prev, ...msgs])}
-                    onPageSchemaChange={(schema) => dispatch(setPreviewSchema(schema))}
-                />
+            {compositionId && resolvedProjectId && (
+                versions.length > 0 ? (
+                    <VersionNavigator
+                        projectId={resolvedProjectId}
+                        versions={versions}
+                        currentVersion={currentVersion}
+                        restoreStatus={restoreStatus}
+                        isPreviewingHistory={isPreviewingHistory}
+                        onRestore={handleRestore}
+                        onVersionChange={(msgs) => setMessages(prev => [...prev, ...msgs])}
+                        onPageSchemaChange={(schema) => dispatch(setPreviewSchema(schema))}
+                    />
+                ) : (
+                    <div className="px-sm py-xs border-b border-border-default bg-background-secondary flex-shrink-0">
+                        <Para size="xs" color="secondary" className="text-center">
+                            No versions yet — refinements will appear here.
+                        </Para>
+                    </div>
+                )
             )}
 
             {/* Preview Mode Banner */}
@@ -713,8 +724,7 @@ const ChatPanel = ({
                             initial={{ opacity: 0, y: -8 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -8 }}
-                            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
-                        >
+                            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm w-[calc(100vw-2rem)] max-w-md"                        >
                             <span>⚠️ {warningState.remaining} {warningState.usage_type === 'refine' ? 'refinement' : 'restore'}{warningState.remaining === 1 ? '' : 's'} left on your free plan.</span>
                             <button onClick={dismissWarning} className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline">
                                 Dismiss
@@ -729,6 +739,8 @@ const ChatPanel = ({
                         usageType={gateState.usage_type}
                         currentCount={gateState.current_count}
                         limit={gateState.limit}
+                        userRole={userRole}
+                        designerEmail={designerEmail}
                         isCheckoutLoading={isCheckoutLoading}
                         checkoutError={checkoutError}
                         onUpgrade={(plan) => initiateCheckout(plan)}
@@ -786,8 +798,7 @@ const ChatPanel = ({
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
-                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm"
-                    >
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm w-[calc(100vw-2rem)] max-w-md"                    >
                         <span>⚠️ {warningState.remaining} {warningState.usage_type === 'refine' ? 'refinement' : 'restore'}{warningState.remaining === 1 ? '' : 's'} left on your free plan.</span>
                         <button onClick={dismissWarning} className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline">
                             Dismiss
@@ -802,6 +813,8 @@ const ChatPanel = ({
                     usageType={gateState.usage_type}
                     currentCount={gateState.current_count}
                     limit={gateState.limit}
+                    userRole={userRole}
+                    designerEmail={designerEmail}
                     isCheckoutLoading={isCheckoutLoading}
                     checkoutError={checkoutError}
                     onUpgrade={(plan) => initiateCheckout(plan)}

@@ -38,6 +38,8 @@ const RefineCanvas: React.FC = () => {
 
   const lastUpdatedCategories = useSelector(selectLastUpdatedCategories);
   const projectId = useSelector((state: RootState) => state.project.projectId);
+const userRole = useSelector((state: RootState) => state.auth.user.role);
+  const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
 
   const compositionId = storedId ?? id ?? null;
   const activeSchema = useSelector(selectActiveOrPreviewSchema);
@@ -114,18 +116,22 @@ const RefineCanvas: React.FC = () => {
       </div>
 
       <div className="hidden lg:flex flex-col w-96 border-l border-border-default flex-shrink-0 h-screen sticky top-0">
-        <ChatPanel
+      <ChatPanel
           compositionId={compositionId}
           projectId={projectId}
           sections={sectionCategories}
+          userRole={userRole === 'Designer' ? 'designer' : 'client'}
+          designerEmail={designerEmail}
         />
       </div>
 
       <div className="lg:hidden">
-        <ChatPanel
+      <ChatPanel
           compositionId={compositionId}
           projectId={projectId}
           sections={sectionCategories}
+          userRole={userRole === 'Designer' ? 'designer' : 'client'}
+          designerEmail={designerEmail}
         />
       </div>
     </div>

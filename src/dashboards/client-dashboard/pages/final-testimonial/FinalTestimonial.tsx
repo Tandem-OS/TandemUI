@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { FaStar, FaCheckCircle, FaArrowRight, FaHeart, FaPaperPlane } from 'react-icons/fa';
 import FormButton from '../../../../components/auth/form/components/FormButton';
 import SimpleButton from '../../../../components/demos/buttons/SimpleButton';
-import { motion, useInView } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { mockFeedbackQuestionData } from '../../../../mock-data/testimonial-questions-mock';
 import { paltformTestimonialSubmission } from '@/lib/requests/TestimonialRequest';
@@ -40,41 +40,53 @@ interface ReviewStepProps {
     hoveredRating: number;
     setHoveredRating: (rating: number) => void;
     getEmojiForRating: (rating: number) => string;
+    ratingError?: string;
+    clearRatingError: () => void;
 }
 
+// ─── Inline error ─────────────────────────────────────────────────────────────
 
-// --- REUSABLE COMPONENTS ---
-
-// StarRating Component (Updated with responsive visibility for the count)
-const StarRating: React.FC<StarRatingProps> = ({ rating, onRatingChange, hoveredRating, setHoveredRating }) => {
+const FieldError: React.FC<{ message?: string }> = ({ message }) => {
+    if (!message) return null;
     return (
-        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-md">
-            <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
-                    <button
-                        key={star}
-                        type="button"
-                        className={`w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 transition-colors cursor-pointer ${star <= hoveredRating || star <= rating
-                            ? 'text-yellow-300'
-                            : 'text-indigo-200/50'
-                            }`}
-                        onClick={() => onRatingChange(star)}
-                        onMouseEnter={() => setHoveredRating(star)}
-                        onMouseLeave={() => setHoveredRating(0)}
-                    >
-                        <FaStar className="w-full h-full" />
-                    </button>
-                ))}
-            </div>
-            {/* Rating count is now hidden on mobile */}
-            <span className="text-para-lg md:text-para-xl text-white font-medium leading-none hidden sm:inline sm:pt-1">
-                {rating}/10
-            </span>
-        </div>
+        <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-para-xs text-text-error mt-xs"
+        >
+            {message}
+        </motion.p>
     );
 };
 
-// InfoStep Component (Now more responsive)
+// --- REUSABLE COMPONENTS ---
+
+const StarRating: React.FC<StarRatingProps> = ({ rating, onRatingChange, hoveredRating, setHoveredRating }) => (
+    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-md">
+        <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                    key={star}
+                    type="button"
+                    className={`w-7 h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 transition-colors cursor-pointer ${star <= hoveredRating || star <= rating
+                        ? 'text-yellow-300'
+                        : 'text-indigo-200/50'
+                        }`}
+                    onClick={() => onRatingChange(star)}
+                    onMouseEnter={() => setHoveredRating(star)}
+                    onMouseLeave={() => setHoveredRating(0)}
+                >
+                    <FaStar className="w-full h-full" />
+                </button>
+            ))}
+        </div>
+        <span className="text-para-lg md:text-para-xl text-white font-medium leading-none hidden sm:inline sm:pt-1">
+            {rating}/5
+        </span>
+    </div>
+);
+
 const InfoStep: React.FC<InfoStepProps> = ({ icon, title, message, buttonText, onButtonClick, buttonIcon }) => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true });
@@ -93,61 +105,26 @@ const InfoStep: React.FC<InfoStepProps> = ({ icon, title, message, buttonText, o
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="text-center space-y-md lg:space-y-lg mt-lg lg:mt-xl"
         >
-            <motion.div
-                animate={isInView ? "visible" : "hidden"}
-                variants={variants}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-                className="w-20 h-20 lg:w-24 lg:h-24 mx-auto bg-accent-subtle rounded-full flex items-center justify-center"
-            >
+            <motion.div animate={isInView ? "visible" : "hidden"} variants={variants} transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }} className="w-20 h-20 lg:w-24 lg:h-24 mx-auto bg-accent-subtle rounded-full flex items-center justify-center">
                 {icon}
             </motion.div>
-
-            <motion.div
-                animate={isInView ? "visible" : "hidden"}
-                variants={variants}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-                className="space-y-sm md:space-y-md"
-            >
-                <h1 className="text-h3-sm sm:text-h2-md lg:text-h1-sm font-bold text-text-primary">
-                    {title}
-                </h1>
-                <p className="text-para-md sm:text-para-lg text-text-secondary max-w-2xl mx-auto leading-relaxed">
-                    {message}
-                </p>
+            <motion.div animate={isInView ? "visible" : "hidden"} variants={variants} transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }} className="space-y-sm md:space-y-md">
+                <h1 className="text-h3-sm sm:text-h2-md lg:text-h1-sm font-bold text-text-primary">{title}</h1>
+                <p className="text-para-md sm:text-para-lg text-text-secondary max-w-2xl mx-auto leading-relaxed">{message}</p>
             </motion.div>
-
-            <motion.div
-                animate={isInView ? "visible" : "hidden"}
-                variants={variants}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
-                className='pt-sm'
-            >
-                <SimpleButton
-                    onClick={onButtonClick}
-                    className="flex gap-sm items-center"
-                    size="lg"
-                >
-                    {buttonText}
-                    {buttonIcon}
+            <motion.div animate={isInView ? "visible" : "hidden"} variants={variants} transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }} className='pt-sm'>
+                <SimpleButton onClick={onButtonClick} className="flex gap-sm items-center" size="lg">
+                    {buttonText}{buttonIcon}
                 </SimpleButton>
             </motion.div>
         </motion.div>
     );
 };
 
-// ReviewStep Component (Updated with new mobile layout)
 const ReviewStep: React.FC<ReviewStepProps> = ({
-    data,
-    overallRating,
-    setOverallRating,
-    answers,
-    setAnswers,
-    handleSubmit,
-    isSubmitting,
-    canSubmit,
-    hoveredRating,
-    setHoveredRating,
-    getEmojiForRating,
+    data, overallRating, setOverallRating, answers, setAnswers,
+    handleSubmit, isSubmitting, canSubmit, hoveredRating, setHoveredRating,
+    getEmojiForRating, ratingError, clearRatingError,
 }) => {
     const ref = useRef(null);
     const isInView = useInView(ref, { once: true });
@@ -158,9 +135,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
     };
 
     useEffect(() => {
-        if (overallRating > 0) {
-            setEmojiKey(prev => prev + 1);
-        }
+        if (overallRating > 0) setEmojiKey(prev => prev + 1);
     }, [overallRating]);
 
     const variants = {
@@ -177,55 +152,46 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="space-y-lg md:space-y-xl max-w-3xl mx-auto"
         >
-            <motion.div
-                animate={isInView ? "visible" : "hidden"}
-                variants={variants}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-                className="text-center space-y-sm"
-            >
-                <h2 className="text-h4-md sm:text-h3-md lg:text-h2-md font-bold text-text-primary">
-                    {data.title}
-                </h2>
-                <p className="text-para-sm sm:text-para-md text-text-secondary">
-                    {data.subtitle}
-                </p>
+            <motion.div animate={isInView ? "visible" : "hidden"} variants={variants} transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }} className="text-center space-y-sm">
+                <h2 className="text-h4-md sm:text-h3-md lg:text-h2-md font-bold text-text-primary">{data.title}</h2>
+                <p className="text-para-sm sm:text-para-md text-text-secondary">{data.subtitle}</p>
             </motion.div>
 
             <div className="space-y-lg md:space-y-xl">
-                {/* Overall Rating - Updated Layout */}
-                <motion.div
-                    animate={isInView ? "visible" : "hidden"}
-                    variants={variants}
-                    transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-                    className="bg-accent-default rounded-xl p-md sm:p-lg lg:p-xl border border-border-default shadow-lg"
-                >
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-md sm:gap-lg">
-                        {/* Emoji first */}
-                        <motion.div
-                            key={emojiKey}
-                            initial={{ scale: 0.5, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            transition={{ type: "spring", stiffness: 260, damping: 20 }}
-                            className="text-6xl sm:text-7xl order-1 sm:order-2"
-                        >
-                            {getEmojiForRating(hoveredRating || overallRating)}
-                        </motion.div>
-
-                        {/* Question and Stars second */}
-                        <div className="space-y-md text-center sm:text-left order-2 sm:order-1">
-                            <h3 className="text-para-lg sm:text-h5-sm lg:text-h4-sm font-medium text-white">
-                                {data.ratingQuestion}
-                            </h3>
-                            {/* "Your rating" label is now hidden on mobile */}
-                            <p className="text-para-md lg:text-para-lg text-white/90 font-semibold hidden sm:block">Your rating</p>
-                            <StarRating
-                                rating={overallRating}
-                                onRatingChange={setOverallRating}
-                                hoveredRating={hoveredRating}
-                                setHoveredRating={setHoveredRating}
-                            />
+                {/* Overall Rating */}
+                <motion.div animate={isInView ? "visible" : "hidden"} variants={variants} transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}>
+                    <div className={`bg-accent-default rounded-xl p-md sm:p-lg lg:p-xl border shadow-lg ${ratingError ? 'border-text-error' : 'border-border-default'}`}>
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-md sm:gap-lg">
+                            {/*
+                              FIX — same issue as DesignerTestimonial: emoji had order-1 sm:order-2
+                              which showed it above the question on mobile. Question should always lead.
+                              Mobile: question (order-1) → emoji (order-2).
+                              sm+: flex-row puts them side by side naturally — question left, emoji right.
+                            */}
+                            <div className="space-y-md text-center sm:text-left order-1">
+                                <h3 className="text-para-lg sm:text-h5-sm lg:text-h4-sm font-medium text-white">{data.ratingQuestion}</h3>
+                                <p className="text-para-md lg:text-para-lg text-white/90 font-semibold hidden sm:block">Your rating</p>
+                                <StarRating
+                                    rating={overallRating}
+                                    onRatingChange={(r) => { setOverallRating(r); clearRatingError(); }}
+                                    hoveredRating={hoveredRating}
+                                    setHoveredRating={setHoveredRating}
+                                />
+                            </div>
+                            <motion.div
+                                key={emojiKey}
+                                initial={{ scale: 0.5, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                                className="text-6xl sm:text-7xl order-2"
+                            >
+                                {getEmojiForRating(hoveredRating || overallRating)}
+                            </motion.div>
                         </div>
                     </div>
+                    <AnimatePresence>
+                        {ratingError && <FieldError message={ratingError} />}
+                    </AnimatePresence>
                 </motion.div>
 
                 {/* Dynamic Questions */}
@@ -238,9 +204,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                         transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 + index * 0.1 }}
                         className="space-y-sm"
                     >
-                        <label htmlFor={`${q.id}-textarea`} className="block text-para-md font-medium text-text-primary">
-                            {q.label}
-                        </label>
+                        <label htmlFor={`${q.id}-textarea`} className="block text-para-md font-medium text-text-primary">{q.label}</label>
                         <textarea
                             id={`${q.id}-textarea`}
                             value={answers[q.id] || ''}
@@ -249,7 +213,6 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                             className="w-full h-32 p-md lg:p-lg text-para-md text-text-primary bg-background-secondary border border-border-default rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-accent-default focus:border-transparent transition-all placeholder:text-text-tertiary"
                             maxLength={500}
                         />
-
                         <div className="flex justify-between text-para-sm text-text-tertiary">
                             <span>Optional</span>
                             <span>{(answers[q.id]?.length || 0)}/500</span>
@@ -258,20 +221,8 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
                 ))}
             </div>
 
-            <motion.div
-                initial="hidden"
-                animate={isInView ? "visible" : "hidden"}
-                variants={variants}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 0.5 }}
-                className="flex justify-center pt-md lg:pt-lg"
-            >
-                <FormButton
-                    onClick={handleSubmit}
-                    isLoading={isSubmitting}
-                    size="lg"
-                    fullWidth
-                    disabled={!canSubmit() || isSubmitting}
-                >
+            <motion.div initial="hidden" animate={isInView ? "visible" : "hidden"} variants={variants} transition={{ duration: 0.6, ease: "easeOut", delay: 0.5 }} className="flex justify-center pt-md lg:pt-lg">
+                <FormButton onClick={handleSubmit} isLoading={isSubmitting} size="lg" fullWidth disabled={isSubmitting}>
                     <div className="flex items-center gap-sm">
                         <FaPaperPlane className="text-icon-sm" />
                         <span>Submit Feedback</span>
@@ -282,7 +233,6 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
     );
 };
 
-
 // --- MAIN COMPONENT ---
 
 const FinalTestimonial: React.FC = () => {
@@ -291,10 +241,19 @@ const FinalTestimonial: React.FC = () => {
     const [answers, setAnswers] = useState<FeedbackAnswers>({});
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [hoveredRating, setHoveredRating] = useState<number>(0);
+    const [ratingError, setRatingError] = useState<string | undefined>();
 
     const navigate = useNavigate();
 
+    const canSubmit = useCallback((): boolean => overallRating > 0, [overallRating]);
+
     const handleSubmit = useCallback(async () => {
+        if (!canSubmit()) {
+            setRatingError('Please select a rating before submitting');
+            return;
+        }
+        setRatingError(undefined);
+
         setIsSubmitting(true);
         try {
             const submissionData = {
@@ -303,38 +262,26 @@ const FinalTestimonial: React.FC = () => {
                 recommend: answers.recommend,
                 submittedAt: new Date().toISOString()
             };
-
-            // Replace '/api/testimonials' with your actual API endpoint
-            console.log('Submitting data:', submissionData);
-            await paltformTestimonialSubmission(submissionData)
-
-            setCurrentStep(2); // Move to success step on successful submission
-
+            await paltformTestimonialSubmission(submissionData);
+            setCurrentStep(2);
         } catch (error) {
             console.error('Submission error:', error);
-            // Optionally, handle error state or show a message to the user
         } finally {
             setIsSubmitting(false);
         }
-    }, [overallRating, answers]);
-
-    const canSubmit = useCallback((): boolean => {
-        return overallRating > 0;
-    }, [overallRating]);
+    }, [overallRating, answers, canSubmit]);
 
     const getEmojiForRating = useCallback((rating: number): string => {
         if (rating === 0) return '😊';
-        if (rating <= 2) return '😡';
-        if (rating <= 4) return '😞';
-        if (rating <= 6) return '😐';
-        if (rating <= 8) return '😊';
-        if (rating <= 10) return '🤩';
+        if (rating <= 1) return '😡';
+        if (rating <= 2) return '😞';
+        if (rating <= 3) return '😐';
+        if (rating <= 4) return '😊';
+        if (rating <= 5) return '🤩';
         return '😊';
     }, []);
 
-    const handleGoToDashboard = useCallback(() => {
-        navigate('/dashboard/client');
-    }, [navigate]);
+    const handleGoToDashboard = useCallback(() => navigate('/dashboard/client'), [navigate]);
 
     const steps = [
         <InfoStep
@@ -359,6 +306,8 @@ const FinalTestimonial: React.FC = () => {
             hoveredRating={hoveredRating}
             setHoveredRating={setHoveredRating}
             getEmojiForRating={getEmojiForRating}
+            ratingError={ratingError}
+            clearRatingError={() => setRatingError(undefined)}
         />,
         <InfoStep
             key="success"

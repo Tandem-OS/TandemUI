@@ -3,13 +3,13 @@ import { FaComment, FaArrowRight, FaCheckCircle, FaClock, FaTag } from 'react-ic
 import { motion } from 'framer-motion';
 import type { Project } from '../../../../../types/project.type';
 import { useNavigate } from 'react-router-dom';
+import { getStatusLabel } from '@/lib/config/projectStatus';
 
 interface ProjectCardProps {
   project: Project;
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
-
   const navigate = useNavigate();
 
   const getStatusConfig = (status: string) => {
@@ -23,7 +23,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         };
       case 'in-progress':
         return {
-          // Softer colors for dark mode compatibility
           color: 'text-amber-600 dark:text-amber-400',
           bg: 'bg-amber-50 dark:bg-amber-900/20',
           border: 'border-amber-200 dark:border-amber-800/30',
@@ -39,16 +38,20 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     }
   };
 
+  // ─── Status-aware CTA label ───────────────────────────────────────────────
+  const getCtaLabel = (): string => {
+    if (project.currentStage === 'handoff') return 'View handoff';
+    if (project.status === 'completed' || project.currentStage === 'completed') return 'Review project';
+    return 'View';
+  };
+
   const statusConfig = getStatusConfig(project.status);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{
-        y: -4,
-        transition: { duration: 0.2, ease: "easeOut" }
-      }}
+      whileHover={{ y: -4, transition: { duration: 0.2, ease: "easeOut" } }}
       transition={{ duration: 0.3, ease: "easeOut" }}
       className="bg-background-primary-2 border border-border-default rounded-xl sm:rounded-2xl px-lg py-lg sm:px-xl sm:py-xl lg:px-2xl lg:py-2xl hover:shadow-xl shadow-sm relative overflow-hidden group"
     >
@@ -70,7 +73,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </div>
           <div className={`flex items-center gap-sm px-md py-sm rounded-lg text-para-xs font-medium border ${statusConfig.border} ${statusConfig.bg} ${statusConfig.color} flex-shrink-0 w-fit`}>
             {statusConfig.icon}
-            <span className="whitespace-nowrap">{project.status === 'completed' ? 'Completed' : 'In Progress'}</span>
+            <span className="whitespace-nowrap">
+              {project.status === 'completed' ? 'Completed' : 'In Progress'}
+            </span>
           </div>
         </div>
 
@@ -82,7 +87,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
               alt={project.designer}
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-border-default"
             />
-            <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-text-success rounded-full border-2 border-background-primary-2"></div>
+            <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-text-success rounded-full border-2 border-background-primary-2" />
           </div>
           <div>
             <p className="text-para-sm sm:text-para-md font-medium text-text-primary">{project.designer}</p>
@@ -90,7 +95,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </div>
         </div>
 
-        {/* Progress - Simplified to brand purple only */}
+        {/* Progress */}
         <div className="mb-lg sm:mb-xl">
           <div className="flex items-center justify-between mb-sm sm:mb-md">
             <span className="text-para-xs sm:text-para-sm font-medium text-text-primary">Progress</span>
@@ -106,10 +111,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </div>
         </div>
 
-        {/* Current Stage */}
+        {/* Current Stage — human-readable via getStatusLabel */}
         <div className="mb-lg sm:mb-xl">
           <p className="text-para-xs text-text-secondary mb-xs sm:mb-sm">Current Stage</p>
-          <p className="text-para-xs sm:text-para-sm font-medium text-text-primary">{project.currentStage}</p>
+          <p className="text-para-xs sm:text-para-sm font-medium text-text-primary">
+            {getStatusLabel(project.currentStage)}
+          </p>
         </div>
 
         {/* Footer */}
@@ -128,16 +135,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
           </div>
 
           <motion.button
-            whileHover={{
-              y: -2,
-              scale: 1.02,
-              transition: { duration: 0.2, ease: "easeOut" }
-            }}
+            whileHover={{ y: -2, scale: 1.02, transition: { duration: 0.2, ease: "easeOut" } }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate(`/dashboard/designer/my-project/project-overview/${project.id}`)}
             className="flex items-center justify-center gap-sm px-lg py-sm sm:px-xl sm:py-md bg-accent-default hover:bg-accent-hover text-accent-foreground text-para-xs sm:text-para-sm font-medium rounded-lg sm:rounded-xl transition-all duration-200 hover:shadow-lg group-hover:shadow-xl w-full sm:w-auto"
           >
-            <span>View</span>
+            <span>{getCtaLabel()}</span>
             <FaArrowRight className="text-icon-sm transition-transform duration-200 group-hover:translate-x-1" />
           </motion.button>
         </div>
