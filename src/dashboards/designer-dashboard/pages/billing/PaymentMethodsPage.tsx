@@ -9,15 +9,10 @@ import {
 } from 'react-icons/ri';
 import { createPortalSession, getPaymentMethod, type PaymentMethodResponse } from '@/lib/requests/BillingRequest';
 
-const CARD_BRAND_ICONS: Record<string, string> = {
-    visa: '💳',
-    mastercard: '💳',
-    amex: '💳',
-    discover: '💳',
+const formatBrand = (brand: string | null): string => {
+    if (!brand) return 'Card';
+    return brand.charAt(0).toUpperCase() + brand.slice(1);
 };
-
-const formatBrand = (brand: string): string =>
-    brand.charAt(0).toUpperCase() + brand.slice(1);
 
 const PaymentMethodsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -131,7 +126,7 @@ const PaymentMethodsPage: React.FC = () => {
 
                                             <div>
                                                 <p className="text-para-sm font-semibold text-text-primary">
-                                                    {formatBrand(paymentMethod!.brand)} •••• {paymentMethod!.last4}
+                                                    {formatBrand(paymentMethod?.brand ?? null)} •••• {paymentMethod!.last4}
                                                 </p>
                                                 <p className="text-para-xs text-text-secondary mt-xs">
                                                     Expires {paymentMethod!.exp_month?.toString().padStart(2, '0')} / {paymentMethod!.exp_year}

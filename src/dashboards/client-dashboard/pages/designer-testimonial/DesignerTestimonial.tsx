@@ -143,7 +143,7 @@ const PromptStep = ({ onContinue, onSkip }: { onContinue: () => void; onSkip: ()
 // Step 2: The Main Review Form
 const ReviewStep: FC<ReviewStepProps> = ({
     designer, rating, setRating, answers, setAnswers,
-    handleSubmit, isSubmitting, canSubmit, ratingError, clearRatingError
+    handleSubmit, isSubmitting, ratingError, clearRatingError
 }) => {
     const handleAnswerChange = (questionId: string, value: string) => {
         if (value.length <= 500) {

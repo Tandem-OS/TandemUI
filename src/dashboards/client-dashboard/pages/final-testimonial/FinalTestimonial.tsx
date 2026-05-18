@@ -123,7 +123,7 @@ const InfoStep: React.FC<InfoStepProps> = ({ icon, title, message, buttonText, o
 
 const ReviewStep: React.FC<ReviewStepProps> = ({
     data, overallRating, setOverallRating, answers, setAnswers,
-    handleSubmit, isSubmitting, canSubmit, hoveredRating, setHoveredRating,
+    handleSubmit, isSubmitting, hoveredRating, setHoveredRating,
     getEmojiForRating, ratingError, clearRatingError,
 }) => {
     const ref = useRef(null);
