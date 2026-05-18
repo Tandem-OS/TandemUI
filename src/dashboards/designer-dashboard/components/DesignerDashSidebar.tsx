@@ -5,7 +5,7 @@ import { RiArrowDownSLine } from 'react-icons/ri';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { menuItems, type MenuItem } from '../config/menuItems';
-import tandem from '@/assets/images/tandem.svg'
+import tandemLogoDark from '@/assets/images/tandem-logo-dark.png';
 
 // ===== CONSTANTS =====
 const ANIMATION_CONFIG = { duration: 0.3, ease: "easeInOut" as const };
@@ -202,6 +202,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
 };
 
 // ===== LOGO COMPONENT =====
+// Uses new Tandem transparent logo — Dylan's updated branding
 const Logo: React.FC<LogoProps> = ({ isCollapsed }) => (
     <AnimatePresence mode="wait">
         <motion.div
@@ -210,13 +211,22 @@ const Logo: React.FC<LogoProps> = ({ isCollapsed }) => (
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className={isCollapsed ? 'flex justify-center' : 'flex items-center gap-sm'}
+            className={isCollapsed ? 'flex justify-center' : 'flex items-center'}
         >
-            <img src={tandem} alt="Logo" className="w-11 h-11" />
-            {!isCollapsed && (
-                <div className="flex flex-col">
-                    <span className="text-xl font-semibold font-inter text-white">Tandem</span>
-                </div>
+            {isCollapsed ? (
+                // Collapsed: show dark logo cropped to icon area
+                <img
+                    src={tandemLogoDark}
+                    alt="Tandem"
+                    className="w-9 h-9 object-cover object-left"
+                />
+            ) : (
+                // Expanded: show full dark logo — transparent background, white text
+                <img
+                    src={tandemLogoDark}
+                    alt="Tandem"
+                    className="h-8 w-auto object-contain"
+                />
             )}
         </motion.div>
     </AnimatePresence>
@@ -232,7 +242,6 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
     const [isCollapsed, setIsCollapsed] = useState<boolean>(externalCollapsed || false);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-    // Auto-expand parent when navigating to a child route
     useEffect(() => {
         const parentsToExpand = menuItems
             .filter(item =>
@@ -243,12 +252,11 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
         setExpandedItems(prev => {
             const merged = Array.from(new Set([...prev, ...parentsToExpand]));
             return merged.length === prev.length && parentsToExpand.every(id => prev.includes(id))
-                ? prev // no change, avoid re-render
+                ? prev
                 : merged;
         });
     }, [location.pathname]);
 
-    // Sync with external collapsed state
     useEffect(() => {
         if (externalCollapsed !== undefined) {
             setIsCollapsed(externalCollapsed);
@@ -256,9 +264,6 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
         }
     }, [externalCollapsed]);
 
-    // A parent is active only when exactly on its own path.
-    // A leaf is active only on exact match.
-    // This prevents the parent row lighting up alongside its active child.
     const isItemActive = useCallback((item: MenuItem): boolean => {
         return location.pathname === (item.path ?? '');
     }, [location.pathname]);
@@ -285,7 +290,6 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
         const hasChildren = !!item.children?.length;
         const isExpanded = expandedItems.includes(item.id);
 
-        // Skip nested items in collapsed view
         if (isCollapsed && level > 0) return null;
 
         const handleToggle = (): void => {
