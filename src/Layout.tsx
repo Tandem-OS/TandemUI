@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom"
+import { Navigate, Route, Routes } from "react-router-dom"
 import AuthLayout from "@/components/auth/layouts/AuthLayout"
 import OnboardingForm from "@/components/intake-form/OnboardingForm"
 import OnboardComplete from "@/components/onboard-completed/OnboardComplete"
@@ -15,6 +15,8 @@ const Layout = () => {
     return (
         <main className={layoutTokens.layout.root}>
             <Routes>
+                <Route index element={<Navigate to={ROUTES.AUTH} replace />} />
+                <Route path="/" element={<Navigate to={ROUTES.AUTH} replace />} />
                 <Route path={`${ROUTES.AUTH}/*`} element={<AuthLayout variant="split" />} />
                 <Route path={ROUTES.PREVIEW_COMPOSE} element={<PreviewComposePage />} />
                 <Route element={<ProtectedRoute />}>
