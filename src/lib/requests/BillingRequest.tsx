@@ -7,10 +7,10 @@ export type BillingPlan = "monthly" | "annual";
 export const createCheckoutSession = async (
   plan: BillingPlan = "monthly"
 ): Promise<string> => {
-  const response = await api.post<string>(
+  const response = await api.post<{ url: string }>(
     `/stripe/create-checkout-session?plan=${plan}`
   );
-  return response.data;
+  return response.data.url; // ← extract .url
 };
 
 // ─── Portal ───────────────────────────────────────────────────────────────────

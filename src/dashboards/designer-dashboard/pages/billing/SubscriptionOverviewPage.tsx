@@ -25,7 +25,6 @@ const formatBillingCycle = (cycle: 'month' | 'year'): string =>
   cycle === 'month' ? 'monthly' : 'annual';
 
 // ─── Static Pro features list ─────────────────────────────────────────────────
-// Features are plan-level constants, not returned by the subscription endpoint
 
 const PRO_FEATURES = [
   '200 AI credits / month',
@@ -63,7 +62,6 @@ const SubscriptionOverviewPage: React.FC = () => {
   const [portalError, setPortalError] = useState<string | null>(null);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  // Fetch real subscription data on mount
   useEffect(() => {
     const fetchSubscription = async () => {
       try {
@@ -97,8 +95,6 @@ const SubscriptionOverviewPage: React.FC = () => {
     try {
       const result = await cancelSubscription();
       setShowCancelModal(false);
-      // Format the period-end timestamp into a human-readable date
-      // current_period_end is a Unix timestamp (seconds)
       const downgradeDate = result.current_period_end
         ? new Date(result.current_period_end * 1000).toLocaleDateString('en-US', {
             month: 'long',
@@ -117,6 +113,9 @@ const SubscriptionOverviewPage: React.FC = () => {
       setIsCancelling(false);
     }
   };
+
+  const isPro = subscription?.plan === 'pro';
+  const isScheduledToCancel = subscription?.cancel_at_period_end === true;
 
   return (
     <div className="min-h-screen bg-background-primary">
@@ -166,25 +165,47 @@ const SubscriptionOverviewPage: React.FC = () => {
             </div>
           )}
 
-          {/* Main content — only render when data is loaded */}
+          {/* Main content */}
           {!isLoading && subscription && (() => {
-            const planName = subscription.plan === 'pro' ? 'Pro Plan' : 'Free Plan';
-            const priceDisplay = subscription.price > 0
-              ? `${formatPrice(subscription.price, subscription.currency)} / ${subscription.billing_cycle}`
-              : 'Free';
-            const renewalDate = subscription.next_renewal_date
-              ? formatUnixDate(subscription.next_renewal_date)
-              : '—';
             const cancelDate = subscription.cancel_at
               ? formatUnixDate(subscription.cancel_at)
               : null;
 
+            const renewalDate = subscription.next_renewal_date
+              ? formatUnixDate(subscription.next_renewal_date)
+              : '—';
+
+            const downgradeDateDisplay = cancelDate ?? renewalDate;
+
+            // Plan name reflects cancelling state
+            const planName = isScheduledToCancel
+              ? 'Pro Plan (Cancelling)'
+              : isPro
+                ? 'Pro Plan'
+                : 'Free Plan';
+
+            const priceDisplay = subscription.price > 0
+              ? `${formatPrice(subscription.price, subscription.currency)} / ${subscription.billing_cycle}`
+              : 'Free';
+
+            // Status badge
+            const statusLabel = isScheduledToCancel
+              ? 'Cancelling'
+              : subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1);
+
+            const statusClass = isScheduledToCancel
+              ? 'bg-amber-50 text-amber-700 border-amber-200'
+              : subscription.status === 'active'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                : 'bg-amber-50 text-amber-700 border-amber-200';
+
             return (
               <>
-                {/* Cancellation scheduled warning */}
-                {subscription.cancel_at_period_end && (
+                {/* Cancellation scheduled banner */}
+                {isScheduledToCancel && (
                   <div className="mb-lg px-md py-sm bg-amber-50 border border-amber-200 rounded-xl text-para-sm text-amber-800">
-                    Your subscription is scheduled to cancel on {cancelDate ?? renewalDate}. You'll keep Pro access until then.
+                    Your subscription is scheduled to cancel on {downgradeDateDisplay}.{' '}
+                    You'll keep Pro access until then, then your account moves to Free.
                   </div>
                 )}
 
@@ -220,49 +241,58 @@ const SubscriptionOverviewPage: React.FC = () => {
                       <div className="flex items-center gap-xs mt-xs">
                         <RiCalendarLine className="text-icon-xs text-text-secondary" />
                         <p className="text-para-sm text-text-secondary">
-                          Next renewal: <span className="font-medium text-text-primary">{renewalDate}</span>
+                          {isScheduledToCancel ? (
+                            <>Downgrades to Free: <span className="font-medium text-text-primary">{downgradeDateDisplay}</span></>
+                          ) : (
+                            <>Next renewal: <span className="font-medium text-text-primary">{renewalDate}</span></>
+                          )}
                         </p>
                       </div>
-                      <p className="text-para-xs text-text-secondary mt-xs">Your plan renews automatically.</p>
+                      {!isScheduledToCancel && (
+                        <p className="text-para-xs text-text-secondary mt-xs">Your plan renews automatically.</p>
+                      )}
                     </div>
-                    <span className={`px-sm py-xs border rounded-full text-para-xs font-medium flex-shrink-0 ${
-                      subscription.status === 'active'
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                    }`}>
-                      {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
+
+                    {/* Status badge */}
+                    <span className={`px-sm py-xs border rounded-full text-para-xs font-medium flex-shrink-0 ${statusClass}`}>
+                      {statusLabel}
                     </span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-sm">
-                    <motion.button
-                      onClick={handleManagePortal}
-                      disabled={isPortalLoading}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex items-center gap-xs px-md py-sm rounded-lg border border-[#C4B5FD] text-[#7C3AED] text-para-sm font-medium hover:bg-[#F5F3FF] transition-colors disabled:opacity-60"
-                    >
-                      {isPortalLoading ? (
-                        <span className="w-4 h-4 border-2 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <>
-                          Manage in Customer Portal
-                          <RiExternalLinkLine className="text-icon-xs" />
-                        </>
-                      )}
-                    </motion.button>
-                    {!subscription.cancel_at_period_end && (
-                      <button
-                        onClick={() => setShowCancelModal(true)}
-                        className="px-md py-sm rounded-lg border border-border-default text-text-secondary text-para-sm hover:bg-background-muted transition-colors"
-                      >
-                        Cancel subscription
-                      </button>
+                    {/* Portal + Cancel buttons: only for active Pro, hidden once cancellation scheduled */}
+                    {isPro && !isScheduledToCancel && (
+                      <>
+                        <motion.button
+                          onClick={handleManagePortal}
+                          disabled={isPortalLoading}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="flex items-center gap-xs px-md py-sm rounded-lg border border-[#C4B5FD] text-[#7C3AED] text-para-sm font-medium hover:bg-[#F5F3FF] transition-colors disabled:opacity-60"
+                        >
+                          {isPortalLoading ? (
+                            <span className="w-4 h-4 border-2 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <>
+                              Manage in Customer Portal
+                              <RiExternalLinkLine className="text-icon-xs" />
+                            </>
+                          )}
+                        </motion.button>
+                        <button
+                          onClick={() => setShowCancelModal(true)}
+                          className="px-md py-sm rounded-lg border border-border-default text-text-secondary text-para-sm hover:bg-background-muted transition-colors"
+                        >
+                          Cancel subscription
+                        </button>
+                      </>
                     )}
                   </div>
 
                   <p className="text-para-xs text-text-tertiary mt-md">
-                    Cancel anytime. You'll continue to have access until {renewalDate}.
+                    {isScheduledToCancel
+                      ? `Your account moves to Free on ${downgradeDateDisplay}.`
+                      : `Cancel anytime. You'll continue to have access until ${renewalDate}.`}
                   </p>
                 </motion.div>
 
@@ -287,13 +317,15 @@ const SubscriptionOverviewPage: React.FC = () => {
                         </div>
                       ))}
                     </div>
-                    <button
-                      onClick={handleManagePortal}
-                      disabled={isPortalLoading}
-                      className="mt-md text-para-sm text-[#7C3AED] hover:underline disabled:opacity-60"
-                    >
-                      View all features
-                    </button>
+                    {isPro && !isScheduledToCancel && (
+                      <button
+                        onClick={handleManagePortal}
+                        disabled={isPortalLoading}
+                        className="mt-md text-para-sm text-[#7C3AED] hover:underline disabled:opacity-60"
+                      >
+                        View all features
+                      </button>
+                    )}
                   </motion.div>
 
                   {/* Billing summary */}
@@ -312,7 +344,10 @@ const SubscriptionOverviewPage: React.FC = () => {
                           value: `Billed ${formatBillingCycle(subscription.billing_cycle)}`,
                         }] : []),
                         { label: 'Price', value: priceDisplay },
-                        { label: 'Next renewal', value: renewalDate },
+                        {
+                          label: isScheduledToCancel ? 'Downgrades on' : 'Next renewal',
+                          value: isScheduledToCancel ? downgradeDateDisplay : renewalDate,
+                        },
                         ...(subscription.payment_method ? [{
                           label: 'Payment method',
                           value: `${subscription.payment_method.brand} ···· ${subscription.payment_method.last4}`,
@@ -324,13 +359,15 @@ const SubscriptionOverviewPage: React.FC = () => {
                         </div>
                       ))}
                     </div>
-                    <button
-                      onClick={handleManagePortal}
-                      disabled={isPortalLoading}
-                      className="mt-md text-para-sm text-[#7C3AED] hover:underline disabled:opacity-60"
-                    >
-                      Manage payment methods
-                    </button>
+                    {isPro && !isScheduledToCancel && (
+                      <button
+                        onClick={handleManagePortal}
+                        disabled={isPortalLoading}
+                        className="mt-md text-para-sm text-[#7C3AED] hover:underline disabled:opacity-60"
+                      >
+                        Manage payment methods
+                      </button>
+                    )}
                   </motion.div>
                 </div>
 
@@ -349,15 +386,42 @@ const SubscriptionOverviewPage: React.FC = () => {
                       Your subscription is secure and managed by our trusted billing partner.
                     </p>
                     <p className="text-para-xs text-text-secondary mt-xs">
-                      Need to make changes to your plan, update billing details, or view more options?{' '}
-                      <button
-                        onClick={handleManagePortal}
-                        disabled={isPortalLoading}
-                        className="text-[#7C3AED] hover:underline disabled:opacity-60"
-                      >
-                        Open Customer Portal
-                        <RiExternalLinkLine className="inline ml-xs text-[10px]" />
-                      </button>
+                      {isScheduledToCancel ? (
+                        <>
+                          Your account moves to Free on {downgradeDateDisplay}. Changed your mind?{' '}
+                          <button
+                            onClick={handleManagePortal}
+                            disabled={isPortalLoading}
+                            className="text-[#7C3AED] hover:underline disabled:opacity-60"
+                          >
+                            Reactivate in Customer Portal
+                            <RiExternalLinkLine className="inline ml-xs text-[10px]" />
+                          </button>
+                        </>
+                      ) : isPro ? (
+                        <>
+                          Need to make changes to your plan, update billing details, or view more options?{' '}
+                          <button
+                            onClick={handleManagePortal}
+                            disabled={isPortalLoading}
+                            className="text-[#7C3AED] hover:underline disabled:opacity-60"
+                          >
+                            Open Customer Portal
+                            <RiExternalLinkLine className="inline ml-xs text-[10px]" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          Ready to unlock Pro features?{' '}
+                          <button
+                            onClick={() => navigate('/dashboard/designer/billing/plans')}
+                            className="text-[#7C3AED] hover:underline"
+                          >
+                            Upgrade to Pro
+                            <RiExternalLinkLine className="inline ml-xs text-[10px]" />
+                          </button>
+                        </>
+                      )}
                     </p>
                   </div>
                 </motion.div>
