@@ -19,14 +19,15 @@ import {
   RiThunderstormsLine,
   RiRocketLine,
   RiShieldCheckLine,
-  RiLinkM
+  RiLinkM,
+  RiAddLine,
 } from 'react-icons/ri';
 import { clsx } from 'clsx';
 import Card from '../../../../common-components/Card';
 import ProgressChart from '../../components/ProgressChart';
 import BrowserMockup from './components/BroserMockup';
 import { useDispatch } from 'react-redux';
-import ErrorState from '@/common-components/ErrorState';
+// import ErrorState from '@/common-components/ErrorState';
 
 interface StatusCardProps {
   title: string;
@@ -49,10 +50,8 @@ const STATUS_PROGRESS: Record<string, number> = {
   handoff: 100,
 };
 
-// null is first — represents project created but no status yet
 const PIPELINE_ORDER = [null, 'intake', 'scraping', 'swiping', 'embedded', 'composing', 'refining', 'revisions', 'completed', 'handoff'];
 
-// ─── Dynamic progress message — driven by real project status ─────────────────
 const getProgressMessage = (status: string | null): { highlight: string; body: string } => {
   switch (status) {
     case null:
@@ -114,12 +113,7 @@ const getProgressMessage = (status: string | null): { highlight: string; body: s
 };
 
 const StatusCard: React.FC<StatusCardProps> = ({
-  title,
-  status,
-  icon,
-  action,
-  onClick,
-  delay = 0
+  title, status, icon, action, onClick, delay = 0
 }) => {
   const statusConfig = {
     completed: {
@@ -150,10 +144,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onClick?.();
-        }
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); }
       }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -161,12 +152,10 @@ const StatusCard: React.FC<StatusCardProps> = ({
       whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
       className={clsx(
         "relative overflow-hidden rounded-xl sm:rounded-2xl border backdrop-blur-sm cursor-pointer group outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400",
-        config.bg,
-        config.border
+        config.bg, config.border
       )}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent dark:from-white/5"></div>
-
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent dark:from-white/5" />
       <div className="relative p-4 sm:p-6">
         <div className="flex items-start justify-between mb-3 sm:mb-4">
           <motion.div
@@ -176,7 +165,6 @@ const StatusCard: React.FC<StatusCardProps> = ({
           >
             <span className="text-base sm:text-lg">{icon}</span>
           </motion.div>
-
           <AnimatePresence>
             {status === "completed" && (
               <motion.div
@@ -191,30 +179,20 @@ const StatusCard: React.FC<StatusCardProps> = ({
             )}
           </AnimatePresence>
         </div>
-
         <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-text-primary mb-2 sm:mb-3 group-hover:text-text-secondary transition-colors">
           {title}
         </h3>
-
         <div className="flex items-center justify-between">
           <motion.span
             className={clsx("text-xs sm:text-sm font-medium", config.text)}
             animate={{ opacity: [0.7, 1, 0.7] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            {status === "completed"
-              ? "Completed"
-              : status === "pending"
-                ? "Pending"
-                : "In Progress"}
+            {status === "completed" ? "Completed" : status === "pending" ? "Pending" : "In Progress"}
           </motion.span>
-
           {action && (
             <motion.button
-              onClick={(e) => {
-                e.stopPropagation();
-                onClick?.();
-              }}
+              onClick={(e) => { e.stopPropagation(); onClick?.(); }}
               className={clsx(
                 "text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 hover:gap-2 sm:hover:gap-3 transition-all duration-200",
                 config.text
@@ -228,15 +206,10 @@ const StatusCard: React.FC<StatusCardProps> = ({
           )}
         </div>
       </div>
-
       <motion.div
         className={clsx(
           "absolute -right-4 -bottom-4 w-16 h-16 sm:w-20 sm:h-20 rounded-full opacity-10 dark:opacity-5",
-          status === "completed"
-            ? "bg-emerald-500"
-            : status === "pending"
-              ? "bg-amber-500"
-              : "bg-sky-500"
+          status === "completed" ? "bg-emerald-500" : status === "pending" ? "bg-amber-500" : "bg-sky-500"
         )}
         animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -245,25 +218,58 @@ const StatusCard: React.FC<StatusCardProps> = ({
   );
 };
 
+// ─── No Project CTA — client starts their own project ────────────────────────
+
+const NoProjectCTA: React.FC<{ onStart: () => void }> = ({ onStart }) => (
+  <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-lg">
+    {/* Animated icon */}
+    <motion.div
+      className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25"
+      animate={{ scale: [1, 1.05, 1] }}
+      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <RiRocketLine className="text-white text-2xl" />
+    </motion.div>
+
+    {/* Copy */}
+    <div className="space-y-xs">
+      <h3 className="text-para-lg font-bold text-text-primary">
+        Start your first project
+      </h3>
+      <p className="text-para-sm text-text-secondary leading-relaxed max-w-[200px]">
+        Begin your design journey. Fill in your intake form and we'll take it from there.
+      </p>
+    </div>
+
+    {/* CTA button */}
+    <motion.button
+      onClick={onStart}
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.97 }}
+      className="inline-flex items-center gap-xs px-lg py-sm rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-para-sm font-semibold shadow-lg shadow-blue-500/25 hover:shadow-xl transition-shadow"
+    >
+      <RiAddLine className="text-icon-sm" />
+      Create project
+    </motion.button>
+  </div>
+);
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 const ClientDashHome: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [progress, setProgress] = useState(0);
-  // hasProject is true when a project row exists regardless of status value
   const [hasProject, setHasProject] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-    if ('scrollRestoration' in history) {
-      history.scrollRestoration = 'manual';
-    }
-    requestAnimationFrame(() => { requestAnimationFrame(() => { }); });
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    requestAnimationFrame(() => { requestAnimationFrame(() => {}); });
     return () => {
-      if ('scrollRestoration' in history) {
-        history.scrollRestoration = 'auto';
-      }
+      if ('scrollRestoration' in history) history.scrollRestoration = 'auto';
     };
   }, []);
 
@@ -281,19 +287,19 @@ const ClientDashHome: React.FC = () => {
   };
 
   const quickActions = [
-    { icon: RiEditLine, label: 'Edit Intake Form', color: 'from-blue-500 to-cyan-500', href: 'intake' },
-    { icon: RiPaletteLine, label: 'Update Preferences', color: 'from-purple-500 to-pink-500' },
-    { icon: RiMessage3Line, label: 'Submit Feedback', color: 'from-emerald-500 to-teal-500' },
-    { icon: RiStarLine, label: 'Testimonial', color: 'from-amber-500 to-orange-500' },
+    { icon: RiEditLine,    label: 'Edit Intake Form',    color: 'from-blue-500 to-cyan-500',    href: 'intake' },
+    { icon: RiPaletteLine, label: 'Update Preferences',  color: 'from-purple-500 to-pink-500' },
+    { icon: RiMessage3Line,label: 'Submit Feedback',     color: 'from-emerald-500 to-teal-500' },
+    { icon: RiStarLine,    label: 'Testimonial',         color: 'from-amber-500 to-orange-500' },
   ];
 
   const statusItems = [
-    { title: 'Intake Submitted', status: getCardStatus('intake'), icon: <RiFileTextLine />, action: 'View', route: '/dashboard/client/intake', delay: 0 },
-    { title: 'Scraping', status: getCardStatus('scraping'), icon: <RiLinkM />, action: 'View', route: '/dashboard/client/scraper', delay: 0.1 },
-    { title: 'Preferences Swiped', status: getCardStatus('swiping'), icon: <RiPaletteLine />, action: 'View', route: 'swiper', delay: 0.2 },
-    { title: 'Generate Layout', status: getCardStatus('composing'), icon: <RiMessage3Line />, action: 'Submit', route: '/dashboard/client/compose', delay: 0.3 },
-    { title: 'Designer Feedback', status: getCardStatus('completed'), icon: <RiMessage3Line />, action: 'Submit', route: 'designer-testimonial', delay: 0.3 },
-    { title: 'Platform Feedback', status: getCardStatus('handoff'), icon: <RiMessage3Line />, action: 'Submit', route: 'final-testimonial', delay: 0.3 },
+    { title: 'Intake Submitted',    status: getCardStatus('intake'),    icon: <RiFileTextLine />,  action: 'View',   route: '/dashboard/client/intake',   delay: 0 },
+    { title: 'Scraping',            status: getCardStatus('scraping'),  icon: <RiLinkM />,         action: 'View',   route: '/dashboard/client/scraper',  delay: 0.1 },
+    { title: 'Preferences Swiped',  status: getCardStatus('swiping'),  icon: <RiPaletteLine />,   action: 'View',   route: 'swiper',                     delay: 0.2 },
+    { title: 'Generate Layout',     status: getCardStatus('composing'),icon: <RiMessage3Line />,  action: 'Submit', route: '/dashboard/client/compose',  delay: 0.3 },
+    { title: 'Designer Feedback',   status: getCardStatus('completed'),icon: <RiMessage3Line />,  action: 'Submit', route: 'designer-testimonial',       delay: 0.3 },
+    { title: 'Platform Feedback',   status: getCardStatus('handoff'),  icon: <RiMessage3Line />,  action: 'Submit', route: 'final-testimonial',          delay: 0.3 },
   ];
 
   const scrapperButton = [
@@ -304,19 +310,19 @@ const ClientDashHome: React.FC = () => {
   const client_email = useSelector((state: RootState) => state.auth.user.email)!;
 
   const fetchProject = async () => {
-  dispatch(clearProjectStatus());
-  setProgress(0);
-  const result = await getProjectByClientEmail({ client_email });
-  if (result.status === 200 && result.data.data?.id) {
-    setHasProject(true);
-    dispatch(setProjectId(result.data.data.id));
-    dispatch(setProjectStatus(result.data.data.status ?? null)); // ← always dispatch, even null
-  } else {
-    setHasProject(false);
-    dispatch(clearProjectId());
     dispatch(clearProjectStatus());
-  }
-};
+    setProgress(0);
+    const result = await getProjectByClientEmail({ client_email });
+    if (result.status === 200 && result.data.data?.id) {
+      setHasProject(true);
+      dispatch(setProjectId(result.data.data.id));
+      dispatch(setProjectStatus(result.data.data.status ?? null));
+    } else {
+      setHasProject(false);
+      dispatch(clearProjectId());
+      dispatch(clearProjectStatus());
+    }
+  };
 
   useEffect(() => {
     if (projectStatus) {
@@ -326,11 +332,8 @@ const ClientDashHome: React.FC = () => {
     }
   }, [projectStatus]);
 
-  useEffect(() => {
-    fetchProject();
-  }, []);
+  useEffect(() => { fetchProject(); }, []);
 
-  // Pass null directly — getProgressMessage handles it
   const progressMessage = getProgressMessage(projectStatus ?? null);
 
   return (
@@ -367,7 +370,9 @@ const ClientDashHome: React.FC = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              Here's where your project stands. Pick up right where you left off.
+              {hasProject
+                ? "Here's where your project stands. Pick up right where you left off."
+                : "Ready to get started? Create your first project below."}
             </motion.p>
           </div>
 
@@ -407,19 +412,14 @@ const ClientDashHome: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          {/* Progress Section */}
+          {/* Progress / No Project section */}
           <div className="lg:col-span-1">
             <Card className="h-full flex flex-col bg-background-primary-2 border-0 shadow-xl">
-              {/* Gate on hasProject — not projectStatus — so null status still shows ring */}
               {!hasProject ? (
-                <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
-                  <ErrorState
-                    variant="generic"
-                    title="No project yet"
-                    message="Your designer hasn't started your project yet. You'll see progress here once it kicks off."
-                  />
-                </div>
+                // ── Client has no project — show CTA to create one ────────────
+                <NoProjectCTA onStart={() => navigate('onboard')} />
               ) : (
+                // ── Client has a project — show progress ring ─────────────────
                 <>
                   <div className="flex-1 p-4 sm:p-6">
                     <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-primary mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
@@ -467,7 +467,6 @@ const ClientDashHome: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Dynamic message — driven by real project status including null */}
                     <motion.p
                       className="text-center text-xs sm:text-sm text-text-secondary mb-2 sm:mb-3 leading-relaxed px-2"
                       initial={{ opacity: 0 }}
@@ -515,35 +514,35 @@ const ClientDashHome: React.FC = () => {
 
         {/* Status Cards */}
         <motion.div
-          className="mb-8 sm:mb-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-text-primary mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-            <motion.div
-              className="p-2 sm:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg sm:rounded-xl"
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            >
-              <RiShieldCheckLine className="text-white text-sm sm:text-base lg:text-lg" />
-            </motion.div>
-            Project Status
-          </h2>
+            className="mb-8 sm:mb-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-text-primary mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+              <motion.div
+                className="p-2 sm:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg sm:rounded-xl"
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              >
+                <RiShieldCheckLine className="text-white text-sm sm:text-base lg:text-lg" />
+              </motion.div>
+              Project Status
+            </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
-            {statusItems.map((item) => (
-              <StatusCard
-                key={item.title}
-                title={item.title}
-                status={item.status}
-                icon={item.icon}
-                action={item.action}
-                onClick={() => navigate(item.route)}
-                delay={item.delay}
-              />
-            ))}
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+              {statusItems.map((item) => (
+                <StatusCard
+                  key={item.title}
+                  title={item.title}
+                  status={item.status}
+                  icon={item.icon}
+                  action={item.action}
+                  onClick={() => navigate(item.route)}
+                  delay={item.delay}
+                />
+              ))}
+            </div>
         </motion.div>
 
         {/* Quick Actions */}
@@ -599,29 +598,29 @@ const ClientDashHome: React.FC = () => {
 
         {/* Progress Timeline */}
         <motion.div
-          className="mt-8 sm:mt-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <Card className="bg-background-primary-2 border-0 shadow-xl p-4 sm:p-6 lg:p-8">
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-primary mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
-              <motion.div
-                className="p-2 sm:p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg sm:rounded-xl"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-              >
-                <RiSparklingLine className="text-white text-sm sm:text-base lg:text-lg" />
-              </motion.div>
-              Project Timeline
-            </h3>
-            <p className="text-text-secondary mb-4 sm:mb-6 text-sm sm:text-base lg:text-lg">
-              Track your journey from start to finish
-            </p>
-            <div className="overflow-x-auto -mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0">
-              <ProgressChart />
-            </div>
-          </Card>
+            className="mt-8 sm:mt-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <Card className="bg-background-primary-2 border-0 shadow-xl p-4 sm:p-6 lg:p-8">
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-primary mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
+                <motion.div
+                  className="p-2 sm:p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg sm:rounded-xl"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                >
+                  <RiSparklingLine className="text-white text-sm sm:text-base lg:text-lg" />
+                </motion.div>
+                Project Timeline
+              </h3>
+              <p className="text-text-secondary mb-4 sm:mb-6 text-sm sm:text-base lg:text-lg">
+                Track your journey from start to finish
+              </p>
+              <div className="overflow-x-auto -mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0">
+                <ProgressChart />
+              </div>
+            </Card>
         </motion.div>
 
       </div>
