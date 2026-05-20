@@ -62,14 +62,20 @@ function validateFooterColumn(col: unknown, index: number): CTAFooterColumn {
   if (typeof c.heading !== 'string' || !c.heading.trim()) throw new Error(`${ctx}: heading is required`);
   if (!Array.isArray(c.links) || c.links.length === 0) throw new Error(`${ctx}: links must be a non-empty array`);
 
-const links = c.links.map((link: unknown, li: number) => {
-  if (!link || typeof link !== 'object') throw new Error(`${ctx}.links[${li}]: must be an object`);
-  const l = link as Record<string, unknown>;
-  if (typeof l.label !== 'string' || !l.label.trim()) throw new Error(`${ctx}.links[${li}]: label is required`);
-  if (typeof l.href !== 'string' || !l.href.trim()) throw new Error(`${ctx}.links[${li}]: href is required`);
-  return { label: l.label, href: l.href };
-});
-return { heading: c.heading, links };}
+  const links = c.links.map((link: unknown, li: number) => {
+    // Accept both string and object formats
+    if (typeof link === 'string') {
+      return { label: link, href: '#' };
+    }
+    if (!link || typeof link !== 'object') throw new Error(`${ctx}.links[${li}]: must be a string or object`);
+    const l = link as Record<string, unknown>;
+    if (typeof l.label !== 'string' || !l.label.trim()) throw new Error(`${ctx}.links[${li}]: label is required`);
+    if (typeof l.href !== 'string' || !l.href.trim()) throw new Error(`${ctx}.links[${li}]: href is required`);
+    return { label: l.label, href: l.href };
+  });
+
+  return { heading: c.heading, links };
+}
 
 function validateFAQItem(item: unknown, ctx: string): CTAFAQItem {
   if (!item || typeof item !== 'object') throw new Error(`${ctx}: must be an object`);
