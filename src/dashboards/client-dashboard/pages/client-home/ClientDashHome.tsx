@@ -1,257 +1,974 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { motion } from 'framer-motion';
 import type { RootState } from '@/store';
-import { useSelector } from 'react-redux';
 import { getProjectByClientEmail } from '@/lib/requests/ProjectRequest';
-import { setProjectId, setProjectStatus, clearProjectId, clearProjectStatus } from '@/features/project/projectSlice';
-
 import {
-  RiCheckLine,
-  RiEditLine,
-  RiArrowRightLine,
-  RiSparklingLine,
-  RiFileTextLine,
-  RiPaletteLine,
-  RiMessage3Line,
-  RiStarLine,
-  RiThunderstormsLine,
-  RiRocketLine,
-  RiShieldCheckLine,
-  RiLinkM,
-  RiAddLine,
-} from 'react-icons/ri';
-import { clsx } from 'clsx';
-import Card from '../../../../common-components/Card';
-import ProgressChart from '../../components/ProgressChart';
+  setProjectId,
+  setProjectStatus,
+  clearProjectId,
+  clearProjectStatus,
+} from '@/features/project/projectSlice';
 import BrowserMockup from './components/BroserMockup';
-import { useDispatch } from 'react-redux';
-// import ErrorState from '@/common-components/ErrorState';
 
-interface StatusCardProps {
-  title: string;
-  status: 'completed' | 'pending' | 'in-progress';
-  icon: React.ReactNode;
-  action?: string;
-  onClick?: () => void;
-  delay?: number;
-}
+// ─── COPY ─────────────────────────────────────────────────────────────────────
 
-const STATUS_PROGRESS: Record<string, number> = {
-  intake: 10,
-  scraping: 20,
-  swiping: 35,
-  embedded: 45,
-  composing: 55,
-  refining: 65,
-  revisions: 75,
-  completed: 90,
-  handoff: 100,
+const COPY = {
+  nav: {
+    myProject: 'My Project',
+    swiper: 'Swiper',
+    support: 'Support',
+    swiperLocked: 'LOCKED',
+  },
+  states: {
+    s01: {
+      breadcrumb: (project: string, company: string) => `${project} · ${company}`,
+      heading: "Let's get your project started.",
+      body: 'Complete a short intake so your designer can understand your goals, brand, and direction. About 8 minutes — you can save and come back.',
+      primaryCta: 'Start intake',
+      secondaryCta: 'Message designer',
+      previewPlaceholder: 'Your live preview will appear here.',
+      previewSub: "Once your designer starts composing, you'll see your site come together in real time.",
+      step1Label: 'We learn your taste',
+      step1Body: 'A few swiper rounds calibrate the style we design toward.',
+      step2Label: 'We compose your site',
+      step2Body: 'Tandem builds your first layout from your taste signals and brief.',
+      step3Label: 'You approve & ship',
+      step3Body: 'Refine, sign off, and we hand off the final assets and code.',
+      designerCard: (name: string) => `Your designer is ${name}.`,
+      designerSub: (name: string) => `${name} will guide your project end-to-end. Question about intake or scope?`,
+      messageCta: (name: string) => `Message ${name}`,
+    },
+    s02: {
+      heading: 'Your project is moving.',
+      body: "Tandem is capturing your existing site to learn the basics. Once that finishes, you'll do a short preferences round — that unlocks generation.",
+      primaryCta: 'View intake',
+      stageLabel: 'Capturing your site',
+      stageStatus: 'WORKING',
+      rightNow: 'Tandem is analyzing acmecoffee.com — extracting sections, assets, and visual signals. No action needed from you.',
+      upNext: "Preferences round — you'll swipe through hero, nav, features, and pricing variants. About 6 minutes.",
+    },
+    s03: {
+      heading: 'One more preferences round is needed.',
+      body: "You're 80% through capture. One short swipe round helps Tandem generate a sharper first layout.",
+      primaryCta: 'Continue swiper',
+      secondaryCta: 'Skip for now',
+      stageLabel: 'Preferences — your turn',
+      stageStatus: 'YOUR TURN',
+      rightNow: 'You\'ve completed 2 of 3 swiper rounds. One more round (~5 minutes) gives Tandem a sharper read on your taste.',
+      upNext: 'Tandem composes your first layout. Usually 18–24 hours from when you finish.',
+    },
+    s04: {
+      heading: 'Your designer is composing your first layout.',
+      body: 'Your first draft will land here after your intake, site scrape, and preferences are reviewed. Usually within 24 hours.',
+      primaryCta: 'Review draft',
+      secondaryCta: 'Message Maya',
+      stageLabel: 'Layout — Tandem is composing',
+      stageStatus: 'IN PROGRESS',
+      rightNow: 'Maya is using your swiper picks and capture data to assemble the hero, features, and menu sections.',
+      upNext: "You'll review the first draft and request changes by chatting with Maya, section by section.",
+    },
+    s05: {
+      heading: 'Your first draft is ready to review.',
+      body: 'Maya just pushed v1 of your homepage. Take a look — approve sections you love, or leave a note on anything you\'d like changed.',
+      primaryCta: 'Review draft',
+      secondaryCta: 'Message Maya',
+      stageLabel: 'Designer review — your turn',
+      stageStatus: 'YOUR TURN',
+      rightNow: 'Walk through the live preview. Hover any section to approve or request a change in plain English.',
+      upNext: 'Maya refines based on your notes. Usually one round; two if anything is rebuilt from scratch.',
+    },
+    s06: {
+      heading: 'Your project is delivered.',
+      body: 'Final assets, source code, and preview are ready. Pick up wherever your team builds next.',
+      primaryCta: 'View final handoff',
+      secondaryCta: 'Share testimonial',
+      deliveredBadge: 'DELIVERED',
+      stageLabel: 'Project complete',
+      stageSub: '7/7 stages complete',
+      rightNow: 'All seven stages closed out. Your final composition is live and your assets are downloadable below.',
+      upNext: 'Mind sharing a testimonial? It helps us match the right designer for the next person like you.',
+      projectLog: 'Project log',
+      projectLogSub: 'Everything that happened',
+    },
+  },
+  checklist: {
+    title: 'Project checklist',
+    sub: "What's done, what's coming",
+    items: [
+      { id: 'intake', label: 'Intake submitted' },
+      { id: 'scraping', label: 'Site capture' },
+      { id: 'swiping', label: 'Preferences complete' },
+      { id: 'composing', label: 'First layout generated' },
+      { id: 'refining', label: 'Designer review complete' },
+      { id: 'revisions', label: 'Feedback applied' },
+      { id: 'handoff', label: 'Final handoff ready' },
+    ],
+  },
+  quickActions: {
+    title: 'Quick actions',
+    sub: 'Available actions for this stage.',
+  },
+  designer: {
+    label: 'Your designer is',
+    sub: (name: string) => `Need anything from the team? Drop a message — we usually reply within 4 hours.`,
+    messageCta: (name: string) => `Message ${name}`,
+  },
+  preview: {
+    statusPills: {
+      coming: '● Preview coming soon',
+      waiting: '● Waiting on preferences',
+      composing: '● Composing',
+      draftReady: '● Draft ready',
+      delivered: '● Delivered',
+    },
+    openLabel: '↗ Open',
+  },
+} as const;
+
+// ─── BRAND ────────────────────────────────────────────────────────────────────
+
+const BRAND = {
+  accent: 'rgb(var(--accent-default))',
+  accentHover: 'rgb(var(--accent-hover))',
+  accentFg: 'rgb(var(--accent-foreground))',
+  accentSubtle: 'rgb(var(--accent-subtle))',
+  textPrimary: 'rgb(var(--text-primary))',
+  textSecondary: 'rgb(var(--text-secondary))',
+  textTertiary: 'rgb(var(--text-tertiary))',
+  bgPrimary: 'rgb(var(--background-primary))',
+  bgPrimary2: 'rgb(var(--background-primary-2))',
+  bgSecondary: 'rgb(var(--background-secondary))',
+  bgMuted: 'rgb(var(--background-muted))',
+  borderDefault: 'rgb(var(--border-default))',
+  borderMuted: 'rgb(var(--border-muted))',
+  success: 'rgb(var(--text-success))',
+  bgSuccess: 'rgb(var(--background-success))',
+  error: 'rgb(var(--text-error))',
+} as const;
+
+// ─── ROUTES ───────────────────────────────────────────────────────────────────
+
+const ROUTES = {
+  intake: '/dashboard/client/intake',
+  swiper: '/dashboard/client/swiper',
+  compose: '/dashboard/client/compose',
+  support: '/dashboard/client/support',
+  onboard: '/dashboard/client/onboard',
+  scraper: '/dashboard/client/scraper',
+  testimonial: '/dashboard/client/final-testimonial',
+} as const;
+
+// ─── Pipeline config ──────────────────────────────────────────────────────────
+
+const PIPELINE = ['intake', 'scraping', 'swiping', 'embedded', 'composing', 'refining', 'revisions', 'completed', 'handoff'] as const;
+type PipelineStage = typeof PIPELINE[number];
+
+const STAGE_LABELS: Record<string, string> = {
+  intake: 'Intake',
+  scraping: 'Site scrape',
+  swiping: 'Preferences',
+  embedded: 'Preferences',
+  composing: 'Layout',
+  refining: 'Designer review',
+  revisions: 'Your feedback',
+  completed: 'Your feedback',
+  handoff: 'Handoff',
 };
 
-const PIPELINE_ORDER = [null, 'intake', 'scraping', 'swiping', 'embedded', 'composing', 'refining', 'revisions', 'completed', 'handoff'];
+// Stepper nodes shown in the design (7 visible nodes)
+const STEPPER_NODES = [
+  { id: 'intake', label: 'Intake' },
+  { id: 'scraping', label: 'Site scrape' },
+  { id: 'swiping', label: 'Preferences' },
+  { id: 'composing', label: 'Layout' },
+  { id: 'refining', label: 'Designer review' },
+  { id: 'revisions', label: 'Your feedback' },
+  { id: 'handoff', label: 'Handoff' },
+];
 
-const getProgressMessage = (status: string | null): { highlight: string; body: string } => {
+// Checklist items with meta per status
+type ChecklistStatus = 'completed' | 'in-progress' | 'not-started' | 'ready';
+
+interface ChecklistItem {
+  id: string;
+  label: string;
+  status: ChecklistStatus;
+  meta?: string;
+  statusLabel?: string;
+}
+
+const getChecklistItems = (projectStatus: string | null): ChecklistItem[] => {
+  const idx = projectStatus ? PIPELINE.indexOf(projectStatus as PipelineStage) : -1;
+
+  const stageIdx = (s: string) => PIPELINE.indexOf(s as PipelineStage);
+  const done = (s: string) => idx > stageIdx(s);
+  const active = (s: string) => idx === stageIdx(s);
+
+  return [
+    {
+      id: 'intake',
+      label: 'Intake submitted',
+      status: done('intake') || active('intake') ? 'completed' : 'not-started',
+      statusLabel: done('intake') || active('intake') ? 'COMPLETED' : undefined,
+    },
+    {
+      id: 'scraping',
+      label: 'Site capture',
+      status: done('scraping') ? 'completed' : active('scraping') ? 'in-progress' : 'not-started',
+      statusLabel: done('scraping') ? 'COMPLETED' : active('scraping') ? 'IN PROGRESS' : 'NOT STARTED',
+      meta: active('scraping') ? '~3 min remaining' : undefined,
+    },
+    {
+      id: 'swiping',
+      label: 'Preferences complete',
+      status: done('swiping') || done('embedded') ? 'completed'
+        : active('swiping') || active('embedded') ? 'ready'
+          : 'not-started',
+      statusLabel: done('swiping') || done('embedded') ? 'COMPLETED'
+        : active('swiping') || active('embedded') ? 'READY FOR YOU'
+          : 'NOT STARTED',
+      meta: active('swiping') ? 'Round 3 of 3 · ~5 min' : done('swiping') ? '3 rounds · 240 swipes' : undefined,
+    },
+    {
+      id: 'composing',
+      label: 'First layout generated',
+      status: done('composing') ? 'completed' : active('composing') ? 'in-progress' : 'not-started',
+      statusLabel: done('composing') ? 'COMPLETED'
+        : active('composing') ? 'WAITING ON DESIGNER'
+          : 'NOT STARTED',
+      meta: done('composing') ? 'v1 · 8 sections' : active('composing') ? 'Composing · 2h in' : undefined,
+    },
+    {
+      id: 'refining',
+      label: 'Designer review complete',
+      status: done('refining') ? 'completed' : active('refining') ? 'ready' : 'not-started',
+      statusLabel: done('refining') ? 'COMPLETED' : active('refining') ? 'READY FOR YOU' : 'NOT STARTED',
+      meta: active('refining') ? 'Review v1 and leave notes' : done('refining') ? '1 refinement round' : undefined,
+    },
+    {
+      id: 'revisions',
+      label: 'Feedback applied',
+      status: done('revisions') ? 'completed' : active('revisions') ? 'in-progress' : 'not-started',
+      statusLabel: done('revisions') ? 'COMPLETED' : active('revisions') ? 'IN PROGRESS' : 'NOT STARTED',
+      meta: done('revisions') ? 'Hero + menu copy updated' : undefined,
+    },
+    {
+      id: 'handoff',
+      label: 'Final handoff ready',
+      status: done('handoff') || active('handoff') ? 'completed' : 'not-started',
+      statusLabel: done('handoff') || active('handoff') ? 'COMPLETED' : 'NOT STARTED',
+      meta: active('handoff') ? 'Delivered May 21' : undefined,
+    },
+  ];
+};
+
+// ─── Map project status → dashboard state (1–6) ───────────────────────────────
+
+const getDashState = (status: string | null, hasProject: boolean): 1 | 2 | 3 | 4 | 5 | 6 => {
+  if (!hasProject || !status) return 1;
   switch (status) {
-    case null:
-      return {
-        highlight: 'Project created!',
-        body: 'Your project is ready. Submit your intake form to get started.',
-      };
     case 'intake':
-      return {
-        highlight: 'Great start!',
-        body: 'Your intake form is submitted. Your designer is reviewing it now.',
-      };
     case 'scraping':
-      return {
-        highlight: 'Gathering inspiration!',
-        body: "We're analyzing your site for design signals.",
-      };
+      return 2;
     case 'swiping':
-      return {
-        highlight: 'Almost there!',
-        body: 'Just one more swipe to complete your design preferences.',
-      };
     case 'embedded':
-      return {
-        highlight: 'Preferences locked!',
-        body: 'Your taste profile is being built from your swipes.',
-      };
+      return 3;
     case 'composing':
-      return {
-        highlight: 'Magic happening!',
-        body: 'Your layout is being composed from your preferences.',
-      };
+      return 4;
     case 'refining':
-      return {
-        highlight: 'Looking great!',
-        body: 'Your designer is refining the layout based on your feedback.',
-      };
+      return 5;
     case 'revisions':
-      return {
-        highlight: 'Final touches!',
-        body: 'Revisions are in progress. Almost ready for handoff.',
-      };
     case 'completed':
-      return {
-        highlight: 'Delivered!',
-        body: 'Your design is complete and ready for review.',
-      };
     case 'handoff':
-      return {
-        highlight: "You're done!",
-        body: 'Your project has been handed off successfully.',
-      };
+      return 6;
     default:
-      return {
-        highlight: 'In progress!',
-        body: 'Your project is moving forward.',
-      };
+      return 1;
   }
 };
 
-const StatusCard: React.FC<StatusCardProps> = ({
-  title, status, icon, action, onClick, delay = 0
-}) => {
-  const statusConfig = {
-    completed: {
-      bg: "bg-gradient-to-br from-emerald-50/80 to-teal-50/40 dark:from-emerald-950/20 dark:to-teal-950/10",
-      border: "border-emerald-200/60 dark:border-emerald-800/40",
-      text: "text-emerald-700 dark:text-emerald-400",
-      badge: "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25"
-    },
-    pending: {
-      bg: "bg-gradient-to-br from-amber-50/80 to-orange-50/40 dark:from-amber-950/20 dark:to-orange-950/10",
-      border: "border-amber-200/60 dark:border-amber-800/40",
-      text: "text-amber-700 dark:text-amber-400",
-      badge: "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25"
-    },
-    "in-progress": {
-      bg: "bg-gradient-to-br from-sky-50/80 to-blue-50/40 dark:from-sky-950/20 dark:to-blue-950/10",
-      border: "border-sky-200/60 dark:border-sky-800/40",
-      text: "text-sky-700 dark:text-sky-400",
-      badge: "bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-lg shadow-sky-500/25"
-    }
-  };
+// ─── Get stepper node state ────────────────────────────────────────────────────
 
-  const config = statusConfig[status];
+type NodeState = 'completed' | 'current' | 'pending';
+
+const getNodeState = (nodeId: string, projectStatus: string | null): NodeState => {
+  if (!projectStatus) return 'pending';
+  const pipelineIdx = PIPELINE.indexOf(projectStatus as PipelineStage);
+  const nodeIdx = PIPELINE.indexOf(nodeId as PipelineStage);
+  if (nodeIdx < 0) return 'pending';
+  if (pipelineIdx > nodeIdx) return 'completed';
+  if (pipelineIdx === nodeIdx) return 'current';
+  return 'pending';
+};
+
+// ─── Get est. handoff date (mock — Syed to wire) ──────────────────────────────
+const EST_HANDOFF = 'Fri, May 22';
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+// Breadcrumb pill
+const BreadcrumbPill: React.FC<{ projectName: string; projectType: string; stageLabel?: string; timestamp?: string }> = ({
+  projectName, projectType, stageLabel, timestamp,
+}) => (
+  <div className="flex items-center gap-sm flex-wrap mb-lg">
+    <div className="flex items-center gap-xs px-sm py-xs rounded-full border border-border-default bg-background-primary-2 text-para-xs font-medium text-text-secondary uppercase tracking-wide">
+      <span className="text-accent-default font-semibold">{projectName}</span>
+      <span className="text-text-tertiary">·</span>
+      <span className="text-accent-default font-semibold">{projectType}</span>
+    </div>
+    {stageLabel && (
+      <span className="text-para-xs text-text-tertiary">{stageLabel}</span>
+    )}
+    {timestamp && (
+      <span className="text-para-xs text-text-tertiary">· {timestamp}</span>
+    )}
+  </div>
+);
+
+// Horizontal stepper
+const Stepper: React.FC<{ projectStatus: string | null; stageLabel: string; stageSub: string; statusPill: string; estHandoff?: string; rightNow: string; upNext: string }> = ({
+  projectStatus, stageLabel, stageSub, statusPill, estHandoff, rightNow, upNext,
+}) => {
+  const totalNodes = STEPPER_NODES.length;
+  const currentIdx = STEPPER_NODES.findIndex(n => getNodeState(n.id, projectStatus) === 'current');
+  const completedCount = STEPPER_NODES.filter(n => getNodeState(n.id, projectStatus) === 'completed').length;
+  const progressPct = totalNodes > 1 ? (completedCount / (totalNodes - 1)) * 100 : 0;
 
   return (
-    <motion.div
-      role="button"
-      tabIndex={0}
-      onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick?.(); }
-      }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5, delay, ease: "easeOut" }}
-      whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
-      className={clsx(
-        "relative overflow-hidden rounded-xl sm:rounded-2xl border backdrop-blur-sm cursor-pointer group outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400",
-        config.bg, config.border
-      )}
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent dark:from-white/5" />
-      <div className="relative p-4 sm:p-6">
-        <div className="flex items-start justify-between mb-3 sm:mb-4">
-          <motion.div
-            className={clsx("p-2 sm:p-3 rounded-lg sm:rounded-xl", config.badge)}
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
-            <span className="text-base sm:text-lg">{icon}</span>
-          </motion.div>
-          <AnimatePresence>
-            {status === "completed" && (
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                exit={{ scale: 0, rotate: 180 }}
-                transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                className="bg-emerald-500 p-1.5 sm:p-2 rounded-full shadow-lg"
-              >
-                <RiCheckLine className="text-white text-xs sm:text-sm" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+    <div className="bg-background-primary-2 rounded-2xl border border-border-default p-lg sm:p-xl mb-lg">
+      {/* Header row */}
+      <div className="flex items-start justify-between mb-lg">
+        <div>
+          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">Project Progress</p>
+          <h3 className="text-h5-sm font-bold text-text-primary">
+            {stageLabel} <span className="text-para-md font-normal text-text-secondary">{stageSub}</span>
+          </h3>
         </div>
-        <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-text-primary mb-2 sm:mb-3 group-hover:text-text-secondary transition-colors">
-          {title}
-        </h3>
-        <div className="flex items-center justify-between">
-          <motion.span
-            className={clsx("text-xs sm:text-sm font-medium", config.text)}
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            {status === "completed" ? "Completed" : status === "pending" ? "Pending" : "In Progress"}
-          </motion.span>
-          {action && (
-            <motion.button
-              onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-              className={clsx(
-                "text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 hover:gap-2 sm:hover:gap-3 transition-all duration-200",
-                config.text
-              )}
-              whileHover={{ x: 4 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {action}
-              <RiArrowRightLine className="text-xs" />
-            </motion.button>
-          )}
+        {estHandoff && (
+          <div className="text-right flex-shrink-0">
+            <p className="text-para-xs text-text-tertiary uppercase tracking-widest mb-xs">Est. Handoff</p>
+            <p className="text-para-md font-bold text-text-primary">{estHandoff}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Stepper track */}
+      <div className="relative mb-xl overflow-x-auto pb-xs">
+        <div className="min-w-[560px]">
+          {/* Track line */}
+          <div className="absolute top-[19px] left-[calc(100%/14)] right-[calc(100%/14)] h-0.5 bg-border-default rounded-full" />
+          {/* Progress fill */}
+          <motion.div
+            className="absolute top-[19px] left-[calc(100%/14)] h-0.5 bg-accent-default rounded-full origin-left"
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: progressPct / 100 }}
+            transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
+            style={{ width: `calc(100% - 100%/7)` }}
+          />
+
+          {/* Nodes */}
+          <div className="relative flex justify-between items-start">
+            {STEPPER_NODES.map((node, i) => {
+              const state = getNodeState(node.id, projectStatus);
+              return (
+                <div key={node.id} className="flex flex-col items-center gap-sm" style={{ width: `${100 / totalNodes}%` }}>
+                  {/* Circle */}
+                  <div className={`
+                    w-10 h-10 rounded-full border-2 flex items-center justify-center z-10 flex-shrink-0
+                    ${state === 'completed' ? 'bg-accent-default border-accent-default' : ''}
+                    ${state === 'current' ? 'bg-background-primary border-accent-default' : ''}
+                    ${state === 'pending' ? 'bg-background-primary border-border-default' : ''}
+                  `}>
+                    {state === 'completed' && (
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                    {state === 'current' && (
+                      <div className="w-3 h-3 rounded-full bg-accent-default" />
+                    )}
+                  </div>
+
+                  {/* Label */}
+                  <div className="text-center">
+                    <p className={`text-para-xs font-medium leading-tight ${state === 'current' ? 'text-accent-default font-semibold' :
+                        state === 'completed' ? 'text-text-secondary' :
+                          'text-text-tertiary'
+                      }`}>
+                      {node.label}
+                    </p>
+                    {state === 'current' && statusPill && (
+                      <span className="inline-block mt-xs px-xs py-px text-[10px] font-bold uppercase tracking-wider rounded bg-accent-subtle text-accent-default">
+                        {statusPill}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
-      <motion.div
-        className={clsx(
-          "absolute -right-4 -bottom-4 w-16 h-16 sm:w-20 sm:h-20 rounded-full opacity-10 dark:opacity-5",
-          status === "completed" ? "bg-emerald-500" : status === "pending" ? "bg-amber-500" : "bg-sky-500"
-        )}
-        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      />
-    </motion.div>
+
+      {/* Right now / Up next */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-lg pt-lg border-t border-border-default">
+        <div>
+          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">Right now</p>
+          <p className="text-para-sm text-text-secondary leading-relaxed">{rightNow}</p>
+        </div>
+        <div>
+          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">Up next</p>
+          <p className="text-para-sm text-text-secondary leading-relaxed">{upNext}</p>
+        </div>
+      </div>
+    </div>
   );
 };
 
-// ─── No Project CTA — client starts their own project ────────────────────────
+// Preview + Checklist two-col
+const PreviewAndChecklist: React.FC<{
+  projectStatus: string | null;
+  previewStatusPill: string;
+  showOpen?: boolean;
+  projectId?: string | null;
+}> = ({ projectStatus, previewStatusPill, showOpen, projectId }) => {
+  const items = getChecklistItems(projectStatus);
+  const completedCount = items.filter(i => i.status === 'completed').length;
+  const isDelivered = projectStatus === 'handoff' || projectStatus === 'completed';
 
-const NoProjectCTA: React.FC<{ onStart: () => void }> = ({ onStart }) => (
-  <div className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-lg">
-    {/* Animated icon */}
-    <motion.div
-      className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/25"
-      animate={{ scale: [1, 1.05, 1] }}
-      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-    >
-      <RiRocketLine className="text-white text-2xl" />
-    </motion.div>
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
+      {/* Browser mockup */}
+      <div className="lg:col-span-2 bg-background-primary-2 rounded-2xl border border-border-default overflow-hidden">
+        {/* Browser chrome */}
+        <div className="flex items-center justify-between px-md py-sm border-b border-border-default bg-background-primary">
+          <div className="flex items-center gap-xs">
+            <div className="w-3 h-3 rounded-full bg-red-400" />
+            <div className="w-3 h-3 rounded-full bg-yellow-400" />
+            <div className="w-3 h-3 rounded-full bg-green-400" />
+            <div className="ml-sm flex items-center gap-xs bg-background-muted rounded-md px-sm py-xs">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="text-text-tertiary flex-shrink-0">
+                <rect x="1" y="1" width="8" height="8" rx="1" stroke="currentColor" strokeWidth="1.2" />
+              </svg>
+              <span className="text-para-xs text-text-tertiary truncate max-w-[140px]">tandem.design/acme-coffee/preview</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-sm">
+            <span className={`flex items-center gap-xs text-para-xs font-medium px-sm py-xs rounded-full ${isDelivered ? 'bg-bgSuccess text-success border border-success/20' :
+                previewStatusPill.includes('coming') ? 'bg-background-muted text-text-tertiary' :
+                  'bg-accent-subtle text-accent-default'
+              }`}>
+              {previewStatusPill}
+            </span>
+            {showOpen && (
+              <button className="text-para-xs text-text-secondary hover:text-text-primary flex items-center gap-xs border border-border-default rounded px-sm py-xs transition-colors">
+                ↗ Open
+              </button>
+            )}
+          </div>
+        </div>
 
-    {/* Copy */}
-    <div className="space-y-xs">
-      <h3 className="text-para-lg font-bold text-text-primary">
-        Start your first project
-      </h3>
-      <p className="text-para-sm text-text-secondary leading-relaxed max-w-[200px]">
-        Begin your design journey. Fill in your intake form and we'll take it from there.
-      </p>
+        {/* Preview content */}
+        <div className="h-[340px] sm:h-[380px] overflow-hidden">
+          <BrowserMockup />
+        </div>
+      </div>
+
+      {/* Checklist */}
+      <div className="bg-background-primary-2 rounded-2xl border border-border-default p-lg">
+        <div className="flex items-start justify-between mb-md">
+          <div>
+            <p className="text-para-sm font-bold text-text-primary">
+              {isDelivered ? COPY.states.s06.projectLog : COPY.checklist.title}
+            </p>
+            <p className="text-para-xs text-text-tertiary mt-xs">
+              {isDelivered ? COPY.states.s06.projectLogSub : COPY.checklist.sub}
+            </p>
+          </div>
+          <span className="text-para-xs text-text-tertiary font-medium">{completedCount}/7</span>
+        </div>
+
+        <div className="space-y-sm">
+          {items.map((item) => (
+            <div key={item.id} className="flex items-start justify-between gap-sm">
+              <div className="flex items-start gap-sm min-w-0">
+                {/* Status indicator */}
+                <div className="flex-shrink-0 mt-0.5">
+                  {item.status === 'completed' && (
+                    <div className="w-5 h-5 rounded-full bg-accent-default flex items-center justify-center">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <path d="M2 5L4.5 7.5L8.5 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                  )}
+                  {item.status === 'in-progress' && (
+                    <div className="w-5 h-5 rounded-full border-2 border-accent-default flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-accent-default" />
+                    </div>
+                  )}
+                  {item.status === 'ready' && (
+                    <div className="w-5 h-5 rounded-full border-2 border-accent-default flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-accent-default" />
+                    </div>
+                  )}
+                  {item.status === 'not-started' && (
+                    <div className="w-5 h-5 rounded-full border-2 border-border-default" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className={`text-para-xs font-medium leading-tight ${item.status === 'completed' ? 'text-text-primary' :
+                      item.status === 'in-progress' || item.status === 'ready' ? 'text-text-primary font-semibold' :
+                        'text-text-tertiary'
+                    }`}>
+                    {item.label}
+                  </p>
+                  {item.meta && (
+                    <p className="text-[10px] text-text-tertiary mt-px leading-tight">{item.meta}</p>
+                  )}
+                </div>
+              </div>
+              {item.statusLabel && (
+                <span className={`flex-shrink-0 text-[10px] font-bold uppercase tracking-wide ${item.statusLabel === 'COMPLETED' ? 'text-text-secondary' :
+                    item.statusLabel === 'IN PROGRESS' ? 'text-accent-default' :
+                      item.statusLabel === 'READY FOR YOU' ? 'text-accent-default' :
+                        item.statusLabel === 'WAITING ON DESIGNER' ? 'text-text-secondary' :
+                          'text-text-tertiary'
+                  }`}>
+                  {item.statusLabel}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Quick action card
+const QuickActionCard: React.FC<{
+  icon: React.ReactNode;
+  label: string;
+  sub: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}> = ({ icon, label, sub, onClick, disabled }) => (
+  <button
+    onClick={disabled ? undefined : onClick}
+    disabled={disabled}
+    className={`flex items-center gap-md p-md rounded-xl border text-left transition-all duration-200 w-full ${disabled
+        ? 'border-border-muted bg-background-muted opacity-50 cursor-not-allowed'
+        : 'border-border-default bg-background-primary-2 hover:border-accent-default hover:shadow-sm cursor-pointer'
+      }`}
+  >
+    <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${disabled ? 'bg-background-muted' : 'bg-accent-subtle'
+      }`}>
+      <span className={disabled ? 'text-text-tertiary' : 'text-accent-default'}>{icon}</span>
+    </div>
+    <div className="min-w-0">
+      <p className="text-para-sm font-semibold text-text-primary leading-tight">{label}</p>
+      <p className="text-para-xs text-text-tertiary mt-px leading-tight">{sub}</p>
+    </div>
+  </button>
+);
+
+// Designer card at bottom
+const DesignerCard: React.FC<{ designerName: string }> = ({ designerName }) => (
+  <div className="flex items-center justify-between gap-md p-lg rounded-2xl border border-border-default bg-background-primary-2 mt-lg">
+    <div className="flex items-center gap-md">
+      {/* Avatar stack */}
+      <div className="flex -space-x-2">
+        <div className="w-10 h-10 rounded-full bg-accent-default flex items-center justify-center text-white font-bold text-para-sm border-2 border-background-primary">
+          {designerName.charAt(0).toUpperCase()}
+        </div>
+        <div className="w-10 h-10 rounded-full bg-background-muted flex items-center justify-center text-text-secondary font-bold text-para-sm border-2 border-background-primary">
+          S
+        </div>
+      </div>
+      <div>
+        <p className="text-para-sm font-semibold text-text-primary">
+          {COPY.designer.label} {designerName}.
+        </p>
+        <p className="text-para-xs text-text-secondary">{COPY.designer.sub(designerName)}</p>
+      </div>
+    </div>
+    {/* Message button — not wired per Dylan's note */}
+    <button className="flex-shrink-0 flex items-center gap-xs px-md py-sm rounded-xl border border-border-default bg-background-primary text-para-sm text-text-secondary hover:text-text-primary hover:border-border-default transition-colors">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0">
+        <path d="M1 1h12v9H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+        <path d="M4 13l3-3h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      {COPY.designer.messageCta(designerName)}
+    </button>
+  </div>
+);
+
+// ─── State 01 — Invite opened / intake not started ────────────────────────────
+
+const State01: React.FC<{ clientName: string; designerName: string; onStartIntake: () => void }> = ({
+  clientName, designerName, onStartIntake,
+}) => (
+  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    {/* Breadcrumb */}
+    <div className="flex items-center gap-xs mb-lg">
+      <span className="px-sm py-xs rounded-full border border-border-default bg-background-primary-2 text-para-xs font-semibold text-accent-default uppercase tracking-wide">Tandem</span>
+      <span className="text-text-tertiary text-para-xs">·</span>
+      <span className="text-para-xs text-text-secondary font-medium">Acme Coffee Co.</span>
     </div>
 
-    {/* CTA button */}
-    <motion.button
-      onClick={onStart}
-      whileHover={{ scale: 1.04 }}
-      whileTap={{ scale: 0.97 }}
-      className="inline-flex items-center gap-xs px-lg py-sm rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white text-para-sm font-semibold shadow-lg shadow-blue-500/25 hover:shadow-xl transition-shadow"
-    >
-      <RiAddLine className="text-icon-sm" />
-      Create project
-    </motion.button>
-  </div>
+    {/* Hero */}
+    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-lg mb-xl">
+      <div className="flex-1">
+        <h1 className="text-h2-sm sm:text-h1-sm font-bold text-text-primary mb-sm leading-tight">
+          {COPY.states.s01.heading}
+        </h1>
+        <p className="text-para-md text-text-secondary leading-relaxed max-w-xl">
+          {COPY.states.s01.body}
+        </p>
+      </div>
+      <div className="flex items-center gap-sm flex-shrink-0">
+        {/* Message designer — not wired per Dylan */}
+        <button className="flex items-center gap-xs px-lg py-sm rounded-xl border border-border-default bg-background-primary text-para-sm text-text-secondary hover:text-text-primary transition-colors">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M1 1h12v9H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+            <path d="M4 13l3-3h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {COPY.states.s01.secondaryCta}
+        </button>
+        <button
+          onClick={onStartIntake}
+          className="flex items-center gap-xs px-lg py-sm rounded-xl bg-accent-default text-accent-foreground text-para-sm font-semibold hover:bg-accent-hover transition-colors"
+        >
+          {COPY.states.s01.primaryCta}
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    {/* Preview placeholder */}
+    <div className="bg-background-primary-2 rounded-2xl border border-dashed border-border-default p-xl mb-lg flex items-center gap-md">
+      <div className="w-10 h-10 rounded-xl border border-border-default bg-background-muted flex items-center justify-center flex-shrink-0">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="1" y="1" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.4" className="text-text-tertiary" />
+          <path d="M1 5h16" stroke="currentColor" strokeWidth="1.2" className="text-text-tertiary" />
+        </svg>
+      </div>
+      <div>
+        <p className="text-para-sm font-semibold text-text-primary">{COPY.states.s01.previewPlaceholder}</p>
+        <p className="text-para-xs text-text-secondary mt-xs">{COPY.states.s01.previewSub}</p>
+      </div>
+    </div>
+
+    {/* 3-step cards */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-md mb-lg">
+      {[
+        { num: '01', label: COPY.states.s01.step1Label, body: COPY.states.s01.step1Body },
+        { num: '02', label: COPY.states.s01.step2Label, body: COPY.states.s01.step2Body },
+        { num: '03', label: COPY.states.s01.step3Label, body: COPY.states.s01.step3Body },
+      ].map((step) => (
+        <div key={step.num} className="bg-background-primary-2 rounded-xl border border-border-default p-lg">
+          <p className="text-para-xs font-bold text-accent-default mb-sm">{step.num}</p>
+          <h3 className="text-para-md font-bold text-text-primary mb-xs">{step.label}</h3>
+          <p className="text-para-sm text-text-secondary leading-relaxed">{step.body}</p>
+        </div>
+      ))}
+    </div>
+
+    {/* Designer card */}
+    <div className="flex items-center justify-between gap-md p-lg rounded-2xl border border-border-default bg-background-primary-2">
+      <div className="flex items-center gap-md">
+        <div className="flex -space-x-2">
+          <div className="w-10 h-10 rounded-full bg-accent-default flex items-center justify-center text-white font-bold text-para-sm border-2 border-background-primary">
+            {designerName.charAt(0).toUpperCase()}
+          </div>
+          <div className="w-10 h-10 rounded-full bg-background-muted flex items-center justify-center text-text-secondary font-bold text-para-sm border-2 border-background-primary">
+            S
+          </div>
+        </div>
+        <div>
+          <p className="text-para-sm font-semibold text-text-primary">{COPY.states.s01.designerCard(designerName)}</p>
+          <p className="text-para-xs text-text-secondary">{COPY.states.s01.designerSub(designerName)}</p>
+        </div>
+      </div>
+      {/* Not wired */}
+      <button className="flex-shrink-0 flex items-center gap-xs px-md py-sm rounded-xl border border-border-default bg-background-primary text-para-sm text-text-secondary hover:text-text-primary transition-colors">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M1 1h12v9H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+          <path d="M4 13l3-3h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {COPY.states.s01.messageCta(designerName)}
+      </button>
+    </div>
+  </motion.div>
+);
+
+// ─── State 02 — Kickoff / scrape running ──────────────────────────────────────
+
+const State02: React.FC<{ projectStatus: string | null; projectId: string | null; designerName: string; onViewIntake: () => void }> = ({
+  projectStatus, projectId, designerName, onViewIntake,
+}) => (
+  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <BreadcrumbPill projectName="Acme Coffee Co." projectType="Brand Site" stageLabel="Stage 2 of 7" timestamp="Updated 12m ago" />
+    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-lg mb-xl">
+      <div className="flex-1">
+        <h1 className="text-h2-sm sm:text-h1-sm font-bold text-text-primary mb-sm leading-tight">{COPY.states.s02.heading}</h1>
+        <p className="text-para-md text-text-secondary leading-relaxed max-w-xl">{COPY.states.s02.body}</p>
+      </div>
+      <button onClick={onViewIntake} className="flex-shrink-0 flex items-center gap-xs px-lg py-sm rounded-xl bg-accent-default text-accent-foreground text-para-sm font-semibold hover:bg-accent-hover transition-colors">
+        {COPY.states.s02.primaryCta}
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+    </div>
+    <Stepper
+      projectStatus={projectStatus}
+      stageLabel={COPY.states.s02.stageLabel}
+      stageSub="Stage 2 of 7"
+      statusPill={COPY.states.s02.stageStatus}
+      estHandoff={EST_HANDOFF}
+      rightNow={COPY.states.s02.rightNow}
+      upNext={COPY.states.s02.upNext}
+    />
+    <PreviewAndChecklist projectStatus={projectStatus} previewStatusPill={COPY.preview.statusPills.coming} projectId={projectId} />
+    {/* Quick actions */}
+    <div className="mb-lg">
+      <p className="text-para-md font-bold text-text-primary mb-xs">{COPY.quickActions.title}</p>
+      <p className="text-para-xs text-text-secondary mb-md">{COPY.quickActions.sub}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2h12v12H2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} label="View intake" sub="2 free edits remaining" onClick={onViewIntake} />
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h14v11H1z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M5 15l3-3h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>} label="Message designer" sub={`${designerName} · replies in ~4h`} disabled />
+      </div>
+    </div>
+    <DesignerCard designerName={designerName} />
+  </motion.div>
+);
+
+// ─── State 03 — Waiting on you / preferences needed ───────────────────────────
+
+const State03: React.FC<{ projectStatus: string | null; projectId: string | null; designerName: string; onContinueSwiper: () => void; onSkip: () => void; onViewIntake: () => void }> = ({
+  projectStatus, projectId, designerName, onContinueSwiper, onSkip, onViewIntake,
+}) => (
+  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <BreadcrumbPill projectName="Acme Coffee Co." projectType="Brand Site" stageLabel="Stage 3 of 7" timestamp="Updated 1d ago" />
+    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-lg mb-xl">
+      <div className="flex-1">
+        <h1 className="text-h2-sm sm:text-h1-sm font-bold text-text-primary mb-sm leading-tight">{COPY.states.s03.heading}</h1>
+        <p className="text-para-md text-text-secondary leading-relaxed max-w-xl">{COPY.states.s03.body}</p>
+      </div>
+      <div className="flex items-center gap-sm flex-shrink-0">
+        <button onClick={onSkip} className="px-lg py-sm rounded-xl border border-border-default bg-background-primary text-para-sm text-text-secondary hover:text-text-primary transition-colors">
+          {COPY.states.s03.secondaryCta}
+        </button>
+        <button onClick={onContinueSwiper} className="flex items-center gap-xs px-lg py-sm rounded-xl bg-accent-default text-accent-foreground text-para-sm font-semibold hover:bg-accent-hover transition-colors">
+          {COPY.states.s03.primaryCta}
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+      </div>
+    </div>
+    <Stepper
+      projectStatus={projectStatus}
+      stageLabel={COPY.states.s03.stageLabel}
+      stageSub="Stage 3 of 7"
+      statusPill={COPY.states.s03.stageStatus}
+      estHandoff="Mon, May 25"
+      rightNow={COPY.states.s03.rightNow}
+      upNext={COPY.states.s03.upNext}
+    />
+    <PreviewAndChecklist projectStatus={projectStatus} previewStatusPill={COPY.preview.statusPills.waiting} projectId={projectId} />
+    <div className="mb-lg">
+      <p className="text-para-md font-bold text-text-primary mb-xs">{COPY.quickActions.title}</p>
+      <p className="text-para-xs text-text-secondary mb-md">{COPY.quickActions.sub}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-md">
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.3" /><path d="M5 8h6M8 5v6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} label="Continue swiper" sub="Round 3 of 3" onClick={onContinueSwiper} />
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2h12v12H2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} label="View intake" sub="2 free edits remaining" onClick={onViewIntake} />
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h14v11H1z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M5 15l3-3h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>} label="Message designer" sub={`${designerName} · replies in ~4h`} disabled />
+      </div>
+    </div>
+    <DesignerCard designerName={designerName} />
+  </motion.div>
+);
+
+// ─── State 04 — Designer composing ────────────────────────────────────────────
+
+const State04: React.FC<{ projectStatus: string | null; projectId: string | null; designerName: string; onViewIntake: () => void; onUpdatePreferences: () => void }> = ({
+  projectStatus, projectId, designerName, onViewIntake, onUpdatePreferences,
+}) => (
+  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <BreadcrumbPill projectName="Acme Coffee Co." projectType="Brand Site" stageLabel="Stage 4 of 7" timestamp="Started 2h ago" />
+    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-lg mb-xl">
+      <div className="flex-1">
+        <h1 className="text-h2-sm sm:text-h1-sm font-bold text-text-primary mb-sm leading-tight">{COPY.states.s04.heading}</h1>
+        <p className="text-para-md text-text-secondary leading-relaxed max-w-xl">{COPY.states.s04.body}</p>
+      </div>
+      <div className="flex items-center gap-sm flex-shrink-0">
+        <button disabled className="flex items-center gap-xs px-lg py-sm rounded-xl border border-border-default bg-background-primary text-para-sm text-text-secondary opacity-50 cursor-not-allowed">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1h12v9H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" /><path d="M4 13l3-3h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          {COPY.states.s04.secondaryCta}
+        </button>
+        <button disabled className="flex items-center gap-xs px-lg py-sm rounded-xl bg-accent-default text-accent-foreground text-para-sm font-semibold opacity-50 cursor-not-allowed">
+          {COPY.states.s04.primaryCta}
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+      </div>
+    </div>
+    <Stepper
+      projectStatus={projectStatus}
+      stageLabel={COPY.states.s04.stageLabel}
+      stageSub="Stage 4 of 7"
+      statusPill={COPY.states.s04.stageStatus}
+      estHandoff="Thu, May 21"
+      rightNow={COPY.states.s04.rightNow}
+      upNext={COPY.states.s04.upNext}
+    />
+    <PreviewAndChecklist projectStatus={projectStatus} previewStatusPill={COPY.preview.statusPills.composing} projectId={projectId} />
+    <div className="mb-lg">
+      <p className="text-para-md font-bold text-text-primary mb-xs">{COPY.quickActions.title}</p>
+      <p className="text-para-xs text-text-secondary mb-md">{COPY.quickActions.sub}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-md">
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2h12v12H2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} label="View intake" sub="2 free edits remaining" onClick={onViewIntake} />
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.3" /><path d="M5 8h6M8 5v6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} label="Update preferences" sub="Add more signal" onClick={onUpdatePreferences} />
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h14v11H1z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M5 15l3-3h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>} label="Message designer" sub={`${designerName} · replies in ~4h`} disabled />
+      </div>
+    </div>
+    <DesignerCard designerName={designerName} />
+  </motion.div>
+);
+
+// ─── State 05 — Draft ready / review ──────────────────────────────────────────
+
+const State05: React.FC<{ projectStatus: string | null; projectId: string | null; designerName: string; onReviewDraft: () => void }> = ({
+  projectStatus, projectId, designerName, onReviewDraft,
+}) => (
+  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <BreadcrumbPill projectName="Acme Coffee Co." projectType="Brand Site" stageLabel="Stage 5 of 7" timestamp="Pushed 4m ago" />
+    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-lg mb-xl">
+      <div className="flex-1">
+        <h1 className="text-h2-sm sm:text-h1-sm font-bold text-text-primary mb-sm leading-tight">{COPY.states.s05.heading}</h1>
+        <p className="text-para-md text-text-secondary leading-relaxed max-w-xl">{COPY.states.s05.body}</p>
+      </div>
+      <div className="flex items-center gap-sm flex-shrink-0">
+        <button disabled className="flex items-center gap-xs px-lg py-sm rounded-xl border border-border-default bg-background-primary text-para-sm text-text-secondary opacity-50 cursor-not-allowed">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1h12v9H1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" /><path d="M4 13l3-3h6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          {COPY.states.s05.secondaryCta}
+        </button>
+        <button onClick={onReviewDraft} className="flex items-center gap-xs px-lg py-sm rounded-xl bg-accent-default text-accent-foreground text-para-sm font-semibold hover:bg-accent-hover transition-colors">
+          {COPY.states.s05.primaryCta}
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>
+      </div>
+    </div>
+    <Stepper
+      projectStatus={projectStatus}
+      stageLabel={COPY.states.s05.stageLabel}
+      stageSub="Stage 5 of 7"
+      statusPill={COPY.states.s05.stageStatus}
+      estHandoff="Thu, May 21"
+      rightNow={COPY.states.s05.rightNow}
+      upNext={COPY.states.s05.upNext}
+    />
+    <PreviewAndChecklist projectStatus={projectStatus} previewStatusPill={COPY.preview.statusPills.draftReady} showOpen projectId={projectId} />
+    <div className="mb-lg">
+      <p className="text-para-md font-bold text-text-primary mb-xs">{COPY.quickActions.title}</p>
+      <p className="text-para-xs text-text-secondary mb-md">{COPY.quickActions.sub}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-md">
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v10H3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M10 1v2M13 4h2M14 8v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} label="Review draft" sub="v1 · 8 sections" onClick={onReviewDraft} />
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h14v11H1z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M5 15l3-3h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>} label="Leave feedback" sub="Per-section notes" disabled />
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h14v11H1z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M5 15l3-3h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>} label="Message designer" sub={`${designerName} · replies in ~4h`} disabled />
+      </div>
+    </div>
+    <DesignerCard designerName={designerName} />
+  </motion.div>
+);
+
+// ─── State 06 — Delivered / final handoff ─────────────────────────────────────
+
+const State06: React.FC<{ projectStatus: string | null; projectId: string | null; designerName: string; onViewHandoff: () => void; onShareTestimonial: () => void }> = ({
+  projectStatus, projectId, designerName, onViewHandoff, onShareTestimonial,
+}) => (
+  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    {/* Green delivered hero banner */}
+    <div className="rounded-2xl bg-background-success border border-[rgb(var(--text-success)/0.2)] p-xl mb-lg">
+      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-lg">
+        <div>
+          <div className="flex items-center gap-sm mb-sm">
+            <span className="px-sm py-xs rounded-full bg-[rgb(var(--text-success)/0.15)] text-para-xs font-bold text-text-success uppercase tracking-wider">
+              {COPY.states.s06.deliveredBadge}
+            </span>
+            <span className="text-para-xs text-text-success font-medium">· May 21</span>
+          </div>
+          <h1 className="text-h2-sm sm:text-h1-sm font-bold text-text-primary mb-sm leading-tight">{COPY.states.s06.heading}</h1>
+          <p className="text-para-md text-text-secondary leading-relaxed max-w-xl">{COPY.states.s06.body}</p>
+        </div>
+        <div className="flex items-center gap-sm flex-shrink-0">
+          <button onClick={onShareTestimonial} className="flex items-center gap-xs px-lg py-sm rounded-xl border border-[rgb(var(--text-success)/0.4)] bg-transparent text-para-sm text-text-success font-semibold hover:bg-[rgb(var(--text-success)/0.1)] transition-colors">
+            {COPY.states.s06.secondaryCta}
+          </button>
+          <button onClick={onViewHandoff} className="flex items-center gap-xs px-lg py-sm rounded-xl bg-text-success text-white text-para-sm font-semibold hover:opacity-90 transition-opacity">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v9M3 7l4 4 4-4M1 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            {COPY.states.s06.primaryCta}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* Stepper — all complete */}
+    <div className="bg-background-primary-2 rounded-2xl border border-border-default p-lg sm:p-xl mb-lg">
+      <div className="mb-lg">
+        <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">Project Progress</p>
+        <h3 className="text-h5-sm font-bold text-text-primary">
+          {COPY.states.s06.stageLabel} <span className="text-para-md font-normal text-text-secondary ml-sm">{COPY.states.s06.stageSub}</span>
+        </h3>
+      </div>
+
+      <div className="relative overflow-x-auto pb-xs">
+        <div className="min-w-[560px]">
+          <div className="absolute top-[19px] left-[calc(100%/14)] right-[calc(100%/14)] h-0.5 bg-accent-default rounded-full" />
+          <div className="relative flex justify-between items-start">
+            {STEPPER_NODES.map((node) => (
+              <div key={node.id} className="flex flex-col items-center gap-sm" style={{ width: `${100 / STEPPER_NODES.length}%` }}>
+                <div className="w-10 h-10 rounded-full bg-accent-default border-2 border-accent-default flex items-center justify-center z-10">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+                <p className="text-para-xs text-text-secondary font-medium text-center leading-tight">{node.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-lg pt-lg border-t border-border-default mt-lg">
+        <div>
+          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">Right now</p>
+          <p className="text-para-sm text-text-secondary leading-relaxed">{COPY.states.s06.rightNow}</p>
+        </div>
+        <div>
+          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">Up next</p>
+          <p className="text-para-sm text-text-secondary leading-relaxed">{COPY.states.s06.upNext}</p>
+        </div>
+      </div>
+    </div>
+
+    {/* Preview + Project log */}
+    <PreviewAndChecklist projectStatus={projectStatus} previewStatusPill={COPY.preview.statusPills.delivered} showOpen projectId={projectId} />
+
+    {/* Quick actions */}
+    <div className="mb-lg">
+      <p className="text-para-md font-bold text-text-primary mb-xs">{COPY.quickActions.title}</p>
+      <p className="text-para-xs text-text-secondary mb-md">{COPY.quickActions.sub}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3h10v10H3z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M10 1v2M13 4h2M14 8v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /></svg>} label="View final handoff" sub="Delivered May 21" onClick={onViewHandoff} />
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v10M4 7l4 5 4-5M1 15h14" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>} label="Download assets" sub=".zip · 4.2 MB" onClick={() => { }} />
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l2 4 5 .5-3.5 3.5.8 5L8 12l-4.3 2.5.8-5L1 6l5-.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /></svg>} label="Share testimonial" sub="Help future clients" onClick={onShareTestimonial} />
+        <QuickActionCard icon={<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 1h14v11H1z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" /><path d="M5 15l3-3h5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>} label="Message designer" sub={`${designerName} · replies in ~4h`} disabled />
+      </div>
+    </div>
+
+    <DesignerCard designerName={designerName} />
+  </motion.div>
 );
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -259,370 +976,97 @@ const NoProjectCTA: React.FC<{ onStart: () => void }> = ({ onStart }) => (
 const ClientDashHome: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [progress, setProgress] = useState(0);
-  const [hasProject, setHasProject] = useState(false);
+
+  const projectStatus = useSelector((state: RootState) => state.project.status);
+  const projectId = useSelector((state: RootState) => state.project.projectId);
+  const clientEmail = useSelector((state: RootState) => state.auth.user?.email) ?? '';
+  const designerEmail = useSelector((state: RootState) => state.auth.user?.designerEmail) ?? '';
+
+  // Derive designer first name from email (e.g. "maya@..." → "Maya")
+  // Syed to replace with real name field when available on user object
+  const designerName = designerEmail
+    ? designerEmail.split('@')[0].charAt(0).toUpperCase() + designerEmail.split('@')[0].slice(1)
+    : 'Maya';
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-    requestAnimationFrame(() => { requestAnimationFrame(() => {}); });
-    return () => {
-      if ('scrollRestoration' in history) history.scrollRestoration = 'auto';
-    };
   }, []);
-
-  const projectStatus = useSelector((state: RootState) => state.project.status);
-
-  const isStageCompleted = (stage: string): boolean => {
-    if (projectStatus === undefined || projectStatus === null) return false;
-    return PIPELINE_ORDER.indexOf(stage) < PIPELINE_ORDER.indexOf(projectStatus);
-  };
-
-  const isCurrentStage = (stage: string): boolean => projectStatus === stage;
-
-  const getCardStatus = (stage: string): 'completed' | 'pending' => {
-    return isStageCompleted(stage) || isCurrentStage(stage) ? 'completed' : 'pending';
-  };
-
-  const quickActions = [
-    { icon: RiEditLine,    label: 'Edit Intake Form',    color: 'from-blue-500 to-cyan-500',    href: 'intake' },
-    { icon: RiPaletteLine, label: 'Update Preferences',  color: 'from-purple-500 to-pink-500' },
-    { icon: RiMessage3Line,label: 'Submit Feedback',     color: 'from-emerald-500 to-teal-500' },
-    { icon: RiStarLine,    label: 'Testimonial',         color: 'from-amber-500 to-orange-500' },
-  ];
-
-  const statusItems = [
-    { title: 'Intake Submitted',    status: getCardStatus('intake'),    icon: <RiFileTextLine />,  action: 'View',   route: '/dashboard/client/intake',   delay: 0 },
-    { title: 'Scraping',            status: getCardStatus('scraping'),  icon: <RiLinkM />,         action: 'View',   route: '/dashboard/client/scraper',  delay: 0.1 },
-    { title: 'Preferences Swiped',  status: getCardStatus('swiping'),  icon: <RiPaletteLine />,   action: 'View',   route: 'swiper',                     delay: 0.2 },
-    { title: 'Generate Layout',     status: getCardStatus('composing'),icon: <RiMessage3Line />,  action: 'Submit', route: '/dashboard/client/compose',  delay: 0.3 },
-    { title: 'Designer Feedback',   status: getCardStatus('completed'),icon: <RiMessage3Line />,  action: 'Submit', route: 'designer-testimonial',       delay: 0.3 },
-    { title: 'Platform Feedback',   status: getCardStatus('handoff'),  icon: <RiMessage3Line />,  action: 'Submit', route: 'final-testimonial',          delay: 0.3 },
-  ];
-
-  const scrapperButton = [
-    { icon: RiLinkM, label: 'Capture & Create', color: 'from-blue-500 to-cyan-500', href: 'scraper' },
-  ];
-
-  const clientName = useSelector((state: RootState) => state.auth.user.name)!;
-  const client_email = useSelector((state: RootState) => state.auth.user.email)!;
 
   const fetchProject = async () => {
     dispatch(clearProjectStatus());
-    setProgress(0);
-    const result = await getProjectByClientEmail({ client_email });
-    if (result.status === 200 && result.data.data?.id) {
-      setHasProject(true);
-      dispatch(setProjectId(result.data.data.id));
-      dispatch(setProjectStatus(result.data.data.status ?? null));
-    } else {
-      setHasProject(false);
-      dispatch(clearProjectId());
-      dispatch(clearProjectStatus());
+    dispatch(clearProjectId());
+    try {
+      const result = await getProjectByClientEmail({ client_email: clientEmail });
+      if (result.status === 200 && result.data?.data?.id) {
+        dispatch(setProjectId(result.data.data.id));
+        dispatch(setProjectStatus(result.data.data.status ?? null));
+      }
+    } catch {
+      // Fetch failed silently — dashboard shows state 01
     }
   };
 
   useEffect(() => {
-    if (projectStatus) {
-      const pct = STATUS_PROGRESS[projectStatus] ?? 0;
-      const timer = setTimeout(() => setProgress(pct), 800);
-      return () => clearTimeout(timer);
-    }
-  }, [projectStatus]);
+    if (clientEmail) fetchProject();
+  }, [clientEmail]);
 
-  useEffect(() => { fetchProject(); }, []);
-
-  const progressMessage = getProgressMessage(projectStatus ?? null);
+  const hasProject = !!projectId;
+  const dashState = getDashState(projectStatus, hasProject);
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
-      <div className="container mx-auto px-4 py-6 sm:py-8 lg:py-12">
-
-        {/* Welcome Section */}
-        <motion.div
-          className="mb-8 sm:mb-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="flex-1">
-            <motion.h1
-              className="text-h1-sm md:text-h1-md xl:text-h1-lg font-bold bg-gradient-to-r from-text-primary via-text-secondary to-text-primary bg-clip-text text-transparent mb-2 sm:mb-3"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              Welcome back, {clientName}
-              <motion.span
-                className="ml-2 inline-block text-2l sm:text-4xl"
-                animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
-                style={{ color: '#FFD700' }}
-              >
-                🤗
-              </motion.span>
-            </motion.h1>
-            <motion.p
-              className="text-sm sm:text-base md:text-lg lg:text-xl text-text-secondary max-w-3xl leading-relaxed"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              {hasProject
-                ? "Here's where your project stands. Pick up right where you left off."
-                : "Ready to get started? Create your first project below."}
-            </motion.p>
-          </div>
-
-          <div className="flex-shrink-0">
-            {scrapperButton.map((action, index) => {
-              const button = (
-                <motion.button
-                  key={action.label}
-                  className="p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center gap-2 sm:gap-3 bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                >
-                  <motion.div className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                  <motion.div
-                    className={`p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10 bg-gradient-to-r ${action.color} shadow-lg`}
-                    whileHover={{ rotate: 10, scale: 1.1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <action.icon className="text-xl sm:text-2xl text-white" />
-                  </motion.div>
-                  <p className="text-xs sm:text-sm font-semibold text-center relative z-10 text-text-secondary">{action.label}</p>
-                </motion.button>
-              );
-              return action.href ? (
-                <Link to={action.href} key={action.label} className="contents">{button}</Link>
-              ) : button;
-            })}
-          </div>
-        </motion.div>
-
-        {/* Main Grid */}
-        <motion.div
-          className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          {/* Progress / No Project section */}
-          <div className="lg:col-span-1">
-            <Card className="h-full flex flex-col bg-background-primary-2 border-0 shadow-xl">
-              {!hasProject ? (
-                // ── Client has no project — show CTA to create one ────────────
-                <NoProjectCTA onStart={() => navigate('onboard')} />
-              ) : (
-                // ── Client has a project — show progress ring ─────────────────
-                <>
-                  <div className="flex-1 p-4 sm:p-6">
-                    <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-primary mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-                      <motion.div
-                        className="p-2 sm:p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg sm:rounded-xl"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                      >
-                        <RiRocketLine className="text-white text-sm sm:text-base lg:text-lg" />
-                      </motion.div>
-                      Project Progress
-                    </h2>
-
-                    {/* Progress Ring */}
-                    <div className="relative w-32 h-32 mx-auto mb-6">
-                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 128 128">
-                        <defs>
-                          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#3B82F6" />
-                            <stop offset="50%" stopColor="#8B5CF6" />
-                            <stop offset="100%" stopColor="#EC4899" />
-                          </linearGradient>
-                        </defs>
-                        <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="8" fill="none" className="text-border-muted" />
-                        <motion.circle
-                          cx="64" cy="64" r="56"
-                          stroke="url(#progressGradient)"
-                          strokeWidth="8" fill="none" strokeLinecap="round"
-                          strokeDasharray={351.86}
-                          initial={{ strokeDashoffset: 351.86 }}
-                          animate={{ strokeDashoffset: 351.86 * (1 - progress / 100) }}
-                          transition={{ duration: 2, delay: 0.5, ease: "easeInOut" }}
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <motion.span
-                          className="text-h2-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent leading-none"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.8, delay: 1 }}
-                        >
-                          {progress}%
-                        </motion.span>
-                        <span className="text-para-sm text-text-tertiary font-medium">done</span>
-                      </div>
-                    </div>
-
-                    <motion.p
-                      className="text-center text-xs sm:text-sm text-text-secondary mb-2 sm:mb-3 leading-relaxed px-2"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 1.2 }}
-                    >
-                      <span className="text-transparent bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text font-semibold">
-                        {progressMessage.highlight}
-                      </span>
-                      <br />
-                      {progressMessage.body}
-                    </motion.p>
-                  </div>
-
-                  <motion.button
-                    onClick={() => navigate('onboard')}
-                    className="mx-4 sm:mx-6 mb-4 sm:mb-6 py-3 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl font-semibold text-sm sm:text-base text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 group relative overflow-hidden"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    <motion.div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <RiSparklingLine className="text-lg sm:text-xl relative z-10" />
-                    <span className="relative z-10">Continue Project</span>
-                    <motion.div
-                      className="relative z-10"
-                      animate={{ x: [0, 4, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    >
-                      <RiArrowRightLine className="text-lg sm:text-xl" />
-                    </motion.div>
-                  </motion.button>
-                </>
-              )}
-            </Card>
-          </div>
-
-          {/* Live Preview */}
-          <div className="lg:col-span-2">
-            <Card className="h-full overflow-hidden bg-background-primary-2 border-0 shadow-xl p-none">
-              <BrowserMockup />
-            </Card>
-          </div>
-        </motion.div>
-
-        {/* Status Cards */}
-        <motion.div
-            className="mb-8 sm:mb-12"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-text-primary mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-              <motion.div
-                className="p-2 sm:p-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg sm:rounded-xl"
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-              >
-                <RiShieldCheckLine className="text-white text-sm sm:text-base lg:text-lg" />
-              </motion.div>
-              Project Status
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
-              {statusItems.map((item) => (
-                <StatusCard
-                  key={item.title}
-                  title={item.title}
-                  status={item.status}
-                  icon={item.icon}
-                  action={item.action}
-                  onClick={() => navigate(item.route)}
-                  delay={item.delay}
-                />
-              ))}
-            </div>
-        </motion.div>
-
-        {/* Quick Actions */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          <Card className="bg-background-primary-2 border-0 shadow-xl p-4 sm:p-6 lg:p-8">
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-primary mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-              <motion.div
-                className="p-2 sm:p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg sm:rounded-xl"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <RiThunderstormsLine className="text-white text-sm sm:text-base lg:text-lg" />
-              </motion.div>
-              Quick Actions
-            </h3>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-              {quickActions.map((action, index) => {
-                const button = (
-                  <motion.button
-                    key={action.label}
-                    className="p-3 sm:p-4 lg:p-6 rounded-xl sm:rounded-2xl transition-all duration-300 group relative overflow-hidden flex flex-col items-center justify-center gap-2 sm:gap-3 bg-gradient-to-br from-background-muted to-background-primary hover:shadow-lg"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                    whileHover={{ y: -8, transition: { duration: 0.2 } }}
-                  >
-                    <motion.div className={`absolute inset-0 bg-gradient-to-r ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                    <motion.div
-                      className={`p-2 sm:p-3 rounded-lg sm:rounded-xl relative z-10 bg-gradient-to-r ${action.color} shadow-lg`}
-                      whileHover={{ rotate: 10, scale: 1.1 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <action.icon className="text-xl sm:text-2xl text-white" />
-                    </motion.div>
-                    <p className="text-xs sm:text-sm font-semibold text-center relative z-10 text-text-secondary">{action.label}</p>
-                  </motion.button>
-                );
-
-                return 'href' in action && action.href ? (
-                  <Link to={action.href} key={action.label} className="contents">{button}</Link>
-                ) : (
-                  <span key={action.label} className="contents">{button}</span>
-                );
-              })}
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Progress Timeline */}
-        <motion.div
-            className="mt-8 sm:mt-12"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <Card className="bg-background-primary-2 border-0 shadow-xl p-4 sm:p-6 lg:p-8">
-              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-primary mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3">
-                <motion.div
-                  className="p-2 sm:p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg sm:rounded-xl"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                >
-                  <RiSparklingLine className="text-white text-sm sm:text-base lg:text-lg" />
-                </motion.div>
-                Project Timeline
-              </h3>
-              <p className="text-text-secondary mb-4 sm:mb-6 text-sm sm:text-base lg:text-lg">
-                Track your journey from start to finish
-              </p>
-              <div className="overflow-x-auto -mx-4 sm:-mx-6 lg:mx-0 px-4 sm:px-6 lg:px-0">
-                <ProgressChart />
-              </div>
-            </Card>
-        </motion.div>
-
+    <div className="min-h-screen bg-background-primary">
+      <div className="container mx-auto px-md sm:px-lg lg:px-xl py-lg sm:py-xl lg:py-2xl max-w-6xl">
+        {dashState === 1 && (
+          <State01
+            clientName=""
+            designerName={designerName}
+            onStartIntake={() => navigate(ROUTES.onboard)}
+          />
+        )}
+        {dashState === 2 && (
+          <State02
+            projectStatus={projectStatus}
+            projectId={projectId}
+            designerName={designerName}
+            onViewIntake={() => navigate(ROUTES.intake)}
+          />
+        )}
+        {dashState === 3 && (
+          <State03
+            projectStatus={projectStatus}
+            projectId={projectId}
+            designerName={designerName}
+            onContinueSwiper={() => navigate(ROUTES.swiper)}
+            onSkip={() => { }}
+            onViewIntake={() => navigate(ROUTES.intake)}
+          />
+        )}
+        {dashState === 4 && (
+          <State04
+            projectStatus={projectStatus}
+            projectId={projectId}
+            designerName={designerName}
+            onViewIntake={() => navigate(ROUTES.intake)}
+            onUpdatePreferences={() => navigate(ROUTES.swiper)}
+          />
+        )}
+        {dashState === 5 && (
+          <State05
+            projectStatus={projectStatus}
+            projectId={projectId}
+            designerName={designerName}
+            onReviewDraft={() => navigate(ROUTES.compose)}
+          />
+        )}
+        {dashState === 6 && (
+          <State06
+            projectStatus={projectStatus}
+            projectId={projectId}
+            designerName={designerName}
+            onViewHandoff={() => navigate(ROUTES.compose)}
+            onShareTestimonial={() => navigate(ROUTES.testimonial)}
+          />
+        )}
       </div>
     </div>
   );
