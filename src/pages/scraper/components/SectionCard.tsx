@@ -382,7 +382,7 @@ const SectionCard = ({
                                                 )}
                                             </motion.button>
                                             <motion.button
-                                                onClick={() => console.log('Get more like this')}
+                                                onClick={() => { }}
                                                 whileHover={{ scale: 1.02, backgroundColor: 'rgba(209, 250, 229, 0.5)' }}
                                                 whileTap={{ scale: 0.98 }}
                                                 transition={{ duration: 0.2 }}

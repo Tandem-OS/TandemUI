@@ -13,8 +13,6 @@ export function broadcastLogout() {
   try {
     const logoutChannel = getLogoutChannel();
     logoutChannel.postMessage("LOGOUT");
-    console.log("[BroadcastChannel] Sent LOGOUT");
-  } catch (err) {
-    console.error("Failed to broadcast logout", err);
+  } catch  {
   }
 }

@@ -68,7 +68,6 @@ const NewPasswordForm = () => {
                 }, 3000);
             }
         } catch (err) {
-            console.error('Login error:', err);
             setErrors({ general: 'An unexpected error occurred. Please try again.' });
         } finally {
             setLoading(false);

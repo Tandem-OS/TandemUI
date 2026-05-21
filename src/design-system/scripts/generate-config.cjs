@@ -68,12 +68,9 @@ function validateThemes(light, dark) {
     compareKeys(light.colors, dark.colors, 'colors');
 
     if (errors.length > 0) {
-        console.error('\n🚨 Theme Validation Errors:');
-        errors.forEach(error => console.error(error));
-        throw new Error('Theme validation failed! All colors must be defined in both light and dark themes.');
-    }
+    throw new Error('Theme validation failed!...');
+}
 
-    console.log('✅ Theme validation passed! All colors are defined in both themes.');
 }
 
 // Function to resolve color references
@@ -232,7 +229,6 @@ ${Object.entries(darkCSSVars).map(([key, value]) => `  ${key}: ${value};`).join(
 const cssPath = './src/design-system/generated/theme.css';
 ensureDirectoryExists(cssPath);
 fs.writeFileSync(cssPath, cssContent, 'utf8');
-console.log('✅ Theme CSS variables generated with opacity support!');
 
 // Generate TypeScript types dynamically
 const typeDefinitions = generateTypeScriptInterface(lightTheme) + '\n' +
@@ -241,7 +237,6 @@ const typeDefinitions = generateTypeScriptInterface(lightTheme) + '\n' +
 const typesPath = './src/design-system/generated/tokens.ts';
 ensureDirectoryExists(typesPath);
 fs.writeFileSync(typesPath, typeDefinitions, 'utf8');
-console.log('✅ TypeScript definitions generated dynamically!');
 
 // Serialize and write Tailwind config
 const configContent = `// This file is auto-generated. Do not edit manually.
@@ -251,4 +246,3 @@ module.exports = ${JSON.stringify(config, null, 2)}
 `;
 
 fs.writeFileSync('./tailwind.config.js', configContent, 'utf8');
-console.log('✅ Tailwind config generated with all design tokens!');

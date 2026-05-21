@@ -89,7 +89,6 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({ section, highlighted = 
         );
       default: {
         const _exhaustive: never = section;
-        console.error(`[SectionPreview] Unhandled category: "${(_exhaustive as any).category}"`);
         return null;
       }
     }

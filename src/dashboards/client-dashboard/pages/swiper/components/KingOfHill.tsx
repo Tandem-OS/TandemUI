@@ -10,9 +10,9 @@ const playAudio = (audioSrc: string, volumePercent: number = 100) => {
     try {
         const audio = new Audio(audioSrc);
         audio.volume = Math.min(Math.max(volumePercent / 100, 0), 1);
-        audio.play().catch(error => console.log('Audio playback failed:', error));
-    } catch (error) {
-        console.log('Audio not available:', error);
+        audio.play().catch(() => {});
+    } catch {
+        // Audio not available
     }
 };
 
@@ -81,13 +81,6 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
             match_number: matchNumber,
             action_source: 'button'
         };
-
-        console.log(`[KING OF THE HILL - Match ${matchNumber}] Selection:`, {
-            winner: winnerComponent.title,
-            loser: loserComponent.title,
-            hesitation: `${(signals.hesitation_ms / 1000).toFixed(2)}s`,
-            view_duration: `${(signals.view_duration_ms / 1000).toFixed(2)}s`
-        });
 
         setTimeout(() => {
             onSelect(winnerComponent, loserComponent, signals);

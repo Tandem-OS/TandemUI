@@ -80,13 +80,10 @@ const Newsletter: React.FC<NewsletterProps> = ({
         try {
             if (onSubmit) {
                 await onSubmit(email);
-            } else {
-                // Default behavior - just log
-                console.log('Newsletter subscription:', email);
             }
             setEmail(''); // Clear on success
-        } catch (error) {
-            console.error('Newsletter submission error:', error);
+        } catch {
+            // Submission error — handle silently
         } finally {
             setIsLoading(false);
         }

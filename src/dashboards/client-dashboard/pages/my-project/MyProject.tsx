@@ -10,9 +10,9 @@ import type { Project } from '@/types/project.type';
 import MagicLinkModal from '@/dashboards/designer-dashboard/components/MagicLinkModal';
 import { ProjectCardSkeleton } from '@/dashboards/designer-dashboard/components/skeletons';
 import {
-  STATUS_TO_PROGRESS,
-  STATUS_TO_UI_STATUS,
-  type ApiStatus,
+    STATUS_TO_PROGRESS,
+    STATUS_TO_UI_STATUS,
+    type ApiStatus,
 } from '@/lib/config/projectStatus';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -62,8 +62,8 @@ const MyProject: React.FC = () => {
             }));
 
             setProject(mapped);
-        } catch (err: any) {
-            console.error('Failed to fetch projects:', err);
+        } catch {
+            // Failed to fetch projects — handle silently
         } finally {
             setState(prev => ({ ...prev, isLoading: false }));
         }

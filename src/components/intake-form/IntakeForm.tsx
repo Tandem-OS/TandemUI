@@ -225,7 +225,6 @@ const IntakeForm: React.FC = () => {
                 setFormData(initialFormData);
             }
         } catch (err) {
-            console.error("Error loading form data:", err);
             setFormData(initialFormData);
         }
         setLoading(false);
@@ -268,12 +267,10 @@ const IntakeForm: React.FC = () => {
     };
 
     const handleFeedbackSubmit = (rating: number, message: string) => {
-        console.log('Feedback submitted:', { rating, message, stageName: 'Intake Form', projectId: 1 });
         navigateHook('/dashboard/client');
     };
 
     const handleFeedbackSkip = () => {
-        console.log('Feedback skipped for Intake Form');
         navigateHook('/dashboard/client');
     };
 
@@ -320,7 +317,6 @@ const IntakeForm: React.FC = () => {
                 setTimeout(() => navigateHook("/dashboard/client"), 1200);
             } catch (error: any) {
                 if (handleBillingError(error)) return;
-                console.error('Error submitting intake form:', error);
                 showToast('Submission failed. Please try again.', 'error');
             }
             return;
@@ -372,7 +368,6 @@ const IntakeForm: React.FC = () => {
                 setButtonState('default');
                 return;
             }
-            console.error("Intake submission failed", err);
             showToast("Something went wrong while saving this step. Please try again.", 'error');
             setButtonState('default');
         }

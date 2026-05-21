@@ -12,7 +12,7 @@ import clickAudio from "../../assets/audio/clickAudio.mp3";
 const playAudio = (audioSrc: string, volumePercent: number = 100) => {
     const audio = new Audio(audioSrc);
     audio.volume = Math.min(Math.max(volumePercent / 100, 0), 1);
-    audio.play().catch(error => console.log('Audio playback failed:', error));
+    audio.play().catch(() => { });
 };
 
 // New interface for tracking head-to-head comparisons
@@ -61,29 +61,29 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     }, [challenger, previousChallengerId, isInitialized]);
 
     useEffect(() => {
-    if (completedTones.length && !isInitialized) {
-        const preScored: VibeScore[] = completedTones.map((toneLabel) => {
-            const match = vibesImages.find(vibe => vibe.name.toLowerCase() === toneLabel.toLowerCase());
-            if (match) {
-                return {
-                    ...match,
-                    wins: 1,
-                    losses: 0,
-                    score: 1,
-                };
-            }
-            return null;
-        }).filter(Boolean) as VibeScore[];
+        if (completedTones.length && !isInitialized) {
+            const preScored: VibeScore[] = completedTones.map((toneLabel) => {
+                const match = vibesImages.find(vibe => vibe.name.toLowerCase() === toneLabel.toLowerCase());
+                if (match) {
+                    return {
+                        ...match,
+                        wins: 1,
+                        losses: 0,
+                        score: 1,
+                    };
+                }
+                return null;
+            }).filter(Boolean) as VibeScore[];
 
-        if (preScored.length) {
-            setScores(preScored);
-            setSortedWinners(preScored);
-            setShowResults(true);
-            setIsInitialized(true);
-            onComplete(preScored.map(v => v.name));
+            if (preScored.length) {
+                setScores(preScored);
+                setSortedWinners(preScored);
+                setShowResults(true);
+                setIsInitialized(true);
+                onComplete(preScored.map(v => v.name));
+            }
         }
-    }
-}, [completedTones, isInitialized]);
+    }, [completedTones, isInitialized]);
 
     // Tournament ranking algorithm
     const calculateTournamentRanking = (scores: VibeScore[], comparisons: Comparison[]) => {

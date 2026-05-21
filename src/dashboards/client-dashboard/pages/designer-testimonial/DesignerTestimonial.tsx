@@ -278,8 +278,8 @@ const DesignerTestimonial: FC = () => {
                 submittedAt: new Date().toISOString()
             };
             designerTestimonialSubmission(submissionData);
-        } catch (error) {
-            console.error("Submission failed:", error);
+        } catch {
+            // Submission failed — handle silently
         } finally {
             setIsSubmitting(false);
         }

@@ -21,10 +21,6 @@ export function CTARenderer({ raw }: CTARendererProps) {
   });
 
   if (!validated) {
-    console.error('[CTARenderer] validateCTAProps returned null', {
-      layout_structure: raw.layout_structure,
-      hasTokens:        Boolean(raw.tokens),
-    })
     return null;
   }
 
@@ -35,9 +31,6 @@ export function CTARenderer({ raw }: CTARendererProps) {
   );
 
   if (!props) {
-    console.error('[CTARenderer] slotToCTAProps returned null', {
-      layoutStructure: validated.layoutStructure,
-    })
     return null;
   }
 

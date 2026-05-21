@@ -74,7 +74,6 @@ const LoginForm = () => {
         navigate("/dashboard/designer");
       }
     } catch (err) {
-      console.error('Login error:', err);
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setLoading(false);
@@ -90,9 +89,9 @@ const LoginForm = () => {
       } else {
         throw new Error("No URL returned");
       }
-    } catch (error) {
-      console.error("Google OAuth initiation failed:", error);
-    }
+    } catch {
+    // Google OAuth initiation failed — handle silently
+}
   };
 
   return (

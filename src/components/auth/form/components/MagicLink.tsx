@@ -6,8 +6,8 @@ import { setAuth } from '@/features/authentication/authSlice';
 function parseJWT(token: string) {
   try {
     return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
-    console.error('Failed to parse JWT', e);
+  } catch {
+    // Failed to parse JWT — return empty object
     return {};
   }
 }
@@ -32,7 +32,6 @@ const MagicLinkLogin = () => {
     const refresh_token = hashParams.get('refresh_token');
 
     if (!access_token || !refresh_token) {
-      console.error('Missing access_token or refresh_token in URL hash');
       navigate('/auth');
       return;
     }

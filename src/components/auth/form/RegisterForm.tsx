@@ -88,7 +88,6 @@ const RegisterForm = () => {
         }, 3000);
       }
     } catch (err) {
-      console.error('Signup error:', err);
       setErrors({ general: 'An unexpected error occurred. Please try again.' });
     } finally {
       setLoading(false);
@@ -105,7 +104,6 @@ const RegisterForm = () => {
         throw new Error("No URL returned");
       }
     } catch (error) {
-      console.error("Google OAuth initiation failed:", error);
       setErrors({ general: 'Failed to sign up with Google' });
     }
   };

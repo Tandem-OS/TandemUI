@@ -273,7 +273,6 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
             }
 
             // All other errors — show error screen
-            console.error('[SCRAPER] Failed:', err);
             setCurrentStep('error');
         }
     };

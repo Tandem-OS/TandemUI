@@ -19,11 +19,6 @@ export function resolveHeroLayout(
   const layout = layout_structure as HeroLayoutStructure
 
   if (!layout || !heroShellMap[layout]) {
-    console.warn(
-      `[resolveHeroLayout] Unrecognized layout_structure: "${layout_structure}". ` +
-      `Supported: ${Object.keys(heroShellMap).join(', ')}. ` +
-      `Falling back to HeroCenteredShell.`
-    )
     return HeroCenteredShell
   }
 

@@ -113,8 +113,8 @@ const ProjectOverview: React.FC = () => {
         })),
         feedback: [],
       });
-    } catch (error) {
-      console.error('Failed to fetch project:', error);
+    } catch {
+      // Failed to fetch project — handle silently
     }
     setLoading(false);
   };
@@ -128,8 +128,8 @@ const ProjectOverview: React.FC = () => {
     try {
       await markProjectCompleted(project.id, designer_email);
       await fetchProject(project.id);
-    } catch (err) {
-      console.error('Failed to mark project as completed:', err);
+    } catch {
+      // Failed to mark project as completed — handle silently
     } finally {
       setActionLoading(null);
     }
@@ -142,8 +142,8 @@ const ProjectOverview: React.FC = () => {
     try {
       await markProjectHandoff(project.id, designer_email);
       await fetchProject(project.id);
-    } catch (err) {
-      console.error('Failed to mark project as handoff:', err);
+    } catch {
+      // Failed to mark project as handoff — handle silently
     } finally {
       setActionLoading(null);
     }

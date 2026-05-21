@@ -19,10 +19,6 @@ export function TimelineRenderer({ raw }: TimelineRendererProps) {
   })
 
   if (!validated) {
-    console.error('[TimelineRenderer] validateTimelineProps returned null', {
-      layout_structure: raw.layout_structure,
-      hasTokens:        Boolean(raw.tokens),
-    })
     return null
   }
 
@@ -33,9 +29,6 @@ export function TimelineRenderer({ raw }: TimelineRendererProps) {
   )
 
   if (!props) {
-    console.error('[TimelineRenderer] slotToTimelineProps returned null', {
-      layoutStructure: validated.layoutStructure,
-    })
     return null
   }
 
