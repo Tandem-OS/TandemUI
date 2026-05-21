@@ -1,9 +1,9 @@
 // KingOfTheHill.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaCheck, FaTrophy, FaMedal, FaRedo, FaGripVertical } from 'react-icons/fa';
+import { FaCheck, FaTrophy, FaMedal, FaRedo, FaGripVertical, FaExpand, FaTimes } from 'react-icons/fa';
 import SuccessAnimation from '../animations-components/SuccessAnimation';
-import { vibesImages } from './constants';
+import { vibesImages, TONE_METADATA } from './constants';
 import { type VibeScore } from './types';
 import swipeAudio from "../../assets/audio/swipeAudio.mp3";
 import winAudio from "../../assets/audio/winAudio.mp3";
@@ -15,7 +15,6 @@ const playAudio = (audioSrc: string, volumePercent: number = 100) => {
     audio.play().catch(() => { });
 };
 
-// New interface for tracking head-to-head comparisons
 interface Comparison {
     winnerId: number;
     loserId: number;
@@ -28,6 +27,198 @@ interface KingOfTheHillProps {
     completedTones?: string[];
 }
 
+// ─── Lightbox ────────────────────────────────────────────────────────────────
+
+interface LightboxProps {
+    src: string;
+    name: string;
+    slug: string;
+    onClose: () => void;
+}
+
+const Lightbox: React.FC<LightboxProps> = ({ src, name, slug, onClose }) => {
+    const meta = TONE_METADATA[slug];
+
+    // Close on ESC key
+    useEffect(() => {
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [onClose]);
+
+    return (
+        <AnimatePresence>
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-md bg-black/80 backdrop-blur-sm"
+                onClick={onClose}
+            >
+                <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                    className="relative bg-background-primary rounded-2xl overflow-hidden shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Close button */}
+                    <button
+                        onClick={onClose}
+                        className="absolute top-sm right-sm z-10 w-8 h-8 flex items-center justify-center bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+                        aria-label="Close preview"
+                    >
+                        <FaTimes className="text-para-sm" />
+                    </button>
+
+                    {/* Full image */}
+                    <div className="w-full overflow-hidden" style={{ maxHeight: '55vh' }}>
+                        <img
+                            src={src}
+                            alt={name}
+                            className="w-full h-full object-cover object-top"
+                        />
+                    </div>
+
+                    {/* Metadata panel */}
+                    <div className="p-lg flex flex-col gap-sm overflow-y-auto">
+                        <h3 className="text-h3-sm font-bold text-text-primary">{name}</h3>
+
+                        {meta?.description && (
+                            <p className="text-para-sm text-text-secondary leading-relaxed">
+                                {meta.description}
+                            </p>
+                        )}
+
+                        {meta?.tags && meta.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-xs mt-xs">
+                                {meta.tags.map(tag => (
+                                    <span
+                                        key={tag}
+                                        className="px-sm py-xs rounded-full bg-background-muted text-text-tertiary text-para-xs"
+                                    >
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+            </motion.div>
+        </AnimatePresence>
+    );
+};
+
+// ─── Battle card ─────────────────────────────────────────────────────────────
+
+interface BattleCardProps {
+    vibe: typeof vibesImages[0];
+    opponentId: number;
+    selectedCard: number | null;
+    isTransitioning: boolean;
+    shakeWinner: number | null;
+    animateOut?: boolean;
+    onSelect: (winnerId: number, loserId: number) => void;
+    onExpand: (vibe: typeof vibesImages[0]) => void;
+}
+
+const BattleCard: React.FC<BattleCardProps> = ({
+    vibe,
+    opponentId,
+    selectedCard,
+    isTransitioning,
+    shakeWinner,
+    animateOut = false,
+    onSelect,
+    onExpand,
+}) => {
+    const meta = TONE_METADATA[vibe.slug ?? ''];
+    const isSelected = selectedCard === vibe.id;
+    const isShaking = shakeWinner === vibe.id;
+
+    return (
+        <div className="relative w-full md:w-auto">
+            <motion.button
+                onClick={() => onSelect(vibe.id, opponentId)}
+                disabled={isTransitioning}
+                animate={
+                    animateOut && selectedCard === opponentId
+                        ? { opacity: 0, y: -50 }
+                        : isShaking
+                            ? {
+                                x: [0, -12, 12, -8, 8, -4, 4, 0],
+                                rotate: [0, -8, 8, -6, 6, -3, 3, 0],
+                                scale: [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
+                            }
+                            : animateOut
+                                ? { opacity: 1, y: 0 }
+                                : {}
+                }
+                transition={{
+                    duration: animateOut && selectedCard === opponentId
+                        ? 0.3
+                        : isShaking
+                            ? 0.6
+                            : 0.3,
+                    ease: 'easeInOut',
+                    ...(isShaking && { times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1] })
+                }}
+                className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full md:w-72
+                    ${isSelected ? 'ring-4 ring-accent-default ring-opacity-50' : ''}
+                    ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}
+                `}
+            >
+                <img
+                    src={vibe.src}
+                    alt={vibe.name}
+                    className="w-full md:w-72 h-80 object-cover"
+                />
+
+                {/* Bottom gradient overlay — name + description */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-md">
+                    <h3 className="text-white text-para-lg font-semibold leading-tight">
+                        {vibe.name}
+                    </h3>
+                    {meta?.description && (
+                        <p className="text-white/70 text-para-xs mt-xs line-clamp-2 leading-snug">
+                            {meta.description}
+                        </p>
+                    )}
+                </div>
+
+                {/* Selected overlay */}
+                {isSelected && (
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute inset-0 bg-accent-default/20 flex items-center justify-center"
+                    >
+                        <FaCheck className="text-white text-icon-2xl" />
+                    </motion.div>
+                )}
+            </motion.button>
+
+            {/* Expand button — top right, outside the main button to avoid event conflict */}
+            <button
+                type="button"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onExpand(vibe);
+                }}
+                className="absolute top-sm right-sm z-10 w-8 h-8 flex items-center justify-center bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
+                aria-label={`Preview ${vibe.name} in full`}
+            >
+                <FaExpand className="text-para-xs" />
+            </button>
+        </div>
+    );
+};
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
 export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     onComplete,
     onRetake,
@@ -38,7 +229,7 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     const [challenger, setChallenger] = useState<typeof vibesImages[0] | null>(null);
     const [remainingOptions, setRemainingOptions] = useState<typeof vibesImages>([]);
     const [scores, setScores] = useState<VibeScore[]>([]);
-    const [comparisons, setComparisons] = useState<Comparison[]>([]); // New state for tracking comparisons
+    const [comparisons, setComparisons] = useState<Comparison[]>([]);
     const [selectedCard, setSelectedCard] = useState<number | null>(null);
     const [showResults, setShowResults] = useState(showResultsInitially);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -50,7 +241,18 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     const [draggedItem, setDraggedItem] = useState<number | null>(null);
     const [draggedOverItem, setDraggedOverItem] = useState<number | null>(null);
 
-    // Play swipe audio when challenger changes (new slide appears)
+    // Lightbox state
+    const [lightboxVibe, setLightboxVibe] = useState<typeof vibesImages[0] | null>(null);
+
+    const handleExpand = useCallback((vibe: typeof vibesImages[0]) => {
+        setLightboxVibe(vibe);
+    }, []);
+
+    const handleCloseLightbox = useCallback(() => {
+        setLightboxVibe(null);
+    }, []);
+
+    // Play swipe audio when challenger changes
     useEffect(() => {
         if (challenger && previousChallengerId !== null && challenger.id !== previousChallengerId && isInitialized) {
             playAudio(swipeAudio);
@@ -63,14 +265,11 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     useEffect(() => {
         if (completedTones.length && !isInitialized) {
             const preScored: VibeScore[] = completedTones.map((toneLabel) => {
-                const match = vibesImages.find(vibe => vibe.name.toLowerCase() === toneLabel.toLowerCase());
+                const match = vibesImages.find(vibe =>
+                    vibe.slug === toneLabel || vibe.name.toLowerCase() === toneLabel.toLowerCase()
+                );
                 if (match) {
-                    return {
-                        ...match,
-                        wins: 1,
-                        losses: 0,
-                        score: 1,
-                    };
+                    return { ...match, wins: 1, losses: 0 };
                 }
                 return null;
             }).filter(Boolean) as VibeScore[];
@@ -80,22 +279,18 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 setSortedWinners(preScored);
                 setShowResults(true);
                 setIsInitialized(true);
-                onComplete(preScored.map(v => v.name));
+                onComplete(preScored.map(v => v.slug ?? v.name.toLowerCase()));
             }
         }
     }, [completedTones, isInitialized]);
 
-    // Tournament ranking algorithm
     const calculateTournamentRanking = (scores: VibeScore[], comparisons: Comparison[]) => {
-        // Create a map of head-to-head results
         const headToHead = new Map<string, boolean>();
-
         comparisons.forEach(comp => {
             headToHead.set(`${comp.winnerId}-${comp.loserId}`, true);
             headToHead.set(`${comp.loserId}-${comp.winnerId}`, false);
         });
 
-        // Get only participants who actually appeared in comparisons (actually played)
         const participantIds = new Set<number>();
         comparisons.forEach(comp => {
             participantIds.add(comp.winnerId);
@@ -104,43 +299,25 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
 
         const participants = scores.filter(s => participantIds.has(s.id));
 
-        // Sort using tournament logic
-        const sorted = participants.sort((a, b) => {
-            // First check head-to-head if they played against each other
+        return participants.sort((a, b) => {
             const aBeatsB = headToHead.get(`${a.id}-${b.id}`);
             const bBeatsA = headToHead.get(`${b.id}-${a.id}`);
+            if (aBeatsB === true) return -1;
+            if (bBeatsA === true) return 1;
 
-            if (aBeatsB === true) return -1; // a wins
-            if (bBeatsA === true) return 1;  // b wins
-
-            // If no direct comparison, use win percentage
             const aWinRate = a.wins / (a.wins + a.losses || 1);
             const bWinRate = b.wins / (b.wins + b.losses || 1);
+            if (aWinRate !== bWinRate) return bWinRate - aWinRate;
 
-            if (aWinRate !== bWinRate) {
-                return bWinRate - aWinRate; // Higher win rate first
-            }
-
-            // If same win rate, prefer more total games (more proven)
-            const aTotalGames = a.wins + a.losses;
-            const bTotalGames = b.wins + b.losses;
-            return bTotalGames - aTotalGames;
+            return (b.wins + b.losses) - (a.wins + a.losses);
         });
-
-        return sorted;
     };
 
     const initializeGame = () => {
-        // Initialize scores
-        const initialScores = vibesImages.map(vibe => ({
-            ...vibe,
-            wins: 0,
-            losses: 0
-        }));
+        const initialScores = vibesImages.map(vibe => ({ ...vibe, wins: 0, losses: 0 }));
         setScores(initialScores);
-        setComparisons([]); // Reset comparisons
+        setComparisons([]);
 
-        // Set initial match
         const shuffled = [...vibesImages].sort(() => Math.random() - 0.5);
         setCurrentWinner(shuffled[0]);
         setChallenger(shuffled[1]);
@@ -149,38 +326,29 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     };
 
     const resetGame = () => {
-        // Reset all game state
         setShowResults(false);
         setSelectedCard(null);
         setIsTransitioning(false);
         setShowConfetti(false);
         setSortedWinners([]);
-
         initializeGame();
-
-        // Call onRetake callback if provided
-        if (onRetake) {
-            onRetake();
-        }
+        if (onRetake) onRetake();
     };
 
     useEffect(() => {
         if (!isInitialized) {
             if (showResultsInitially && completedTones.length > 0) {
-                // Create mock scores based on completed tones
                 const mockScores = vibesImages.map(vibe => ({
                     ...vibe,
-                    wins: completedTones.includes(vibe.name.toLowerCase()) ? 3 : 1,
-                    losses: completedTones.includes(vibe.name.toLowerCase()) ? 0 : 2
+                    wins: completedTones.includes(vibe.slug ?? '') || completedTones.includes(vibe.name.toLowerCase()) ? 3 : 1,
+                    losses: completedTones.includes(vibe.slug ?? '') || completedTones.includes(vibe.name.toLowerCase()) ? 0 : 2
                 }));
                 setScores(mockScores);
 
-                // Set sorted winners based on completed tones order
                 const winnersInOrder = completedTones.map(tone =>
-                    mockScores.find(s => s.name.toLowerCase() === tone)
+                    mockScores.find(s => s.slug === tone || s.name.toLowerCase() === tone)
                 ).filter(Boolean) as VibeScore[];
                 setSortedWinners(winnersInOrder);
-
                 setShowResults(true);
                 window.scrollTo(0, 0);
                 setIsInitialized(true);
@@ -193,69 +361,43 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     const handleSelection = (winnerId: number, loserId: number) => {
         if (selectedCard !== null || isTransitioning) return;
 
-        // Play click audio when card is selected
         playAudio(clickAudio, 40);
-
         setSelectedCard(winnerId);
         setIsTransitioning(true);
 
-        // Update scores
         const newScores = [...scores];
         const winnerIndex = newScores.findIndex(s => s.id === winnerId);
         const loserIndex = newScores.findIndex(s => s.id === loserId);
-
         if (winnerIndex !== -1) newScores[winnerIndex].wins += 1;
         if (loserIndex !== -1) newScores[loserIndex].losses += 1;
-
         setScores(newScores);
 
-        // Record the comparison
         const newComparisons = [...comparisons, { winnerId, loserId }];
         setComparisons(newComparisons);
 
-        // Add shake animation to winner
         setShakeWinner(winnerId);
+        setTimeout(() => setShakeWinner(null), 600);
 
-        // Remove shake after animation duration
-        setTimeout(() => {
-            setShakeWinner(null);
-        }, 600);
-
-        // Check if we should continue
         if (remainingOptions.length === 0) {
-            // Show results immediately
             setTimeout(() => {
                 setShowResults(true);
                 setShowConfetti(true);
-
-                // Play win audio when showing results
                 playAudio(winAudio);
 
-                // Use tournament ranking instead of simple win/loss ratio
                 const rankedResults = calculateTournamentRanking(newScores, newComparisons);
-
-                // Only show actual winners (those with wins > 0), not all participants
                 const actualWinners = rankedResults.filter(s => s.wins > 0);
-
-                // Take top 3 or less if fewer winners
                 const topVibes = actualWinners.slice(0, Math.min(3, actualWinners.length));
                 setSortedWinners(topVibes);
 
-                // Call onComplete with the sorted names
-                const topVibeNames = topVibes.map(s => s.name.toLowerCase());
-                onComplete(topVibeNames);
+                // Use slug as the stored value so it matches TONE_METADATA keys
+                onComplete(topVibes.map(s => s.slug ?? s.name.toLowerCase()));
 
-                // Hide confetti after animation completes
-                setTimeout(() => {
-                    setShowConfetti(false);
-                }, 4000);
+                setTimeout(() => setShowConfetti(false), 4000);
             }, 800);
         } else {
-            // Continue with next challenger - update immediately
             setTimeout(() => {
                 const winner = winnerId === currentWinner!.id ? currentWinner : challenger;
                 const nextChallenger = remainingOptions[0];
-
                 setCurrentWinner(winner);
                 setChallenger(nextChallenger);
                 setRemainingOptions(remainingOptions.slice(1));
@@ -265,33 +407,18 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
         }
     };
 
-    // Drag and drop handlers
-    const handleDragStart = (index: number) => {
-        setDraggedItem(index);
-    };
-
-    const handleDragEnter = (index: number) => {
-        setDraggedOverItem(index);
-    };
+    const handleDragStart = (index: number) => setDraggedItem(index);
+    const handleDragEnter = (index: number) => setDraggedOverItem(index);
 
     const handleDragEnd = () => {
         if (draggedItem !== null && draggedOverItem !== null && draggedItem !== draggedOverItem) {
             const newSortedWinners = [...sortedWinners];
             const draggedContent = newSortedWinners[draggedItem];
-
-            // Remove the dragged item
             newSortedWinners.splice(draggedItem, 1);
-
-            // Insert it at the new position
             newSortedWinners.splice(draggedOverItem, 0, draggedContent);
-
             setSortedWinners(newSortedWinners);
-
-            // Update the form data with new order
-            const newToneOrder = newSortedWinners.map(w => w.name.toLowerCase());
-            onComplete(newToneOrder);
+            onComplete(newSortedWinners.map(w => w.slug ?? w.name.toLowerCase()));
         }
-
         setDraggedItem(null);
         setDraggedOverItem(null);
     };
@@ -308,239 +435,186 @@ export const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
     if (!showResults && (!currentWinner || !challenger)) return null;
 
     return (
-        <div className="relative w-full">
-            <AnimatePresence mode="wait">
-                {!showResults ? (
-                    <div className="space-y-sm">
-                        {/* Battle Cards */}
-                        <div className="flex flex-col md:flex-row gap-md justify-center items-center">
-                            {/* Current Winner */}
-                            <div className="relative w-full md:w-auto">
-                                <motion.button
-                                    onClick={() => handleSelection(currentWinner!.id, challenger!.id)}
-                                    disabled={isTransitioning}
-                                    animate={shakeWinner === currentWinner!.id ? {
-                                        x: [0, -12, 12, -8, 8, -4, 4, 0],
-                                        rotate: [0, -8, 8, -6, 6, -3, 3, 0],
-                                        scale: [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
-                                    } : {}}
-                                    transition={{
-                                        duration: 0.6,
-                                        ease: "easeInOut",
-                                        times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
-                                    }}
-                                    className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full md:w-72 ${selectedCard === currentWinner!.id
-                                        ? 'ring-4 ring-accent-default ring-opacity-50'
-                                        : ''
-                                        } ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                                >
-                                    <img
-                                        src={currentWinner!.src}
-                                        alt={currentWinner!.name}
-                                        className="w-full md:w-72 h-80 object-cover"
-                                    />
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-md">
-                                        <h3 className="text-white text-para-lg font-medium">
-                                            {currentWinner!.name}
-                                        </h3>
-                                    </div>
-                                    {selectedCard === currentWinner!.id && (
-                                        <motion.div
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            className="absolute inset-0 bg-accent-default/20 flex items-center justify-center"
-                                        >
-                                            <FaCheck className="text-white text-icon-2xl" />
-                                        </motion.div>
-                                    )}
-                                </motion.button>
-                            </div>
+        <>
+            {/* Lightbox */}
+            {lightboxVibe && (
+                <Lightbox
+                    src={lightboxVibe.src}
+                    name={lightboxVibe.name}
+                    slug={lightboxVibe.slug ?? ''}
+                    onClose={handleCloseLightbox}
+                />
+            )}
 
-                            {/* VS */}
-                            <div className="text-h2-sm font-bold text-accent-default px-md">
-                                VS
-                            </div>
+            <div className="relative w-full">
+                <AnimatePresence mode="wait">
+                    {!showResults ? (
+                        <div className="space-y-sm">
+                            <div className="flex flex-col md:flex-row gap-md justify-center items-center">
 
-                            {/* Challenger */}
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={challenger!.id}
-                                    initial={{ opacity: 0, y: 50 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -50 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="relative w-full md:w-auto"
-                                >
-                                    <motion.button
-                                        onClick={() => handleSelection(challenger!.id, currentWinner!.id)}
-                                        disabled={isTransitioning}
-                                        animate={
-                                            selectedCard === currentWinner!.id
-                                                ? { opacity: 0, y: -50 }
-                                                : shakeWinner === challenger!.id
-                                                    ? {
-                                                        x: [0, -12, 12, -8, 8, -4, 4, 0],
-                                                        rotate: [0, -8, 8, -6, 6, -3, 3, 0],
-                                                        scale: [1, 1.05, 1, 1.03, 1, 1.01, 1, 1]
-                                                    }
-                                                    : { opacity: 1, y: 0 }
-                                        }
-                                        transition={{
-                                            duration: selectedCard === currentWinner!.id ? 0.3 : shakeWinner === challenger!.id ? 0.6 : 0.3,
-                                            ease: "easeInOut",
-                                            ...(shakeWinner === challenger!.id && {
-                                                times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1]
-                                            })
-                                        }}
-                                        className={`relative overflow-hidden rounded-xl shadow-lg transition-all w-full md:w-72 ${selectedCard === challenger!.id
-                                            ? 'ring-4 ring-accent-default ring-opacity-50'
-                                            : ''
-                                            } ${isTransitioning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                {/* Current Winner card */}
+                                <BattleCard
+                                    vibe={currentWinner!}
+                                    opponentId={challenger!.id}
+                                    selectedCard={selectedCard}
+                                    isTransitioning={isTransitioning}
+                                    shakeWinner={shakeWinner}
+                                    onSelect={handleSelection}
+                                    onExpand={handleExpand}
+                                />
+
+                                {/* VS */}
+                                <div className="text-h2-sm font-bold text-accent-default px-md">VS</div>
+
+                                {/* Challenger card — animates in on change */}
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={challenger!.id}
+                                        initial={{ opacity: 0, y: 50 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -50 }}
+                                        transition={{ duration: 0.3 }}
+                                        className="relative w-full md:w-auto"
                                     >
-                                        <img
-                                            src={challenger!.src}
-                                            alt={challenger!.name}
-                                            className="w-full md:w-72 h-80 object-cover"
+                                        <BattleCard
+                                            vibe={challenger!}
+                                            opponentId={currentWinner!.id}
+                                            selectedCard={selectedCard}
+                                            isTransitioning={isTransitioning}
+                                            shakeWinner={shakeWinner}
+                                            animateOut
+                                            onSelect={handleSelection}
+                                            onExpand={handleExpand}
                                         />
-                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-md">
-                                            <h3 className="text-white text-para-lg font-medium">
-                                                {challenger!.name}
-                                            </h3>
-                                        </div>
-                                        {selectedCard === challenger!.id && (
-                                            <motion.div
-                                                initial={{ scale: 0 }}
-                                                animate={{ scale: 1 }}
-                                                className="absolute inset-0 bg-accent-default/20 flex items-center justify-center"
-                                            >
-                                                <FaCheck className="text-white text-icon-2xl" />
-                                            </motion.div>
-                                        )}
-                                    </motion.button>
-                                </motion.div>
-                            </AnimatePresence>
+                                    </motion.div>
+                                </AnimatePresence>
+                            </div>
                         </div>
-                    </div>
-                ) : (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-center space-y-sm relative"
-                    >
-                        {/* Confetti Animation */}
-                        <SuccessAnimation
-                            showConfetti={showConfetti}
-                            confettiCount={80}
-                            confettiDuration={4000}
-                        />
-
-                        {/* Big Trophy with smooth animation */}
+                    ) : (
                         <motion.div
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            transition={{
-                                type: "spring",
-                                stiffness: 260,
-                                damping: 20,
-                                delay: 0.2
-                            }}
-                            className="mb-md mt-none"
-                            style={{
-                                willChange: 'transform',
-                                transformOrigin: 'center'
-                            }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-center space-y-sm relative"
                         >
-                            <div className="w-24 h-24 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center mx-auto">
-                                <FaTrophy className="text-icon-2xl text-yellow-500" />
+                            <SuccessAnimation
+                                showConfetti={showConfetti}
+                                confettiCount={80}
+                                confettiDuration={4000}
+                            />
+
+                            <motion.div
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.2 }}
+                                className="mb-md mt-none"
+                                style={{ willChange: 'transform', transformOrigin: 'center' }}
+                            >
+                                <div className="w-24 h-24 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center mx-auto">
+                                    <FaTrophy className="text-icon-2xl text-yellow-500" />
+                                </div>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.4 }}
+                                style={{ willChange: 'transform, opacity', transformOrigin: 'center' }}
+                            >
+                                <h3 className="text-h3-sm md:text-h2-sm font-bold text-accent-default mb-lg">
+                                    Your Visual Direction {sortedWinners.length === 1 ? 'Winner' : 'Winners'}!
+                                </h3>
+                                {sortedWinners.length !== 1 && (
+                                    <p className="text-para-sm text-text-tertiary mb-md">
+                                        Drag to reorder your preferences
+                                    </p>
+                                )}
+                            </motion.div>
+
+                            <div className="flex flex-col md:flex-row justify-center gap-md items-start">
+                                {sortedWinners.map((winner, index) => {
+                                    const meta = TONE_METADATA[winner.slug ?? ''];
+                                    return (
+                                        <motion.div
+                                            key={winner.id}
+                                            initial={{ scale: 0, rotate: -10 }}
+                                            animate={{ scale: 1, rotate: 0 }}
+                                            transition={{ delay: index * 0.2 + 0.6 }}
+                                            className="relative cursor-move"
+                                            draggable
+                                            onDragStart={() => handleDragStart(index)}
+                                            onDragEnter={() => handleDragEnter(index)}
+                                            onDragEnd={handleDragEnd}
+                                            style={{
+                                                opacity: draggedItem === index ? 0.5 : 1,
+                                                transform: draggedOverItem === index ? 'scale(1.05)' : 'scale(1)',
+                                                transition: 'transform 0.2s'
+                                            }}
+                                        >
+                                            <div className={`rounded-xl overflow-hidden shadow-lg relative ${index === 0 ? 'ring-4 ring-yellow-400' : ''}`}>
+                                                <img
+                                                    src={winner.src}
+                                                    alt={winner.name}
+                                                    className={`${index === 0 ? 'w-48 h-48' : 'w-40 h-40'} object-cover`}
+                                                />
+
+                                                {/* Expand button on result card */}
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleExpand(winner);
+                                                    }}
+                                                    className="absolute top-sm right-sm z-10 w-7 h-7 flex items-center justify-center bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
+                                                    aria-label={`Preview ${winner.name}`}
+                                                >
+                                                    <FaExpand className="text-para-xs" />
+                                                </button>
+
+                                                <div className="absolute top-sm left-sm">
+                                                    {index === 0 ? (
+                                                        <FaTrophy className="text-yellow-400 text-icon-xl" />
+                                                    ) : index === 1 ? (
+                                                        <FaMedal className="text-gray-400 text-icon-lg" />
+                                                    ) : (
+                                                        <FaMedal className="text-orange-600 text-icon-lg" />
+                                                    )}
+                                                </div>
+
+                                                <div className="absolute bottom-sm left-sm bg-black/50 p-xs rounded">
+                                                    <FaGripVertical className="text-white text-para-sm" />
+                                                </div>
+                                            </div>
+
+                                            <p className="mt-xs text-para-md font-medium text-text-primary">
+                                                {winner.name}
+                                            </p>
+                                            <p className="text-para-sm font-bold text-accent-default">
+                                                {getPlacementText(index)}
+                                            </p>
+
+                                            {/* Description on result cards */}
+                                            {meta?.description && (
+                                                <p className="text-para-xs text-text-tertiary mt-xs max-w-[160px] leading-snug line-clamp-2">
+                                                    {meta.description}
+                                                </p>
+                                            )}
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="mt-md">
+                                <button
+                                    onClick={resetGame}
+                                    className="flex items-center gap-xs mx-auto text-accent-default hover:text-accent-hover text-para-sm transition-colors"
+                                >
+                                    <FaRedo /> Retake Visual Direction
+                                </button>
                             </div>
                         </motion.div>
-
-                        {/* Smaller, bold heading */}
-                        <motion.div
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{
-                                type: "spring",
-                                stiffness: 300,
-                                damping: 15,
-                                delay: 0.4
-                            }}
-                            style={{
-                                willChange: 'transform, opacity',
-                                transformOrigin: 'center'
-                            }}
-                        >
-                            <h3 className="text-h3-sm md:text-h2-sm font-bold text-accent-default mb-lg">
-                                Your Visual Direction {sortedWinners.length === 1 ? 'Winner' : 'Winners'}!
-                            </h3>
-                            {sortedWinners.length !== 1 &&
-                                <p className="text-para-sm text-text-tertiary mb-md">
-                                    Drag to reorder your preferences
-                                </p>
-                            }
-
-                        </motion.div>
-
-                        <div className="flex flex-col md:flex-row justify-center gap-md items-center">
-                            {sortedWinners.map((winner, index) => (
-                                <motion.div
-                                    key={winner.id}
-                                    initial={{ scale: 0, rotate: -10 }}
-                                    animate={{ scale: 1, rotate: 0 }}
-                                    transition={{ delay: index * 0.2 + 0.6 }}
-                                    className="relative cursor-move"
-                                    draggable
-                                    onDragStart={() => handleDragStart(index)}
-                                    onDragEnter={() => handleDragEnter(index)}
-                                    onDragEnd={handleDragEnd}
-                                    style={{
-                                        opacity: draggedItem === index ? 0.5 : 1,
-                                        transform: draggedOverItem === index ? 'scale(1.05)' : 'scale(1)',
-                                        transition: 'transform 0.2s'
-                                    }}
-                                >
-                                    <div className={`rounded-xl overflow-hidden shadow-lg ${index === 0 ? 'ring-4 ring-yellow-400' : ''
-                                        }`}>
-                                        <img
-                                            src={winner.src}
-                                            alt={winner.name}
-                                            className={`${index === 0 ? 'w-48 h-48' : 'w-40 h-50'
-                                                } object-cover`}
-                                        />
-                                        <div className="absolute top-sm right-sm">
-                                            {index === 0 ? (
-                                                <FaTrophy className="text-yellow-400 text-icon-xl" />
-                                            ) : index === 1 ? (
-                                                <FaMedal className="text-gray-400 text-icon-lg" />
-                                            ) : (
-                                                <FaMedal className="text-orange-600 text-icon-lg" />
-                                            )}
-                                        </div>
-                                        <div className="absolute top-sm left-sm bg-black/50 p-xs rounded">
-                                            <FaGripVertical className="text-white text-para-sm" />
-                                        </div>
-                                    </div>
-                                    <p className="mt-xs text-para-md font-medium text-text-primary">
-                                        {winner.name}
-                                    </p>
-                                    <p className="text-para-sm font-bold text-accent-default">
-                                        {getPlacementText(index)}
-                                    </p>
-                                </motion.div>
-                            ))}
-                        </div>
-
-                        <div className="mt-md">
-                            <button
-                                onClick={resetGame}
-                                className="flex items-center gap-xs mx-auto text-accent-default hover:text-accent-hover text-para-sm transition-colors"
-                            >
-                                <FaRedo /> Retake Visual Direction
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </>
     );
 };
