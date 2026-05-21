@@ -22,6 +22,24 @@ const COPY = {
     swiperLocked: 'LOCKED',
   },
   states: {
+    s00: {
+      breadcrumb: (project: string, company: string) => `${project} · ${company}`,
+      heading: "Let's get your project started.",
+      body: 'Create your project to kick off the process. Your designer will be notified and you can start your intake right after.',
+      primaryCta: 'Start intake',
+      secondaryCta: 'Message designer',
+      previewPlaceholder: 'Your live preview will appear here.',
+      previewSub: "Once your designer starts composing, you'll see your site come together in real time.",
+      step1Label: 'We learn your taste',
+      step1Body: 'A few swiper rounds calibrate the style we design toward.',
+      step2Label: 'We compose your site',
+      step2Body: 'Tandem builds your first layout from your taste signals and brief.',
+      step3Label: 'You approve & ship',
+      step3Body: 'Refine, sign off, and we hand off the final assets and code.',
+      designerCard: (name: string) => `Your designer is ${name}.`,
+      designerSub: (name: string) => `${name} will guide your project end-to-end. Question about intake or scope?`,
+      messageCta: (name: string) => `Message ${name}`,
+    },
     s01: {
       breadcrumb: (project: string, company: string) => `${project} · ${company}`,
       heading: "Let's get your project started.",
@@ -266,8 +284,9 @@ const getChecklistItems = (projectStatus: string | null): ChecklistItem[] => {
 
 // ─── Map project status → dashboard state (1–6) ───────────────────────────────
 
-const getDashState = (status: string | null, hasProject: boolean): 1 | 2 | 3 | 4 | 5 | 6 => {
-  if (!hasProject || !status) return 1;
+const getDashState = (status: string | null, hasProject: boolean): 0 | 1 | 2 | 3 | 4 | 5 | 6 => {
+  if (!hasProject) return 0;
+  if (!status) return 1;
   switch (status) {
     case 'intake':
     case 'scraping':
@@ -393,8 +412,8 @@ const Stepper: React.FC<{ projectStatus: string | null; stageLabel: string; stag
                   {/* Label */}
                   <div className="text-center">
                     <p className={`text-para-xs font-medium leading-tight ${state === 'current' ? 'text-accent-default font-semibold' :
-                        state === 'completed' ? 'text-text-secondary' :
-                          'text-text-tertiary'
+                      state === 'completed' ? 'text-text-secondary' :
+                        'text-text-tertiary'
                       }`}>
                       {node.label}
                     </p>
@@ -456,8 +475,8 @@ const PreviewAndChecklist: React.FC<{
           </div>
           <div className="flex items-center gap-sm">
             <span className={`flex items-center gap-xs text-para-xs font-medium px-sm py-xs rounded-full ${isDelivered ? 'bg-bgSuccess text-success border border-success/20' :
-                previewStatusPill.includes('coming') ? 'bg-background-muted text-text-tertiary' :
-                  'bg-accent-subtle text-accent-default'
+              previewStatusPill.includes('coming') ? 'bg-background-muted text-text-tertiary' :
+                'bg-accent-subtle text-accent-default'
               }`}>
               {previewStatusPill}
             </span>
@@ -518,8 +537,8 @@ const PreviewAndChecklist: React.FC<{
                 </div>
                 <div className="min-w-0">
                   <p className={`text-para-xs font-medium leading-tight ${item.status === 'completed' ? 'text-text-primary' :
-                      item.status === 'in-progress' || item.status === 'ready' ? 'text-text-primary font-semibold' :
-                        'text-text-tertiary'
+                    item.status === 'in-progress' || item.status === 'ready' ? 'text-text-primary font-semibold' :
+                      'text-text-tertiary'
                     }`}>
                     {item.label}
                   </p>
@@ -530,10 +549,10 @@ const PreviewAndChecklist: React.FC<{
               </div>
               {item.statusLabel && (
                 <span className={`flex-shrink-0 text-[10px] font-bold uppercase tracking-wide ${item.statusLabel === 'COMPLETED' ? 'text-text-secondary' :
-                    item.statusLabel === 'IN PROGRESS' ? 'text-accent-default' :
-                      item.statusLabel === 'READY FOR YOU' ? 'text-accent-default' :
-                        item.statusLabel === 'WAITING ON DESIGNER' ? 'text-text-secondary' :
-                          'text-text-tertiary'
+                  item.statusLabel === 'IN PROGRESS' ? 'text-accent-default' :
+                    item.statusLabel === 'READY FOR YOU' ? 'text-accent-default' :
+                      item.statusLabel === 'WAITING ON DESIGNER' ? 'text-text-secondary' :
+                        'text-text-tertiary'
                   }`}>
                   {item.statusLabel}
                 </span>
@@ -558,8 +577,8 @@ const QuickActionCard: React.FC<{
     onClick={disabled ? undefined : onClick}
     disabled={disabled}
     className={`flex items-center gap-md p-md rounded-xl border text-left transition-all duration-200 w-full ${disabled
-        ? 'border-border-muted bg-background-muted opacity-50 cursor-not-allowed'
-        : 'border-border-default bg-background-primary-2 hover:border-accent-default hover:shadow-sm cursor-pointer'
+      ? 'border-border-muted bg-background-muted opacity-50 cursor-not-allowed'
+      : 'border-border-default bg-background-primary-2 hover:border-accent-default hover:shadow-sm cursor-pointer'
       }`}
   >
     <div className={`flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center ${disabled ? 'bg-background-muted' : 'bg-accent-subtle'
@@ -606,6 +625,92 @@ const DesignerCard: React.FC<{ designerName: string }> = ({ designerName }) => (
 
 // ─── State 01 — Invite opened / intake not started ────────────────────────────
 
+const State00: React.FC<{ designerName: string; onCreateProject: () => void }> = ({
+  designerName, onCreateProject,
+}) => (
+  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    {/* Welcome pill */}
+    <div className="flex items-center gap-xs mb-lg">
+      <span className="px-sm py-xs rounded-full border border-border-default bg-background-primary-2 text-para-xs font-semibold text-accent-default uppercase tracking-wide">Tandem</span>
+      <span className="text-text-tertiary text-para-xs">·</span>
+      <span className="text-para-xs text-text-secondary font-medium">Welcome</span>
+    </div>
+
+    {/* Hero */}
+    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-lg mb-xl">
+      <div className="flex-1">
+        <h1 className="text-h2-sm sm:text-h1-sm font-bold text-text-primary mb-sm leading-tight">
+          Welcome to Tandem.
+        </h1>
+        <p className="text-para-md text-text-secondary leading-relaxed max-w-xl">
+          Create your project to kick off the process. Your designer will be notified and you can start your intake right after.
+        </p>
+      </div>
+      <div className="flex-shrink-0">
+        <button
+          onClick={onCreateProject}
+          className="flex items-center gap-xs px-lg py-sm rounded-xl bg-accent-default text-accent-foreground text-para-sm font-semibold hover:bg-accent-hover transition-colors"
+        >
+          Create Project
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    {/* Preview placeholder */}
+    <div className="bg-background-primary-2 rounded-2xl border border-dashed border-border-default p-xl mb-lg flex items-center gap-md">
+      <div className="w-10 h-10 rounded-xl border border-border-default bg-background-muted flex items-center justify-center flex-shrink-0">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="1" y="1" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.4" className="text-text-tertiary" />
+          <path d="M1 5h16" stroke="currentColor" strokeWidth="1.2" className="text-text-tertiary" />
+        </svg>
+      </div>
+      <div>
+        <p className="text-para-sm font-semibold text-text-primary">Your live preview will appear here.</p>
+        <p className="text-para-xs text-text-secondary mt-xs">Once your designer starts composing, you'll see your site come together in real time.</p>
+      </div>
+    </div>
+
+    {/* 3-step cards */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-md mb-lg">
+      {[
+        { num: '01', label: 'Share your vision', body: 'Tell us about your goals, brand, and timeline through a short intake form.' },
+        { num: '02', label: 'We compose your site', body: 'Tandem builds your first layout from your taste signals and brief.' },
+        { num: '03', label: 'You approve & ship', body: 'Refine, sign off, and we hand off the final assets and code.' },
+      ].map((step) => (
+        <div key={step.num} className="bg-background-primary-2 rounded-xl border border-border-default p-lg">
+          <p className="text-para-xs font-bold text-accent-default mb-sm">{step.num}</p>
+          <h3 className="text-para-md font-bold text-text-primary mb-xs">{step.label}</h3>
+          <p className="text-para-sm text-text-secondary leading-relaxed">{step.body}</p>
+        </div>
+      ))}
+    </div>
+
+    {/* Designer card */}
+    <div className="flex items-center justify-between gap-md p-lg rounded-2xl border border-border-default bg-background-primary-2">
+      <div className="flex items-center gap-md">
+        <div className="flex -space-x-2">
+          <div className="w-10 h-10 rounded-full bg-accent-default flex items-center justify-center text-white font-bold text-para-sm border-2 border-background-primary">
+            {designerName.charAt(0).toUpperCase()}
+          </div>
+          <div className="w-10 h-10 rounded-full bg-background-muted flex items-center justify-center text-text-secondary font-bold text-para-sm border-2 border-background-primary">S</div>
+        </div>
+        <div>
+          <p className="text-para-sm font-semibold text-text-primary">Your designer is {designerName}.</p>
+          <p className="text-para-xs text-text-secondary">Ready to start? Create your project and {designerName} will be notified right away.</p>
+        </div>
+      </div>
+      <button
+        onClick={onCreateProject}
+        className="flex-shrink-0 flex items-center gap-xs px-md py-sm rounded-xl bg-accent-default text-accent-foreground text-para-sm font-semibold hover:bg-accent-hover transition-colors"
+      >
+        Create Project
+      </button>
+    </div>
+  </motion.div>
+);
 const State01: React.FC<{ clientName: string; designerName: string; onStartIntake: () => void }> = ({
   clientName, designerName, onStartIntake,
 }) => (
@@ -1016,12 +1121,20 @@ const ClientDashHome: React.FC = () => {
   return (
     <div className="min-h-screen bg-background-primary">
       <div className="container mx-auto px-md sm:px-lg lg:px-xl py-lg sm:py-xl lg:py-2xl max-w-6xl">
-        {dashState === 1 && (
-          <State01
-            clientName=""
+        {dashState === 0 && (
+          <State00
             designerName={designerName}
-            onStartIntake={() => navigate(ROUTES.onboard)}
+            onCreateProject={() => navigate(ROUTES.onboard)}
           />
+        )}
+        {dashState === 1 && (
+          <>
+            <State01
+              clientName=""
+              designerName={designerName}
+              onStartIntake={() => navigate(ROUTES.intake)}
+            />
+          </>
         )}
         {dashState === 2 && (
           <State02
