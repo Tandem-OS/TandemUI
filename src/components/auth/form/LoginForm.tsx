@@ -68,7 +68,8 @@ const LoginForm = () => {
             id: response.data.user.id,
             email: response.data.user.email,
             name: response.data.user.name,
-            role: response.data.user.role
+            role: response.data.user.role,
+            plan: response.data.user.plan
           }
         }));
         navigate("/dashboard/designer");

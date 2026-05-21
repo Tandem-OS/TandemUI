@@ -23,7 +23,8 @@ const GoogleLogin = () => {
                         id: data.user.id,
                         email: data.user.email,
                         name: data.user.name,
-                        role: data.user.role
+                        role: data.user.role,
+                        plan: data.user.plan
                     }
                 }));
 

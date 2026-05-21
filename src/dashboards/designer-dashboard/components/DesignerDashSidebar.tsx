@@ -15,6 +15,16 @@ const ANIMATION_CONFIG = { duration: 0.3, ease: 'easeInOut' as const };
 const ICON_SIZE = { width: '18px', height: '18px' };
 const EXPAND_DELAY = 100;
 
+// Billing sub-items only visible to Pro users.
+// Free users see Subscription only — no billing portal, invoices, or payment methods
+// because they have no Stripe customer.
+const PRO_ONLY_BILLING_PATHS = [
+    '/dashboard/designer/billing/overview',
+    '/dashboard/designer/billing/payment-methods',
+    '/dashboard/designer/billing/invoices',
+    '/dashboard/designer/billing/history',
+];
+
 // ===== INTERFACES =====
 interface Position {
     top: number;
@@ -210,7 +220,6 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
 };
 
 // ===== LOGO =====
-// Note: both PNG logo assets have white letterforms (invisible on white sidebar).
 const Logo: React.FC<LogoProps> = ({ isCollapsed }) => (
     <AnimatePresence mode="wait">
         <motion.div
@@ -282,7 +291,6 @@ const PlanCard: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => {
             {renewalDate && (
                 <p className="text-para-xs text-text-tertiary mb-xs leading-snug">
                     Renews {renewalDate}
-                    {/* TODO: append · N projects this cycle once Syed adds projectsUsed to /stripe/subscription */}
                 </p>
             )}
 
@@ -290,7 +298,6 @@ const PlanCard: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => {
             <div className="h-1 rounded-full bg-background-muted overflow-hidden mb-sm">
                 <div
                     className="h-full rounded-full bg-accent-default"
-                    // TODO: replace with (projectsUsed / projectLimit * 100) once Syed adds fields
                     style={{ width: '40%' }}
                 />
             </div>
@@ -328,9 +335,32 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
     const [isCollapsed, setIsCollapsed] = useState<boolean>(externalCollapsed || false);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
+    // Plan from Redux — used to filter billing nav items
+    const planFromAuth = useSelector((state: RootState) => state.auth.user.plan);
+    const isPro = planFromAuth === 'pro';
+
+    // Filter menu items based on plan.
+    // Free users: hide all Pro-only billing sub-items (Billing overview, Payment methods,
+    // Invoices, Billing history). Only Subscription is shown.
+    // Pro users: see everything.
+    const filteredMenuItems = React.useMemo(() => {
+        return menuItems.map(item => {
+            if (!item.children?.length) return item;
+
+            // Filter children — remove Pro-only billing paths for Free users
+            const filteredChildren = isPro
+                ? item.children
+                : item.children.filter(
+                      child => !PRO_ONLY_BILLING_PATHS.includes(child.path ?? ''),
+                  );
+
+            return { ...item, children: filteredChildren };
+        });
+    }, [isPro]);
+
     // Auto-expand parent whose child matches current route
     useEffect(() => {
-        const parentsToExpand = menuItems
+        const parentsToExpand = filteredMenuItems
             .filter(item =>
                 item.children?.some(child => location.pathname === (child.path ?? '')),
             )
@@ -342,7 +372,7 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
                 ? prev
                 : merged;
         });
-    }, [location.pathname]);
+    }, [location.pathname, filteredMenuItems]);
 
     useEffect(() => {
         if (externalCollapsed !== undefined) {
@@ -414,10 +444,10 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
         [isCollapsed, expandedItems, isItemActive, toggleExpanded, handleCollapsedParentClick, onNavigate],
     );
 
-    // Group top-level items into sections
+    // Group filtered items into sections
     const sections = React.useMemo(() => {
         const grouped: Record<string, MenuItem[]> = {};
-        for (const item of menuItems) {
+        for (const item of filteredMenuItems) {
             const section = SECTION_MAP[item.id] ?? 'WORKSPACE';
             if (!grouped[section]) grouped[section] = [];
             grouped[section].push(item);
@@ -425,7 +455,7 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
         return SECTION_ORDER
             .filter(s => grouped[s]?.length)
             .map(s => ({ label: s, items: grouped[s] }));
-    }, []);
+    }, [filteredMenuItems]);
 
     return (
         <motion.aside
@@ -459,7 +489,7 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
                 </AnimatePresence>
             </nav>
 
-            {/* Plan card */}
+            {/* Plan card — Pro only */}
             <PlanCard isCollapsed={isCollapsed} />
 
             {/* Sign out */}
