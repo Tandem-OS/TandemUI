@@ -223,27 +223,6 @@ const devWarn = (field: string, fallback: string) => {
   return fallback;
 };
 
-// ─── BRAND ────────────────────────────────────────────────────────────────────
-
-const BRAND = {
-  accent:        'rgb(var(--accent-default))',
-  accentHover:   'rgb(var(--accent-hover))',
-  accentFg:      'rgb(var(--accent-foreground))',
-  accentSubtle:  'rgb(var(--accent-subtle))',
-  textPrimary:   'rgb(var(--text-primary))',
-  textSecondary: 'rgb(var(--text-secondary))',
-  textTertiary:  'rgb(var(--text-tertiary))',
-  bgPrimary:     'rgb(var(--background-primary))',
-  bgPrimary2:    'rgb(var(--background-primary-2))',
-  bgSecondary:   'rgb(var(--background-secondary))',
-  bgMuted:       'rgb(var(--background-muted))',
-  borderDefault: 'rgb(var(--border-default))',
-  borderMuted:   'rgb(var(--border-muted))',
-  success:       'rgb(var(--text-success))',
-  bgSuccess:     'rgb(var(--background-success))',
-  error:         'rgb(var(--text-error))',
-} as const;
-
 // ─── ROUTES ───────────────────────────────────────────────────────────────────
 
 const ROUTES = {

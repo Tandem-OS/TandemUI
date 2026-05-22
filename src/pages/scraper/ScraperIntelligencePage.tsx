@@ -244,7 +244,10 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                         dispatch(setScrapedDataFromIdea({
                             url: 'Existing compose',
                             analyzedAt: new Date().toISOString(),
-                            sections: response.page_schema.sections,
+                            sections: response.page_schema.sections.map((s: any) => ({
+                                ...s,
+                                id: s.id ?? s.component_id ?? s.category ?? crypto.randomUUID(),
+                            })),
                         }));
                         setCurrentStep('results');
                     }
