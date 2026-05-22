@@ -91,22 +91,44 @@ const COPY = {
     s05: {
       heading: 'Your designer is building your first layout.',
       body: 'Your first draft will land here shortly. Usually within 24 hours of your intake and style preferences being reviewed.',
-      primaryCta: 'Preview draft',
-      secondaryCta: (name: string) => `Message ${name}`,
+      primaryCta: 'Refine layout',
+      secondaryCta: 'Leave feedback',
       stageLabel: 'First layout — in progress',
       stageStatus: 'IN PROGRESS',
       rightNow: (name: string) => `${name} is using your style picks and site data to build the hero, features, and menu sections.`,
       upNext: (name: string) => `You'll review the first draft and request changes by chatting with ${name}, section by section.`,
     },
     s06: {
-      heading: 'Your first draft is ready.',
-      body: (name: string) => `${name} just pushed v1 of your homepage. Take a look — approve sections you love, or leave a note on anything you'd like changed.`,
-      primaryCta: 'Review your draft',
-      secondaryCta: (name: string) => `Message ${name}`,
+      heading: 'Your layout is ready to update.',
+      body: (name: string) => `${name} has refined the layout based on your earlier notes. Review the updates, refine further, or leave feedback on how the process felt.`,
+      primaryCta: 'Update layout',
+      secondaryCta: 'Leave feedback',
       stageLabel: 'Your review — ready for you',
       stageStatus: 'YOUR TURN',
-      rightNow: 'Walk through the live preview. Hover any section to approve or request a change in plain English.',
+      rightNow: 'Walk through the live preview. Refine any section or leave feedback for your designer.',
       upNext: (name: string) => `${name} refines based on your notes. Usually one round; two if anything is rebuilt from scratch.`,
+    },
+    // ── designer-feedback: leave designer testimonial or skip to platform ─────
+    s08: {
+      heading: 'Your designer has reviewed your layout.',
+      body: 'Your designer has left feedback on the current version. Share your experience working with your designer, or move on to share your Tandem platform feedback.',
+      primaryCta: 'Leave designer feedback',
+      secondaryCta: 'Platform feedback',
+      stageLabel: 'Designer feedback — your turn',
+      stageStatus: 'YOUR TURN',
+      rightNow: (name: string) => `${name} has reviewed the layout and left notes. Share your experience to help us improve the next version.`,
+      upNext: 'Once you leave designer feedback, you can also share your experience with the Tandem platform.',
+    },
+    // ── platform-feedback: share final testimonial or view layout ─────────────
+    s09: {
+      heading: 'Share your experience with Tandem.',
+      body: 'The platform has reviewed your layout. Take a moment to share your experience — it helps us improve and match the right designers for projects like yours.',
+      primaryCta: 'Share your experience',
+      secondaryCta: 'View layout',
+      stageLabel: 'Platform feedback — your turn',
+      stageStatus: 'YOUR TURN',
+      rightNow: 'Tandem has reviewed your layout. Your feedback helps us improve the platform and the designer matching process.',
+      upNext: 'After sharing your experience, your layout will continue into the final refinement round.',
     },
     s07: {
       heading: 'Your project is delivered.',
@@ -135,36 +157,44 @@ const COPY = {
       s2: 'Add inspiration sites',
       s3: 'Pick your style',
       s4: 'Pick your style',
-      s5: 'Preview your draft',
-      s6: 'Review your draft',
+      s5: 'Refine layout',
+      s6: 'Update layout',
       s7: 'View final handoff',
+      s8: 'Leave designer feedback',
+      s9: 'Share your experience',
     },
     primarySub: {
       s1: 'Tell us about your goals and brand',
       s2: 'Add sites whose design you love',
       s3: 'Swipe through design variants',
       s4: 'One more round to sharpen your layout',
-      s5: 'v1 ready to preview',
-      s6: 'v1 ready for your notes',
+      s5: 'Update sections and refine your layout',
+      s6: 'Refine sections in your updated layout',
       s7: (date: string) => `Delivered ${date}`,
+      s8: 'Share your thoughts on working with your designer',
+      s9: 'Help us improve with your platform feedback',
     },
     secondaryLabel: {
       s1: 'Message designer',
       s2: 'Edit intake',
       s3: 'Edit intake',
       s4: 'Edit intake',
-      s5: 'Update style picks',
-      s6: 'Message designer',
+      s5: 'Leave feedback',
+      s6: 'Leave feedback',
       s7: 'Download assets',
+      s8: 'Platform feedback',
+      s9: 'View layout',
     },
     secondarySub: {
       s1: (name: string) => `${name} · replies in ~4h`,
       s2: (_name: string) => '2 free edits remaining',
       s3: (_name: string) => '2 free edits remaining',
       s4: (_name: string) => '2 free edits remaining',
-      s5: (_name: string) => 'Add more design signal',
-      s6: (name: string) => `${name} · replies in ~4h`,
+      s5: (_name: string) => 'Rate your designer experience',
+      s6: (_name: string) => 'Rate your designer experience',
       s7: (_name: string) => '.zip · 4.2 MB',
+      s8: (_name: string) => 'Share your Tandem experience',
+      s9: (_name: string) => 'Preview your current layout',
     },
   },
   designer: {
@@ -217,20 +247,22 @@ const BRAND = {
 // ─── ROUTES ───────────────────────────────────────────────────────────────────
 
 const ROUTES = {
-  intake:      '/dashboard/client/intake',
-  swiper:      '/dashboard/client/swiper',
-  compose:     '/dashboard/client/compose',
-  support:     '/dashboard/client/support',
-  onboard:     '/dashboard/client/onboard',
-  scraper:     '/dashboard/client/scraper',
-  testimonial: '/dashboard/client/final-testimonial',
+  intake:           '/dashboard/client/intake',
+  swiper:           '/dashboard/client/swiper',
+  compose:          '/dashboard/client/compose',
+  support:          '/dashboard/client/support',
+  onboard:          '/dashboard/client/onboard',
+  scraper:          '/dashboard/client/scraper',
+  testimonial:      '/dashboard/client/designer-testimonial',
+  finalTestimonial: '/dashboard/client/final-testimonial',
 } as const;
 
 // ─── Pipeline ─────────────────────────────────────────────────────────────────
 
 const PIPELINE = [
   'intake', 'scraping', 'swiping', 'embedded',
-  'composing', 'refining', 'revisions', 'completed', 'handoff',
+  'composing', 'refining', 'designer-feedback', 'platform-feedback',
+  'revisions', 'completed', 'handoff',
 ] as const;
 type PipelineStage = typeof PIPELINE[number];
 
@@ -271,16 +303,22 @@ const getChecklistItems = (projectStatus: string | null, estimatedHandoff: strin
     },
     {
       id: 'refining',
-      label: 'Updated Layout',
+      label: 'Updated layout',
       status: (done('refining') ? 'completed' : active('refining') ? 'ready' : 'not-started') as 'completed' | 'ready' | 'not-started',
       statusLabel: done('refining') ? 'COMPLETED' : active('refining') ? 'READY FOR YOU' : 'NOT STARTED',
-      meta: active('refining') ? 'Review v1 and leave notes' : undefined,
+      meta: active('refining') ? 'Review and refine your layout' : undefined,
     },
     {
-      id: 'revisions',
-      label: 'Feedback applied',
-      status: (done('revisions') ? 'completed' : active('revisions') ? 'in-progress' : 'not-started') as 'completed' | 'in-progress' | 'not-started',
-      statusLabel: done('revisions') ? 'COMPLETED' : active('revisions') ? 'IN PROGRESS' : 'NOT STARTED',
+      id: 'designer-feedback',
+      label: 'Designer feedback',
+      status: (done('designer-feedback') ? 'completed' : active('designer-feedback') ? 'ready' : 'not-started') as 'completed' | 'ready' | 'not-started',
+      statusLabel: done('designer-feedback') ? 'COMPLETED' : active('designer-feedback') ? 'READY FOR YOU' : 'NOT STARTED',
+    },
+    {
+      id: 'platform-feedback',
+      label: 'Platform feedback',
+      status: (done('platform-feedback') ? 'completed' : active('platform-feedback') ? 'ready' : 'not-started') as 'completed' | 'ready' | 'not-started',
+      statusLabel: done('platform-feedback') ? 'COMPLETED' : active('platform-feedback') ? 'READY FOR YOU' : 'NOT STARTED',
     },
     {
       id: 'handoff',
@@ -293,21 +331,33 @@ const getChecklistItems = (projectStatus: string | null, estimatedHandoff: strin
 };
 
 // ─── getDashState ─────────────────────────────────────────────────────────────
+// 0 = no project
+// 1 = project exists, intake not started
+// 2 = intake done → start scraping
+// 3 = scraping running → start swiping
+// 4 = swiping/embedded → start composing
+// 5 = composing → refine layout / leave feedback
+// 6 = refining → update layout / leave feedback
+// 7 = delivered
+// 8 = designer-feedback → designer testimonial (primary) / platform testimonial (secondary)
+// 9 = platform-feedback → final testimonial (primary) / view layout (secondary)
 
-const getDashState = (status: string | null, hasProject: boolean): 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 => {
-  if (!hasProject) return 0;  // no project
-  if (!status)     return 1;  // project exists, intake not started
+const getDashState = (status: string | null, hasProject: boolean): 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 => {
+  if (!hasProject) return 0;
+  if (!status)     return 1;
   switch (status) {
-    case 'intake':   return 2;  // intake done → start scraping
-    case 'scraping': return 3;  // scraping running → start swiping next
+    case 'intake':            return 2;
+    case 'scraping':          return 3;
     case 'swiping':
-    case 'embedded': return 4;  // swiping → start composing next
-    case 'composing':return 5;  // composing → preview draft
-    case 'refining': return 6;  // draft ready → review draft
+    case 'embedded':          return 4;
+    case 'composing':         return 5;
+    case 'refining':          return 6;
+    case 'designer-feedback': return 8;
+    case 'platform-feedback': return 9;
     case 'revisions':
     case 'completed':
-    case 'handoff':  return 7;  // delivered
-    default:         return 1;
+    case 'handoff':           return 7;
+    default:                  return 1;
   }
 };
 
@@ -351,13 +401,6 @@ const State00: React.FC<{ designerName: string; onCreateProject: () => void }> =
       <span className="text-text-tertiary text-para-xs">·</span>
       <span className="text-para-xs text-text-secondary font-medium">{COPY.states.s00.welcomePill}</span>
     </div>
-
-    <DashHero
-      heading={COPY.states.s00.heading}
-      body={COPY.states.s00.body}
-      primaryCta={COPY.states.s00.createProjectCta}
-      onPrimaryClick={onCreateProject}
-    />
 
     <div className="bg-background-primary-2 rounded-2xl border border-dashed border-border-default p-xl mb-lg flex items-center gap-md">
       <div className="w-10 h-10 rounded-xl border border-border-default bg-background-muted flex items-center justify-center flex-shrink-0">
@@ -417,22 +460,18 @@ const ClientDashHome: React.FC = () => {
   const clientEmail   = useSelector((state: RootState) => state.auth.user?.email) ?? '';
   const designerEmail = useSelector((state: RootState) => state.auth.user?.designerEmail) ?? '';
 
-  // Syed to replace with auth.user.designerName when available
   const designerName = designerEmail
     ? designerEmail.split('@')[0].charAt(0).toUpperCase() + designerEmail.split('@')[0].slice(1)
     : devWarn('auth.user.designerName', COPY.fallbacks.designerName);
 
-  // Syed to replace with project.project_name when available
   const projectDomain = projectId
     ? devWarn('project.project_name', COPY.fallbacks.projectName)
     : COPY.fallbacks.projectName;
 
-  // Syed to replace with project.company_name when available
   const companyName = projectId
     ? devWarn('project.company_name', COPY.fallbacks.companyName)
     : COPY.fallbacks.companyName;
 
-  // Syed to replace with project.estimated_handoff when available
   const estimatedHandoff = projectId
     ? devWarn('project.estimated_handoff', COPY.fallbacks.estHandoff)
     : COPY.fallbacks.estHandoff;
@@ -460,7 +499,7 @@ const ClientDashHome: React.FC = () => {
   const qaKey      = `s${dashState}` as keyof typeof COPY.quickActions.primaryLabel;
   const stageSub   = dashState < 7 ? `Stage ${dashState} of 7` : COPY.states.s07.stageSub;
 
-  // ─── Arrays indexed by dashState (0–7) ──────────────────────────────────────
+  // ─── State lookup arrays (0–9) ───────────────────────────────────────────────
 
   const stateHeading = [
     '',
@@ -471,6 +510,8 @@ const ClientDashHome: React.FC = () => {
     COPY.states.s05.heading,
     COPY.states.s06.heading,
     COPY.states.s07.heading,
+    COPY.states.s08.heading,
+    COPY.states.s09.heading,
   ];
 
   const stateBody = [
@@ -482,6 +523,8 @@ const ClientDashHome: React.FC = () => {
     COPY.states.s05.body,
     COPY.states.s06.body(designerName),
     COPY.states.s07.body,
+    COPY.states.s08.body,
+    COPY.states.s09.body,
   ];
 
   const statePrimaryCta = [
@@ -493,6 +536,8 @@ const ClientDashHome: React.FC = () => {
     COPY.states.s05.primaryCta,
     COPY.states.s06.primaryCta,
     COPY.states.s07.primaryCta,
+    COPY.states.s08.primaryCta,
+    COPY.states.s09.primaryCta,
   ];
 
   const stateSecondaryCta = [
@@ -501,9 +546,11 @@ const ClientDashHome: React.FC = () => {
     COPY.states.s02.secondaryCta,
     undefined,
     COPY.states.s04.secondaryCta,
-    COPY.states.s05.secondaryCta(designerName),
-    COPY.states.s06.secondaryCta(designerName),
+    COPY.states.s05.secondaryCta,
+    COPY.states.s06.secondaryCta,
     COPY.states.s07.secondaryCta,
+    COPY.states.s08.secondaryCta,
+    COPY.states.s09.secondaryCta,
   ];
 
   const stageLabel = [
@@ -515,6 +562,8 @@ const ClientDashHome: React.FC = () => {
     COPY.states.s05.stageLabel,
     COPY.states.s06.stageLabel,
     COPY.states.s07.stageLabel,
+    COPY.states.s08.stageLabel,
+    COPY.states.s09.stageLabel,
   ];
 
   const stageStatus = [
@@ -526,6 +575,8 @@ const ClientDashHome: React.FC = () => {
     COPY.states.s05.stageStatus,
     COPY.states.s06.stageStatus,
     '',
+    COPY.states.s08.stageStatus,
+    COPY.states.s09.stageStatus,
   ];
 
   const rightNow = [
@@ -537,6 +588,8 @@ const ClientDashHome: React.FC = () => {
     COPY.states.s05.rightNow(designerName),
     COPY.states.s06.rightNow,
     COPY.states.s07.rightNow,
+    COPY.states.s08.rightNow(designerName),
+    COPY.states.s09.rightNow,
   ];
 
   const upNext = [
@@ -548,38 +601,35 @@ const ClientDashHome: React.FC = () => {
     COPY.states.s05.upNext(designerName),
     COPY.states.s06.upNext(designerName),
     COPY.states.s07.upNext,
+    COPY.states.s08.upNext,
+    COPY.states.s09.upNext,
   ];
 
-  // ─── Pipeline routes — indexed by dashState ──────────────────────────────────
-  // 0 → onboard   (create project)
-  // 1 → intake    (start intake)
-  // 2 → scraper   (intake done → start scraping)
-  // 3 → swiper    (scraping done → start swiping)
-  // 4 → compose   (swiping done → start composing)
-  // 5 → compose   (composing → preview draft)
-  // 6 → compose   (draft ready → review draft)
-  // 7 → compose   (delivered → view handoff)
-
+  // ─── Routes indexed by dashState (0–9) ───────────────────────────────────────
   const primaryRoute = [
-    ROUTES.onboard,  // 0
-    ROUTES.intake,   // 1
-    ROUTES.scraper,  // 2 — intake done → scrape
-    ROUTES.swiper,   // 3 — scraping done → swipe
-    ROUTES.compose,  // 4 — swiping done → compose
-    ROUTES.compose,  // 5 — composing → preview
-    ROUTES.compose,  // 6 — draft ready → review
-    ROUTES.compose,  // 7 — delivered → handoff
+    ROUTES.onboard,           // 0
+    ROUTES.intake,            // 1
+    ROUTES.scraper,           // 2 — intake done → scrape
+    ROUTES.swiper,            // 3 — scraping done → swipe
+    ROUTES.compose,           // 4 — swiping done → compose
+    ROUTES.compose,           // 5 — composing → refine
+    ROUTES.compose,           // 6 — refining → update layout
+    ROUTES.compose,           // 7 — delivered → handoff
+    ROUTES.testimonial,       // 8 — designer-feedback → designer testimonial
+    ROUTES.finalTestimonial,  // 9 — platform-feedback → final testimonial
   ];
 
   const secondaryRoute = [
-    null,                // 0
-    null,                // 1 — no secondary
-    ROUTES.intake,       // 2 — edit intake
-    ROUTES.intake,       // 3 — edit intake
-    ROUTES.intake,       // 4 — edit intake
-    ROUTES.swiper,       // 5 — update style picks
-    null,                // 6 — message designer (not wired)
-    ROUTES.testimonial,  // 7 — share testimonial
+    null,                     // 0
+    null,                     // 1
+    ROUTES.intake,            // 2 — edit intake
+    ROUTES.intake,            // 3 — edit intake
+    ROUTES.intake,            // 4 — edit intake
+    ROUTES.testimonial,       // 5 — composing → leave designer feedback
+    ROUTES.testimonial,       // 6 — refining → leave designer feedback
+    ROUTES.finalTestimonial,  // 7 — share final testimonial
+    ROUTES.finalTestimonial,  // 8 — designer-feedback secondary → platform testimonial
+    ROUTES.compose,           // 9 — platform-feedback secondary → view layout
   ];
 
   const qaPrimarySub = typeof COPY.quickActions.primarySub[qaKey] === 'function'
@@ -598,7 +648,7 @@ const ClientDashHome: React.FC = () => {
           />
         )}
 
-        {/* ── States 1–7 — Active project ── */}
+        {/* ── States 1–9 — Active project ── */}
         {dashState !== 0 && (
           <>
             {/* Breadcrumb */}
@@ -633,7 +683,7 @@ const ClientDashHome: React.FC = () => {
 
             {/* Preview + Checklist */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
-            <div className="lg:col-span-2">
+              <div className="lg:col-span-2">
                 <BrowserMockup />
               </div>
               <div className="lg:col-span-1">
@@ -661,7 +711,7 @@ const ClientDashHome: React.FC = () => {
                   label={COPY.quickActions.secondaryLabel[qaKey]}
                   sub={COPY.quickActions.secondarySub[qaKey](designerName)}
                   onClick={secondaryRoute[dashState] ? () => navigate(secondaryRoute[dashState]!) : () => {}}
-                  disabled={dashState === 1 || dashState === 6}
+                  disabled={dashState === 1}
                 />
               </div>
             </div>

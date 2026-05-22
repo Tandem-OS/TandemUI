@@ -28,20 +28,21 @@ const COPY = {
 
 const PIPELINE = [
   'intake', 'scraping', 'swiping', 'embedded',
-  'composing', 'refining', 'designer-feedback','platform-feedback','revisions', 'completed', 'handoff',
+  'composing', 'refining', 'designer-feedback', 'platform-feedback',
+  'revisions', 'completed', 'handoff',
 ] as const;
 
 type PipelineStage = typeof PIPELINE[number];
 
 const STEPPER_NODES = [
-  { id: 'intake',    label: 'Intake' },
-  { id: 'scraping',  label: 'Site capture' },
-  { id: 'swiping',   label: 'Style preferences' },
-  { id: 'composing', label: 'First Layout' },
-  { id: 'refining',  label: 'Updated Layout' },
-  { id: 'designer-feedback',  label: 'Designer Feedback' },
-  { id: 'platform-feedback', label: 'Platform Feedback' },
-  { id: 'handoff',   label: 'Handoff' },
+  { id: 'intake',             label: 'Intake' },
+  { id: 'scraping',           label: 'Site capture' },
+  { id: 'swiping',            label: 'Style preferences' },
+  { id: 'composing',          label: 'First layout' },
+  { id: 'refining',           label: 'Updated layout' },
+  { id: 'designer-feedback',  label: 'Designer feedback' },
+  { id: 'platform-feedback',  label: 'Platform feedback' },
+  { id: 'handoff',            label: 'Handoff' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -97,14 +98,14 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({
       <div className="relative mb-xl overflow-x-auto pb-xs">
         <div className="min-w-[560px]">
           {/* Track line */}
-          <div className="absolute top-[19px] left-[calc(100%/14)] right-[calc(100%/14)] h-0.5 bg-border-default rounded-full" />
+          <div className="absolute top-[19px] left-[calc(100%/16)] right-[calc(100%/16)] h-0.5 bg-border-default rounded-full" />
           {/* Progress fill */}
           <motion.div
-            className="absolute top-[19px] left-[calc(100%/14)] h-0.5 bg-accent-default rounded-full origin-left"
+            className="absolute top-[19px] left-[calc(100%/16)] h-0.5 bg-accent-default rounded-full origin-left"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: progressPct / 100 }}
             transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
-            style={{ width: `calc(100% - 100%/7)` }}
+            style={{ width: `calc(100% - 100%/8)` }}
           />
 
           {/* Nodes */}
@@ -117,8 +118,8 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({
                   <div className={`
                     w-10 h-10 rounded-full border-2 flex items-center justify-center z-10 flex-shrink-0
                     ${state === 'completed' ? 'bg-accent-default border-accent-default' : ''}
-                    ${state === 'current' ? 'bg-background-primary border-accent-default' : ''}
-                    ${state === 'pending' ? 'bg-background-primary border-border-default' : ''}
+                    ${state === 'current'   ? 'bg-background-primary border-accent-default' : ''}
+                    ${state === 'pending'   ? 'bg-background-primary border-border-default' : ''}
                   `}>
                     {state === 'completed' && (
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -133,7 +134,7 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({
                   {/* Label */}
                   <div className="text-center">
                     <p className={`text-para-xs font-medium leading-tight ${
-                      state === 'current' ? 'text-accent-default font-semibold' :
+                      state === 'current'   ? 'text-accent-default font-semibold' :
                       state === 'completed' ? 'text-text-secondary' :
                       'text-text-tertiary'
                     }`}>
