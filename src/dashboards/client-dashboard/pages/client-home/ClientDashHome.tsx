@@ -361,6 +361,59 @@ const getDashState = (status: string | null, hasProject: boolean): 0 | 1 | 2 | 3
   }
 };
 
+// ─── Delivered banner — replaces DashHero when dashState === 7 ───────────────
+
+const DeliveredBanner: React.FC<{
+  onPrimary: () => void;
+  onSecondary: () => void;
+}> = ({ onPrimary, onSecondary }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -8 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4 }}
+    className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-lg p-xl rounded-2xl mb-xl"
+    style={{ background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)' }}
+  >
+    {/* Left */}
+    <div className="flex-1">
+      <div className="flex items-center gap-sm mb-sm">
+        <span className="px-sm py-xs rounded-full bg-white/20 text-white text-para-xs font-bold uppercase tracking-widest">
+          {COPY.states.s07.deliveredBadge}
+        </span>
+        <span className="text-white/60 text-para-xs">·</span>
+        <span className="text-white/70 text-para-xs font-medium">
+          {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+        </span>
+      </div>
+      <h1 className="text-h2-sm sm:text-h1-sm font-bold text-white mb-sm leading-tight">
+        {COPY.states.s07.heading}
+      </h1>
+      <p className="text-para-md text-white/80 leading-relaxed max-w-xl">
+        {COPY.states.s07.body}
+      </p>
+    </div>
+
+    {/* Right — CTAs */}
+    <div className="flex items-center gap-sm flex-shrink-0">
+      <button
+        onClick={onSecondary}
+        className="px-lg py-sm rounded-xl border border-white/30 bg-white/10 text-white text-para-sm font-medium hover:bg-white/20 transition-colors"
+      >
+        {COPY.states.s07.secondaryCta}
+      </button>
+      <button
+        onClick={onPrimary}
+        className="flex items-center gap-xs px-lg py-sm rounded-xl bg-white text-green-700 text-para-sm font-semibold hover:bg-white/90 transition-colors"
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        {COPY.states.s07.primaryCta}
+      </button>
+    </div>
+  </motion.div>
+);
+
 // ─── Designer card ────────────────────────────────────────────────────────────
 
 const DesignerCard: React.FC<{ designerName: string }> = ({ designerName }) => (
@@ -614,7 +667,7 @@ const ClientDashHome: React.FC = () => {
     ROUTES.compose,           // 4 — swiping done → compose
     ROUTES.compose,           // 5 — composing → refine
     ROUTES.compose,           // 6 — refining → update layout
-    ROUTES.compose,           // 7 — delivered → handoff
+    ROUTES.compose,           // 7 — delivered → view handoff
     ROUTES.testimonial,       // 8 — designer-feedback → designer testimonial
     ROUTES.finalTestimonial,  // 9 — platform-feedback → final testimonial
   ];
@@ -660,15 +713,22 @@ const ClientDashHome: React.FC = () => {
               <span className="text-para-xs text-text-secondary font-medium">{companyName}</span>
             </div>
 
-            {/* Hero */}
-            <DashHero
-              heading={stateHeading[dashState]}
-              body={stateBody[dashState]}
-              primaryCta={statePrimaryCta[dashState]}
-              secondaryCta={stateSecondaryCta[dashState]}
-              onPrimaryClick={() => navigate(primaryRoute[dashState])}
-              onSecondaryClick={secondaryRoute[dashState] ? () => navigate(secondaryRoute[dashState]!) : () => {}}
-            />
+            {/* Hero — replaced by DeliveredBanner on state 7 */}
+            {dashState === 7 ? (
+              <DeliveredBanner
+                onPrimary={() => navigate(primaryRoute[dashState])}
+                onSecondary={() => navigate(secondaryRoute[dashState]!)}
+              />
+            ) : (
+              <DashHero
+                heading={stateHeading[dashState]}
+                body={stateBody[dashState]}
+                primaryCta={statePrimaryCta[dashState]}
+                secondaryCta={stateSecondaryCta[dashState]}
+                onPrimaryClick={() => navigate(primaryRoute[dashState])}
+                onSecondaryClick={secondaryRoute[dashState] ? () => navigate(secondaryRoute[dashState]!) : () => {}}
+              />
+            )}
 
             {/* Stepper */}
             <ProjectProgress
