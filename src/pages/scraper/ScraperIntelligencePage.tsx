@@ -49,6 +49,7 @@ import {
     clearError,
 } from '@/features/scraper/scraperSlice';
 import type { ScraperErrorType } from '@/features/scraper/scraperSlice';
+import { getAllProjectCompose } from '@/lib/requests/CompositionRequest';
 
 const t = layoutTokens.scraper;
 
@@ -115,6 +116,90 @@ const ERROR_CONFIG: Record<
     },
 };
 
+// ─── Compose loading screen ───────────────────────────────────────────────────
+
+const ComposeLoadingScreen: React.FC = () => {
+    const dots = [0, 1, 2, 3, 4];
+    const rings = [0, 1, 2];
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex items-center justify-center min-h-screen bg-background-primary"
+        >
+            <div className="flex flex-col items-center gap-xl">
+                {/* Animated icon stack */}
+                <div className="relative flex items-center justify-center w-28 h-28">
+                    {/* Outer pulsing rings */}
+                    {rings.map((i) => (
+                        <motion.div
+                            key={i}
+                            className="absolute rounded-full border border-accent-default/20"
+                            style={{ width: 56 + i * 28, height: 56 + i * 28 }}
+                            animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.1, 0.6] }}
+                            transition={{
+                                duration: 2.4,
+                                repeat: Infinity,
+                                delay: i * 0.4,
+                                ease: 'easeInOut',
+                            }}
+                        />
+                    ))}
+
+                    {/* Centre icon */}
+                    <motion.div
+                        className="relative z-10 w-14 h-14 rounded-2xl bg-accent-subtle flex items-center justify-center"
+                        animate={{ rotate: [0, 8, -8, 0], scale: [1, 1.06, 1] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                        <motion.div
+                            animate={{ opacity: [0.7, 1, 0.7] }}
+                            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                        >
+                            <FaLightbulb className="text-accent-default text-2xl" />
+                        </motion.div>
+                    </motion.div>
+                </div>
+
+                {/* Text */}
+                <motion.div
+                    className="flex flex-col items-center gap-sm text-center"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    <p className="text-para-lg font-semibold text-text-primary">
+                        Loading your layout
+                    </p>
+                    <p className="text-para-sm text-text-secondary max-w-xs">
+                        Fetching your composition and sections
+                    </p>
+                </motion.div>
+
+                {/* Bouncing dots */}
+                <div className="flex items-center gap-xs">
+                    {dots.map((i) => (
+                        <motion.div
+                            key={i}
+                            className="w-1.5 h-1.5 rounded-full bg-accent-default"
+                            animate={{ y: [0, -8, 0], opacity: [0.4, 1, 0.4] }}
+                            transition={{
+                                duration: 0.9,
+                                repeat: Infinity,
+                                delay: i * 0.12,
+                                ease: 'easeInOut',
+                            }}
+                        />
+                    ))}
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const ScraperIntelligencePage = ({ mode }: Props) => {
@@ -135,6 +220,45 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
     const [refinedSections, setRefinedSections] = useState<Set<string>>(new Set());
     const billingErrorRef = useRef(false);
 
+    // ── Compose check loading — blocks render until API resolves ─────────────
+    const [composeCheckLoading, setComposeCheckLoading] = useState(mode === 'compose');
+
+    // ── Compose mode — check for existing compose on mount ───────────────────
+    // If mode is 'compose' and a compose already exists for this project,
+    // skip StartFromIdea modal and go straight to chat with existing data.
+    const projectId = useSelector((state: RootState) => state.project.projectId);
+
+    useEffect(() => {
+        if (mode !== 'compose') return;
+        if (!projectId) {
+            setComposeCheckLoading(false);
+            return;
+        }
+
+        const checkExistingCompose = async () => {
+            try {
+                const response = await getAllProjectCompose(projectId);
+                if (response?.composition_id) {
+                    setCompositionId(response.composition_id);
+                    if (response?.page_schema?.sections?.length) {
+                        dispatch(setScrapedDataFromIdea({
+                            url: 'Existing compose',
+                            analyzedAt: new Date().toISOString(),
+                            sections: response.page_schema.sections,
+                        }));
+                        setCurrentStep('results');
+                    }
+                }
+            } catch {
+                // No existing compose found — show StartFromIdea modal as normal
+            } finally {
+                setComposeCheckLoading(false);
+            }
+        };
+
+        checkExistingCompose();
+    }, [mode, projectId]);
+
     const handleRefineComplete = (sections: string[]) => {
         setRefinedSections(new Set(sections));
         setTimeout(() => setRefinedSections(new Set()), 2500);
@@ -150,7 +274,6 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
     const email = useSelector((state: RootState) => state.auth.user.email);
     const userRole = useSelector((state: RootState) => state.auth.user.role);
     const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
-    const projectId = useSelector((state: RootState) => state.project.projectId);
 
     // ── Hooks ─────────────────────────────────────────────────────────────────
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
@@ -352,6 +475,11 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
         ? ERROR_CONFIG[scraperError.type] ?? ERROR_CONFIG.unknown
         : null;
 
+    // ── Compose check loading — show beautiful loading screen ─────────────────
+    if (composeCheckLoading) {
+        return <ComposeLoadingScreen />;
+    }
+
     return (
         <div className={t.root}>
             <AnimatePresence>
@@ -457,10 +585,27 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                 </motion.button>
 
                                 {!isDesigner && (
-                                    <StartFromIdea
-                                        onGenerateLayout={handleGenerateLayout}
-                                        disabled={disableIdea}
-                                    />
+                                    // If compose already exists, show "Continue Your Layout" button
+                                    // that navigates directly to the compose page — skip StartFromIdea modal
+                                    compositionId ? (
+                                        <motion.button
+                                            onClick={() => {
+                                                dispatch(pollForThumbnails({ compositionId: compositionId! }));
+                                                navigate(`/dashboard/client/compose/${compositionId}`);
+                                            }}
+                                            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" }}
+                                            whileTap={{ scale: 0.95 }}
+                                            className={t.welcomePrimaryBtn}
+                                        >
+                                            <FaEye className="text-icon-md" />
+                                            <span>Continue Your Layout</span>
+                                        </motion.button>
+                                    ) : (
+                                        <StartFromIdea
+                                            onGenerateLayout={handleGenerateLayout}
+                                            disabled={disableIdea}
+                                        />
+                                    )
                                 )}
                             </motion.div>
 
@@ -820,7 +965,8 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                         </div>
                                     </div>
                                     <div className={`${t.resultsHeaderRight} flex-wrap`}>
-                                        {!isDesigner && (
+                                        {/* Only show StartFromIdea in results header if no compose exists */}
+                                        {!isDesigner && !compositionId && (
                                             <StartFromIdea
                                                 onGenerateLayout={handleGenerateLayout}
                                                 disabled={disableIdea}

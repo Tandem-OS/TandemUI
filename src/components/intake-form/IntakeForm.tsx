@@ -245,6 +245,7 @@ const IntakeForm: React.FC = () => {
             }
         } catch (err) {
             setFormData(initialFormData);
+            showToast('Failed to load your intake. Starting fresh.', 'error');
         }
         setLoading(false);
     };
@@ -349,9 +350,10 @@ const IntakeForm: React.FC = () => {
                 }
                 showToast('Intake form submitted successfully!', 'success');
                 setTimeout(() => navigateHook("/dashboard/client"), 1200);
-            } catch (error: any) {
-                if (handleBillingError(error)) return;
-                showToast('Submission failed. Please try again.', 'error');
+            } catch (err: any) {
+                if (handleBillingError(err)) { setButtonState('default'); return; }
+                showToast("Something went wrong while saving this step. Please try again.", 'error');
+                setButtonState('default');
             }
             return;
         }

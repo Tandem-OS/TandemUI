@@ -7,30 +7,40 @@ type NodeState = 'completed' | 'current' | 'pending';
 
 interface ProjectProgressProps {
   projectStatus: string | null;
-  stageLabel: string;
-  stageSub: string;
-  statusPill: string;
+  stageLabel?: string;
+  stageSub?: string;
+  statusPill?: string;
   estHandoff?: string;
-  rightNow: string;
-  upNext: string;
+  rightNow?: string;
+  upNext?: string;
 }
+
+// ─── COPY ─────────────────────────────────────────────────────────────────────
+
+const COPY = {
+  sectionLabel: 'Project progress',
+  estHandoffLabel: 'Est. handoff',
+  rightNowLabel: 'Right now',
+  upNextLabel: 'Up next',
+} as const;
 
 // ─── Pipeline & nodes ─────────────────────────────────────────────────────────
 
 const PIPELINE = [
   'intake', 'scraping', 'swiping', 'embedded',
-  'composing', 'refining', 'revisions', 'completed', 'handoff',
+  'composing', 'refining', 'designer-feedback','revisions', 'completed', 'handoff',
 ] as const;
 
 type PipelineStage = typeof PIPELINE[number];
 
 const STEPPER_NODES = [
   { id: 'intake',    label: 'Intake' },
-  { id: 'scraping',  label: 'Site scrape' },
-  { id: 'swiping',   label: 'Preferences' },
-  { id: 'composing', label: 'Layout' },
-  { id: 'refining',  label: 'Designer review' },
-  { id: 'revisions', label: 'Your feedback' },
+  { id: 'scraping',  label: 'Site capture' },
+  { id: 'swiping',   label: 'Style preferences' },
+  { id: 'composing', label: 'First Layout' },
+  { id: 'refining',  label: 'Updated Layout' },
+  { id: 'designer-feedback',  label: 'Designer Feedback' },
+  { id: 'revisions', label: 'Platform Feedback' },
   { id: 'handoff',   label: 'Handoff' },
 ];
 
@@ -50,12 +60,12 @@ const getNodeState = (nodeId: string, projectStatus: string | null): NodeState =
 
 const ProjectProgress: React.FC<ProjectProgressProps> = ({
   projectStatus = null,
-  stageLabel = 'Capturing your site',
-  stageSub = 'Stage 2 of 7',
-  statusPill = 'WORKING',
-  estHandoff = 'Fri, May 22',
-  rightNow = 'Tandem is analyzing your site — extracting sections, assets, and visual signals. No action needed from you.',
-  upNext = "Preferences round — you'll swipe through hero, nav, features, and pricing variants. About 6 minutes.",
+  stageLabel,
+  stageSub,
+  statusPill,
+  estHandoff,
+  rightNow,
+  upNext,
 }) => {
   const totalNodes = STEPPER_NODES.length;
   const completedCount = STEPPER_NODES.filter(n => getNodeState(n.id, projectStatus) === 'completed').length;
@@ -66,14 +76,18 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({
       {/* Header row */}
       <div className="flex items-start justify-between mb-lg">
         <div>
-          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">Project Progress</p>
+          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">
+            {COPY.sectionLabel}
+          </p>
           <h3 className="text-h5-sm font-bold text-text-primary">
             {stageLabel} <span className="text-para-md font-normal text-text-secondary">{stageSub}</span>
           </h3>
         </div>
         {estHandoff && (
           <div className="text-right flex-shrink-0">
-            <p className="text-para-xs text-text-tertiary uppercase tracking-widest mb-xs">Est. Handoff</p>
+            <p className="text-para-xs text-text-tertiary uppercase tracking-widest mb-xs">
+              {COPY.estHandoffLabel}
+            </p>
             <p className="text-para-md font-bold text-text-primary">{estHandoff}</p>
           </div>
         )}
@@ -141,12 +155,22 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({
       {/* Right now / Up next */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-lg pt-lg border-t border-border-default">
         <div>
-          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">Right now</p>
-          <p className="text-para-sm text-text-secondary leading-relaxed">{rightNow}</p>
+          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">
+            {COPY.rightNowLabel}
+          </p>
+          {rightNow
+            ? <p className="text-para-sm text-text-secondary leading-relaxed">{rightNow}</p>
+            : <div className="h-4 w-3/4 rounded bg-border-default animate-pulse" />
+          }
         </div>
         <div>
-          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">Up next</p>
-          <p className="text-para-sm text-text-secondary leading-relaxed">{upNext}</p>
+          <p className="text-para-xs font-semibold text-text-tertiary uppercase tracking-widest mb-xs">
+            {COPY.upNextLabel}
+          </p>
+          {upNext
+            ? <p className="text-para-sm text-text-secondary leading-relaxed">{upNext}</p>
+            : <div className="h-4 w-2/3 rounded bg-border-default animate-pulse" />
+          }
         </div>
       </div>
     </div>

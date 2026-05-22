@@ -78,10 +78,13 @@ const ProjectOverview: React.FC = () => {
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
   const [project, setProject] = useState<ProjectOverviewUI | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [actionLoading, setActionLoading] = useState<'complete' | 'handoff' | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchProject = async (projectId: string) => {
     setLoading(true);
+    setFetchError(false);
     try {
       const response = await getProjectById({ id: projectId });
       const raw = response.data;
@@ -114,7 +117,7 @@ const ProjectOverview: React.FC = () => {
         feedback: [],
       });
     } catch {
-      // Failed to fetch project — handle silently
+      setFetchError(true);
     }
     setLoading(false);
   };
@@ -125,11 +128,12 @@ const ProjectOverview: React.FC = () => {
     if (!project) return;
     const designer_email = store.getState().auth.user.email!;
     setActionLoading('complete');
+    setActionError(null);
     try {
       await markProjectCompleted(project.id, designer_email);
       await fetchProject(project.id);
     } catch {
-      // Failed to mark project as completed — handle silently
+      setActionError('Failed to mark project as complete. Please try again.');
     } finally {
       setActionLoading(null);
     }
@@ -139,11 +143,12 @@ const ProjectOverview: React.FC = () => {
     if (!project) return;
     const designer_email = store.getState().auth.user.email!;
     setActionLoading('handoff');
+    setActionError(null);
     try {
       await markProjectHandoff(project.id, designer_email);
       await fetchProject(project.id);
     } catch {
-      // Failed to mark project as handoff — handle silently
+      setActionError('Failed to confirm handoff. Please try again.');
     } finally {
       setActionLoading(null);
     }
@@ -183,10 +188,29 @@ const ProjectOverview: React.FC = () => {
       ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20'
       : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20';
 
-  if (loading || !project) return <ProjectOverviewSkeleton />;
+  if (loading) return <ProjectOverviewSkeleton />;
+  if (fetchError) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-text-secondary text-para-lg">
+        Failed to load project. Please refresh the page.
+      </p>
+    </div>
+  );
+  if (!project) return <ProjectOverviewSkeleton />;
 
   return (
     <div className="min-h-screen">
+      {actionError && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-lg py-sm rounded-xl bg-background-primary border border-border-default text-text-error text-para-sm shadow-md cursor-pointer"
+          onClick={() => setActionError(null)}
+        >
+          {actionError}
+        </motion.div>
+      )}
+
       {/* Hero Section */}
       <div className="bg-background-primary">
         <div className="container mx-auto px-md py-xl sm:py-2xl lg:py-2xl">
@@ -241,12 +265,6 @@ const ProjectOverview: React.FC = () => {
                 </div>
               </div>
 
-              {/*
-                FIX — designer card stats: status label can be multi-word ("In Progress",
-                "Under Review") which overflows the rigid grid-cols-3 cell on 375px.
-                Added break-words + min-w-0 on each cell, and text-para-xs fallback on
-                the value so it never clips or pushes the grid wider than the card.
-              */}
               <div className="grid grid-cols-3 gap-xs text-center mb-lg">
                 <div className="min-w-0">
                   <div className="text-h6-sm font-bold text-text-primary truncate">{project.progress}%</div>

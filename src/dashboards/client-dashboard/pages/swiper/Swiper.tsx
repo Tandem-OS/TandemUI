@@ -298,7 +298,8 @@ const Swiper: React.FC = () => {
         const statusResult = await fetchRoundCompleted();
         if (!statusResult.data.round_completed) return;
         navigate('/dashboard/client/compose');
-      } catch  {
+      } catch {
+        // fetchRoundCompleted failed — user stays on swiper, not a blocking error
       }
     };
     prepopulateFromBackend();
@@ -532,7 +533,7 @@ const Swiper: React.FC = () => {
           if (isLastRound) {
             try { await saveRoundCompleted(); }
             catch {
-              // Failed to mark round completed — handle silently
+              // saveRoundCompleted failed — round data already saved, non-blocking
             }
           }
 
@@ -595,7 +596,7 @@ const Swiper: React.FC = () => {
                   vibe: winner.vibe,
                 });
               } catch {
-                // Failed to post auto-winner component — handle silently
+                showToast('Could not save your pick. Your progress continues, but this selection may be lost.');
               }
 
               const autoSession: KingOfHillSession = {

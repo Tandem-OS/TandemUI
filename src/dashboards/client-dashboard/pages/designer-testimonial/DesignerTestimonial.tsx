@@ -261,29 +261,29 @@ const DesignerTestimonial: FC = () => {
     const handleContinue = () => setStep(1);
     const handleFinish = () => navigate('/dashboard/client');
 
-    const handleSubmit = useCallback(async () => {
-        if (!canSubmit()) {
-            setRatingError('Please select a rating before submitting');
-            return;
-        }
-        setRatingError(undefined);
+   const handleSubmit = useCallback(async () => {
+  if (!canSubmit()) {
+    setRatingError('Please select a rating before submitting');
+    return;
+  }
+  setRatingError(undefined);
+  setIsSubmitting(true);
 
-        setIsSubmitting(true);
-        setStep(2);
-        try {
-            const submissionData = {
-                rating,
-                standout: answers.unique,
-                recommend: answers.recommend,
-                submittedAt: new Date().toISOString()
-            };
-            designerTestimonialSubmission(submissionData);
-        } catch {
-            // Submission failed — handle silently
-        } finally {
-            setIsSubmitting(false);
-        }
-    }, [rating, answers, canSubmit]);
+  try {
+    const submissionData = {
+      rating,
+      standout: answers.unique,
+      recommend: answers.recommend,
+      submittedAt: new Date().toISOString()
+    };
+    await designerTestimonialSubmission(submissionData);
+    setStep(2); // only advance on success
+  } catch {
+    setRatingError('Something went wrong. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+}, [rating, answers, canSubmit]);
 
     const renderStep = () => {
         switch (step) {
