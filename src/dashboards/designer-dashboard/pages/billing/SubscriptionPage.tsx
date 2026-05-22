@@ -351,7 +351,7 @@ const SubscriptionPage: React.FC = () => {
                                         Pro ⚡
                                     </p>
                                     <p className="text-h3-sm font-bold text-text-primary">
-                                        $49.00{' '}
+                                        $49.99{' '}
                                         <span className="text-para-sm font-normal text-text-secondary">
                                             USD / month
                                         </span>

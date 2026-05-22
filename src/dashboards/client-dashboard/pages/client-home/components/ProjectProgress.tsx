@@ -28,7 +28,7 @@ const COPY = {
 
 const PIPELINE = [
   'intake', 'scraping', 'swiping', 'embedded',
-  'composing', 'refining', 'designer-feedback','revisions', 'completed', 'handoff',
+  'composing', 'refining', 'designer-feedback','platform-feedback','revisions', 'completed', 'handoff',
 ] as const;
 
 type PipelineStage = typeof PIPELINE[number];
@@ -40,7 +40,7 @@ const STEPPER_NODES = [
   { id: 'composing', label: 'First Layout' },
   { id: 'refining',  label: 'Updated Layout' },
   { id: 'designer-feedback',  label: 'Designer Feedback' },
-  { id: 'revisions', label: 'Platform Feedback' },
+  { id: 'platform-feedback', label: 'Platform Feedback' },
   { id: 'handoff',   label: 'Handoff' },
 ];
 
