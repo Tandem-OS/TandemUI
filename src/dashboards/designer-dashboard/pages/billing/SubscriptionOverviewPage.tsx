@@ -28,7 +28,7 @@ const formatBillingCycle = (cycle: 'month' | 'year'): string =>
 // Sourced from backend PLAN_LIMITS and FREE_TIER_PROJECT_LIMIT
 
 const FREE_FEATURES = [
-  '2 active projects',
+  '2 client invites',
   '2 client seats',
   '3 scraper runs / project',
   '3 swipe sessions / project',
@@ -40,12 +40,12 @@ const FREE_FEATURES = [
 ];
 
 const PRO_FEATURES = [
-  'Unlimited projects & clients',
-  'Unlimited scraper runs',
-  'Unlimited swipe sessions',
-  'Unlimited intake sessions',
-  'Unlimited refinements',
-  'Unlimited version restores',
+  'Full project and client access',
+  'Scraper runs included',
+  'Swipe sessions included',
+  'Intake sessions included',
+  'Refinements included',
+  'Version restores included',
   'Full component library',
   'Priority support',
 ];
@@ -110,8 +110,8 @@ const SubscriptionOverviewPage: React.FC = () => {
       setShowCancelModal(false);
       const downgradeDate = result.current_period_end
         ? new Date(result.current_period_end * 1000).toLocaleDateString('en-US', {
-            month: 'long', day: 'numeric', year: 'numeric',
-          })
+          month: 'long', day: 'numeric', year: 'numeric',
+        })
         : subscription?.next_renewal_date
           ? formatUnixDate(subscription.next_renewal_date)
           : 'your billing period end';
@@ -214,7 +214,6 @@ const SubscriptionOverviewPage: React.FC = () => {
                   ? 'bg-amber-50 text-amber-700 border-amber-200'
                   : 'bg-background-muted text-text-secondary border-border-default';
 
-            // Features to show depend on plan
             const featuresToShow = isPro ? PRO_FEATURES : FREE_FEATURES;
 
             return (
@@ -260,7 +259,6 @@ const SubscriptionOverviewPage: React.FC = () => {
 
                       <p className="text-h3-sm font-bold text-text-primary mt-xs">{priceDisplay}</p>
 
-                      {/* Renewal/no-renewal line — state aware */}
                       <div className="flex items-center gap-xs mt-xs">
                         {isPro && !isScheduledToCancel && (
                           <>
@@ -285,7 +283,6 @@ const SubscriptionOverviewPage: React.FC = () => {
                         )}
                       </div>
 
-                      {/* "Renews automatically" only for active Pro, never for Free */}
                       {isPro && !isScheduledToCancel && (
                         <p className="text-para-xs text-text-secondary mt-xs">
                           Your plan renews automatically.
@@ -293,7 +290,6 @@ const SubscriptionOverviewPage: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Status badge */}
                     <span className={`px-sm py-xs border rounded-full text-para-xs font-medium flex-shrink-0 ${statusClass}`}>
                       {statusLabel}
                     </span>
@@ -341,13 +337,12 @@ const SubscriptionOverviewPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Footer copy — state aware */}
                   <p className="text-para-xs text-text-tertiary mt-md">
                     {isScheduledToCancel
                       ? `Your account moves to Free on ${downgradeDateDisplay}. No work is deleted.`
                       : isPro
                         ? `Cancel anytime. You'll continue to have access until ${renewalDate}.`
-                        : null /* Free users get no subscription footer copy */
+                        : null
                     }
                   </p>
                 </motion.div>
@@ -355,7 +350,6 @@ const SubscriptionOverviewPage: React.FC = () => {
                 {/* Features + Billing summary grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-lg">
 
-                  {/* Includes — shows correct features per plan */}
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -368,22 +362,19 @@ const SubscriptionOverviewPage: React.FC = () => {
                     <div className="space-y-sm">
                       {featuresToShow.map((feature, i) => (
                         <div key={i} className="flex items-center gap-sm">
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            isPro ? 'bg-[#7C3AED]' : 'bg-[#7C3AED]'
-                          }`}>
+                          <div className="w-5 h-5 rounded-full bg-[#7C3AED] flex items-center justify-center flex-shrink-0">
                             <RiCheckLine className="text-white text-[10px]" />
                           </div>
                           <span className="text-para-sm text-text-secondary">{feature}</span>
                         </div>
                       ))}
                     </div>
-                    {/* Free: show upgrade prompt. Pro: show portal link */}
                     {!isPro && (
                       <button
                         onClick={() => navigate('/dashboard/designer/billing/subscription')}
                         className="mt-md text-para-sm text-[#7C3AED] hover:underline font-medium"
                       >
-                        Upgrade to Pro for unlimited access →
+                        Upgrade to Pro for full access →
                       </button>
                     )}
                     {isPro && !isScheduledToCancel && (
@@ -397,7 +388,6 @@ const SubscriptionOverviewPage: React.FC = () => {
                     )}
                   </motion.div>
 
-                  {/* Billing summary — state aware */}
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -408,22 +398,15 @@ const SubscriptionOverviewPage: React.FC = () => {
                     <div className="space-y-sm">
                       {[
                         { label: 'Plan', value: planName },
-
-                        // Billing cycle — Pro only
                         ...(isPro ? [{
                           label: 'Billing cycle',
                           value: `Billed ${formatBillingCycle(subscription.billing_cycle)}`,
                         }] : []),
-
                         { label: 'Price', value: priceDisplay },
-
-                        // Renewal row — Pro only. Free has no renewal.
                         ...(isPro ? [{
                           label: isScheduledToCancel ? 'Pro access until' : 'Next renewal',
                           value: isScheduledToCancel ? downgradeDateDisplay : renewalDate,
                         }] : []),
-
-                        // Payment method — Pro only
                         ...(isPro && subscription.payment_method ? [{
                           label: 'Payment method',
                           value: `${subscription.payment_method.brand} ···· ${subscription.payment_method.last4}`,
@@ -435,8 +418,6 @@ const SubscriptionOverviewPage: React.FC = () => {
                         </div>
                       ))}
                     </div>
-
-                    {/* Manage payment methods — Pro only */}
                     {isPro && !isScheduledToCancel && (
                       <button
                         onClick={handleManagePortal}
@@ -492,7 +473,7 @@ const SubscriptionOverviewPage: React.FC = () => {
                         </>
                       ) : (
                         <>
-                          Upgrade to Pro for unlimited projects, scraper runs, refinements, and more.{' '}
+                          Upgrade to Pro for full project and client access, scraper runs, refinements, and more.{' '}
                           <button
                             onClick={() => navigate('/dashboard/designer/billing/subscription')}
                             className="text-[#7C3AED] hover:underline font-medium"

@@ -8,7 +8,8 @@ import { menuItems, type MenuItem } from '../config/menuItems';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { getSubscription, type SubscriptionResponse } from '@/lib/requests/BillingRequest';
-import tandemIcon from '@/assets/images/tandem.svg';
+// import tandemNewIcon from '@/assets/images/tandem.svg';
+import tandemNewIcon from '@/assets/images/logo-new.svg'
 
 // ===== CONSTANTS =====
 const ANIMATION_CONFIG = { duration: 0.3, ease: 'easeInOut' as const };
@@ -56,6 +57,33 @@ interface DesignerDashSidebarProps {
     isCollapsed?: boolean;
     onToggleCollapse?: () => void;
 }
+
+// ===== DARK MODE HOOK =====
+// Watches document.documentElement for the same class/attribute changes
+// that drive sidebar CSS variables — works with any theme implementation.
+const useIsDark = (): boolean => {
+    const isDarkNow = (): boolean => {
+        const el = document.documentElement;
+        return (
+            el.classList.contains('dark') ||
+            el.getAttribute('data-theme') === 'dark' ||
+            el.getAttribute('data-color-scheme') === 'dark'
+        );
+    };
+
+    const [isDark, setIsDark] = useState<boolean>(isDarkNow);
+
+    useEffect(() => {
+        const observer = new MutationObserver(() => setIsDark(isDarkNow()));
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class', 'data-theme', 'data-color-scheme'],
+        });
+        return () => observer.disconnect();
+    }, []);
+
+    return isDark;
+};
 
 // ===== TOOLTIP =====
 const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
@@ -220,31 +248,52 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
 };
 
 // ===== LOGO =====
-const Logo: React.FC<LogoProps> = ({ isCollapsed }) => (
-    <AnimatePresence mode="wait">
-        <motion.div
-            key={isCollapsed ? 'collapsed' : 'expanded'}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className={isCollapsed ? 'flex justify-center' : 'flex items-center gap-xs'}
-        >
-            <div className="w-8 h-8 rounded-md bg-accent-default flex items-center justify-center flex-shrink-0">
-                <img
-                    src={tandemIcon}
-                    alt="Tandem"
-                    className="w-5 h-5 object-contain"
-                />
-            </div>
-            {!isCollapsed && (
-                <span className="text-text-primary font-semibold text-para-md tracking-tight">
-                    tandem
-                </span>
+const Logo: React.FC<LogoProps> = ({ isCollapsed }) => {
+    const isDark = useIsDark();
+    const logoFilter = isDark ? 'none' : 'brightness(0)';
+
+    return (
+        <AnimatePresence mode="wait">
+            {isCollapsed ? (
+                <motion.div
+                    key="collapsed"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex justify-center"
+                >
+                    {/* Collapsed — icon only, purple box works on both themes */}
+                    <div className="w-8 h-8 rounded-md bg-accent-default flex items-center justify-center flex-shrink-0">
+                        <img
+                            src={tandemNewIcon}
+                            alt="Tandem"
+                            className="w-5 h-5 object-contain"
+                            style={{ filter: logoFilter }}
+                        />
+                    </div>
+                </motion.div>
+            ) : (
+                <motion.div
+                    key="expanded"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center"
+                >
+                    {/* Expanded — full logo, filter switches on theme toggle */}
+                    <img
+                        src={tandemNewIcon}
+                        alt="Tandem"
+                        className="h-7 w-auto object-contain"
+                        style={{ filter: logoFilter }}
+                    />
+                </motion.div>
             )}
-        </motion.div>
-    </AnimatePresence>
-);
+        </AnimatePresence>
+    );
+};
 
 // ===== PLAN CARD =====
 const PlanCard: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => {

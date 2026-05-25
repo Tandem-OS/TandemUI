@@ -16,7 +16,7 @@ import { createPortalSession, getSubscription, createCheckoutSession, type Subsc
 // pro:  all limits = None (unlimited)
 
 const FREE_FEATURES = [
-    { text: '2 active projects', included: true },
+    { text: '2 client invites', included: true },
     { text: '2 client seats', included: true },
     { text: '3 scraper runs / project', included: true },
     { text: '3 swipe sessions / project', included: true },
@@ -25,17 +25,16 @@ const FREE_FEATURES = [
     { text: '3 version restores / project', included: true },
     { text: 'Basic component library', included: true },
     { text: 'Community support', included: true },
-    { text: 'Unlimited usage', included: false },
     { text: 'Priority support', included: false },
 ];
 
 const PRO_FEATURES = [
-    { text: 'Unlimited projects & clients', included: true },
-    { text: 'Unlimited scraper runs', included: true },
-    { text: 'Unlimited swipe sessions', included: true },
-    { text: 'Unlimited intake sessions', included: true },
-    { text: 'Unlimited refinements', included: true },
-    { text: 'Unlimited version restores', included: true },
+    { text: 'Full project and client access', included: true },
+    { text: 'Scraper runs included', included: true },
+    { text: 'Swipe sessions included', included: true },
+    { text: 'Intake sessions included', included: true },
+    { text: 'Refinements included', included: true },
+    { text: 'Version restores included', included: true },
     { text: 'Full component library', included: true },
     { text: 'Priority support', included: true },
 ];
