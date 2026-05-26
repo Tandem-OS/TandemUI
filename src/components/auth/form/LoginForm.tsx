@@ -1,17 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Input from '@/components/auth/form/components/Input';
-import Heading from '@/components/demos/typography/Heading'; 
+import Heading from '@/components/demos/typography/Heading';
 import { FaEnvelope, FaLock, FaArrowLeft } from 'react-icons/fa';
 import FormButton from '@/components/auth/form/components/FormButton';
 import SimpleButton from '@/components/demos/buttons/SimpleButton';
 import { Login, getGoogleOAuthURL } from '@/lib/requests/AuthRequest';
 import { useDispatch } from 'react-redux';
 import { setAuth } from '@/features/authentication/authSlice';
+import tandemLogoWhite from '@/assets/images/logo-new.svg';
+import tandemLogoLight from '@/assets/images/logo-new-light.png';
+
+// ===== DARK MODE HOOK =====
+// Same implementation as DesignerDashSidebar — watches document.documentElement
+// for class/attribute changes that drive theme switching.
+const useIsDark = (): boolean => {
+  const isDarkNow = (): boolean => {
+    const el = document.documentElement;
+    return (
+      el.classList.contains('dark') ||
+      el.getAttribute('data-theme') === 'dark' ||
+      el.getAttribute('data-color-scheme') === 'dark'
+    );
+  };
+
+  const [isDark, setIsDark] = useState<boolean>(isDarkNow);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => setIsDark(isDarkNow()));
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme', 'data-color-scheme'],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return isDark;
+};
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  // ── Logo — src swap on theme, no CSS filter, purple stays purple ──────────
+  const isDark = useIsDark();
+  const logoSrc = isDark ? tandemLogoWhite : tandemLogoLight;
 
   const [values, setValues] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
@@ -91,8 +124,8 @@ const LoginForm = () => {
         throw new Error("No URL returned");
       }
     } catch {
-    // Google OAuth initiation failed — handle silently
-}
+      // Google OAuth initiation failed — handle silently
+    }
   };
 
   return (
@@ -103,7 +136,13 @@ const LoginForm = () => {
       }}
       className="w-full max-w-md bg-background-primary rounded-2xl px-xl py-lg space-y-md lg:space-y-lg shadow-xl border border-border-default"
     >
-      <div className="flex justify-end leading-none">
+      {/* Header row — logo left, back link right */}
+      <div className="flex justify-between items-center leading-none">
+        <img
+          src={logoSrc}
+          alt="Tandem"
+          className="h-6 w-auto object-contain"
+        />
         <Link
           to="/"
           className="flex items-center gap-sm text-para-sm text-text-secondary hover:text-text-primary transition-colors"
@@ -119,13 +158,6 @@ const LoginForm = () => {
         </Heading>
         <p className="text-text-secondary text-para-sm mb-md">Login Your Account</p>
       </div>
-
-      {/* General Error Message */}
-      {errors.general && (
-        <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-sm">
-          {errors.general}
-        </div>
-      )}
 
       {/* General Error Message */}
       {errors.general && (
