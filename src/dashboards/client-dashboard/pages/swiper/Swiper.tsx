@@ -138,11 +138,9 @@ const normalizeLayout = (category: string, layout: string): string => {
     timeline: ['vertical_editorial', 'alternating_media'],
     footer: ['inline_minimal', 'split_expanded', 'multi_column', 'info_links_bar'],
   };
-  console.log('[normalizeLayout] called with:', { category, layout });
   const cat = category.toLowerCase();
   const knownLayouts = known[cat] ?? [];
   const result = knownLayouts.includes(layout) ? layout : (fallbacks[cat] ?? 'default');
-  console.log('[normalizeLayout] returning:', result);
   return result;
 };
 
@@ -300,8 +298,8 @@ const Swiper: React.FC = () => {
         const statusResult = await fetchRoundCompleted();
         if (!statusResult.data.round_completed) return;
         navigate('/dashboard/client/compose');
-      } catch (err) {
-        console.error("Failed to prepopulate swiper data:", err);
+      } catch {
+        // fetchRoundCompleted failed — user stays on swiper, not a blocking error
       }
     };
     prepopulateFromBackend();
@@ -460,8 +458,7 @@ const Swiper: React.FC = () => {
         sessionStorage.removeItem(KOH_SNAP_KEY);
         setLoading(false);
         setKingOfHillSessions(prev => [...prev, sessionSummary]);
-      } catch (error) {
-        console.error('❌ Error saving components', error);
+      } catch {
         showToast('Failed to save. Please try again.');
         setLoading(false);
         dispatch(endKingOfHill());
@@ -535,7 +532,9 @@ const Swiper: React.FC = () => {
           // Mark round complete (backend)
           if (isLastRound) {
             try { await saveRoundCompleted(); }
-            catch (err) { console.error("❌ Failed to mark round completed:", err); }
+            catch {
+              // saveRoundCompleted failed — round data already saved, non-blocking
+            }
           }
 
           const likedComponentIds = new Set(
@@ -596,8 +595,8 @@ const Swiper: React.FC = () => {
                   tags: winner.tags,
                   vibe: winner.vibe,
                 });
-              } catch (err) {
-                console.error("❌ Failed to post auto-winner component:", err);
+              } catch {
+                showToast('Could not save your pick. Your progress continues, but this selection may be lost.');
               }
 
               const autoSession: KingOfHillSession = {
@@ -638,7 +637,6 @@ const Swiper: React.FC = () => {
             return;
           }
 
-          console.error("❌ Backend save/check failed:", error);
           showToast('Failed to save round. Please try again.');
           await loadData();
           dispatch(setShowRoundCompletion(false));

@@ -23,7 +23,8 @@ const GoogleLogin = () => {
                         id: data.user.id,
                         email: data.user.email,
                         name: data.user.name,
-                        role: data.user.role
+                        role: data.user.role,
+                        plan: data.user.plan
                     }
                 }));
 
@@ -37,7 +38,6 @@ const GoogleLogin = () => {
                 throw new Error("Token exchange failed");
             }
         } catch (err) {
-            console.error("Google login failed:", err);
             navigate('/auth');
         }
     };
@@ -50,7 +50,6 @@ const GoogleLogin = () => {
         const code = queryParams.get('code');
 
         if (!code) {
-            console.error("No code found in URL");
             navigate('/auth');
             return;
         }

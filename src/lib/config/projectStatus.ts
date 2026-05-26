@@ -2,7 +2,8 @@
 // ─── Single source of truth for all backend project status strings ────────────
 // Never use raw backend status strings in UI. Always use this file.
 // Backend statuses: intake | scraping | swiping | embedded | composing |
-//                   refining | revisions | completed | handoff
+//                   refining | revisions | designer-feedback | platform-feedback |
+//                   completed | handoff
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -14,6 +15,8 @@ export type ApiStatus =
   | 'composing'
   | 'refining'
   | 'revisions'
+  | 'designer-feedback'
+  | 'platform-feedback'
   | 'completed'
   | 'handoff';
 
@@ -31,6 +34,8 @@ export const PIPELINE_ORDER: ApiStatus[] = [
   'composing',
   'refining',
   'revisions',
+  'designer-feedback',
+  'platform-feedback',
   'completed',
   'handoff',
 ];
@@ -38,15 +43,17 @@ export const PIPELINE_ORDER: ApiStatus[] = [
 // ─── Progress percentages ─────────────────────────────────────────────────────
 
 export const STATUS_TO_PROGRESS: Record<ApiStatus, number> = {
-  intake:    10,
-  scraping:  20,
-  swiping:   35,
-  embedded:  45,
-  composing: 55,
-  refining:  65,
-  revisions: 75,
-  completed: 90,
-  handoff:   100,
+  intake: 10,
+  scraping: 20,
+  swiping: 30,
+  embedded: 38,
+  composing: 46,
+  refining: 54,
+  revisions: 62,
+  'designer-feedback': 72,
+  'platform-feedback': 82,
+  completed: 91,
+  handoff: 100,
 };
 
 // ─── Human-readable labels ────────────────────────────────────────────────────
@@ -54,57 +61,65 @@ export const STATUS_TO_PROGRESS: Record<ApiStatus, number> = {
 // 'handoff' and 'scraping' etc. must NEVER appear raw in the UI.
 
 export const STATUS_LABEL: Record<ApiStatus, string> = {
-  intake:    'Getting Started',
-  scraping:  'Gathering Inspiration',
-  swiping:   'Training Taste',
-  embedded:  'Processing',
+  intake: 'Getting Started',
+  scraping: 'Gathering Inspiration',
+  swiping: 'Training Taste',
+  embedded: 'Processing',
   composing: 'Composing',
-  refining:  'Refining',
+  refining: 'Refining',
   revisions: 'In Review',
+  'designer-feedback': 'Designer Feedback',
+  'platform-feedback': 'Platform Feedback',
   completed: 'Completed',
-  handoff:   'Delivered',
+  handoff: 'Delivered',
 };
 
 // ─── UI status buckets (for badge colour logic) ───────────────────────────────
 
 export const STATUS_TO_UI_STATUS: Record<ApiStatus, UiStatus> = {
-  intake:    'in-progress',
-  scraping:  'in-progress',
-  swiping:   'in-progress',
-  embedded:  'reviewing',
+  intake: 'in-progress',
+  scraping: 'in-progress',
+  swiping: 'in-progress',
+  embedded: 'reviewing',
   composing: 'reviewing',
-  refining:  'reviewing',
+  refining: 'reviewing',
   revisions: 'final-review',
+  'designer-feedback': 'final-review',
+  'platform-feedback': 'final-review',
   completed: 'completed',
-  handoff:   'completed',
+  handoff: 'completed',
 };
 
 // ─── Current action stage (which surface to navigate to) ─────────────────────
 
 export const STATUS_TO_STAGE: Record<ApiStatus, ProjectStage> = {
-  intake:    'scraper',
-  scraping:  'scraper',
-  swiping:   'swiper',
-  embedded:  'swiper',
+  intake: 'scraper',
+  scraping: 'scraper',
+  swiping: 'swiper',
+  embedded: 'swiper',
   composing: 'swiper',
-  refining:  'swiper',
+  refining: 'swiper',
   revisions: 'finalReview',
+  'designer-feedback': 'testimonial',
+  'platform-feedback': 'testimonial',
   completed: 'finalReview',
-  handoff:   'finalReview',
+  handoff: 'finalReview',
 };
 
 // ─── Timeline stage labels (for ProjectTimeline component) ───────────────────
 
 export const STAGE_LABEL: Record<ApiStatus, string> = {
-  intake:    'Intake',
-  scraping:  'Scraping',
-  swiping:   'Swiping',
-  embedded:  'Embedded',
+  intake: 'Intake',
+  scraping: 'Scraping',
+  swiping: 'Swiping',
+  embedded: 'Embedded',
   composing: 'Composing',
-  refining:  'Refining',
+  refining: 'Refining',
   revisions: 'Revisions',
+  'designer-feedback': 'Designer Feedback',
+  'platform-feedback': 'Platform Feedback',
   completed: 'Completed',
-  handoff:   'Handoff',
+  handoff: 'Handoff',
 };
 
 // ─── Helper functions ─────────────────────────────────────────────────────────

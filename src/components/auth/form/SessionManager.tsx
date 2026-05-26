@@ -15,7 +15,6 @@ const SessionManager = () => {
       const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
 
       if (diffInMs >= sevenDaysInMs) {
-        console.log("Auto-logout: 7 days session expired");
 
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");

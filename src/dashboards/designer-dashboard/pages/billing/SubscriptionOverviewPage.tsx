@@ -24,16 +24,29 @@ const formatPrice = (cents: number, currency: string): string =>
 const formatBillingCycle = (cycle: 'month' | 'year'): string =>
   cycle === 'month' ? 'monthly' : 'annual';
 
-// ─── Static Pro features list ─────────────────────────────────────────────────
+// ─── Tandem-specific plan features ───────────────────────────────────────────
+// Sourced from backend PLAN_LIMITS and FREE_TIER_PROJECT_LIMIT
+
+const FREE_FEATURES = [
+  '2 client invites',
+  '2 client seats',
+  '3 scraper runs / project',
+  '3 swipe sessions / project',
+  '3 intake sessions / project',
+  '5 refinements / project',
+  '3 version restores / project',
+  'Basic component library',
+  'Community support',
+];
 
 const PRO_FEATURES = [
-  '200 AI credits / month',
-  '3 seats included',
-  'Full AI Lab Access',
-  'AI Playbooks & Task Boards',
-  'Unlimited Templates & Collections',
-  'Unlimited Template Requests',
-  'Early Access to AI Features',
+  'Full project and client access',
+  'Scraper runs included',
+  'Swipe sessions included',
+  'Intake sessions included',
+  'Refinements included',
+  'Version restores included',
+  'Full component library',
   'Priority support',
 ];
 
@@ -97,10 +110,8 @@ const SubscriptionOverviewPage: React.FC = () => {
       setShowCancelModal(false);
       const downgradeDate = result.current_period_end
         ? new Date(result.current_period_end * 1000).toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-          })
+          month: 'long', day: 'numeric', year: 'numeric',
+        })
         : subscription?.next_renewal_date
           ? formatUnixDate(subscription.next_renewal_date)
           : 'your billing period end';
@@ -135,7 +146,9 @@ const SubscriptionOverviewPage: React.FC = () => {
           <div className="mb-xl">
             <h1 className="text-h3-sm font-bold text-text-primary">Subscription Overview</h1>
             <p className="text-text-secondary text-para-sm mt-xs">
-              Manage your TandemOS Pro subscription, billing, and plan details.
+              {isPro
+                ? 'Manage your Tandem Pro subscription, billing, and plan details.'
+                : 'View your current plan and upgrade to unlock full access.'}
             </p>
           </div>
 
@@ -177,7 +190,6 @@ const SubscriptionOverviewPage: React.FC = () => {
 
             const downgradeDateDisplay = cancelDate ?? renewalDate;
 
-            // Plan name reflects cancelling state
             const planName = isScheduledToCancel
               ? 'Pro Plan (Cancelling)'
               : isPro
@@ -188,16 +200,21 @@ const SubscriptionOverviewPage: React.FC = () => {
               ? `${formatPrice(subscription.price, subscription.currency)} / ${subscription.billing_cycle}`
               : 'Free';
 
-            // Status badge
             const statusLabel = isScheduledToCancel
               ? 'Cancelling'
-              : subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1);
+              : isPro
+                ? subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)
+                : 'Free';
 
             const statusClass = isScheduledToCancel
               ? 'bg-amber-50 text-amber-700 border-amber-200'
-              : subscription.status === 'active'
+              : isPro && subscription.status === 'active'
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                : 'bg-amber-50 text-amber-700 border-amber-200';
+                : isPro
+                  ? 'bg-amber-50 text-amber-700 border-amber-200'
+                  : 'bg-background-muted text-text-secondary border-border-default';
+
+            const featuresToShow = isPro ? PRO_FEATURES : FREE_FEATURES;
 
             return (
               <>
@@ -221,94 +238,129 @@ const SubscriptionOverviewPage: React.FC = () => {
                       <p className="text-para-xs text-text-secondary mb-xs">Current plan</p>
                       <div className="flex items-center gap-md">
                         <h2 className="text-h4-sm font-bold text-text-primary">{planName}</h2>
-                        <div className="relative w-16 h-16 flex items-center justify-center">
-                          {['#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#3B82F6'].map((color, i) => (
-                            <div
-                              key={i}
-                              className="absolute w-2 h-2 rounded-full"
-                              style={{
-                                backgroundColor: color,
-                                top: `${20 + Math.sin(i * 1.2) * 20}px`,
-                                left: `${20 + Math.cos(i * 1.2) * 20}px`,
-                                opacity: 0.6,
-                              }}
-                            />
-                          ))}
-                          <CrownIcon />
-                        </div>
+                        {isPro && (
+                          <div className="relative w-16 h-16 flex items-center justify-center">
+                            {['#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#3B82F6'].map((color, i) => (
+                              <div
+                                key={i}
+                                className="absolute w-2 h-2 rounded-full"
+                                style={{
+                                  backgroundColor: color,
+                                  top: `${20 + Math.sin(i * 1.2) * 20}px`,
+                                  left: `${20 + Math.cos(i * 1.2) * 20}px`,
+                                  opacity: 0.6,
+                                }}
+                              />
+                            ))}
+                            <CrownIcon />
+                          </div>
+                        )}
                       </div>
+
                       <p className="text-h3-sm font-bold text-text-primary mt-xs">{priceDisplay}</p>
+
                       <div className="flex items-center gap-xs mt-xs">
-                        <RiCalendarLine className="text-icon-xs text-text-secondary" />
-                        <p className="text-para-sm text-text-secondary">
-                          {isScheduledToCancel ? (
-                            <>Downgrades to Free: <span className="font-medium text-text-primary">{downgradeDateDisplay}</span></>
-                          ) : (
-                            <>Next renewal: <span className="font-medium text-text-primary">{renewalDate}</span></>
-                          )}
-                        </p>
+                        {isPro && !isScheduledToCancel && (
+                          <>
+                            <RiCalendarLine className="text-icon-xs text-text-secondary" />
+                            <p className="text-para-sm text-text-secondary">
+                              Next renewal: <span className="font-medium text-text-primary">{renewalDate}</span>
+                            </p>
+                          </>
+                        )}
+                        {isPro && isScheduledToCancel && (
+                          <>
+                            <RiCalendarLine className="text-icon-xs text-text-secondary" />
+                            <p className="text-para-sm text-text-secondary">
+                              Pro access until: <span className="font-medium text-text-primary">{downgradeDateDisplay}</span>
+                            </p>
+                          </>
+                        )}
+                        {!isPro && (
+                          <p className="text-para-sm text-text-secondary">
+                            Free plan. No renewal required.
+                          </p>
+                        )}
                       </div>
-                      {!isScheduledToCancel && (
-                        <p className="text-para-xs text-text-secondary mt-xs">Your plan renews automatically.</p>
+
+                      {isPro && !isScheduledToCancel && (
+                        <p className="text-para-xs text-text-secondary mt-xs">
+                          Your plan renews automatically.
+                        </p>
                       )}
                     </div>
 
-                    {/* Status badge */}
                     <span className={`px-sm py-xs border rounded-full text-para-xs font-medium flex-shrink-0 ${statusClass}`}>
                       {statusLabel}
                     </span>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-sm">
-                    {/* Portal + Cancel buttons: only for active Pro, hidden once cancellation scheduled */}
-                    {isPro && !isScheduledToCancel && (
-                      <>
-                        <motion.button
-                          onClick={handleManagePortal}
-                          disabled={isPortalLoading}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          className="flex items-center gap-xs px-md py-sm rounded-lg border border-[#C4B5FD] text-[#7C3AED] text-para-sm font-medium hover:bg-[#F5F3FF] transition-colors disabled:opacity-60"
-                        >
-                          {isPortalLoading ? (
-                            <span className="w-4 h-4 border-2 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <>
-                              Manage in Customer Portal
-                              <RiExternalLinkLine className="text-icon-xs" />
-                            </>
-                          )}
-                        </motion.button>
-                        <button
-                          onClick={() => setShowCancelModal(true)}
-                          className="px-md py-sm rounded-lg border border-border-default text-text-secondary text-para-sm hover:bg-background-muted transition-colors"
-                        >
-                          Cancel subscription
-                        </button>
-                      </>
-                    )}
-                  </div>
+                  {/* Action buttons — Pro only */}
+                  {isPro && !isScheduledToCancel && (
+                    <div className="flex flex-wrap items-center gap-sm">
+                      <motion.button
+                        onClick={handleManagePortal}
+                        disabled={isPortalLoading}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex items-center gap-xs px-md py-sm rounded-lg border border-[#C4B5FD] text-[#7C3AED] text-para-sm font-medium hover:bg-[#F5F3FF] transition-colors disabled:opacity-60"
+                      >
+                        {isPortalLoading ? (
+                          <span className="w-4 h-4 border-2 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            Manage in Customer Portal
+                            <RiExternalLinkLine className="text-icon-xs" />
+                          </>
+                        )}
+                      </motion.button>
+                      <button
+                        onClick={() => setShowCancelModal(true)}
+                        className="px-md py-sm rounded-lg border border-border-default text-text-secondary text-para-sm hover:bg-background-muted transition-colors"
+                      >
+                        Cancel subscription
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Free user — upgrade CTA */}
+                  {!isPro && (
+                    <div className="flex flex-wrap items-center gap-sm">
+                      <motion.button
+                        onClick={() => navigate('/dashboard/designer/billing/subscription')}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="flex items-center gap-xs px-md py-sm rounded-lg bg-[#7C3AED] text-white text-para-sm font-medium hover:bg-[#6D28D9] transition-colors"
+                      >
+                        Upgrade to Pro
+                      </motion.button>
+                    </div>
+                  )}
 
                   <p className="text-para-xs text-text-tertiary mt-md">
                     {isScheduledToCancel
-                      ? `Your account moves to Free on ${downgradeDateDisplay}.`
-                      : `Cancel anytime. You'll continue to have access until ${renewalDate}.`}
+                      ? `Your account moves to Free on ${downgradeDateDisplay}. No work is deleted.`
+                      : isPro
+                        ? `Cancel anytime. You'll continue to have access until ${renewalDate}.`
+                        : null
+                    }
                   </p>
                 </motion.div>
 
                 {/* Features + Billing summary grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-lg">
 
-                  {/* Features */}
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.1 }}
                     className="bg-background-primary-2 border border-border-default rounded-2xl p-xl"
                   >
-                    <h3 className="text-para-md font-semibold text-text-primary mb-md">Includes</h3>
+                    <h3 className="text-para-md font-semibold text-text-primary mb-md">
+                      {isPro ? 'What\'s included' : 'Your plan includes'}
+                    </h3>
                     <div className="space-y-sm">
-                      {PRO_FEATURES.map((feature, i) => (
+                      {featuresToShow.map((feature, i) => (
                         <div key={i} className="flex items-center gap-sm">
                           <div className="w-5 h-5 rounded-full bg-[#7C3AED] flex items-center justify-center flex-shrink-0">
                             <RiCheckLine className="text-white text-[10px]" />
@@ -317,6 +369,14 @@ const SubscriptionOverviewPage: React.FC = () => {
                         </div>
                       ))}
                     </div>
+                    {!isPro && (
+                      <button
+                        onClick={() => navigate('/dashboard/designer/billing/subscription')}
+                        className="mt-md text-para-sm text-[#7C3AED] hover:underline font-medium"
+                      >
+                        Upgrade to Pro for full access →
+                      </button>
+                    )}
                     {isPro && !isScheduledToCancel && (
                       <button
                         onClick={handleManagePortal}
@@ -328,7 +388,6 @@ const SubscriptionOverviewPage: React.FC = () => {
                     )}
                   </motion.div>
 
-                  {/* Billing summary */}
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -339,16 +398,16 @@ const SubscriptionOverviewPage: React.FC = () => {
                     <div className="space-y-sm">
                       {[
                         { label: 'Plan', value: planName },
-                        ...(subscription.plan !== 'free' ? [{
+                        ...(isPro ? [{
                           label: 'Billing cycle',
                           value: `Billed ${formatBillingCycle(subscription.billing_cycle)}`,
                         }] : []),
                         { label: 'Price', value: priceDisplay },
-                        {
-                          label: isScheduledToCancel ? 'Downgrades on' : 'Next renewal',
+                        ...(isPro ? [{
+                          label: isScheduledToCancel ? 'Pro access until' : 'Next renewal',
                           value: isScheduledToCancel ? downgradeDateDisplay : renewalDate,
-                        },
-                        ...(subscription.payment_method ? [{
+                        }] : []),
+                        ...(isPro && subscription.payment_method ? [{
                           label: 'Payment method',
                           value: `${subscription.payment_method.brand} ···· ${subscription.payment_method.last4}`,
                         }] : []),
@@ -383,7 +442,9 @@ const SubscriptionOverviewPage: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-para-sm font-medium text-text-primary">
-                      Your subscription is secure and managed by our trusted billing partner.
+                      {isPro
+                        ? 'Your subscription is secure and managed by our trusted billing partner.'
+                        : 'Your data and projects are safe on the Free plan.'}
                     </p>
                     <p className="text-para-xs text-text-secondary mt-xs">
                       {isScheduledToCancel ? (
@@ -412,13 +473,12 @@ const SubscriptionOverviewPage: React.FC = () => {
                         </>
                       ) : (
                         <>
-                          Ready to unlock Pro features?{' '}
+                          Upgrade to Pro for full project and client access, scraper runs, refinements, and more.{' '}
                           <button
-                            onClick={() => navigate('/dashboard/designer/billing/plans')}
-                            className="text-[#7C3AED] hover:underline"
+                            onClick={() => navigate('/dashboard/designer/billing/subscription')}
+                            className="text-[#7C3AED] hover:underline font-medium"
                           >
-                            Upgrade to Pro
-                            <RiExternalLinkLine className="inline ml-xs text-[10px]" />
+                            See what's included →
                           </button>
                         </>
                       )}

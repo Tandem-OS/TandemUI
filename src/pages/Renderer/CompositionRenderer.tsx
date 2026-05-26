@@ -73,7 +73,7 @@ const CompositionRenderer: React.FC<Props> = ({ compositionId }) => {
             return <FooterRenderer key={section.component_id} raw={{ layout_structure: section.layout_structure, tokens: section.tokens, content_slots: section.content_slots }} />
           default: {
             const _exhaustive: never = section
-            console.error(`[CompositionRenderer] Unhandled category: "${(_exhaustive as any).category}"`)
+            void _exhaustive
             return (
               <section key={(section as any).component_id} style={{ padding: '2rem', color: 'red' }}>
                 [CompositionRenderer] Unknown category: "{(section as any).category}"

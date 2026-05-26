@@ -19,10 +19,6 @@ export function FooterRenderer({ raw }: FooterRendererProps) {
   })
 
   if (!validated) {
-    console.error('[FooterRenderer] validateFooterProps returned null', {
-      layout_structure: raw.layout_structure,
-      hasTokens:        Boolean(raw.tokens),
-    })
     return null
   }
 
@@ -33,9 +29,6 @@ export function FooterRenderer({ raw }: FooterRendererProps) {
   )
 
   if (!props) {
-    console.error('[FooterRenderer] slotToFooterProps returned null', {
-      layoutStructure: validated.layoutStructure,
-    })
     return null
   }
 

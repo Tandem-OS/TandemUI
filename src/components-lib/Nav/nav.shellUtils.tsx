@@ -30,21 +30,18 @@ export function resolveNavShellData(
   className = '',
 ): ResolvedNavShellData | never {
   if (import.meta.env.DEV) {
-    const { valid, warnings } = validateNavSection(section)
-    if (!valid) {
-      warnings.forEach(w => console.warn(`[NavShell] ${w}`))
-    }
+    validateNavSection(section)
   }
 
- const slotProps = navSlotsToProps(section.content_slots)
+  const slotProps = navSlotsToProps(section.content_slots)
 
   const styles = resolveNavStyles(section.tokens)
 
   const layout = resolveNavLayout(section.layout_structure, section.tags)
   if (!layout) {
-    console.warn('[resolveNavShellData] Layout could not be resolved — aborting')
     throw new Error(`[NavShell] Unresolvable layout for component: ${section.component_id}`)
   }
+
   return {
     logo: slotProps.logo,
     links: slotProps.links ?? [],

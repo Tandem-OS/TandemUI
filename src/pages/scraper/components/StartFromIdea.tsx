@@ -54,7 +54,6 @@ const StartFromIdea = ({ onGenerateLayout, disabled = false }: StartFromIdeaProp
             onGenerateLayout(result.page_schema.sections as any[], result.composition_id);
         } catch (err) {
             setError('Something went wrong. Please try again.');
-            console.error('[StartFromIdea] compose failed:', err);
         } finally {
             clearTimeout(t1);
             clearTimeout(t2);

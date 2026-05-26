@@ -60,10 +60,6 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   const cfg = features_variant ? variantConfig[features_variant] : undefined
 
   if (!cfg) {
-    console.error(
-      `[FeaturesBase] Unsupported or missing features_variant: "${features_variant}". ` +
-      `Supported variants: ${Object.keys(variantConfig).join(', ')}`
-    )
     return (
       <section style={{ padding: colors.padding, backgroundColor: colors.background }}>
         <p style={{ color: 'red' }}>
@@ -186,7 +182,6 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
     )
   }
 
-  console.error(`[FeaturesBase] Reached unreachable branch for variant: "${features_variant}"`)
   return null
 }
 

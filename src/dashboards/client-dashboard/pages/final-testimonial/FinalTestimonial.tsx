@@ -264,8 +264,8 @@ const FinalTestimonial: React.FC = () => {
             };
             await paltformTestimonialSubmission(submissionData);
             setCurrentStep(2);
-        } catch (error) {
-            console.error('Submission error:', error);
+        } catch {
+            setRatingError('Something went wrong. Please try again.');
         } finally {
             setIsSubmitting(false);
         }

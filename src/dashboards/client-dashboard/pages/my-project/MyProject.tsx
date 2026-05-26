@@ -10,9 +10,9 @@ import type { Project } from '@/types/project.type';
 import MagicLinkModal from '@/dashboards/designer-dashboard/components/MagicLinkModal';
 import { ProjectCardSkeleton } from '@/dashboards/designer-dashboard/components/skeletons';
 import {
-  STATUS_TO_PROGRESS,
-  STATUS_TO_UI_STATUS,
-  type ApiStatus,
+    STATUS_TO_PROGRESS,
+    STATUS_TO_UI_STATUS,
+    type ApiStatus,
 } from '@/lib/config/projectStatus';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -35,9 +35,11 @@ const MyProject: React.FC = () => {
 
     const [project, setProject] = useState<Project[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
+    const [fetchError, setFetchError] = useState(false);
 
     const fetchProjects = async () => {
         setState(prev => ({ ...prev, isLoading: true }));
+        setFetchError(false);
         try {
             const response = await getAllProjectsByDesignerEmail();
             const data = response.data;
@@ -62,8 +64,8 @@ const MyProject: React.FC = () => {
             }));
 
             setProject(mapped);
-        } catch (err: any) {
-            console.error('Failed to fetch projects:', err);
+        } catch {
+            setFetchError(true);
         } finally {
             setState(prev => ({ ...prev, isLoading: false }));
         }
@@ -281,6 +283,12 @@ const MyProject: React.FC = () => {
                     {state.isLoading ? (
                         <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2xl">
                             {Array.from({ length: INITIAL_CARDS }).map((_, i) => <ProjectCardSkeleton key={i} />)}
+                        </motion.div>
+                    ) : fetchError ? (
+                        <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-5xl">
+                            <p className="text-text-secondary text-para-lg">
+                                Failed to load projects. Please refresh the page.
+                            </p>
                         </motion.div>
                     ) : filteredProjects.length === 0 ? (
                         <EmptyState />

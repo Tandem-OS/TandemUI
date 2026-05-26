@@ -30,7 +30,6 @@ export function pricingSlotToProps(slots: PricingSlots): PricingProps | null {
   const rawPlans = slots.pricing_plans
 
   if (!rawPlans || rawPlans.length === 0) {
-    console.warn('[pricingSlotToProps] Missing family-required slot: pricing_plans')
     return null
   }
 

@@ -16,6 +16,5 @@ export function resolveNavLayout(
   if (tags.includes('centered')) return 'centered'
   if (tags.includes('split')) return 'split'
 
-  console.warn('[resolveNavLayout] Could not resolve layout — layout_structure:', layout_structure, 'tags:', tags)
   return null
 }

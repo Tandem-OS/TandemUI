@@ -371,7 +371,6 @@ const ChatPanel = ({
             if (handleBillingError(err)) {
                 return;
             }
-            console.error("Restore failed:", err);
         }
     };
 

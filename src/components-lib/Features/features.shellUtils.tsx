@@ -36,11 +36,8 @@ export function resolveFeaturesShellData(
   section: FeaturesComposeSection,
   className = '',
 ): ResolvedFeaturesShellData | null {
-if (import.meta.env.DEV) {
-    const { valid, warnings } = validateFeaturesSection(section)
-    if (!valid) {
-      warnings.forEach(w => console.warn(`[FeaturesShell] ${w}`))
-    }
+  if (import.meta.env.DEV) {
+    validateFeaturesSection(section)
   }
 
   const slotProps = featuresSlotsToProps(section.content_slots)
@@ -48,9 +45,6 @@ if (import.meta.env.DEV) {
   const layout = resolveFeaturesLayout(slotProps.features_variant)
 
   if (!layout) {
-    console.error(
-      `[FeaturesShell] Cannot resolve layout from features_variant: "${slotProps.features_variant}"`
-    )
     return null
   }
 

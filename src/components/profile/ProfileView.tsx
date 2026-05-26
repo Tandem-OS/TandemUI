@@ -55,7 +55,6 @@ const ProfileView: React.FC = () => {
         const response = await getUser();
         setProfile(response?.data || null);
       } catch (err) {
-        console.error("Failed to fetch profile:", err);
         setError("Unable to load profile.");
       } finally {
         setLoading(false);

@@ -4,10 +4,11 @@ import {
     RiGlobalLine,
     RiChatQuoteLine,
     RiCurrencyLine,
-    RiSettings3Line,
     RiBankCardLine,
     RiShieldCheckLine,
     RiCalendarLine,
+    RiUserLine,
+    RiSettings3Line,
 } from 'react-icons/ri';
 import { type IconType } from 'react-icons';
 
@@ -44,48 +45,56 @@ export const menuItems: MenuItem[] = [
         icon: RiChatQuoteLine,
         path: '/dashboard/designer/testimonials'
     },
-   {
-id: 'subscription',
-    name: 'Subscription Plans',
-    icon: RiCurrencyLine,
-    path: '',  
-    children: [
-        {
-            id: 'billing-subscription',
-            name: 'Subscription',
-            icon: RiShieldCheckLine,
-            path: '/dashboard/designer/billing/subscription'   
-        },
-        {
-            id: 'billing-billing',
-            name: 'Billing',
-            icon: RiBankCardLine,
-            path: '/dashboard/designer/billing/overview'       // SubscriptionOverviewPage
-        },
-        {
-            id: 'billing-payment',
-            name: 'Payment methods',
-            icon: RiBankCardLine,
-            path: '/dashboard/designer/billing/payment-methods' 
-        },
-        {
-            id: 'billing-invoices',
-            name: 'Invoices',
-            icon: RiCalendarLine,
-            path: '/dashboard/designer/billing/invoices'      
-        },
-        {
-            id: 'billing-history',
-            name: 'Billing history',
-            icon: RiCalendarLine,
-            path: '/dashboard/designer/billing/history'        
-        },
-        {
-            id: 'billing-account',
-            name: 'Account',
-            icon: RiSettings3Line,
-            path: '/dashboard/designer/billing/account'        
-        },
-    ]
-},
+    {
+        id: 'subscription',
+        name: 'Plan & usage',
+        icon: RiCurrencyLine,
+        path: '',
+        children: [
+            {
+                id: 'billing-subscription',
+                name: 'Subscription',
+                icon: RiShieldCheckLine,
+                path: '/dashboard/designer/billing/subscription'
+            },
+            {
+                id: 'billing-billing',
+                name: 'Billing',
+                icon: RiBankCardLine,
+                path: '/dashboard/designer/billing/overview'
+            },
+            {
+                id: 'billing-payment',
+                name: 'Payment methods',
+                icon: RiBankCardLine,
+                path: '/dashboard/designer/billing/payment-methods'
+            },
+            {
+                id: 'billing-invoices',
+                name: 'Invoices',
+                icon: RiCalendarLine,
+                path: '/dashboard/designer/billing/invoices'
+            },
+            {
+                id: 'billing-history',
+                name: 'Billing history',
+                icon: RiCalendarLine,
+                path: '/dashboard/designer/billing/history'
+            },
+        ]
+    },
+    {
+        id: 'profile-settings',
+        name: 'Profile & settings',
+        icon: RiUserLine,
+        path: '',
+        children: [
+            {
+                id: 'billing-account',
+                name: 'Account',
+                icon: RiSettings3Line,
+                path: '/dashboard/designer/billing/account'
+            },
+        ]
+    },
 ];

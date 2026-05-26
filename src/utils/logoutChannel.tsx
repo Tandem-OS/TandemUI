@@ -13,8 +13,7 @@ export function broadcastLogout() {
   try {
     const logoutChannel = getLogoutChannel();
     logoutChannel.postMessage("LOGOUT");
-    console.log("[BroadcastChannel] Sent LOGOUT");
-  } catch (err) {
-    console.error("Failed to broadcast logout", err);
+  } catch  {
+      // BroadcastChannel not supported in this browser — logout proceeds locally, tab sync unavailable
   }
 }

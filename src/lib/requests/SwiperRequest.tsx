@@ -167,7 +167,6 @@ export const swiperComponentData = async (values: SwiperComponent) => {
     }
   }
 
-  console.log(formData)
 
   return await api.post("/swiper/components", formData, {
     headers: { "Content-Type": "multipart/form-data" },
