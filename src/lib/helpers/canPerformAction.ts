@@ -8,7 +8,8 @@
  *       allowed = false means the button is disabled with a human-readable reason.
  *
  * Status pipeline (in order):
- * null → intake → scraping → swiping → embedded → composing → refining → revisions → completed → handoff
+ * null → intake → scraping → swiping → embedded → composing → refining → revisions
+ *      → designer-feedback → platform-feedback → completed → handoff
  */
 
 export type ProjectStatus =
@@ -20,6 +21,8 @@ export type ProjectStatus =
   | "composing"
   | "refining"
   | "revisions"
+  | "designer-feedback"
+  | "platform-feedback"
   | "completed"
   | "handoff";
 
@@ -49,6 +52,8 @@ const PIPELINE: ProjectStatus[] = [
   "composing",
   "refining",
   "revisions",
+  "designer-feedback",
+  "platform-feedback",
   "completed",
   "handoff",
 ];
@@ -147,18 +152,18 @@ export const canPerformAction = (
       return { allowed: true, reason: null };
 
     case "submit_designer_testimonial":
-      if (!isAtOrPast(status, "completed"))
+      if (!isAtOrPast(status, "designer-feedback"))
         return {
           allowed: false,
-          reason: "Submit your designer feedback once the project is complete.",
+          reason: "Designer feedback unlocks once your project reaches the review stage.",
         };
       return { allowed: true, reason: null };
 
     case "submit_platform_testimonial":
-      if (!isAtOrPast(status, "handoff"))
+      if (!isAtOrPast(status, "platform-feedback"))
         return {
           allowed: false,
-          reason: "Platform feedback unlocks after project handoff.",
+          reason: "Platform feedback unlocks after the designer review stage.",
         };
       return { allowed: true, reason: null };
 
@@ -202,6 +207,10 @@ export const getNextRoute = (status: ProjectStatus): string => {
       return "/dashboard/client/compose";
     case "revisions":
       return "/dashboard/client/compose";
+    case "designer-feedback":
+      return "/dashboard/client/designer-testimonial";
+    case "platform-feedback":
+      return "/dashboard/client/final-testimonial";
     case "completed":
       return "/dashboard/client/designer-testimonial";
     case "handoff":

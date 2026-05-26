@@ -22,15 +22,17 @@ export interface ProgressInfo {
 // They use simpler, client-friendly language.
 
 const CLIENT_LABEL: Record<NonNullable<ProjectStatus>, string> = {
-  intake:    'Brief received',
-  scraping:  'Scanning site',
-  swiping:   'Reviewing taste',
-  embedded:  'Reviewing taste',
-  composing: 'Building page',
-  refining:  'Refining',
-  revisions: 'Refining',
-  completed: 'Ready',
-  handoff:   'Delivered',
+  intake:               'Brief received',
+  scraping:             'Scanning site',
+  swiping:              'Reviewing taste',
+  embedded:             'Reviewing taste',
+  composing:            'Building page',
+  refining:             'Refining',
+  revisions:            'Refining',
+  'designer-feedback':  'Under review',
+  'platform-feedback':  'Under review',
+  completed:            'Ready',
+  handoff:              'Delivered',
 };
 
 const NULL_PROGRESS: ProgressInfo = {

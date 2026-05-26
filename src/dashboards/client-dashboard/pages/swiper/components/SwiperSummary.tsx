@@ -188,7 +188,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
     roundsData,
     onStartOver,
     onGenerateLayout,
-    totalRounds,
+    // totalRounds,
     kingOfHillSessions
 }) => {
     const [showRecap, setShowRecap] = useState(true);
@@ -348,28 +348,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
         { name: 'Super Liked', value: intelligence.superLikedChoices.length }
     ];
 
-    const handleGenerateLayout = () => {
-        const sessionSummary = {
-            session_id: `session_${Date.now()}`,
-            total_rounds: totalRounds,
-            completed_at: new Date().toISOString(),
-            total_choices: userChoices.length,
-            behavioral_insights: {
-                overall_average_view_duration_ms: intelligence.avgViewTime,
-                top_design_patterns: intelligence.topTags,
-                insights_analysis: intelligence.insights
-            },
-            summary_counts: {
-                likes: intelligence.likedChoices.length,
-                super_likes: intelligence.superLikedChoices.length,
-                rejected: intelligence.rejectedChoices.length,
-                ai_assistance_used: intelligence.aiAssistedChoices.length,
-            },
-            user_choices_detailed: userChoices,
-            category_performance: intelligence.categoryStats,
-            king_of_hill_sessions: kingOfHillSessions
-        };
-       
+    const handleGenerateLayout = () => {       
         onGenerateLayout();
     };
     const isDataReady =
