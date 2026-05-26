@@ -9,7 +9,10 @@ import {
     FaPalette,
     FaCheck,
     FaCircle,
-    FaEye
+    FaEye,
+    FaExclamationTriangle,
+    FaLock,
+    FaWifi,
 } from 'react-icons/fa';
 import { FaArrowLeftLong } from "react-icons/fa6";
 
@@ -36,13 +39,17 @@ import { useBillingGate } from '@/hooks/useBillingGate';
 
 import { layoutTokens } from '@/design-system/tokens/layout';
 import ErrorState from '@/common-components/ErrorState';
+
 import {
     scrapeUrl,
     setScrapedDataFromIdea,
     addToLayoutPlan,
     updateLayoutPlan,
     resetScraper,
+    clearError,
 } from '@/features/scraper/scraperSlice';
+import type { ScraperErrorType } from '@/features/scraper/scraperSlice';
+import { getAllProjectCompose } from '@/lib/requests/CompositionRequest';
 
 const t = layoutTokens.scraper;
 
@@ -50,13 +57,159 @@ interface Props {
     mode?: 'scraper' | 'compose';
 }
 
+// ─── Error config — maps ScraperErrorType to UI copy + icon ──────────────────
+
+const ERROR_CONFIG: Record<
+    ScraperErrorType,
+    { icon: React.ReactNode; title: string; description: string; actionLabel: string; showRetry: boolean }
+> = {
+    extraction_failed: {
+        icon: <FaLock className="text-3xl text-amber-400" />,
+        title: 'Content could not be extracted',
+        description:
+            'This page is behind a login wall or is heavily JavaScript-rendered. ' +
+            'Try a publicly accessible URL like a marketing site or landing page.',
+        actionLabel: 'Try a different URL',
+        showRetry: false,
+    },
+    partial_extraction: {
+        icon: <FaExclamationTriangle className="text-3xl text-amber-400" />,
+        title: 'Some sections could not be read',
+        description: 'Part of this page was extracted successfully. Results below may be incomplete.',
+        actionLabel: 'Try a different URL',
+        showRetry: false,
+    },
+    usage_limit_pro: {
+        icon: <FaLock className="text-3xl text-red-400" />,
+        title: 'Usage limit reached',
+        description: 'You have reached your scraper limit. Upgrade to Pro for unlimited runs.',
+        actionLabel: 'View plans',
+        showRetry: false,
+    },
+    usage_limit_daily: {
+        icon: <FaLock className="text-3xl text-red-400" />,
+        title: 'Daily limit reached',
+        description: 'You have used all your scraper runs for today. Come back tomorrow.',
+        actionLabel: 'Go back',
+        showRetry: false,
+    },
+    network_error: {
+        icon: <FaWifi className="text-3xl text-red-400" />,
+        title: 'Connection failed',
+        description: 'Could not reach the server. Check your connection and try again.',
+        actionLabel: 'Retry',
+        showRetry: true,
+    },
+    server_error: {
+        icon: <FaExclamationTriangle className="text-3xl text-red-400" />,
+        title: 'Something went wrong',
+        description: 'An error occurred on our end. Please try again in a moment.',
+        actionLabel: 'Retry',
+        showRetry: true,
+    },
+    unknown: {
+        icon: <FaExclamationTriangle className="text-3xl text-red-400" />,
+        title: 'Unexpected error',
+        description: 'Something went wrong. Please try again.',
+        actionLabel: 'Try again',
+        showRetry: true,
+    },
+};
+
+// ─── Compose loading screen ───────────────────────────────────────────────────
+
+const ComposeLoadingScreen: React.FC = () => {
+    const dots = [0, 1, 2, 3, 4];
+    const rings = [0, 1, 2];
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex items-center justify-center min-h-screen bg-background-primary"
+        >
+            <div className="flex flex-col items-center gap-xl">
+                {/* Animated icon stack */}
+                <div className="relative flex items-center justify-center w-28 h-28">
+                    {/* Outer pulsing rings */}
+                    {rings.map((i) => (
+                        <motion.div
+                            key={i}
+                            className="absolute rounded-full border border-accent-default/20"
+                            style={{ width: 56 + i * 28, height: 56 + i * 28 }}
+                            animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.1, 0.6] }}
+                            transition={{
+                                duration: 2.4,
+                                repeat: Infinity,
+                                delay: i * 0.4,
+                                ease: 'easeInOut',
+                            }}
+                        />
+                    ))}
+
+                    {/* Centre icon */}
+                    <motion.div
+                        className="relative z-10 w-14 h-14 rounded-2xl bg-accent-subtle flex items-center justify-center"
+                        animate={{ rotate: [0, 8, -8, 0], scale: [1, 1.06, 1] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                        <motion.div
+                            animate={{ opacity: [0.7, 1, 0.7] }}
+                            transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                        >
+                            <FaLightbulb className="text-accent-default text-2xl" />
+                        </motion.div>
+                    </motion.div>
+                </div>
+
+                {/* Text */}
+                <motion.div
+                    className="flex flex-col items-center gap-sm text-center"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    <p className="text-para-lg font-semibold text-text-primary">
+                        Loading your layout
+                    </p>
+                    <p className="text-para-sm text-text-secondary max-w-xs">
+                        Fetching your composition and sections
+                    </p>
+                </motion.div>
+
+                {/* Bouncing dots */}
+                <div className="flex items-center gap-xs">
+                    {dots.map((i) => (
+                        <motion.div
+                            key={i}
+                            className="w-1.5 h-1.5 rounded-full bg-accent-default"
+                            animate={{ y: [0, -8, 0], opacity: [0.4, 1, 0.4] }}
+                            transition={{
+                                duration: 0.9,
+                                repeat: Infinity,
+                                delay: i * 0.12,
+                                ease: 'easeInOut',
+                            }}
+                        />
+                    ))}
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const ScraperIntelligencePage = ({ mode }: Props) => {
     const disableAnalyze = mode === 'compose';
     const disableIdea = mode === 'scraper';
 
-    // ── Pure UI state
+    // ── Pure UI state ─────────────────────────────────────────────────────────
     const [currentStep, setCurrentStep] = useState('welcome');
     const [inputValue, setInputValue] = useState('');
+    const [lastAttemptedUrl, setLastAttemptedUrl] = useState('');
     const [isDesignerMode, setIsDesignerMode] = useState(false);
     const [processingStep, setProcessingStep] = useState(0);
     const [userFeedback, setUserFeedback] = useState<{ [key: string]: 'like' | 'dislike' }>({});
@@ -67,24 +220,65 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
     const [refinedSections, setRefinedSections] = useState<Set<string>>(new Set());
     const billingErrorRef = useRef(false);
 
+    // ── Compose check loading — blocks render until API resolves ─────────────
+    const [composeCheckLoading, setComposeCheckLoading] = useState(mode === 'compose');
+
+    // ── Compose mode — check for existing compose on mount ───────────────────
+    // If mode is 'compose' and a compose already exists for this project,
+    // skip StartFromIdea modal and go straight to chat with existing data.
+    const projectId = useSelector((state: RootState) => state.project.projectId);
+
+    useEffect(() => {
+        if (mode !== 'compose') return;
+        if (!projectId) {
+            setComposeCheckLoading(false);
+            return;
+        }
+
+        const checkExistingCompose = async () => {
+            try {
+                const response = await getAllProjectCompose(projectId);
+                if (response?.composition_id) {
+                    setCompositionId(response.composition_id);
+                    if (response?.page_schema?.sections?.length) {
+                        dispatch(setScrapedDataFromIdea({
+                            url: 'Existing compose',
+                            analyzedAt: new Date().toISOString(),
+                            sections: response.page_schema.sections.map((s: any) => ({
+                                ...s,
+                                id: s.id ?? s.component_id ?? s.category ?? crypto.randomUUID(),
+                            })),
+                        }));
+                        setCurrentStep('results');
+                    }
+                }
+            } catch {
+                // No existing compose found — show StartFromIdea modal as normal
+            } finally {
+                setComposeCheckLoading(false);
+            }
+        };
+
+        checkExistingCompose();
+    }, [mode, projectId]);
+
     const handleRefineComplete = (sections: string[]) => {
         setRefinedSections(new Set(sections));
         setTimeout(() => setRefinedSections(new Set()), 2500);
     };
 
-    // ── Slice state
+    // ── Slice state ───────────────────────────────────────────────────────────
     const scrapedData = useSelector((state: RootState) => state.scraper.scrapedData);
     const scraperStatus = useSelector((state: RootState) => state.scraper.status);
     const scraperError = useSelector((state: RootState) => state.scraper.error);
     const layoutPlan = useSelector((state: RootState) => state.scraper.layoutPlan ?? []);
 
-    // ── Auth / project selectors
+    // ── Auth / project selectors ──────────────────────────────────────────────
     const email = useSelector((state: RootState) => state.auth.user.email);
     const userRole = useSelector((state: RootState) => state.auth.user.role);
     const designerEmail = useSelector((state: RootState) => state.auth.user.designerEmail);
-    const projectId = useSelector((state: RootState) => state.project.projectId);
 
-    // ── Hooks
+    // ── Hooks ─────────────────────────────────────────────────────────────────
     const { profile, updateTaste, scoreSections, clearTaste } = useTasteProfile();
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
@@ -100,15 +294,19 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
         initiateCheckout,
     } = useBillingGate();
 
-    // ── Composition schema
+    // ── Composition schema ────────────────────────────────────────────────────
     const pageSchema = useSelector(selectActiveOrPreviewSchema);
     const activeSections = compositionId && pageSchema?.sections
         ? pageSchema.sections
         : (scrapedData?.sections ?? []);
 
-    // ── Sync scraper status → currentStep
+    // ── Sync scraper status → currentStep ────────────────────────────────────
     useEffect(() => {
         if (scraperStatus === 'success' && currentStep === 'processing') {
+            setCurrentStep('results');
+        }
+        // Partial — show results with a warning banner, not an error screen
+        if (scraperStatus === 'partial' && currentStep === 'processing') {
             setCurrentStep('results');
         }
     }, [scraperStatus]);
@@ -121,12 +319,12 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
         }
     }, [userRole]);
 
-    // ── Reset scraper on mount
+    // ── Reset scraper on mount ────────────────────────────────────────────────
     useEffect(() => {
         dispatch(resetScraper());
     }, []);
 
-    // ── Helpers
+    // ── Helpers ───────────────────────────────────────────────────────────────
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToastMessage({ message, type });
         setTimeout(() => setToastMessage(null), 3000);
@@ -142,8 +340,10 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
 
         if (!payload) return;
 
+        setLastAttemptedUrl(url);
         setCurrentStep('processing');
         setProcessingStep(0);
+        dispatch(clearError());
 
         const processingAnimation = (async () => {
             for (let i = 0; i < processingSteps.length; i++) {
@@ -162,23 +362,74 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                 handleUsageUpdate({
                     usage_type: 'scraper_run',
                     current_count: scrapeResult.usage.current_count,
-                    limit: scrapeResult.usage.limit,
+                    limit: scrapeResult.usage.limit ?? 0,
                 });
             }
+
+            // Partial extraction — show toast warning but stay on results
+            const summary = scrapeResult?.extraction_summary;
+            if (summary?.failed != null && summary.failed > 0) {
+                showToast(
+                    `${summary.usable} of ${summary.total} sections extracted.`,
+                    'error'
+                );
+            }
+
         } catch (err: any) {
-            const isBillingError =
-                (err?.status === 403 || err?.response?.status === 403) &&
-                (err?.code === "USAGE_LIMIT_REACHED" || err?.response?.data?.code === "USAGE_LIMIT_REACHED");
-            if (isBillingError) {
+            // err here is a typed ScraperError (from rejectWithValue)
+
+            // Billing gate — 403 usage limit
+            if (err?.type === 'usage_limit_pro') {
                 billingErrorRef.current = true;
-                const gateData = err?.code ? err : err?.response?.data;
-                handleBillingError({ response: { status: 403, data: gateData } });
+                handleBillingError({ response: { status: 403, data: err } });
+                setCurrentStep('input');
                 return;
             }
-            console.error("❌ Scraper failed:", err);
-            if (scraperError) showToast(scraperError, 'error');
+
+            // Daily rate limit — 429
+            if (err?.type === 'usage_limit_daily') {
+                setCurrentStep('error');
+                return;
+            }
+
+            // Extraction failed — auth wall / JS page
+            if (err?.type === 'extraction_failed') {
+                setCurrentStep('error');
+                return;
+            }
+
+            // All other errors — show error screen
             setCurrentStep('error');
-            setTimeout(() => navigate(-1), 3000);
+        }
+    };
+
+    const handleRetry = () => {
+        dispatch(clearError());
+        if (lastAttemptedUrl) {
+            handleStartScraping(lastAttemptedUrl);
+        } else {
+            setCurrentStep('input');
+        }
+    };
+
+    const handleErrorAction = (errorType: ScraperErrorType) => {
+        dispatch(clearError());
+        switch (errorType) {
+            case 'usage_limit_pro':
+                // Billing gate already handles this
+                break;
+            case 'usage_limit_daily':
+            case 'extraction_failed':
+            case 'partial_extraction':
+                setCurrentStep('input');
+                break;
+            case 'network_error':
+            case 'server_error':
+            case 'unknown':
+                handleRetry();
+                break;
+            default:
+                setCurrentStep('input');
         }
     };
 
@@ -220,13 +471,22 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
     const sectionCount = scrapedData?.sections.length ?? null;
     const isFeedbackComplete = scrapedData && Object.keys(userFeedback).length === scrapedData.sections.length;
     const likeCount = Object.values(userFeedback).filter(f => f === 'like').length;
-
-    // ── Role check — hide Generate Layout for designers
     const isDesigner = userRole === 'Designer';
+
+    // ── Error config for current error ───────────────────────────────────────
+    const errorConfig = scraperError
+        ? ERROR_CONFIG[scraperError.type] ?? ERROR_CONFIG.unknown
+        : null;
+
+    // ── Compose check loading — show beautiful loading screen ─────────────────
+    if (composeCheckLoading) {
+        return <ComposeLoadingScreen />;
+    }
 
     return (
         <div className={t.root}>
             <AnimatePresence>
+                {/* Usage warning banner */}
                 {warningState && (
                     <motion.div
                         initial={{ opacity: 0, y: -8 }}
@@ -243,13 +503,34 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                         </button>
                     </motion.div>
                 )}
+
+                {/* Partial extraction warning banner — shown on results screen */}
+                {scraperStatus === 'partial' && scraperError?.type === 'partial_extraction' && currentStep === 'results' && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-sm px-md py-sm rounded-lg bg-amber-50 border border-amber-200 text-amber-800 shadow-md text-para-sm w-[calc(100vw-2rem)] max-w-lg"
+                    >
+                        <FaExclamationTriangle className="flex-shrink-0 text-amber-500" />
+                        <span>{scraperError.message}</span>
+                        <button
+                            onClick={() => dispatch(clearError())}
+                            className="ml-sm text-amber-600 hover:text-amber-900 font-medium underline flex-shrink-0"
+                        >
+                            Dismiss
+                        </button>
+                    </motion.div>
+                )}
+
                 {toastMessage && (
                     <Toast message={toastMessage.message} type={toastMessage.type} />
                 )}
             </AnimatePresence>
 
             <AnimatePresence mode="wait">
-                {/* Welcome Screen */}
+
+                {/* ── Welcome Screen ────────────────────────────────────────── */}
                 {currentStep === 'welcome' && (
                     <motion.div
                         key="welcome"
@@ -290,7 +571,6 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                 transition={{ delay: 0.4 }}
                                 className={t.welcomeActions}
                             >
-                                {/* Analyze a Website — disabled when mode is compose */}
                                 <motion.button
                                     onClick={() => !disableAnalyze && setCurrentStep('input')}
                                     whileHover={!disableAnalyze ? { scale: 1.05, boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" } : {}}
@@ -307,12 +587,28 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                     <span>Analyze a Website</span>
                                 </motion.button>
 
-                                {/* Generate with Idea — hidden for Designer role */}
                                 {!isDesigner && (
-                                    <StartFromIdea
-                                        onGenerateLayout={handleGenerateLayout}
-                                        disabled={disableIdea}
-                                    />
+                                    // If compose already exists, show "Continue Your Layout" button
+                                    // that navigates directly to the compose page — skip StartFromIdea modal
+                                    compositionId ? (
+                                        <motion.button
+                                            onClick={() => {
+                                                dispatch(pollForThumbnails({ compositionId: compositionId! }));
+                                                navigate(`/dashboard/client/compose/${compositionId}`);
+                                            }}
+                                            whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(79, 70, 229, 0.4)" }}
+                                            whileTap={{ scale: 0.95 }}
+                                            className={t.welcomePrimaryBtn}
+                                        >
+                                            <FaEye className="text-icon-md" />
+                                            <span>Continue Your Layout</span>
+                                        </motion.button>
+                                    ) : (
+                                        <StartFromIdea
+                                            onGenerateLayout={handleGenerateLayout}
+                                            disabled={disableIdea}
+                                        />
+                                    )
                                 )}
                             </motion.div>
 
@@ -338,7 +634,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                     </motion.div>
                 )}
 
-                {/* Input Screen */}
+                {/* ── Input Screen ──────────────────────────────────────────── */}
                 {currentStep === 'input' && (
                     <motion.div
                         key="input"
@@ -491,7 +787,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                     </motion.div>
                 )}
 
-                {/* Processing Screen */}
+                {/* ── Processing Screen ─────────────────────────────────────── */}
                 {currentStep === 'processing' && (
                     <motion.div
                         key="processing"
@@ -569,7 +865,87 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                     </motion.div>
                 )}
 
-                {/* Results Screen */}
+                {/* ── Error Screen ──────────────────────────────────────────── */}
+                {currentStep === 'error' && scraperError && errorConfig && (
+                    <motion.div
+                        key="error"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="flex items-center justify-center min-h-[60vh] px-md"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="flex flex-col items-center gap-md max-w-md text-center"
+                        >
+                            {/* Icon */}
+                            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-surface-secondary">
+                                {errorConfig.icon}
+                            </div>
+
+                            {/* Copy */}
+                            <div className="space-y-xs">
+                                <Heading level="h4" align="center">
+                                    {errorConfig.title}
+                                </Heading>
+                                <Para size="lg" color="secondary" align="center">
+                                    {scraperError.message || errorConfig.description}
+                                </Para>
+
+                                {/* Retry countdown for daily limit */}
+                                {scraperError.type === 'usage_limit_daily' && scraperError.retryAfterSeconds && (
+                                    <Para size="sm" color="secondary" align="center" className="mt-xs">
+                                        Resets in approximately {Math.ceil(scraperError.retryAfterSeconds / 3600)} hour{Math.ceil(scraperError.retryAfterSeconds / 3600) !== 1 ? 's' : ''}.
+                                    </Para>
+                                )}
+
+                                {/* Partial extraction counts */}
+                                {scraperError.type === 'partial_extraction' && scraperError.usable != null && (
+                                    <Para size="sm" color="secondary" align="center" className="mt-xs">
+                                        {scraperError.usable} of {scraperError.total} sections extracted successfully.
+                                    </Para>
+                                )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex flex-col sm:flex-row gap-sm w-full justify-center">
+                                {errorConfig.showRetry && (
+                                    <motion.button
+                                        whileHover={{ scale: 1.03 }}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={handleRetry}
+                                        className={t.welcomePrimaryBtn}
+                                    >
+                                        Retry
+                                    </motion.button>
+                                )}
+                                <motion.button
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={() => handleErrorAction(scraperError.type)}
+                                    className={errorConfig.showRetry ? t.inputBackBtn : t.welcomePrimaryBtn}
+                                >
+                                    {errorConfig.actionLabel}
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => {
+                                        dispatch(clearError());
+                                        setCurrentStep('welcome');
+                                    }}
+                                    className={t.inputBackBtn}
+                                >
+                                    <FaArrowLeftLong /> Home
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+
+                {/* ── Results Screen ────────────────────────────────────────── */}
                 {currentStep === 'results' && scrapedData && (
                     <motion.div
                         key="results"
@@ -586,12 +962,14 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                         </button>
                                         <div>
                                             <Heading level="h5">Layout Analysis</Heading>
-                                            <Para size="sm" color="secondary">{scrapedData.sections.length} sections found on {scrapedData.url}</Para>
+                                            <Para size="sm" color="secondary">
+                                                {scrapedData.sections.length} section{scrapedData.sections.length !== 1 ? 's' : ''} found on {scrapedData.url}
+                                            </Para>
                                         </div>
                                     </div>
                                     <div className={`${t.resultsHeaderRight} flex-wrap`}>
-                                        {/* Generate with Idea — hidden for Designer role */}
-                                        {!isDesigner && (
+                                        {/* Only show StartFromIdea in results header if no compose exists */}
+                                        {!isDesigner && !compositionId && (
                                             <StartFromIdea
                                                 onGenerateLayout={handleGenerateLayout}
                                                 disabled={disableIdea}
@@ -720,9 +1098,10 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                                     secondaryLabel="Start over"
                                                 />
                                             ) : null}
+
                                             {(activeSections as any[]).map((section) => (
                                                 <SectionCard
-                                                    key={section.id}
+                                                    key={section.id ?? section.component_id ?? section.category}
                                                     section={section}
                                                     isDesignerMode={isDesignerMode}
                                                     onFeedback={(feedback) => handleSectionFeedback(section.id, feedback)}
@@ -733,6 +1112,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                                     isJustRefined={refinedSections.has(section.category ?? section.section_type)}
                                                 />
                                             ))}
+
                                             {isFeedbackComplete && !isDesignerMode && (
                                                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={t.resultsFeedbackComplete}>
                                                     <div className={t.resultsFeedbackCard}>
@@ -742,6 +1122,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                                     </div>
                                                 </motion.div>
                                             )}
+
                                             <div className={t.resultsMobileChatWrapper}>
                                                 <ChatPanel
                                                     context={chatContext}
@@ -761,6 +1142,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                         <LayoutPlan sections={layoutPlan} onUpdateSections={handleUpdateLayoutPlan} />
                     </motion.div>
                 )}
+
             </AnimatePresence>
 
             {gateState && (

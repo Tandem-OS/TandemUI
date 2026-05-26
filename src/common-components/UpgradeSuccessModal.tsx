@@ -66,7 +66,7 @@ const UpgradeSuccessModal: React.FC<UpgradeSuccessModalProps> = ({
   isOpen,
   onClose,
   plan = "Pro Plan",
-  amount = "$59.50 / mo",
+  amount = "$49.99 / mo",
   nextBillingDate,
   paymentMethodBrand,
   paymentMethodLast4,

@@ -198,8 +198,8 @@ const OnboardingForm: React.FC = () => {
 
             setFormData(transformed);
         } catch (err) {
-            console.error("Error loading form data:", err);
             setFormData(initialFormData);
+            setToastMessage({ message: 'Failed to load your project. Starting fresh.', type: 'error' });
         } finally {
             setLoading(false);
         }
@@ -279,8 +279,9 @@ const OnboardingForm: React.FC = () => {
             try {
                 const result = await createProject(payload);
                 if (result.status === 200) navigate("onboard-compelete");
-            } catch (error) {
-                console.error("Project creation failed:", error);
+            } catch {
+                setToastMessage({ message: 'Something went wrong. Please try again.', type: 'error' });
+                setButtonState('default');
             }
             return;
         }

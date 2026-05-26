@@ -11,43 +11,22 @@ interface FAQBaseProps {
 
 const FAQBase: React.FC<FAQBaseProps> = ({ section }) => {
 
-  const trace = {
-    componentId: section.component_id,
-    layout:      section.layout_structure ?? '(no layout)',
-    slotKeys:    Object.keys(section.content_slots ?? {}),
-    hasTokens:   Boolean(section.tokens && Object.keys(section.tokens).length),
-  }
-
-  const { valid, errors, warnings } = validateFAQPayload(section)
+  const { valid, warnings } = validateFAQPayload(section)
 
   if (warnings.length > 0) {
-    console.warn('[FAQBase] Validation warnings — section will still render', {
-      ...trace,
-      warnings,
-    })
+    // Validation warnings — section will still render
   }
 
   if (!valid) {
-    console.error('[FAQBase] Validation failed — section will not render', {
-      ...trace,
-      errors,
-      contentSlots: section.content_slots ?? null,
-      tokens:       section.tokens        ?? null,
-    })
     return null
   }
 
   const props = faqSlotToProps(section.content_slots ?? {})
   if (!props) {
-    console.error('[FAQBase] faqSlotToProps returned null after passing validation — contract gap suspected', {
-      ...trace,
-      contentSlots: section.content_slots ?? null,
-    })
     return null
   }
 
   if (!section.tokens) {
-    console.error('[FAQBase] tokens missing — section will not render', trace)
     return null
   }
 

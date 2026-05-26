@@ -15,7 +15,6 @@ const App = () => {
 
     channel.onmessage = (e) => {
       if (e.data === "LOGOUT") {
-        console.log('[BroadcastChannel] Received logout signal. Logging out...');
         store.dispatch(logout());
       }
     };

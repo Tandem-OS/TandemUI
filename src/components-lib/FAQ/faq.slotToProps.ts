@@ -5,9 +5,6 @@ export function faqSlotToProps(slots: any): FAQProps | null {
 
   const items = slots.faq_items
   if (!Array.isArray(items) || items.length === 0) {
-    console.error('[faqSlotToProps] faq_items is missing or empty — cannot build props', {
-      received: items,
-    })
     return null
   }
 

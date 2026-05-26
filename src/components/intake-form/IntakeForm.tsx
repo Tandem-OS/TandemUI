@@ -12,8 +12,8 @@ import Heading from '@/components/demos/typography/Heading';
 import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader';
 import { KingOfTheHill } from '@/components/intake-form/KingOfTheHill';
 import FiveStarFeedback from '@/common-components/FiveStarFeedback';
-import { initialFormData, suggestedPageChips, OPTIONS } from '@/components/intake-form/constants';
-import { type IntakeFormData, type ButtonState } from '@/components/intake-form/types';
+import { initialFormData, suggestedPageChips, OPTIONS, TONE_METADATA } from '@/components/intake-form/constants';
+import { type IntakeFormData, type ButtonState, type ToneMetadataEntry } from '@/components/intake-form/types';
 import { submitIntakeStep, getIntakeByClientEmail } from '@/lib/requests/IntakeRequest';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
@@ -101,6 +101,22 @@ const validateScreen = (screen: number, formData: IntakeFormData): FieldErrors =
 
 const hasErrors = (errors: FieldErrors): boolean =>
     Object.values(errors).some(v => Array.isArray(v) ? v.some(Boolean) : Boolean(v));
+
+// ─── Resolve tone metadata from winning slugs ─────────────────────────────────
+// Called after KingOfTheHill completes. Builds the full ToneMetadataEntry[]
+// from TONE_METADATA so the brief builder has descriptions, tags, and RAG hints
+// without a runtime constants lookup on the backend.
+
+const resolveToneMetadata = (slugs: string[]): ToneMetadataEntry[] =>
+    slugs
+        .filter(slug => TONE_METADATA[slug])
+        .map(slug => ({
+            slug,
+            name: TONE_METADATA[slug].name,
+            description: TONE_METADATA[slug].description,
+            tags: TONE_METADATA[slug].tags,
+            ragHints: TONE_METADATA[slug].ragHints,
+        }));
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -208,8 +224,11 @@ const IntakeForm: React.FC = () => {
             const response = await getIntakeByClientEmail({ client_email: clientEmail });
             const data = response?.data?.data;
             if (data) {
-                const transformed = {
+                const transformed: IntakeFormData = {
                     tones: data.tones || [],
+                    // Resolve metadata from stored slugs on load
+                    // Falls back to empty array if slugs not in TONE_METADATA (safe)
+                    toneMetadata: resolveToneMetadata(data.tones || []),
                     keyFeatures: (data.key_features || []).join(', '),
                     inspirationUrls: data.inspiration_urls || [''],
                     colorStrategy: data.color_strategy || 'match-logo',
@@ -225,8 +244,8 @@ const IntakeForm: React.FC = () => {
                 setFormData(initialFormData);
             }
         } catch (err) {
-            console.error("Error loading form data:", err);
             setFormData(initialFormData);
+            showToast('Failed to load your intake. Starting fresh.', 'error');
         }
         setLoading(false);
     };
@@ -256,7 +275,10 @@ const IntakeForm: React.FC = () => {
     const handleFile = (file: File) => updateForm({ brandGuide: file });
 
     const handleVibeComplete = (winners: string[]) => {
-        updateForm({ tones: winners });
+        // winners = array of tone slugs from KingOfTheHill
+        // Resolve full metadata immediately so it travels with the payload
+        const metadata = resolveToneMetadata(winners);
+        updateForm({ tones: winners, toneMetadata: metadata });
         setVibeSelectionComplete(true);
         setShowVibeResults(true);
     };
@@ -264,18 +286,42 @@ const IntakeForm: React.FC = () => {
     const handleVibeRetake = () => {
         setShowVibeResults(false);
         setVibeSelectionComplete(false);
-        updateForm({ tones: [] });
+        updateForm({ tones: [], toneMetadata: [] });
     };
 
     const handleFeedbackSubmit = (rating: number, message: string) => {
-        console.log('Feedback submitted:', { rating, message, stageName: 'Intake Form', projectId: 1 });
         navigateHook('/dashboard/client');
     };
 
     const handleFeedbackSkip = () => {
-        console.log('Feedback skipped for Intake Form');
         navigateHook('/dashboard/client');
     };
+
+    const buildPayload = (isLastStage: boolean) => ({
+        designer_email: designerEmail,
+        client_email: clientEmail,
+        tones: formData.tones,
+        // tone_metadata travels with every save so the brief builder
+        // always has descriptions, tags, and RAG hints available
+        tone_metadata: formData.toneMetadata,
+        key_features: formData.keyFeatures,
+        inspiration_urls: formData.inspirationUrls,
+        color_strategy: formData.colorStrategy,
+        custom_colors: formData.customColors,
+        current_site_url: formData.currentSiteUrl,
+        additional_details: formData.additionalDetails,
+        deadline: formData.deadline,
+        not_sure_deadline: formData.notSureDeadline,
+        brand_guide_metadata: formData.brandGuide
+            ? {
+                name: (formData.brandGuide as File).name,
+                type: (formData.brandGuide as File).type,
+                size: (formData.brandGuide as File).size,
+                lastModified: (formData.brandGuide as File).lastModified,
+            }
+            : null,
+        is_last_stage: isLastStage,
+    });
 
     const navigateScreen = async (next: boolean) => {
         if (!next) {
@@ -294,21 +340,7 @@ const IntakeForm: React.FC = () => {
 
         if (currentScreen === totalScreens) {
             try {
-                const payload = {
-                    designer_email: designerEmail,
-                    client_email: clientEmail,
-                    key_features: formData.keyFeatures,
-                    inspiration_urls: formData.inspirationUrls,
-                    color_strategy: formData.colorStrategy,
-                    custom_colors: formData.customColors,
-                    current_site_url: formData.currentSiteUrl,
-                    additional_details: formData.additionalDetails,
-                    dead_line: formData.deadline,
-                    not_sure_deadline: formData.notSureDeadline,
-                    is_last_stage: true
-                };
-
-                const result = await submitIntakeStep(payload);
+                const result = await submitIntakeStep(buildPayload(true));
                 if (result?.data?.usage) {
                     handleUsageUpdate({
                         usage_type: 'intake_update',
@@ -318,10 +350,10 @@ const IntakeForm: React.FC = () => {
                 }
                 showToast('Intake form submitted successfully!', 'success');
                 setTimeout(() => navigateHook("/dashboard/client"), 1200);
-            } catch (error: any) {
-                if (handleBillingError(error)) return;
-                console.error('Error submitting intake form:', error);
-                showToast('Submission failed. Please try again.', 'error');
+            } catch (err: any) {
+                if (handleBillingError(err)) { setButtonState('default'); return; }
+                showToast("Something went wrong while saving this step. Please try again.", 'error');
+                setButtonState('default');
             }
             return;
         }
@@ -329,31 +361,7 @@ const IntakeForm: React.FC = () => {
         setButtonState('saving');
 
         try {
-            const {
-                tones, keyFeatures, inspirationUrls, colorStrategy,
-                customColors, currentSiteUrl, additionalDetails,
-                deadline, notSureDeadline, brandGuide
-            } = formData;
-
-            const payload = {
-                designer_email: designerEmail,
-                client_email: clientEmail,
-                tones,
-                key_features: keyFeatures,
-                inspiration_urls: inspirationUrls,
-                color_strategy: colorStrategy,
-                custom_colors: customColors,
-                current_site_url: currentSiteUrl,
-                additional_details: additionalDetails,
-                deadline,
-                not_sure_deadline: notSureDeadline,
-                brand_guide_metadata: brandGuide
-                    ? { name: brandGuide.name, type: brandGuide.type, size: brandGuide.size, lastModified: brandGuide.lastModified }
-                    : null,
-                is_last_stage: false
-            };
-
-            const stepResult = await submitIntakeStep(payload);
+            const stepResult = await submitIntakeStep(buildPayload(false));
             if (stepResult?.data?.usage) {
                 handleUsageUpdate({
                     usage_type: 'intake_update',
@@ -372,7 +380,6 @@ const IntakeForm: React.FC = () => {
                 setButtonState('default');
                 return;
             }
-            console.error("Intake submission failed", err);
             showToast("Something went wrong while saving this step. Please try again.", 'error');
             setButtonState('default');
         }
@@ -529,7 +536,6 @@ const IntakeForm: React.FC = () => {
                     <motion.div variants={fadeInLeft} className="mb-lg">
                         <label className="block mb-sm text-para-sm text-text-secondary">Do you have any brand colors in mind?</label>
                         <div className="space-y-sm">
-                            {/* FIX 2 — flex-wrap so color strategy buttons don't crush to unreadable widths on 375px */}
                             <div className="flex flex-wrap gap-sm">
                                 {OPTIONS.colorStrategies.map(strategy => (
                                     <button
@@ -679,7 +685,6 @@ const IntakeForm: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            {/* FIX 1 — warning toast constrained to never bleed off 375px screen */}
             <AnimatePresence>
                 {warningState && (
                     <motion.div
@@ -745,7 +750,6 @@ const IntakeForm: React.FC = () => {
 
                                         {currentScreenData.content}
 
-                                        {/* FIX 3 — flex-wrap so Back + Next don't squeeze each other on very narrow screens */}
                                         <motion.div variants={fadeInLeft} className="flex flex-wrap justify-between gap-sm mt-md">
                                             {currentScreen > 1 && (
                                                 <SimpleButton

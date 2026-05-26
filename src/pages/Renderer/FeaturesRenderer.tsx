@@ -24,10 +24,6 @@ const FeaturesRenderer: React.FC<FeaturesRendererProps> = ({ sections }) => {
         const layout = resolveFeaturesLayout(section.content_slots.features_variant)
 
         if (!layout) {
-          console.error(
-            `[FeaturesRenderer] Unknown variant "${section.content_slots.features_variant}" ` +
-            `at position ${section.position}`
-          )
           return null
         }
 

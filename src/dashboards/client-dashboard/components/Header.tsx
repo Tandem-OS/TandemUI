@@ -34,9 +34,7 @@ const Header = () => {
             label: 'Logout',
             icon: <RiLogoutBoxLine />,
             divider: true,
-            onClick: () => {
-                console.log('Logout');
-            }
+            onClick: () => {}
         }
     ];
 
@@ -196,7 +194,6 @@ const Header = () => {
                         <button
                             onClick={() => {
                                 setIsDrawerOpen(false);
-                                console.log('Logout');
                             }}
                             className={clsx(
                                 'w-full flex items-center gap-sm px-md py-sm rounded-lg',

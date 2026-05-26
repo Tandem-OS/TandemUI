@@ -369,12 +369,7 @@ const SwiperSummary: React.FC<SwiperSummaryProps> = ({
             category_performance: intelligence.categoryStats,
             king_of_hill_sessions: kingOfHillSessions
         };
-        console.log('='.repeat(80));
-        console.log('🧠 [INTELLIGENT DESIGN ANALYSIS COMPLETE]');
-        console.log('✨ Session Summary with Behavioral Intelligence:');
-        console.log(JSON.stringify(sessionSummary, null, 2));
-        console.log('='.repeat(80));
-
+       
         onGenerateLayout();
     };
     const isDataReady =

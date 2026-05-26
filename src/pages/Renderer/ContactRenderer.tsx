@@ -21,10 +21,6 @@ export function ContactRenderer({ raw }: ContactRendererProps) {
   });
 
   if (!validated) {
-    console.error('[ContactRenderer] validateContactProps returned null', {
-      layout_structure: raw.layout_structure,
-      hasTokens:        Boolean(raw.tokens),
-    })
     return null;
   }
 
@@ -35,9 +31,6 @@ export function ContactRenderer({ raw }: ContactRendererProps) {
   );
 
   if (!props) {
-    console.error('[ContactRenderer] slotToContactProps returned null', {
-      layoutStructure: validated.layoutStructure,
-    })
     return null;
   }
 

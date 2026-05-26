@@ -5,7 +5,6 @@ export function heroSlotToProps(slots: ComposeSectionSlots): HeroProps | null {
 
   const heading = slots.hero_heading ?? null
   if (!heading) {
-    console.warn('[heroSlotToProps] Missing family-required slot: hero_heading')
     return null
   }
 

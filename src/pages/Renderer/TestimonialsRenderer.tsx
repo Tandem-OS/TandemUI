@@ -21,10 +21,6 @@ export function TestimonialsRenderer({ raw }: TestimonialsRendererProps) {
   });
 
   if (!validated) {
-    console.error('[TestimonialsRenderer] validateTestimonialsProps returned null', {
-      layout_structure: raw.layout_structure,
-      hasTokens:        Boolean(raw.tokens),
-    })
     return null;
   }
 
@@ -35,9 +31,6 @@ export function TestimonialsRenderer({ raw }: TestimonialsRendererProps) {
   );
 
   if (!props) {
-    console.error('[TestimonialsRenderer] slotToTestimonialsProps returned null', {
-      layoutStructure: validated.layoutStructure,
-    })
     return null;
   }
 

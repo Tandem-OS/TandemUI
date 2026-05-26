@@ -63,10 +63,32 @@ export const getCompose = async (compositionId: string): Promise<ComposeResponse
 };
 
 export const getAllProjectCompose = async (projectId?: string): Promise<ComposeResponse> => {
-    const id = projectId ?? store.getState().project.projectId;
-    const response = await api.get(`${COMPOSE_ENDPOINT}?project_id=${id}`);
-    return response.data;
+  const id = projectId ?? store.getState().project.projectId;
+  const response = await api.get(`${COMPOSE_ENDPOINT}?project_id=${id}`);
+  return response.data;
 };
+
+// ─── JSON Export ─────────────────────────────────────────────────────────────
+// Calls GET /export/json/{composition_id} — returns page_schema as downloadable JSON.
+// Triggers a browser file download automatically.
+
+export const downloadCompositionJson = async (compositionId: string): Promise<void> => {
+  const response = await api.get(`/compose/json/${compositionId}`, {
+    responseType: 'blob',
+  });
+
+  const blob = new Blob([response.data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `tandem_export_${compositionId}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 // ─── Refine 
 export interface RefinePayload {
   composition_id: string;

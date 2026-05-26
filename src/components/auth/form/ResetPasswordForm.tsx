@@ -38,7 +38,6 @@ const ResetPasswordForm = () => {
         setError('Something went wrong. Please try again.');
       }
     } catch (err) {
-      console.error('Reset password error:', err);
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
