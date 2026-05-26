@@ -9,7 +9,8 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { getSubscription, type SubscriptionResponse } from '@/lib/requests/BillingRequest';
 // import tandemNewIcon from '@/assets/images/tandem.svg';
-import tandemNewIcon from '@/assets/images/logo-new.svg'
+import tandemLogoWhite from '@/assets/images/logo-new.svg';
+import tandemLogoLight from '@/assets/images/logo-new-light.png';
 
 // ===== CONSTANTS =====
 const ANIMATION_CONFIG = { duration: 0.3, ease: 'easeInOut' as const };
@@ -248,9 +249,12 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
 };
 
 // ===== LOGO =====
+// Dark mode  — tandemLogoWhite (logo-new.svg)       white text + purple T icon
+// Light mode — tandemLogoLight (logo-new-light.png) dark text  + purple T icon
+// No CSS filter — src swap only. Purple stays purple on both themes.
 const Logo: React.FC<LogoProps> = ({ isCollapsed }) => {
     const isDark = useIsDark();
-    const logoFilter = isDark ? 'none' : 'brightness(0)';
+    const logoSrc = isDark ? tandemLogoWhite : tandemLogoLight;
 
     return (
         <AnimatePresence mode="wait">
@@ -266,10 +270,9 @@ const Logo: React.FC<LogoProps> = ({ isCollapsed }) => {
                     {/* Collapsed — icon only, purple box works on both themes */}
                     <div className="w-8 h-8 rounded-md bg-accent-default flex items-center justify-center flex-shrink-0">
                         <img
-                            src={tandemNewIcon}
+                            src={logoSrc}
                             alt="Tandem"
                             className="w-5 h-5 object-contain"
-                            style={{ filter: logoFilter }}
                         />
                     </div>
                 </motion.div>
@@ -282,12 +285,11 @@ const Logo: React.FC<LogoProps> = ({ isCollapsed }) => {
                     transition={{ duration: 0.2 }}
                     className="flex items-center"
                 >
-                    {/* Expanded — full logo, filter switches on theme toggle */}
+                    {/* Expanded — full logo, src switches on theme toggle */}
                     <img
-                        src={tandemNewIcon}
+                        src={logoSrc}
                         alt="Tandem"
                         className="h-7 w-auto object-contain"
-                        style={{ filter: logoFilter }}
                     />
                 </motion.div>
             )}
