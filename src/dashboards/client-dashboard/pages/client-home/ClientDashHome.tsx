@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
@@ -15,6 +15,7 @@ import ProjectProgress from './components/ProjectProgress';
 import ProjectChecklist from './components/ProjectCheckList';
 import DashHero from './components/DashHero';
 import QuickActionCard from './components/QuickActionCard';
+import { getAllProjectCompose, downloadCompositionJson } from '@/lib/requests/CompositionRequest';
 
 // ─── COPY ─────────────────────────────────────────────────────────────────────
 
@@ -310,16 +311,6 @@ const getChecklistItems = (projectStatus: string | null, estimatedHandoff: strin
 };
 
 // ─── getDashState ─────────────────────────────────────────────────────────────
-// 0 = no project
-// 1 = project exists, intake not started
-// 2 = intake done → start scraping
-// 3 = scraping running → start swiping
-// 4 = swiping/embedded → start composing
-// 5 = composing → refine layout / leave feedback
-// 6 = refining → update layout / leave feedback
-// 7 = delivered
-// 8 = designer-feedback → designer testimonial (primary) / platform testimonial (secondary)
-// 9 = platform-feedback → final testimonial (primary) / view layout (secondary)
 
 const getDashState = (status: string | null, hasProject: boolean): 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 => {
   if (!hasProject) return 0;
@@ -340,12 +331,13 @@ const getDashState = (status: string | null, hasProject: boolean): 0 | 1 | 2 | 3
   }
 };
 
-// ─── Delivered banner — replaces DashHero when dashState === 7 ───────────────
+// ─── Delivered banner ─────────────────────────────────────────────────────────
 
 const DeliveredBanner: React.FC<{
   onPrimary: () => void;
   onSecondary: () => void;
-}> = ({ onPrimary, onSecondary }) => (
+  isDownloading?: boolean;
+}> = ({ onPrimary, onSecondary, isDownloading = false }) => (
   <motion.div
     initial={{ opacity: 0, y: -8 }}
     animate={{ opacity: 1, y: 0 }}
@@ -382,12 +374,17 @@ const DeliveredBanner: React.FC<{
       </button>
       <button
         onClick={onPrimary}
-        className="flex items-center gap-xs px-lg py-sm rounded-xl bg-white text-green-700 text-para-sm font-semibold hover:bg-white/90 transition-colors"
+        disabled={isDownloading}
+        className="flex items-center gap-xs px-lg py-sm rounded-xl bg-white text-green-700 text-para-sm font-semibold hover:bg-white/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        {COPY.states.s07.primaryCta}
+        {isDownloading ? (
+          <span className="w-4 h-4 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+        {isDownloading ? 'Downloading...' : COPY.states.s07.primaryCta}
       </button>
     </div>
   </motion.div>
@@ -492,6 +489,10 @@ const ClientDashHome: React.FC = () => {
   const clientEmail   = useSelector((state: RootState) => state.auth.user?.email) ?? '';
   const designerEmail = useSelector((state: RootState) => state.auth.user?.designerEmail) ?? '';
 
+  // ── Composition ID — fetched when dashState reaches 7 (handoff) ──────────
+  const [compositionId, setCompositionId] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
   const designerName = designerEmail
     ? designerEmail.split('@')[0].charAt(0).toUpperCase() + designerEmail.split('@')[0].slice(1)
     : devWarn('auth.user.designerName', COPY.fallbacks.designerName);
@@ -528,6 +529,28 @@ const ClientDashHome: React.FC = () => {
 
   const hasProject = !!projectId;
   const dashState  = getDashState(projectStatus, hasProject);
+
+  // ── Fetch compositionId when project reaches delivered state ─────────────
+  useEffect(() => {
+    if (dashState !== 7 || !projectId) return;
+    getAllProjectCompose(projectId)
+      .then((res) => setCompositionId(res.composition_id))
+      .catch(() => {}); // silent — download button stays disabled if fetch fails
+  }, [dashState, projectId]);
+
+  // ── JSON download handler ─────────────────────────────────────────────────
+  const handleDownloadJson = async () => {
+    if (!compositionId || isDownloading) return;
+    setIsDownloading(true);
+    try {
+      await downloadCompositionJson(compositionId);
+    } catch {
+      // silent — file download failed
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   const qaKey      = `s${dashState}` as keyof typeof COPY.quickActions.primaryLabel;
   const stageSub   = dashState < 7 ? `Stage ${dashState} of 7` : COPY.states.s07.stageSub;
 
@@ -646,7 +669,7 @@ const ClientDashHome: React.FC = () => {
     ROUTES.compose,           // 4 — swiping done → compose
     ROUTES.compose,           // 5 — composing → refine
     ROUTES.compose,           // 6 — refining → update layout
-    ROUTES.compose,           // 7 — delivered → view handoff
+    ROUTES.compose,           // 7 — delivered → NOT USED, download triggers instead
     ROUTES.testimonial,       // 8 — designer-feedback → designer testimonial
     ROUTES.finalTestimonial,  // 9 — platform-feedback → final testimonial
   ];
@@ -695,8 +718,9 @@ const ClientDashHome: React.FC = () => {
             {/* Hero — replaced by DeliveredBanner on state 7 */}
             {dashState === 7 ? (
               <DeliveredBanner
-                onPrimary={() => navigate(primaryRoute[dashState])}
+                onPrimary={handleDownloadJson}
                 onSecondary={() => navigate(secondaryRoute[dashState]!)}
+                isDownloading={isDownloading}
               />
             ) : (
               <DashHero
@@ -743,7 +767,8 @@ const ClientDashHome: React.FC = () => {
                   icon={<></>}
                   label={COPY.quickActions.primaryLabel[qaKey]}
                   sub={qaPrimarySub}
-                  onClick={() => navigate(primaryRoute[dashState])}
+                  onClick={dashState === 7 ? handleDownloadJson : () => navigate(primaryRoute[dashState])}
+                  disabled={dashState === 7 && (!compositionId || isDownloading)}
                 />
                 <QuickActionCard
                   icon={<></>}
