@@ -289,7 +289,7 @@ const IntakeForm: React.FC = () => {
         updateForm({ tones: [], toneMetadata: [] });
     };
 
-    const handleFeedbackSubmit = (rating: number, message: string) => {
+    const handleFeedbackSubmit = () => {
         navigateHook('/dashboard/client');
     };
 

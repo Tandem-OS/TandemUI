@@ -88,7 +88,6 @@ const SectionPreview: React.FC<SectionPreviewProps> = ({ section, highlighted = 
           />
         );
       default: {
-        const _exhaustive: never = section;
         return null;
       }
     }

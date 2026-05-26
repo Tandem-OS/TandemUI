@@ -21,15 +21,17 @@ const STAGES_TEMPLATE = PIPELINE_ORDER.map(id => ({
   id,
   name: STAGE_LABEL[id],
   description: {
-    intake:    'Requirements',
-    scraping:  'Best sites URL',
-    swiping:   'Design exploration',
-    embedded:  'Embedding complete',
-    composing: 'Generate with idea',
-    refining:  'Layout refinement',
-    revisions: 'Client reviewing',
-    completed: 'Client feedback',
-    handoff:   'Final delivery',
+    intake:               'Requirements',
+    scraping:             'Best sites URL',
+    swiping:              'Design exploration',
+    embedded:             'Embedding complete',
+    composing:            'Generate with idea',
+    refining:             'Layout refinement',
+    revisions:            'Client reviewing',
+    'designer-feedback':  'Designer review',
+    'platform-feedback':  'Platform review',
+    completed:            'Client feedback',
+    handoff:              'Final delivery',
   }[id] ?? '',
 }));
 
@@ -331,7 +333,7 @@ const ProjectOverview: React.FC = () => {
             <motion.div initial={{ width: 0 }} animate={{ width: `${(project.completedStages / (project.totalStages - 1)) * 100}%` }} transition={{ duration: 2, ease: "easeOut", delay: 0.5 }} className="absolute top-6 left-0 h-0.5 bg-gradient-to-r from-emerald-500 to-accent-default hidden lg:block z-10" />
             <motion.div initial={{ height: 0 }} animate={{ height: `${(project.completedStages / (project.totalStages - 1)) * 100}%` }} transition={{ duration: 2, ease: "easeOut", delay: 0.5 }} className="absolute left-6 top-0 w-0.5 bg-gradient-to-b from-emerald-500 to-accent-default lg:hidden z-10" />
 
-            <div className="grid grid-cols-1 lg:grid-cols-9 gap-md lg:gap-sm relative">
+            <div className="grid grid-cols-1 lg:grid-cols-11 gap-md lg:gap-sm relative">
               {project.stages.map((stage, index) => (
                 <motion.div key={stage.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 + 0.5 }} className="flex lg:items-center lg:text-center relative lg:flex-col flex-row items-start text-left">
                   <motion.div whileHover={{ scale: 1.05 }} className={`w-12 h-12 rounded-full flex items-center justify-center relative z-20 mb-xs lg:mb-xs mr-md lg:mr-0 cursor-pointer flex-shrink-0 ${stage.status === 'completed' ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : stage.status === 'current' ? 'bg-gradient-to-r from-accent-default to-purple-600' : 'bg-gray-300 dark:bg-gray-700'}`}>
