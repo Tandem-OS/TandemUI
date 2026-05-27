@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
-import { RiArrowDownSLine, RiLogoutBoxLine } from 'react-icons/ri';
+import { RiArrowDownSLine, RiLogoutBoxLine, RiCustomerService2Line } from 'react-icons/ri';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { menuItems, type MenuItem } from '../config/menuItems';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/store';
 import { getSubscription, type SubscriptionResponse } from '@/lib/requests/BillingRequest';
-// import tandemNewIcon from '@/assets/images/tandem.svg';
 import tandemLogoWhite from '@/assets/images/logo-new.svg';
 import tandemLogoLight from '@/assets/images/logo-new-light.png';
 
@@ -17,9 +16,6 @@ const ANIMATION_CONFIG = { duration: 0.3, ease: 'easeInOut' as const };
 const ICON_SIZE = { width: '18px', height: '18px' };
 const EXPAND_DELAY = 100;
 
-// Billing sub-items only visible to Pro users.
-// Free users see Subscription only — no billing portal, invoices, or payment methods
-// because they have no Stripe customer.
 const PRO_ONLY_BILLING_PATHS = [
     '/dashboard/designer/billing/overview',
     '/dashboard/designer/billing/payment-methods',
@@ -28,10 +24,7 @@ const PRO_ONLY_BILLING_PATHS = [
 ];
 
 // ===== INTERFACES =====
-interface Position {
-    top: number;
-    left: number;
-}
+interface Position { top: number; left: number; }
 
 interface TooltipProps {
     children: React.ReactNode;
@@ -49,9 +42,7 @@ interface MenuItemComponentProps {
     onNavigate?: () => void;
 }
 
-interface LogoProps {
-    isCollapsed: boolean;
-}
+interface LogoProps { isCollapsed: boolean; }
 
 interface DesignerDashSidebarProps {
     onNavigate?: () => void;
@@ -60,8 +51,6 @@ interface DesignerDashSidebarProps {
 }
 
 // ===== DARK MODE HOOK =====
-// Watches document.documentElement for the same class/attribute changes
-// that drive sidebar CSS variables — works with any theme implementation.
 const useIsDark = (): boolean => {
     const isDarkNow = (): boolean => {
         const el = document.documentElement;
@@ -71,9 +60,7 @@ const useIsDark = (): boolean => {
             el.getAttribute('data-color-scheme') === 'dark'
         );
     };
-
     const [isDark, setIsDark] = useState<boolean>(isDarkNow);
-
     useEffect(() => {
         const observer = new MutationObserver(() => setIsDark(isDarkNow()));
         observer.observe(document.documentElement, {
@@ -82,7 +69,6 @@ const useIsDark = (): boolean => {
         });
         return () => observer.disconnect();
     }, []);
-
     return isDark;
 };
 
@@ -94,38 +80,25 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
     const triggerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!isHovered || !triggerRef.current) {
-            setIsPositioned(false);
-            return;
-        }
+        if (!isHovered || !triggerRef.current) { setIsPositioned(false); return; }
         const rect = triggerRef.current.getBoundingClientRect();
         setPosition({ top: rect.top + rect.height / 2, left: rect.right + 8 });
         setIsPositioned(true);
     }, [isHovered]);
 
-    useEffect(() => {
-        if (!isHovered) setIsPositioned(false);
-    }, [isHovered]);
+    useEffect(() => { if (!isHovered) setIsPositioned(false); }, [isHovered]);
 
     if (!show) return <>{children}</>;
 
     return (
         <>
-            <div
-                ref={triggerRef}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-            >
+            <div ref={triggerRef} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
                 {children}
             </div>
             {isHovered && isPositioned && ReactDOM.createPortal(
                 <div
                     className="fixed px-sm py-xs bg-background-dark text-text-light text-para-sm rounded-md shadow-lg pointer-events-none whitespace-nowrap z-[99999]"
-                    style={{
-                        top: `${position.top}px`,
-                        left: `${position.left}px`,
-                        transform: 'translateY(-50%)',
-                    }}
+                    style={{ top: `${position.top}px`, left: `${position.left}px`, transform: 'translateY(-50%)' }}
                 >
                     {content}
                     <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-r-[6px] border-r-background-dark" />
@@ -138,9 +111,7 @@ const Tooltip: React.FC<TooltipProps> = ({ children, content, show }) => {
 
 // ===== SECTION LABEL =====
 const SectionLabel: React.FC<{ label: string; isCollapsed: boolean }> = ({ label, isCollapsed }) => {
-    if (isCollapsed) {
-        return <div className="h-px bg-border-default mx-xs my-xs" />;
-    }
+    if (isCollapsed) return <div className="h-px bg-border-default mx-xs my-xs" />;
     return (
         <p className="px-sm pt-md pb-xs text-[10px] font-semibold tracking-widest uppercase text-text-tertiary select-none">
             {label}
@@ -150,18 +121,11 @@ const SectionLabel: React.FC<{ label: string; isCollapsed: boolean }> = ({ label
 
 // ===== MENU ITEM =====
 const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
-    item,
-    level,
-    isActive,
-    isExpanded,
-    isCollapsed,
-    onToggle,
-    onNavigate,
+    item, level, isActive, isExpanded, isCollapsed, onToggle, onNavigate,
 }) => {
     const hasChildren = !!item.children?.length;
     const Icon = item.icon;
 
-    // ── Sub-item (level > 0): dot + text, no icon box ──────────────────────
     if (level > 0) {
         return (
             <Link
@@ -169,43 +133,28 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
                 onClick={onNavigate}
                 className={clsx(
                     'flex items-center gap-xs pl-[38px] pr-sm py-xs rounded-md text-para-sm transition-colors duration-150',
-                    isActive
-                        ? 'text-accent-default font-medium'
-                        : 'text-text-tertiary hover:text-text-secondary',
+                    isActive ? 'text-accent-default font-medium' : 'text-text-tertiary hover:text-text-secondary',
                 )}
             >
-                <span
-                    className={clsx(
-                        'w-1 h-1 rounded-full flex-shrink-0',
-                        isActive ? 'bg-accent-default' : 'bg-text-tertiary',
-                    )}
-                />
+                <span className={clsx('w-1 h-1 rounded-full flex-shrink-0', isActive ? 'bg-accent-default' : 'bg-text-tertiary')} />
                 {item.name}
             </Link>
         );
     }
 
-    // ── Top-level item ──────────────────────────────────────────────────────
     const itemClasses = clsx(
         'flex items-center rounded-lg transition-all duration-200 cursor-pointer select-none group',
         isCollapsed ? 'h-10 w-10 mx-auto justify-center' : 'px-xs py-xs gap-xs',
         isActive ? 'bg-accent-subtle' : 'hover:bg-background-secondary',
     );
-
     const iconBoxClasses = clsx(
         'w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 transition-all duration-200',
-        isActive
-            ? 'bg-accent-default shadow-sm'
-            : 'bg-background-muted group-hover:bg-accent-default',
+        isActive ? 'bg-accent-default shadow-sm' : 'bg-background-muted group-hover:bg-accent-default',
     );
-
     const iconClasses = clsx(
         'transition-colors duration-200',
-        isActive
-            ? 'text-accent-foreground'
-            : 'text-text-tertiary group-hover:text-accent-foreground',
+        isActive ? 'text-accent-foreground' : 'text-text-tertiary group-hover:text-accent-foreground',
     );
-
     const textClasses = clsx(
         'text-para-sm font-medium flex-1 leading-none transition-colors duration-200',
         isActive ? 'text-text-primary' : 'text-text-secondary',
@@ -222,10 +171,7 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
                     {hasChildren && (
                         <RiArrowDownSLine
                             style={ICON_SIZE}
-                            className={clsx(
-                                'text-text-tertiary transition-transform duration-200 group-hover:text-text-primary',
-                                isExpanded && 'rotate-180',
-                            )}
+                            className={clsx('text-text-tertiary transition-transform duration-200 group-hover:text-text-primary', isExpanded && 'rotate-180')}
                         />
                     )}
                 </>
@@ -233,64 +179,25 @@ const MenuItemComponent: React.FC<MenuItemComponentProps> = ({
         </>
     );
 
-    if (hasChildren) {
-        return (
-            <div className={itemClasses} onClick={onToggle}>
-                {content}
-            </div>
-        );
-    }
-
-    return (
-        <Link to={item.path!} className={itemClasses} onClick={onNavigate}>
-            {content}
-        </Link>
-    );
+    if (hasChildren) return <div className={itemClasses} onClick={onToggle}>{content}</div>;
+    return <Link to={item.path!} className={itemClasses} onClick={onNavigate}>{content}</Link>;
 };
 
 // ===== LOGO =====
-// Dark mode  — tandemLogoWhite (logo-new.svg)       white text + purple T icon
-// Light mode — tandemLogoLight (logo-new-light.png) dark text  + purple T icon
-// No CSS filter — src swap only. Purple stays purple on both themes.
 const Logo: React.FC<LogoProps> = ({ isCollapsed }) => {
     const isDark = useIsDark();
     const logoSrc = isDark ? tandemLogoWhite : tandemLogoLight;
-
     return (
         <AnimatePresence mode="wait">
             {isCollapsed ? (
-                <motion.div
-                    key="collapsed"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex justify-center"
-                >
-                    {/* Collapsed — icon only, purple box works on both themes */}
+                <motion.div key="collapsed" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="flex justify-center">
                     <div className="w-8 h-8 rounded-md bg-accent-default flex items-center justify-center flex-shrink-0">
-                        <img
-                            src={logoSrc}
-                            alt="Tandem"
-                            className="w-5 h-5 object-contain"
-                        />
+                        <img src={logoSrc} alt="Tandem" className="w-5 h-5 object-contain" />
                     </div>
                 </motion.div>
             ) : (
-                <motion.div
-                    key="expanded"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center"
-                >
-                    {/* Expanded — full logo, src switches on theme toggle */}
-                    <img
-                        src={logoSrc}
-                        alt="Tandem"
-                        className="h-7 w-auto object-contain"
-                    />
+                <motion.div key="expanded" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="flex items-center">
+                    <img src={logoSrc} alt="Tandem" className="h-7 w-auto object-contain" />
                 </motion.div>
             )}
         </AnimatePresence>
@@ -303,61 +210,34 @@ const PlanCard: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => {
     const planFromAuth = useSelector((state: RootState) => state.auth.user.plan);
 
     useEffect(() => {
-        getSubscription()
-            .then(setSubscription)
-            .catch(() => { /* silent — card simply won't render */ });
+        getSubscription().then(setSubscription).catch(() => {});
     }, []);
 
-    // Hide when collapsed, no data yet, or free plan
     if (isCollapsed || !subscription || !planFromAuth || planFromAuth === 'free') return null;
 
     const renewalDate = subscription.next_renewal_date
-        ? new Date(subscription.next_renewal_date * 1000).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-          })
+        ? new Date(subscription.next_renewal_date * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
         : null;
-
     const isActive = subscription.status === 'active';
-
     const planLabel = subscription.plan
         ? subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1) + ' plan'
         : 'Pro plan';
 
     return (
         <div className="mx-sm mb-sm p-sm rounded-xl bg-background-secondary border border-border-default">
-            {/* Plan name + active badge */}
             <div className="flex items-center justify-between mb-xs">
-                <span className="text-para-sm font-semibold text-text-primary">
-                    {planLabel}
-                </span>
+                <span className="text-para-sm font-semibold text-text-primary">{planLabel}</span>
                 {isActive && (
                     <span className="text-[10px] font-semibold uppercase tracking-wide px-xs py-[2px] rounded-full bg-accent-subtle text-accent-default">
                         Active
                     </span>
                 )}
             </div>
-
-            {/* Renewal info */}
-            {renewalDate && (
-                <p className="text-para-xs text-text-tertiary mb-xs leading-snug">
-                    Renews {renewalDate}
-                </p>
-            )}
-
-            {/* Usage progress bar */}
+            {renewalDate && <p className="text-para-xs text-text-tertiary mb-xs leading-snug">Renews {renewalDate}</p>}
             <div className="h-1 rounded-full bg-background-muted overflow-hidden mb-sm">
-                <div
-                    className="h-full rounded-full bg-accent-default"
-                    style={{ width: '40%' }}
-                />
+                <div className="h-full rounded-full bg-accent-default" style={{ width: '40%' }} />
             </div>
-
-            {/* Manage plan link */}
-            <Link
-                to="/dashboard/designer/billing/subscription"
-                className="text-para-xs font-medium text-accent-default hover:underline"
-            >
+            <Link to="/dashboard/designer/billing/subscription" className="text-para-xs font-medium text-accent-default hover:underline">
                 Manage plan →
             </Link>
         </div>
@@ -366,15 +246,56 @@ const PlanCard: React.FC<{ isCollapsed: boolean }> = ({ isCollapsed }) => {
 
 // ===== SECTION MAP =====
 const SECTION_MAP: Record<string, string> = {
-    'dashboard':          'WORKSPACE',
-    'my-projects':        'WORKSPACE',
-    'website-scraper':    'WORKSPACE',
-    'testimonials':       'WORKSPACE',
-    'subscription':       'SUBSCRIPTION',
-    'profile-settings':   'ACCOUNT',
+    'dashboard':        'WORKSPACE',
+    'my-projects':      'WORKSPACE',
+    'website-scraper':  'WORKSPACE',
+    'testimonials':     'WORKSPACE',
+    'subscription':     'SUBSCRIPTION',
+    'profile-settings': 'ACCOUNT',
 };
-
 const SECTION_ORDER = ['WORKSPACE', 'SUBSCRIPTION', 'ACCOUNT'];
+
+// ===== SUPPORT NAV ITEM =====
+// Rendered after all sections, above sign out
+const SupportNavItem: React.FC<{ isCollapsed: boolean; isActive: boolean; onNavigate?: () => void }> = ({
+    isCollapsed, isActive, onNavigate,
+}) => {
+    const itemClasses = clsx(
+        'flex items-center rounded-lg transition-all duration-200 cursor-pointer select-none group',
+        isCollapsed ? 'h-10 w-10 mx-auto justify-center' : 'px-xs py-xs gap-xs',
+        isActive ? 'bg-accent-subtle' : 'hover:bg-background-secondary',
+    );
+    const iconBoxClasses = clsx(
+        'w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 transition-all duration-200',
+        isActive ? 'bg-accent-default shadow-sm' : 'bg-background-muted group-hover:bg-accent-default',
+    );
+    const iconClasses = clsx(
+        'transition-colors duration-200',
+        isActive ? 'text-accent-foreground' : 'text-text-tertiary group-hover:text-accent-foreground',
+    );
+
+    return (
+        <Tooltip content="Support" show={isCollapsed}>
+            <Link
+                to="/dashboard/designer/support"
+                onClick={onNavigate}
+                className={itemClasses}
+            >
+                <div className={iconBoxClasses}>
+                    <RiCustomerService2Line style={ICON_SIZE} className={iconClasses} />
+                </div>
+                {!isCollapsed && (
+                    <span className={clsx(
+                        'text-para-sm font-medium flex-1 leading-none transition-colors duration-200',
+                        isActive ? 'text-text-primary' : 'text-text-secondary',
+                    )}>
+                        Support
+                    </span>
+                )}
+            </Link>
+        </Tooltip>
+    );
+};
 
 // ===== MAIN SIDEBAR =====
 const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
@@ -386,42 +307,26 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
     const [isCollapsed, setIsCollapsed] = useState<boolean>(externalCollapsed || false);
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-    // Plan from Redux — used to filter billing nav items
     const planFromAuth = useSelector((state: RootState) => state.auth.user.plan);
     const isPro = planFromAuth === 'pro';
 
-    // Filter menu items based on plan.
-    // Free users: hide all Pro-only billing sub-items (Billing overview, Payment methods,
-    // Invoices, Billing history). Only Subscription is shown.
-    // Pro users: see everything.
     const filteredMenuItems = React.useMemo(() => {
         return menuItems.map(item => {
             if (!item.children?.length) return item;
-
-            // Filter children — remove Pro-only billing paths for Free users
             const filteredChildren = isPro
                 ? item.children
-                : item.children.filter(
-                      child => !PRO_ONLY_BILLING_PATHS.includes(child.path ?? ''),
-                  );
-
+                : item.children.filter(child => !PRO_ONLY_BILLING_PATHS.includes(child.path ?? ''));
             return { ...item, children: filteredChildren };
         });
     }, [isPro]);
 
-    // Auto-expand parent whose child matches current route
     useEffect(() => {
         const parentsToExpand = filteredMenuItems
-            .filter(item =>
-                item.children?.some(child => location.pathname === (child.path ?? '')),
-            )
+            .filter(item => item.children?.some(child => location.pathname === (child.path ?? '')))
             .map(item => item.id);
-
         setExpandedItems(prev => {
             const merged = Array.from(new Set([...prev, ...parentsToExpand]));
-            return merged.length === prev.length && parentsToExpand.every(id => prev.includes(id))
-                ? prev
-                : merged;
+            return merged.length === prev.length && parentsToExpand.every(id => prev.includes(id)) ? prev : merged;
         });
     }, [location.pathname, filteredMenuItems]);
 
@@ -440,9 +345,7 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
     const toggleExpanded = useCallback(
         (itemId: string): void => {
             if (isCollapsed) return;
-            setExpandedItems(prev =>
-                prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId],
-            );
+            setExpandedItems(prev => prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]);
         },
         [isCollapsed],
     );
@@ -463,14 +366,11 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
             const isActive = isItemActive(item);
             const hasChildren = !!item.children?.length;
             const isExpanded = expandedItems.includes(item.id);
-
             if (isCollapsed && level > 0) return null;
-
             const handleToggle = (): void => {
                 if (isCollapsed && hasChildren) handleCollapsedParentClick(item.id);
                 else toggleExpanded(item.id);
             };
-
             return (
                 <div key={item.id}>
                     <Tooltip content={item.name} show={isCollapsed && level === 0}>
@@ -495,7 +395,6 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
         [isCollapsed, expandedItems, isItemActive, toggleExpanded, handleCollapsedParentClick, onNavigate],
     );
 
-    // Group filtered items into sections
     const sections = React.useMemo(() => {
         const grouped: Record<string, MenuItem[]> = {};
         for (const item of filteredMenuItems) {
@@ -507,6 +406,8 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
             .filter(s => grouped[s]?.length)
             .map(s => ({ label: s, items: grouped[s] }));
     }, [filteredMenuItems]);
+
+    const isSupportActive = location.pathname === '/dashboard/designer/support';
 
     return (
         <motion.aside
@@ -536,11 +437,18 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
                                 {items.map(item => renderMenuItem(item))}
                             </div>
                         ))}
+
+                        {/* Support — rendered below ACCOUNT section */}
+                        <SupportNavItem
+                            isCollapsed={isCollapsed}
+                            isActive={isSupportActive}
+                            onNavigate={onNavigate}
+                        />
                     </motion.div>
                 </AnimatePresence>
             </nav>
 
-            {/* Plan card — Pro only */}
+            {/* Plan card */}
             <PlanCard isCollapsed={isCollapsed} />
 
             {/* Sign out */}
@@ -552,9 +460,7 @@ const DesignerDashSidebar: React.FC<DesignerDashSidebarProps> = ({
                     )}
                 >
                     <RiLogoutBoxLine style={ICON_SIZE} />
-                    {!isCollapsed && (
-                        <span className="text-para-sm font-medium">Sign out</span>
-                    )}
+                    {!isCollapsed && <span className="text-para-sm font-medium">Sign out</span>}
                 </button>
             </div>
         </motion.aside>
