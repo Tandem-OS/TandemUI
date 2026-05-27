@@ -43,3 +43,7 @@ export const markProjectCompleted = async (project_id: string, designer_email: s
 export const markProjectHandoff = async (project_id: string, designer_email: string) => {
   return await api.post(`/projects/${project_id}/handoff`, { designer_email });
 };
+
+export const deleteProject = async ({ id, designer_email }: { id: string; designer_email: string }) => {
+  return await api.delete(`/projects/${id}`, { data: { designer_email } });
+};
