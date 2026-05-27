@@ -9,7 +9,6 @@ import { containerVariant, fadeInLeft } from '@/lib/animations/variants';
 import Input from '@/components/auth/form/components/Input';
 import SimpleButton from '@/components/demos/buttons/SimpleButton';
 import Heading from '@/components/demos/typography/Heading';
-import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader';
 import { KingOfTheHill } from '@/components/intake-form/KingOfTheHill';
 import FiveStarFeedback from '@/common-components/FiveStarFeedback';
 import { initialFormData, suggestedPageChips, OPTIONS, TONE_METADATA } from '@/components/intake-form/constants';
@@ -709,7 +708,6 @@ const IntakeForm: React.FC = () => {
             ) : (
                 <div className={t.root}>
                     <div className={t.inner}>
-                        <SimpleHeader />
                         <div className={t.centerWrapper}>
                             <AnimatePresence mode="wait">
                                 {showFeedback ? (
