@@ -9,11 +9,14 @@ import Dropdown from '../../../common-components/Dropdown';
 import ThemeToggle from '../../../components/theme-toggle/ThemeToggle';
 import ProBadge from '../../../common-components/ProBadge';
 import { menuItems } from '../config/menuItems';
-import tandemLogoLight from '@/assets/images/tandem-logo-light.png';
+import tandemLogoLight from '@/assets/images/logo-new-light.png';
+import tandemLogoDark from '@/assets/images/logo-new.svg';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 const Header = () => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const navigate = useNavigate();
+    const { theme } = useTheme();
 
     const plan = useSelector((state: RootState) => state.auth.user?.plan);
     const userName = useSelector((state: RootState) => state.auth.user?.name);
@@ -21,6 +24,7 @@ const Header = () => {
     const isPro = plan?.toLowerCase() === 'pro';
 
     const avatarUrl = "/images/avatar.png";
+    const logoSrc = theme === 'dark' ? tandemLogoDark : tandemLogoLight;
 
     const profileDropdownItems = [
         {
@@ -43,10 +47,10 @@ const Header = () => {
             <header className="bg-background-primary-2 sticky top-0 border-b border-border-default leading-none z-20">
                 <div className="container mx-auto px-md">
                     <div className="flex items-center justify-between h-16">
-                        {/* Logo — new Tandem branding */}
+                        {/* Logo — theme-aware */}
                         <Link to="/dashboard/client" className="flex items-center">
                             <img
-                                src={tandemLogoLight}
+                                src={logoSrc}
                                 alt="Tandem"
                                 className="h-8 w-auto object-contain"
                             />

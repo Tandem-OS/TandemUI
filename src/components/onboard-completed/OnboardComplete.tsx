@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaRocket, FaHome, FaPaintBrush } from 'react-icons/fa';
 import { containerVariant } from '../../lib/animations/variants';
 import SimpleButton from '../demos/buttons/SimpleButton';
-import SimpleHeader from '../Headers/SimpleHeader/SimpleHeader';
 import { useNavigate } from 'react-router-dom';
 import SuccessAnimation from '../animations-components/SuccessAnimation';
 import Heading from '../demos/typography/Heading';
@@ -23,7 +22,6 @@ const OnboardComplete: React.FC = () => {
     return (
         <div className={t.root}>
             <div className={t.inner}>
-                <SimpleHeader />
                 <div className={t.centerWrapper}>
                     <motion.div
                         variants={containerVariant}

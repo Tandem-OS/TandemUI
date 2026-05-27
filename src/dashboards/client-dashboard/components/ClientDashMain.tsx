@@ -13,6 +13,7 @@ import OnboardComplete from "@/components/onboard-completed/OnboardComplete";
 import ScraperIntelligencePage from "@/pages/scraper/ScraperIntelligencePage";
 import CompositionRenderer from "@/pages/Renderer/CompositionRenderer";
 import RefineCanvas from '@/dashboards/client-dashboard/pages/Refine/RefineCanvas';
+import SupportPage from "@/pages/scraper/components/SupportPage";
 
 
 const ClientDashMain = () => {
@@ -22,6 +23,7 @@ const ClientDashMain = () => {
             <Routes>
                 <Route path="/" element={<ClientDashHome />} />
                 <Route path="/my-project" element={<MyProject />} />
+                <Route path="/support" element={<SupportPage />} />
                 <Route path="/project-overview/:id" element={<ProjectOverview />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/final-testimonial" element={<FinalTestimonial />} />
@@ -36,7 +38,8 @@ const ClientDashMain = () => {
                     <div className="w-full overflow-x-hidden">
                         <CompositionRenderer />
                     </div>
-                } />                <Route path="/swiper/refine/:id" element={<RefineCanvas />} />
+                } />                
+                <Route path="/swiper/refine/:id" element={<RefineCanvas />} />
 
             </Routes>
         </>

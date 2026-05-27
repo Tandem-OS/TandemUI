@@ -15,6 +15,7 @@ import SubscriptionPage from '../pages/billing/SubscriptionPage';
 import PaymentMethodsPage from '../pages/billing/PaymentMethodsPage';
 import InvoicesPage from '../pages/billing/InvoicePage';
 import BillingHistoryPage from '../pages/billing/BillingHistoryPage';
+import SupportPage from '@/pages/scraper/components/SupportPage';
 
 const DesignerDashMain: React.FC = () => {
     const navigate = useNavigate();
@@ -43,6 +44,7 @@ const DesignerDashMain: React.FC = () => {
                 <Routes>
                     <Route path="/" element={<DashboardHome />} />
                     <Route path="/my-project" element={<MyProject />} />
+                    <Route path="/support" element={<SupportPage />} />
                     <Route path="/my-project/project-overview/:id" element={<ProjectOverview />} />
                     <Route path="/website-scraper" element={<ScraperIntelligencePage />} />
                     <Route path="/testimonials" element={<TestimonialsPage />} />

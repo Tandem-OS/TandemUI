@@ -109,7 +109,6 @@ const COPY = {
       rightNow: 'Walk through the live preview. Refine any section or leave feedback for your designer.',
       upNext: (name: string) => `${name} refines based on your notes. Usually one round; two if anything is rebuilt from scratch.`,
     },
-    // ── designer-feedback: leave designer testimonial or skip to platform ─────
     s08: {
       heading: 'Your designer has reviewed your layout.',
       body: 'Your designer has left feedback on the current version. Share your experience working with your designer, or move on to share your Tandem platform feedback.',
@@ -120,7 +119,6 @@ const COPY = {
       rightNow: (name: string) => `${name} has reviewed the layout and left notes. Share your experience to help us improve the next version.`,
       upNext: 'Once you leave designer feedback, you can also share your experience with the Tandem platform.',
     },
-    // ── platform-feedback: share final testimonial or view layout ─────────────
     s09: {
       heading: 'Share your experience with Tandem.',
       body: 'The platform has reviewed your layout. Take a moment to share your experience — it helps us improve and match the right designers for projects like yours.',
@@ -345,7 +343,6 @@ const DeliveredBanner: React.FC<{
     className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-lg p-xl rounded-2xl mb-xl"
     style={{ background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)' }}
   >
-    {/* Left */}
     <div className="flex-1">
       <div className="flex items-center gap-sm mb-sm">
         <span className="px-sm py-xs rounded-full bg-white/20 text-white text-para-xs font-bold uppercase tracking-widest">
@@ -364,7 +361,6 @@ const DeliveredBanner: React.FC<{
       </p>
     </div>
 
-    {/* Right — CTAs */}
     <div className="flex items-center gap-sm flex-shrink-0">
       <button
         onClick={onSecondary}
@@ -489,9 +485,9 @@ const ClientDashHome: React.FC = () => {
   const clientEmail   = useSelector((state: RootState) => state.auth.user?.email) ?? '';
   const designerEmail = useSelector((state: RootState) => state.auth.user?.designerEmail) ?? '';
 
-  // ── Composition ID — fetched when dashState reaches 7 (handoff) ──────────
   const [compositionId, setCompositionId] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [projectName, setProjectName] = useState<string>('');
 
   const designerName = designerEmail
     ? designerEmail.split('@')[0].charAt(0).toUpperCase() + designerEmail.split('@')[0].slice(1)
@@ -501,9 +497,7 @@ const ClientDashHome: React.FC = () => {
     ? devWarn('project.project_name', COPY.fallbacks.projectName)
     : COPY.fallbacks.projectName;
 
-  const companyName = projectId
-    ? devWarn('project.company_name', COPY.fallbacks.companyName)
-    : COPY.fallbacks.companyName;
+  const companyName = projectName || COPY.fallbacks.companyName;
 
   const estimatedHandoff = projectId
     ? devWarn('project.estimated_handoff', COPY.fallbacks.estHandoff)
@@ -519,6 +513,7 @@ const ClientDashHome: React.FC = () => {
       if (result.status === 200 && result.data?.data?.id) {
         dispatch(setProjectId(result.data.data.id));
         dispatch(setProjectStatus(result.data.data.status ?? null));
+        setProjectName(result.data.data.project_name ?? '');
       }
     } catch {
       // Fetch failed silently — dashboard shows state 00/01
@@ -530,31 +525,27 @@ const ClientDashHome: React.FC = () => {
   const hasProject = !!projectId;
   const dashState  = getDashState(projectStatus, hasProject);
 
-  // ── Fetch compositionId when project reaches delivered state ─────────────
   useEffect(() => {
     if (dashState !== 7 || !projectId) return;
     getAllProjectCompose(projectId)
       .then((res) => setCompositionId(res.composition_id))
-      .catch(() => {}); // silent — download button stays disabled if fetch fails
+      .catch(() => {});
   }, [dashState, projectId]);
 
-  // ── JSON download handler ─────────────────────────────────────────────────
   const handleDownloadJson = async () => {
     if (!compositionId || isDownloading) return;
     setIsDownloading(true);
     try {
       await downloadCompositionJson(compositionId);
     } catch {
-      // silent — file download failed
+      // silent
     } finally {
       setIsDownloading(false);
     }
   };
 
-  const qaKey      = `s${dashState}` as keyof typeof COPY.quickActions.primaryLabel;
-  const stageSub   = dashState < 7 ? `Stage ${dashState} of 7` : COPY.states.s07.stageSub;
-
-  // ─── State lookup arrays (0–9) ───────────────────────────────────────────────
+  const qaKey    = `s${dashState}` as keyof typeof COPY.quickActions.primaryLabel;
+  const stageSub = dashState < 7 ? `Stage ${dashState} of 7` : COPY.states.s07.stageSub;
 
   const stateHeading = [
     '',
@@ -660,31 +651,30 @@ const ClientDashHome: React.FC = () => {
     COPY.states.s09.upNext,
   ];
 
-  // ─── Routes indexed by dashState (0–9) ───────────────────────────────────────
   const primaryRoute = [
-    ROUTES.onboard,           // 0
-    ROUTES.intake,            // 1
-    ROUTES.scraper,           // 2 — intake done → scrape
-    ROUTES.swiper,            // 3 — scraping done → swipe
-    ROUTES.compose,           // 4 — swiping done → compose
-    ROUTES.compose,           // 5 — composing → refine
-    ROUTES.compose,           // 6 — refining → update layout
-    ROUTES.compose,           // 7 — delivered → NOT USED, download triggers instead
-    ROUTES.testimonial,       // 8 — designer-feedback → designer testimonial
-    ROUTES.finalTestimonial,  // 9 — platform-feedback → final testimonial
+    ROUTES.onboard,
+    ROUTES.intake,
+    ROUTES.scraper,
+    ROUTES.swiper,
+    ROUTES.compose,
+    ROUTES.compose,
+    ROUTES.compose,
+    ROUTES.compose,
+    ROUTES.testimonial,
+    ROUTES.finalTestimonial,
   ];
 
   const secondaryRoute = [
-    null,                     // 0
-    null,                     // 1
-    ROUTES.intake,            // 2 — edit intake
-    ROUTES.intake,            // 3 — edit intake
-    ROUTES.intake,            // 4 — edit intake
-    ROUTES.testimonial,       // 5 — composing → leave designer feedback
-    ROUTES.testimonial,       // 6 — refining → leave designer feedback
-    ROUTES.finalTestimonial,  // 7 — share final testimonial
-    ROUTES.finalTestimonial,  // 8 — designer-feedback secondary → platform testimonial
-    ROUTES.compose,           // 9 — platform-feedback secondary → view layout
+    null,
+    null,
+    ROUTES.intake,
+    ROUTES.intake,
+    ROUTES.intake,
+    ROUTES.testimonial,
+    ROUTES.testimonial,
+    ROUTES.finalTestimonial,
+    ROUTES.finalTestimonial,
+    ROUTES.compose,
   ];
 
   const qaPrimarySub = typeof COPY.quickActions.primarySub[qaKey] === 'function'
@@ -695,7 +685,6 @@ const ClientDashHome: React.FC = () => {
     <div className="min-h-screen bg-background-primary">
       <div className="container mx-auto px-md sm:px-lg lg:px-xl py-lg sm:py-xl lg:py-2xl max-w-6xl">
 
-        {/* ── State 0 — No project ── */}
         {dashState === 0 && (
           <State00
             designerName={designerName}
@@ -703,10 +692,9 @@ const ClientDashHome: React.FC = () => {
           />
         )}
 
-        {/* ── States 1–9 — Active project ── */}
         {dashState !== 0 && (
           <>
-            {/* Breadcrumb */}
+            {/* Breadcrumb — now uses real project_name */}
             <div className="flex items-center gap-xs mb-lg">
               <span className="px-sm py-xs rounded-full border border-border-default bg-background-primary-2 text-para-xs font-semibold text-accent-default uppercase tracking-wide">
                 {COPY.brand}
@@ -715,7 +703,6 @@ const ClientDashHome: React.FC = () => {
               <span className="text-para-xs text-text-secondary font-medium">{companyName}</span>
             </div>
 
-            {/* Hero — replaced by DeliveredBanner on state 7 */}
             {dashState === 7 ? (
               <DeliveredBanner
                 onPrimary={handleDownloadJson}
@@ -733,7 +720,6 @@ const ClientDashHome: React.FC = () => {
               />
             )}
 
-            {/* Stepper */}
             <ProjectProgress
               projectStatus={projectStatus}
               stageLabel={stageLabel[dashState]}
@@ -744,7 +730,6 @@ const ClientDashHome: React.FC = () => {
               upNext={upNext[dashState]}
             />
 
-            {/* Preview + Checklist */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
               <div className="lg:col-span-2">
                 <BrowserMockup />
@@ -758,7 +743,6 @@ const ClientDashHome: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick actions */}
             <div className="mb-lg">
               <p className="text-para-md font-bold text-text-primary mb-xs">{COPY.quickActions.title}</p>
               <p className="text-para-xs text-accent-default mb-md">{COPY.quickActions.sub}</p>
@@ -780,7 +764,6 @@ const ClientDashHome: React.FC = () => {
               </div>
             </div>
 
-            {/* Designer card */}
             <DesignerCard designerName={designerName} />
           </>
         )}

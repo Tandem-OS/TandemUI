@@ -7,7 +7,6 @@ import { containerVariant, fadeInLeft } from '@/lib/animations/variants.ts';
 import Input from '@/components/auth/form/components/Input.tsx';
 import SimpleButton from '@/components/demos/buttons/SimpleButton.tsx';
 import Heading from '@/components/demos/typography/Heading.tsx';
-import SimpleHeader from '@/components/Headers/SimpleHeader/SimpleHeader.tsx';
 import { useNavigate } from 'react-router-dom';
 import { createProject, getProjectByClientEmail } from '@/lib/requests/ProjectRequest.tsx';
 import { useSelector } from 'react-redux';
@@ -428,7 +427,6 @@ const OnboardingForm: React.FC = () => {
             ) : (
                 <div className={t.root}>
                     <div className={t.inner}>
-                        <SimpleHeader />
                         <div className={t.centerWrapper}>
                             <AnimatePresence mode="wait">
                                 <motion.div
