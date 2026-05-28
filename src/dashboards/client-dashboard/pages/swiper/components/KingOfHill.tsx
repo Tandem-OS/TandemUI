@@ -1,10 +1,72 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaCheck, FaCrown, FaFire } from 'react-icons/fa';
+import { FiImage } from 'react-icons/fi';
 import { type ComponentPreview, type KingOfHillBehavioralSignal } from '../swiper.types';
 
 import swipeAudio from "@/assets/audio/swipeAudio.mp3";
 import clickAudio from "@/assets/audio/clickAudio.mp3";
+
+// ── Image loading hook with timeout + error fallback ─────────────────────────
+const KOH_IMAGE_TIMEOUT = 8000;
+
+const useKOHImageLoading = (src: string) => {
+    const [state, setState] = useState<'loading' | 'loaded' | 'error'>('loading');
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (!src) { setState('error'); return; }
+        setState('loading');
+        const img = new Image();
+        timerRef.current = setTimeout(() => setState('error'), KOH_IMAGE_TIMEOUT);
+        img.onload  = () => { if (timerRef.current) clearTimeout(timerRef.current); setState('loaded'); };
+        img.onerror = () => { if (timerRef.current) clearTimeout(timerRef.current); setState('error'); };
+        img.src = src;
+        return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    }, [src]);
+
+    return state;
+};
+
+const KOHCardImage: React.FC<{
+    src: string;
+    isHovered: boolean;
+    isMobile: boolean;
+    isShaking: boolean;
+}> = ({ src, isHovered, isMobile, isShaking }) => {
+    const state = useKOHImageLoading(src);
+
+    return (
+        <div className="w-full h-full overflow-hidden relative">
+            {state === 'loading' && (
+                <div className="absolute inset-0 bg-background-muted flex items-center justify-center">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        className="w-8 h-8 border-2 border-border-default border-t-accent-default rounded-full"
+                    />
+                </div>
+            )}
+            {state === 'error' && (
+                <div className="absolute inset-0 bg-background-muted flex flex-col items-center justify-center text-text-tertiary gap-sm">
+                    <FiImage className="text-icon-2xl opacity-40" />
+                    <span className="text-para-xs opacity-60">Image unavailable</span>
+                </div>
+            )}
+            <motion.img
+                src={src}
+                alt=""
+                className="w-full h-full object-contain"
+                style={{ backgroundColor: 'var(--color-background-muted, #f3f4f6)' }}
+                animate={{
+                    opacity: state === 'loaded' ? 1 : 0,
+                    scale: isHovered && !isMobile && !isShaking ? 1.05 : 1,
+                }}
+                transition={{ duration: 0.3 }}
+            />
+        </div>
+    );
+};
 
 const playAudio = (audioSrc: string, volumePercent: number = 100) => {
     try {
@@ -163,15 +225,12 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 )}
 
 
-                <div className="w-full h-full overflow-hidden">
-                    <motion.img
-                        src={component.thumbnail_url}
-                        alt={component.title ?? undefined}
-                        className="w-full h-full object-contain" style={{ backgroundColor: "var(--color-background-muted, #f3f4f6)" }}
-                        animate={isCardHovered && !isMobile && !isShaking ? { scale: 1.05 } : { scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                    />
-                </div>
+                <KOHCardImage
+                    src={component.thumbnail_url}
+                    isHovered={isCardHovered}
+                    isMobile={isMobile}
+                    isShaking={isShaking}
+                />
                 <div className={`
                     absolute bottom-0 left-0 right-0 
                     bg-gradient-to-t from-black/80 via-black/40 to-transparent 
