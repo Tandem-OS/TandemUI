@@ -26,6 +26,7 @@ import Para from '../../../common-components/Para';
 import { AiOutlineRadiusUpright } from "react-icons/ai";
 import SectionPreview from './SectionPreview';
 import { useSelector } from 'react-redux';
+import { callDesignAssistant, type DesignAssistantMessage } from '@/lib/requests/SwiperRequest';
 import { selectLastUpdatedCategories } from '@/features/composition/compositionSelectors';
 
 interface SectionCardProps {
@@ -54,6 +55,10 @@ const SectionCard = ({
     const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
     const [addedToLayout, setAddedToLayout] = useState(false);
     const [showJson, setShowJson] = useState(false);
+    const [showAiModal, setShowAiModal] = useState(false);
+    const [aiMessages, setAiMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
+    const [aiInput, setAiInput] = useState('');
+    const [aiLoading, setAiLoading] = useState(false);
 
     const handleLike = () => {
         onFeedback('like');
@@ -91,14 +96,113 @@ const SectionCard = ({
         });
     };
 
-    const handleAskAI = () => {
-        openChat({
-            prompt: 'Why does this layout work?',
-            context: {
-                sectionId: section.id,
-                metadata: section.metadata
-            }
+    // Build a rich description from all available section fields
+    // so GPT always has full context regardless of which fields are populated
+    // Build context ONLY from scraper section fields.
+    // Scraper sections and compose sections are different shapes:
+    //   Scraper: section_type, layout_structure, intent, tone (string), metadata.insight, editableProps, source_url
+    //   Compose: category, content_slots, tokens, component_id  ← handled separately via ChatPanel refine
+    const buildScraperSectionContext = (userSelectedReasons: string[] = []) => {
+        const parts: string[] = [];
+
+        if (section.section_type) parts.push(`Section type: ${section.section_type}`);
+        if (section.layout_structure) parts.push(`Layout: ${section.layout_structure}`);
+        if (section.intent) parts.push(`Intent: ${section.intent}`);
+        if (section.tone) parts.push(`Tone: ${section.tone}`);
+
+        if (section.metadata?.insight) parts.push(`Design insight: ${section.metadata.insight}`);
+
+        // Headline from scraper editableProps only
+        const headline = section.editableProps?.title
+            ?? section.editableProps?.hero_heading
+            ?? section.editableProps?.heading;
+        if (headline) parts.push(`Headline: "${headline}"`);
+
+        const subtitle = section.editableProps?.subtitle
+            ?? section.editableProps?.hero_subheading;
+        if (subtitle) parts.push(`Subheading: "${subtitle}"`);
+
+        // Tags from scraper metadata
+        const tags = section.metadata?.tags ?? section.tags;
+        if (Array.isArray(tags) && tags.length > 0) {
+            parts.push(`Tags: ${tags.slice(0, 5).join(', ')}`);
+        }
+
+        // User selected like reasons
+        if (userSelectedReasons.length > 0) {
+            parts.push(`User highlighted: ${userSelectedReasons.join(', ')}`);
+        }
+
+        if (section.source_url) parts.push(`From: ${section.source_url}`);
+
+        return parts.join('. ');
+    };
+
+    const callAI = async (
+        prompt: string,
+        history: DesignAssistantMessage[],
+        userSelectedReasons: string[] = []
+    ): Promise<string> => {
+        const context = buildScraperSectionContext(userSelectedReasons);
+        const enrichedMessage = context
+            ? `${prompt}\n\nSection context: ${context}`
+            : prompt;
+        const result = await callDesignAssistant({
+            component_category: section.section_type ?? undefined,
+            component_layout_structure: section.layout_structure ?? undefined,
+            component_description: section.metadata?.insight ?? undefined,
+            component_tags: userSelectedReasons.length > 0
+                ? userSelectedReasons
+                : (section.tone ? [section.tone] : undefined),
+            conversation_history: history,
+            user_message: enrichedMessage,
         });
+        return result.response;
+    };
+
+    const handleAskAI = async (initialPrompt?: string) => {
+        setShowAiModal(true);
+        if (aiMessages.length > 0 && !initialPrompt) return;
+        const prompt = initialPrompt ?? 'Why does this layout work?';
+        setAiMessages([{ role: 'user', text: prompt }]);
+        setAiLoading(true);
+        try {
+            // Pass currently selected like reasons so AI knows what the user noticed
+            const response = await callAI(prompt, [], selectedReasons);
+            setAiMessages([
+                { role: 'user', text: prompt },
+                { role: 'assistant', text: response },
+            ]);
+        } catch {
+            setAiMessages(prev => [...prev, { role: 'assistant', text: 'Could not reach AI assistant.' }]);
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
+    const handleAiSend = async () => {
+        const text = aiInput.trim();
+        if (!text || aiLoading) return;
+        setAiInput('');
+        const newMessages = [...aiMessages, { role: 'user' as const, text }];
+        setAiMessages(newMessages);
+        setAiLoading(true);
+        try {
+            const history: DesignAssistantMessage[] = newMessages.slice(0, -1).map(m => ({
+                role: m.role as 'user' | 'assistant',
+                content: m.text,
+            }));
+            const response = await callAI(text, history);
+            setAiMessages(prev => [...prev, { role: 'assistant', text: response }]);
+        } catch {
+            setAiMessages(prev => [...prev, { role: 'assistant', text: 'Could not reach AI assistant.' }]);
+        } finally {
+            setAiLoading(false);
+        }
+    };
+
+    const handleMoreLikeThis = () => {
+        handleAskAI(`What other ${section.section_type ?? 'section'} styles or approaches with similar intent would complement this ${section.layout_structure ?? ''} layout?`);
     };
 
     const isComposeSection = 'component_id' in section && 'content_slots' in section;
@@ -137,7 +241,7 @@ const SectionCard = ({
                     <img
                         src={section.screenshot_url}
                         alt={`${section.section_type} section`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain" style={{ backgroundColor: "var(--color-background-muted, #f3f4f6)" }}
                     />
                 ))}
                 <div className="absolute top-2 sm:top-4 left-2 sm:left-4">
@@ -382,7 +486,7 @@ const SectionCard = ({
                                                 )}
                                             </motion.button>
                                             <motion.button
-                                                onClick={() => { }}
+                                                onClick={handleMoreLikeThis}
                                                 whileHover={{ scale: 1.02, backgroundColor: 'rgba(209, 250, 229, 0.5)' }}
                                                 whileTap={{ scale: 0.98 }}
                                                 transition={{ duration: 0.2 }}
@@ -391,7 +495,7 @@ const SectionCard = ({
                                                 More like this
                                             </motion.button>
                                             <motion.button
-                                                onClick={handleAskAI}
+                                                onClick={() => handleAskAI()}
                                                 whileHover={{ scale: 1.02, backgroundColor: 'rgba(209, 250, 229, 0.5)' }}
                                                 whileTap={{ scale: 0.98 }}
                                                 transition={{ duration: 0.2 }}
@@ -474,6 +578,85 @@ const SectionCard = ({
                     </div>
                 )}
             </div>
+
+            {/* ── Inline AI Modal ── */}
+            <AnimatePresence>
+                {showAiModal && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="border-t border-border-default bg-background-primary"
+                    >
+                        <div className="p-md space-y-sm">
+                            {/* Header */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-xs">
+                                    <FaComments className="text-accent-default text-icon-sm" />
+                                    <Para size="sm" weight="medium">AI Analysis</Para>
+                                </div>
+                                <button
+                                    onClick={() => setShowAiModal(false)}
+                                    className="p-xs text-text-tertiary hover:text-text-primary rounded-full transition-colors"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+
+                            {/* Messages */}
+                            <div className="space-y-sm max-h-48 overflow-y-auto">
+                                {aiMessages.map((msg, i) => (
+                                    <div
+                                        key={i}
+                                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                                    >
+                                        <div className={`max-w-[85%] px-sm py-xs rounded-lg text-para-xs sm:text-para-sm leading-relaxed ${msg.role === 'user'
+                                                ? 'bg-accent-default text-accent-foreground'
+                                                : 'bg-background-secondary text-text-secondary'
+                                            }`}>
+                                            {msg.text}
+                                        </div>
+                                    </div>
+                                ))}
+                                {aiLoading && (
+                                    <div className="flex justify-start">
+                                        <div className="bg-background-secondary px-sm py-xs rounded-lg flex gap-xs items-center">
+                                            {[0, 1, 2].map(i => (
+                                                <motion.div
+                                                    key={i}
+                                                    className="w-1.5 h-1.5 bg-text-tertiary rounded-full"
+                                                    animate={{ opacity: [0.3, 1, 0.3] }}
+                                                    transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Input */}
+                            <div className="flex gap-xs">
+                                <input
+                                    type="text"
+                                    value={aiInput}
+                                    onChange={e => setAiInput(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') handleAiSend(); }}
+                                    placeholder="Ask a follow-up..."
+                                    disabled={aiLoading}
+                                    className="flex-1 px-sm py-xs bg-background-secondary border border-border-default rounded-lg text-para-xs sm:text-para-sm text-text-primary placeholder:text-text-tertiary focus:border-accent-default focus:outline-none transition-colors disabled:opacity-50"
+                                />
+                                <button
+                                    onClick={handleAiSend}
+                                    disabled={!aiInput.trim() || aiLoading}
+                                    className="px-sm py-xs bg-accent-default text-accent-foreground rounded-lg text-para-xs disabled:opacity-50 transition-opacity"
+                                >
+                                    Send
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };

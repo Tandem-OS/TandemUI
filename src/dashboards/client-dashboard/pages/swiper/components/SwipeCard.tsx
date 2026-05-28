@@ -14,6 +14,24 @@ const DOUBLE_TAP_DELAY = 300;
 const IMAGE_TIMEOUT = 10000;
 const SWIPE_COOLDOWN = 800;
 
+// ── Section-specific image crop config ────────────────────────────────────────
+// Each category gets a height tuned to how that section type actually looks.
+// Nav and footer are shallow strips. Hero is wide 16:9. Pricing is tall.
+const CATEGORY_CROP: Record<string, { mobile: string; desktop: string }> = {
+    nav: { mobile: 'h-16 sm:h-20', desktop: 'h-[110px]' },
+    hero: { mobile: 'h-48 sm:h-60', desktop: 'h-[390px] 2xl:h-[480px]' },
+    features: { mobile: 'h-44 sm:h-52', desktop: 'h-[350px] 2xl:h-[440px]' },
+    pricing: { mobile: 'h-56 sm:h-64', desktop: 'h-[460px] 2xl:h-[560px]' },
+    faq: { mobile: 'h-48 sm:h-56', desktop: 'h-[410px] 2xl:h-[490px]' },
+    testimonials: { mobile: 'h-44 sm:h-52', desktop: 'h-[360px] 2xl:h-[450px]' },
+    cta: { mobile: 'h-36 sm:h-44', desktop: 'h-[280px] 2xl:h-[340px]' },
+    contact: { mobile: 'h-44 sm:h-52', desktop: 'h-[380px] 2xl:h-[460px]' },
+    timeline: { mobile: 'h-52 sm:h-60', desktop: 'h-[430px] 2xl:h-[530px]' },
+    footer: { mobile: 'h-20 sm:h-24', desktop: 'h-[150px]' },
+};
+const DEFAULT_CROP = { mobile: 'h-48 sm:h-56', desktop: 'h-[370px] 2xl:h-[470px]' };
+const getCrop = (category: string) => CATEGORY_CROP[category?.toLowerCase()] ?? DEFAULT_CROP;
+
 // Action configurations
 const ACTIONS = {
     like: { x: SWIPE_POWER, y: 0, key: 'ArrowRight' },
@@ -49,7 +67,7 @@ const useAudio = () => {
 // Custom hook for image loading
 const useImageLoading = (src: string) => {
     const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (!src) {
@@ -109,7 +127,7 @@ const CardImage: React.FC<{ src: string; className: string }> = ({ src, classNam
                 src={src}
                 alt=""
                 className="absolute inset-0 w-full h-full select-none"
-                style={{ objectFit: 'cover', objectPosition: 'top center' }}
+                style={{ objectFit: 'contain', objectPosition: 'top center', backgroundColor: 'var(--color-background-muted, #f3f4f6)' }}
                 initial={{ opacity: 0, filter: 'blur(10px)' }}
                 animate={{
                     opacity: imageState === 'loaded' ? 1 : 0,
@@ -161,11 +179,11 @@ const ExpandModal: React.FC<{
                         <FiX className="text-icon-sm text-text-secondary group-hover:text-text-error" />
                     </motion.button>
                 </div>
-                <div className="relative w-full bg-background-primary" style={{ aspectRatio: '1440/860' }}>
+                <div className="relative w-full bg-background-primary overflow-y-auto max-h-[80vh]">
                     <img
                         src={src}
                         alt={title}
-                        className="w-full h-full object-cover object-top"
+                        className="w-full h-full object-contain object-top"
                     />
                 </div>
             </motion.div>
@@ -197,7 +215,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const lastPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
     const lastVelocityUpdate = useRef<number>(Date.now());
     const velocityHistory = useRef<number[]>([]);
-    const swipeCooldownTimer = useRef<NodeJS.Timeout | null>(null);
+    const swipeCooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Motion values
     const x = useMotionValue(0);
@@ -213,7 +231,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
     // Double tap detection
     const lastTap = useRef<number>(0);
-    const tapTimeout = useRef<NodeJS.Timeout | null>(null);
+    const tapTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Reset states when component changes
     useEffect(() => {
@@ -504,7 +522,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                     {/* Mobile Layout */}
                     <div className="block lg:!hidden">
                         <div className="grid grid-cols-1">
-                            <CardImage src={component.thumbnail_url} className="h-48 sm:h-56" />
+                            <CardImage src={component.thumbnail_url} className={getCrop(component.category).mobile} />
 
                             <div className="relative bg-background-primary-2 p-md sm:p-lg flex flex-col justify-center">
                                 <div className="absolute inset-0 z-10 pointer-events-auto" />
@@ -545,7 +563,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                     </div>
 
                     {/* Desktop Layout */}
-                    <div className="!hidden lg:!block relative h-[370px] 2xl:h-[470px]">
+                    <div className={`!hidden lg:!block relative ${getCrop(component.category).desktop}`}>
                         <CardImage src={component.thumbnail_url} className="absolute inset-0 w-full h-full" />
 
                         {/* Info Button */}
@@ -646,8 +664,16 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                     {isActive && (
                                         <AskAiModal
                                             isOpen={isAiModalOpen}
-                                            description={`This ${component.vibe ? component.vibe.toLowerCase() + ' ' : ''}${component.category.toLowerCase()} design focuses on ${component.tone.join(', ')} aesthetics with ${component.layout_structure} layout structure to achieve ${component.intent.join(' and ')} goals.`}
                                             onClose={() => setIsAiModalOpen(false)}
+                                            component={{
+                                                component_id: component.component_id,
+                                                title: component.title ?? undefined,
+                                                category: component.category,
+                                                tags: component.tags,
+                                                tone: component.tone,
+                                                layout_structure: component.layout_structure ?? undefined,
+                                                description: component.description ?? undefined,
+                                            }}
                                         />
                                     )}
                                 </div>

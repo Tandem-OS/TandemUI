@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ const COPY = {
   estHandoffLabel: 'Est. handoff',
   rightNowLabel: 'Right now',
   upNextLabel: 'Up next',
+  editTooltip: 'Click to revisit',
 } as const;
 
 // ─── Pipeline & nodes ─────────────────────────────────────────────────────────
@@ -34,15 +36,29 @@ const PIPELINE = [
 
 type PipelineStage = typeof PIPELINE[number];
 
+// Route each completed node navigates to when clicked
+const NODE_ROUTES: Record<string, string> = {
+  'intake': '/dashboard/client/intake',
+  'scraping': '/dashboard/client/scraper',
+  'swiping': '/dashboard/client/swiper',
+  'embedded': '/dashboard/client/swiper',
+  'composing': '/dashboard/client/compose',
+  'refining': '/dashboard/client/compose',
+  'designer-feedback': '/dashboard/client/support',
+  'platform-feedback': '/dashboard/client/support',
+  'revisions': '/dashboard/client/compose',
+  'handoff': '/dashboard/client/support',
+};
+
 const STEPPER_NODES = [
-  { id: 'intake',             label: 'Intake' },
-  { id: 'scraping',           label: 'Site capture' },
-  { id: 'swiping',            label: 'Style preferences' },
-  { id: 'composing',          label: 'First layout' },
-  { id: 'refining',           label: 'Updated layout' },
-  { id: 'designer-feedback',  label: 'Designer feedback' },
-  { id: 'platform-feedback',  label: 'Platform feedback' },
-  { id: 'handoff',            label: 'Handoff' },
+  { id: 'intake', label: 'Intake' },
+  { id: 'scraping', label: 'Site capture' },
+  { id: 'swiping', label: 'Style preferences' },
+  { id: 'composing', label: 'First layout' },
+  { id: 'refining', label: 'Updated layout' },
+  { id: 'designer-feedback', label: 'Designer feedback' },
+  { id: 'platform-feedback', label: 'Platform feedback' },
+  { id: 'handoff', label: 'Handoff' },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -57,6 +73,92 @@ const getNodeState = (nodeId: string, projectStatus: string | null): NodeState =
   return 'pending';
 };
 
+// ─── Clickable completed node ─────────────────────────────────────────────────
+
+interface StepNodeProps {
+  node: { id: string; label: string };
+  state: NodeState;
+  statusPill?: string;
+  onClick?: () => void;
+}
+
+const StepNode: React.FC<StepNodeProps> = ({ node, state, statusPill, onClick }) => {
+  const isClickable = state === 'completed' && !!onClick;
+
+  return (
+    <div
+      className="flex flex-col items-center gap-sm"
+      style={{ width: `${100 / STEPPER_NODES.length}%` }}
+    >
+      {/* Circle */}
+      <div className="relative group">
+        <motion.button
+          onClick={isClickable ? onClick : undefined}
+          disabled={!isClickable}
+          whileHover={isClickable ? { scale: 1.15 } : {}}
+          whileTap={isClickable ? { scale: 0.92 } : {}}
+          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          className={[
+            'w-10 h-10 rounded-full border-2 flex items-center justify-center z-10 flex-shrink-0',
+            'transition-shadow duration-200',
+            state === 'completed'
+              ? isClickable
+                ? 'bg-accent-default border-accent-default cursor-pointer hover:shadow-[0_0_0_4px_rgba(var(--color-accent-default-rgb,99,102,241),0.2)]'
+                : 'bg-accent-default border-accent-default cursor-default'
+              : '',
+            state === 'current' ? 'bg-background-primary border-accent-default cursor-default' : '',
+            state === 'pending' ? 'bg-background-primary border-border-default cursor-default' : '',
+          ].join(' ')}
+          aria-label={isClickable ? `Revisit ${node.label}` : node.label}
+        >
+          {state === 'completed' && (
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+          {state === 'current' && (
+            <div className="w-3 h-3 rounded-full bg-accent-default" />
+          )}
+        </motion.button>
+
+        {/* Tooltip — only on completed clickable nodes */}
+        {isClickable && (
+          <div className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-20">
+            <span className="bg-background-dark text-text-light text-[10px] font-medium px-xs py-px rounded shadow-md">
+              {COPY.editTooltip}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Label */}
+      <div className="text-center">
+        <p
+          className={[
+            'text-para-xs font-medium leading-tight transition-colors duration-150',
+            state === 'current' ? 'text-accent-default font-semibold' : '',
+            state === 'completed' ? isClickable ? 'text-text-secondary hover:text-accent-default cursor-pointer' : 'text-text-secondary' : '',
+            state === 'pending' ? 'text-text-tertiary' : '',
+          ].join(' ')}
+          onClick={isClickable ? onClick : undefined}
+        >
+          {node.label}
+        </p>
+        {state === 'current' && statusPill && (
+          <span className="inline-block mt-xs px-xs py-px text-[10px] font-bold uppercase tracking-wider rounded bg-accent-subtle text-accent-default">
+            {statusPill}
+          </span>
+        )}
+        {isClickable && (
+          <p className="text-[9px] text-text-tertiary mt-px opacity-0 group-hover:opacity-100 transition-opacity">
+            edit
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const ProjectProgress: React.FC<ProjectProgressProps> = ({
@@ -68,8 +170,12 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({
   rightNow,
   upNext,
 }) => {
+  const navigate = useNavigate();
+
   const totalNodes = STEPPER_NODES.length;
-  const completedCount = STEPPER_NODES.filter(n => getNodeState(n.id, projectStatus) === 'completed').length;
+  const completedCount = STEPPER_NODES.filter(
+    n => getNodeState(n.id, projectStatus) === 'completed'
+  ).length;
   const progressPct = totalNodes > 1 ? (completedCount / (totalNodes - 1)) * 100 : 0;
 
   return (
@@ -81,7 +187,8 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({
             {COPY.sectionLabel}
           </p>
           <h3 className="text-h5-sm font-bold text-text-primary">
-            {stageLabel} <span className="text-para-md font-normal text-text-secondary">{stageSub}</span>
+            {stageLabel}{' '}
+            <span className="text-para-md font-normal text-text-secondary">{stageSub}</span>
           </h3>
         </div>
         {estHandoff && (
@@ -112,41 +219,18 @@ const ProjectProgress: React.FC<ProjectProgressProps> = ({
           <div className="relative flex justify-between items-start">
             {STEPPER_NODES.map((node) => {
               const state = getNodeState(node.id, projectStatus);
+              const route = NODE_ROUTES[node.id];
               return (
-                <div key={node.id} className="flex flex-col items-center gap-sm" style={{ width: `${100 / totalNodes}%` }}>
-                  {/* Circle */}
-                  <div className={`
-                    w-10 h-10 rounded-full border-2 flex items-center justify-center z-10 flex-shrink-0
-                    ${state === 'completed' ? 'bg-accent-default border-accent-default' : ''}
-                    ${state === 'current'   ? 'bg-background-primary border-accent-default' : ''}
-                    ${state === 'pending'   ? 'bg-background-primary border-border-default' : ''}
-                  `}>
-                    {state === 'completed' && (
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                    {state === 'current' && (
-                      <div className="w-3 h-3 rounded-full bg-accent-default" />
-                    )}
-                  </div>
-
-                  {/* Label */}
-                  <div className="text-center">
-                    <p className={`text-para-xs font-medium leading-tight ${
-                      state === 'current'   ? 'text-accent-default font-semibold' :
-                      state === 'completed' ? 'text-text-secondary' :
-                      'text-text-tertiary'
-                    }`}>
-                      {node.label}
-                    </p>
-                    {state === 'current' && statusPill && (
-                      <span className="inline-block mt-xs px-xs py-px text-[10px] font-bold uppercase tracking-wider rounded bg-accent-subtle text-accent-default">
-                        {statusPill}
-                      </span>
-                    )}
-                  </div>
-                </div>
+                <StepNode
+                  key={node.id}
+                  node={node}
+                  state={state}
+                  statusPill={statusPill}
+                  onClick={state === 'completed' && route
+                    ? () => navigate(route)
+                    : undefined
+                  }
+                />
               );
             })}
           </div>

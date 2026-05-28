@@ -1,6 +1,22 @@
 import { useState } from 'react';
 import type { CTAAnnouncementFAQShellProps } from '../cta.types';
 
+// ── Color utilities ───────────────────────────────────────────────────────────
+function isValidHexColor(val?: string | null): boolean {
+  return !!val && /^#[0-9a-fA-F]{3,8}$/.test(val.trim())
+}
+
+function isDarkHexColor(val?: string | null): boolean {
+  if (!val || !isValidHexColor(val)) return false
+  const c = val.trim().replace('#', '')
+  const full = c.length === 3 ? c[0] + c[0] + c[1] + c[1] + c[2] + c[2] : c
+  const r = parseInt(full.slice(0, 2), 16)
+  const g = parseInt(full.slice(2, 4), 16)
+  const b = parseInt(full.slice(4, 6), 16)
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.50
+}
+
+
 export function CTAAnnouncementFAQShell({ layoutStructure, slot, styles }: CTAAnnouncementFAQShellProps) {
   if (layoutStructure !== 'announcement-faq') {
     throw new Error(
@@ -22,12 +38,20 @@ export function CTAAnnouncementFAQShell({ layoutStructure, slot, styles }: CTAAn
     setExpandedItems(prev => ({ ...prev, [key]: !prev[key] }));
   }
 
+  // wrapperBg may be a design-system class name (not real CSS) — fall back to white
+  const annBg = isValidHexColor(styles.wrapperBg) ? styles.wrapperBg : '#ffffff'
+  const annText = isDarkHexColor(annBg) ? 'white' : '#111111'
+
+  // FAQ surface — if surface is also a class name, use a light neutral
+  const faqBg = isValidHexColor(styles.surface) ? styles.surface : '#f9fafb'
+
   return (
     <div className="w-full">
       {/* Announcement Panel */}
       <div
         className="px-6 py-16 text-center"
-        style={{ backgroundColor: styles.wrapperBg }}      >
+        style={{ backgroundColor: annBg, color: annText }}
+      >
         <div className="max-w-3xl mx-auto">
           <p className={`${styles.mutedBody} mb-4 uppercase tracking-widest`}>
             {slot.eyebrow}
@@ -49,7 +73,7 @@ export function CTAAnnouncementFAQShell({ layoutStructure, slot, styles }: CTAAn
       </div>
 
       {/* FAQ Section */}
-      <div className={`${styles.surface} px-6 py-16`}>
+      <div className="px-6 py-16" style={{ backgroundColor: faqBg }}>
         <div className="max-w-6xl mx-auto">
           <h3 className={`${styles.heading} text-center mb-12`}>
             {slot.faq_section_heading}

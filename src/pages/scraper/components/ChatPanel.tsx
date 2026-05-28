@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaComments, FaTimes, FaPaperPlane, FaCheck } from 'react-icons/fa';
 import { FiPaperclip } from 'react-icons/fi';
-import { mockChatResponses, chatPrompts } from '../constants';
+import { chatPrompts } from '../constants';
 import Heading from '../../../components/demos/typography/Heading';
 import Para from '../../../common-components/Para';
 import BillingGateModal from '@/common-components/BillingGateModal';
@@ -16,6 +16,7 @@ import {
     setPreviewSchema,
     clearPreview,
 } from '@/features/composition/compositionSlice';
+import { callDesignAssistant } from '@/lib/requests/SwiperRequest';
 import {
     selectIsRefining,
     selectVersions,
@@ -443,32 +444,39 @@ const ChatPanel = ({
             return;
         }
 
-        let response = "Got it — here's a breakdown...";
-        const lowerMessage = message.toLowerCase();
-        if (lowerMessage.includes('why') && lowerMessage.includes('work')) {
-            response = mockChatResponses["Why does this layout work?"];
-        } else if (lowerMessage.includes('clean') || lowerMessage.includes('refine')) {
-            response = "Try this instead: reduce the number of elements, increase whitespace, use a more limited color palette, and ensure consistent alignment throughout.";
-        } else if (lowerMessage.includes('dark mode')) {
-            response = "For dark mode: use darker backgrounds (#0f172a), lighter text (#f1f5f9), reduce contrast slightly for comfort, and ensure sufficient color contrast ratios for accessibility.";
-        } else {
-            Object.keys(mockChatResponses).forEach(key => {
-                if (lowerMessage.includes(key.toLowerCase().split(' ')[0])) {
-                    response = mockChatResponses[key as keyof typeof mockChatResponses];
-                }
+        // FIX: Call real POST /ai/assistant instead of mock responses.
+        // Build component metadata from section context if available.
+        const sectionMeta = context?.context?.metadata ?? {};
+
+        // Derive conversation history from current messages (skip the initial greeting)
+        const history = messages
+            .slice(1) // skip the initial "Ask me anything" greeting
+            .map(m => ({ role: m.type === 'user' ? 'user' : 'assistant', content: m.message }));
+
+        setIsTyping(true);
+        try {
+            const result = await callDesignAssistant({
+                component_category: sectionMeta.section_type ?? undefined,
+                component_layout_structure: sectionMeta.layout_structure ?? undefined,
+                conversation_history: history as { role: 'user' | 'assistant'; content: string }[],
+                user_message: message,
             });
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                type: 'assistant',
+                message: result.response,
+                timestamp: new Date(),
+            }]);
+        } catch {
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                type: 'assistant',
+                message: 'Could not reach AI assistant. Please try again.',
+                timestamp: new Date(),
+            }]);
+        } finally {
+            setIsTyping(false);
         }
-        if (context?.context?.metadata) {
-            const { section_type, layout_structure } = context.context.metadata;
-            response = `For this ${section_type} section with ${layout_structure} layout: ${response}`;
-        }
-        const assistantResponse = await simulateTyping(response);
-        setMessages(prev => [...prev, {
-            id: (Date.now() + 1).toString(),
-            type: 'assistant',
-            message: assistantResponse,
-            timestamp: new Date(),
-        }]);
     };
 
     const canSubmit = compositionId

@@ -1,8 +1,12 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate, useParams } from 'react-router-dom'
+import { FaArrowLeft, FaExpand, FaCompress } from 'react-icons/fa'
 import {
   selectActiveOrPreviewSchema,
 } from '@/features/composition/compositionSelectors'
+import { setPageSchema } from '@/features/composition/compositionSlice'
+import { getCompose } from '@/lib/requests/CompositionRequest'
 import HeroRenderer from '@/pages/Renderer/HeroRenderer'
 import NavRenderer from '@/pages/Renderer/NavRenderer'
 import FeaturesRenderer from '@/pages/Renderer/FeaturesRenderer'
@@ -23,13 +27,35 @@ interface Props {
   compositionId?: string | null
 }
 
-const CompositionRenderer: React.FC<Props> = ({ compositionId }) => {
+const CompositionRenderer: React.FC<Props> = ({ compositionId: compositionIdProp }) => {
   const dispatch = useDispatch<AppDispatch>()
+  const navigate = useNavigate()
+  const params = useParams<{ id?: string }>()
+  const [fullscreen, setFullscreen] = useState(false)
   const activeSchema = useSelector(selectActiveOrPreviewSchema)
+
+  // On page reload the parent prop may not be set yet — fall back to URL param
+  const compositionId = compositionIdProp ?? params.id ?? null
   useEffect(() => {
-    if (!activeSchema && compositionId) {
-      dispatch(pollForThumbnails({ compositionId }))
+    if (activeSchema || !compositionId) return
+
+    // On fresh page load (e.g. direct URL or reload) Redux has no schema.
+    // pollForThumbnails waits POLL_INTERVAL_MS before the first fetch — too slow.
+    // Fetch directly and populate state immediately, no delay.
+    let cancelled = false
+    const fetchNow = async () => {
+      try {
+        const data = await getCompose(compositionId)
+        if (!cancelled && data?.page_schema) {
+          dispatch(setPageSchema(data.page_schema))
+        }
+      } catch {
+        // Fallback to polling if direct fetch fails
+        if (!cancelled) dispatch(pollForThumbnails({ compositionId }))
+      }
     }
+    fetchNow()
+    return () => { cancelled = true }
   }, [activeSchema, compositionId, dispatch])
   if (!activeSchema) return (
     <div className="min-h-screen flex items-center justify-center bg-background-primary">
@@ -49,6 +75,51 @@ const CompositionRenderer: React.FC<Props> = ({ compositionId }) => {
 
   return (
     <>
+      {/* ── Floating exit bar ── */}
+      <div
+        className={`fixed top-0 left-0 right-0 z-[9999] flex items-center justify-between px-md py-sm
+          bg-background-primary/90 backdrop-blur-sm border-b border-border-default
+          shadow-sm transition-transform duration-300
+          ${fullscreen ? '-translate-y-full' : 'translate-y-0'}`}
+        style={{ height: '48px' }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-xs text-para-sm text-text-secondary hover:text-text-primary transition-colors font-medium"
+        >
+          <FaArrowLeft className="text-icon-sm" />
+          Back
+        </button>
+
+        <span className="text-para-xs text-text-tertiary font-medium tracking-wide uppercase">
+          Preview
+        </span>
+
+        <button
+          onClick={() => setFullscreen(f => !f)}
+          className="flex items-center gap-xs text-para-sm text-text-secondary hover:text-text-primary transition-colors"
+          title="Exit full screen"
+        >
+          <FaCompress className="text-icon-sm" />
+          <span className="text-para-xs hidden sm:inline">Exit full screen</span>
+        </button>
+      </div>
+
+      {/* Full screen trigger strip — visible tap zone at top edge when bar is hidden */}
+      {fullscreen && (
+        <div
+          onClick={() => setFullscreen(false)}
+          className="fixed top-0 left-0 right-0 z-[9998] flex items-center justify-center cursor-pointer"
+          style={{ height: '12px', background: 'rgba(99,102,241,0.18)' }}
+          title="Tap to show toolbar"
+        >
+          <div className="w-10 h-1 rounded-full bg-accent-default/60" />
+        </div>
+      )}
+
+      {/* Spacer so content isn't hidden behind the bar */}
+      {!fullscreen && <div style={{ height: '48px' }} />}
+
       {ordered.map((section) => {
         switch (section.category) {
           case 'nav':

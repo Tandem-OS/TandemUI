@@ -225,8 +225,6 @@ const IntakeForm: React.FC = () => {
             if (data) {
                 const transformed: IntakeFormData = {
                     tones: data.tones || [],
-                    // Resolve metadata from stored slugs on load
-                    // Falls back to empty array if slugs not in TONE_METADATA (safe)
                     toneMetadata: resolveToneMetadata(data.tones || []),
                     keyFeatures: (data.key_features || []).join(', '),
                     inspirationUrls: data.inspiration_urls || [''],
@@ -239,12 +237,15 @@ const IntakeForm: React.FC = () => {
                     additionalDetails: data.additional_details || '',
                 };
                 setFormData(transformed);
+                // Only show toast if there's real saved data
+                const hasSavedData = (data.tones?.length > 0) || data.key_features?.length > 0 || data.additional_details;
+                if (hasSavedData) showToast('Picking up where you left off.', 'success');
             } else {
                 setFormData(initialFormData);
             }
-        } catch (err) {
+        } catch {
+            // No existing intake — start fresh silently, no error shown
             setFormData(initialFormData);
-            showToast('Failed to load your intake. Starting fresh.', 'error');
         }
         setLoading(false);
     };

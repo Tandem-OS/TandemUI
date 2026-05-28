@@ -22,29 +22,29 @@ const variantConfig: Record<string, {
   cardHeadingSize: string
 }> = {
   gallery: {
-    gridGap:            '60px',
-    cardPadding:        '0px',
-    itemMarginBottom:   '16px',
-    actionsGap:         '16px',
-    actionsMarginTop:   '32px',
+    gridGap: '60px',
+    cardPadding: '0px',
+    itemMarginBottom: '16px',
+    actionsGap: '16px',
+    actionsMarginTop: '32px',
     headerMarginBottom: '48px',
-    cardHeadingSize:    'inherit',
+    cardHeadingSize: 'inherit',
   },
   stats: {
-    gridGap:            '24px',
-    cardPadding:        '28px',
-    itemMarginBottom:   '0px',
-    actionsGap:         '16px',
-    actionsMarginTop:   '48px',
+    gridGap: '24px',
+    cardPadding: '28px',
+    itemMarginBottom: '0px',
+    actionsGap: '16px',
+    actionsMarginTop: '48px',
     headerMarginBottom: '48px',
-    cardHeadingSize:    '1.1rem',
+    cardHeadingSize: '1.1rem',
   },
 }
 
 const actionVariantStyles: Record<string, React.CSSProperties> = {
-  primary:   { fontWeight: 600 },
+  primary: { fontWeight: 600 },
   secondary: { fontWeight: 400 },
-  ghost:     { fontWeight: 400, textDecoration: 'underline' },
+  ghost: { fontWeight: 400, textDecoration: 'underline' },
 }
 
 const FeaturesBase: React.FC<FeaturesBaseProps> = ({
@@ -73,32 +73,32 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
 
   const sectionStyle: React.CSSProperties = {
     backgroundColor: colors.background,
-    color:           colors.text_color,
-    padding:         colors.padding,
-    boxSizing:       'border-box',
+    color: colors.text_color,
+    padding: colors.padding,
+    boxSizing: 'border-box',
   }
 
   const headingStyle: React.CSSProperties = {
-    fontSize:   colors.heading_size,
+    fontSize: colors.heading_size,
     fontWeight: colors.heading_weight,
-    color:      colors.text_color,
-    margin:     '0 0 12px 0',
+    color: colors.text_color,
+    margin: '0 0 12px 0',
   }
 
   const subheadingStyle: React.CSSProperties = {
-    color:  descriptionColor,
+    color: descriptionColor,
     margin: '0 0 40px 0',
   }
 
   const cardStyle: React.CSSProperties = {
     backgroundColor: colors.card_bg,
-    borderRadius:    colors.card_radius,
-    padding:         cfg.cardPadding,
+    borderRadius: colors.card_radius,
+    padding: cfg.cardPadding,
   }
 
   const SectionHeader = () => (
     <div style={{ marginBottom: cfg.headerMarginBottom }}>
-      {features_heading    && <h2 style={headingStyle}>{features_heading}</h2>}
+      {features_heading && <h2 style={headingStyle}>{features_heading}</h2>}
       {features_subheading && <p style={subheadingStyle}>{features_subheading}</p>}
     </div>
   )
@@ -120,7 +120,7 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
 
   const Actions = () => (
     <div className="flex flex-wrap" style={{ gap: cfg.actionsGap, marginTop: cfg.actionsMarginTop }}>
-      {features_primary_action   && renderAction(features_primary_action)}
+      {features_primary_action && renderAction(features_primary_action)}
       {features_secondary_action && renderAction(features_secondary_action)}
     </div>
   )
@@ -157,18 +157,43 @@ const FeaturesBase: React.FC<FeaturesBaseProps> = ({
   }
 
   if (features_variant === 'stats') {
+    // Derive column count from actual item count — never leave empty grid columns
+    const itemCount = features_items.length
+    const desktopCols = itemCount <= 2 ? itemCount : itemCount === 3 ? 3 : 4
+    const tabletCols = Math.min(desktopCols, 2)
+
+    const gridStyle: React.CSSProperties = {
+      gap: cfg.gridGap,
+      gridTemplateColumns: `repeat(${desktopCols}, 1fr)`,
+      alignItems: 'stretch',
+    }
+
+    // Equal-height cards: flex column so short content cards still fill row height
+    const equalHeightCard: React.CSSProperties = {
+      ...cardStyle,
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+    }
+
     return (
       <section style={sectionStyle}>
         <div className="text-center">
           <SectionHeader />
         </div>
-        {/* mobile: 1 col, tablet: 2 cols, desktop: auto-fit via 4 cols */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap: cfg.gridGap }}>
+        <div
+          className={`grid grid-cols-1 sm:grid-cols-${tabletCols}`}
+          style={gridStyle}
+        >
           {features_items.map((item, i) => (
-            <div key={i} style={cardStyle}>
-              <h3 style={{ ...headingStyle, fontSize: cfg.cardHeadingSize }}>{item.title}</h3>
+            <div key={i} style={equalHeightCard}>
+              <h3 style={{ ...headingStyle, fontSize: cfg.cardHeadingSize, marginBottom: '8px' }}>
+                {item.title}
+              </h3>
               {item.description && (
-                <p style={{ color: descriptionColor, margin: 0 }}>{item.description}</p>
+                <p style={{ color: descriptionColor, margin: 0, flex: 1 }}>
+                  {item.description}
+                </p>
               )}
             </div>
           ))}

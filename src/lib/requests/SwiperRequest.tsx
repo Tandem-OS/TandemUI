@@ -1,7 +1,7 @@
 import api from "@/lib/requests/Axios";
 import { store } from "@/store";
 
-// ─── Canonical types 
+// ─── Canonical types ──────────────────────────────────────────────────────────
 export const TANDEM_CANONICAL_PROJECT_ID = "00000000-0000-0000-0000-000000000000";
 
 export interface CanonicalComponent {
@@ -16,7 +16,6 @@ export interface CanonicalComponent {
   is_canonical: boolean
   content_slots: string | Record<string, any>
   tokens: string | Record<string, any>
-  // ← add all these
   tags: string[]
   tone: string[]
   intent: string[]
@@ -37,7 +36,6 @@ export interface CanonicalComponentsResponse {
   contact: CanonicalComponent[];
   timeline: CanonicalComponent[];
   footer: CanonicalComponent[];
-
 }
 
 interface SwiperRoundSummary {
@@ -94,13 +92,47 @@ interface KingOfMatches {
   behavioral_signals: {};
 }
 
-// ─── Canonical fetch 
+// ─── Design Assistant types ───────────────────────────────────────────────────
+
+export interface DesignAssistantMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface DesignAssistantRequest {
+  component_id?: string;
+  component_title?: string;
+  component_category?: string;
+  component_tags?: string[];
+  component_tone?: string[];
+  component_layout_structure?: string;
+  component_description?: string;
+  conversation_history: DesignAssistantMessage[];
+  user_message: string;
+}
+
+export interface DesignAssistantResponse {
+  response: string;
+}
+
+// ─── Canonical fetch ──────────────────────────────────────────────────────────
+
 export const getCanonicalComponents = async (): Promise<CanonicalComponentsResponse> => {
   const projectId = store.getState().project?.projectId;
   const url = projectId
     ? `/swiper/canonical?project_id=${projectId}`
     : `/swiper/canonical`;
   const response = await api.get(url);
+  return response.data;
+};
+
+// ─── Design Assistant ─────────────────────────────────────────────────────────
+// Calls POST /ai/assistant — returns a direct, no-filler analysis of the component.
+
+export const callDesignAssistant = async (
+  payload: DesignAssistantRequest
+): Promise<DesignAssistantResponse> => {
+  const response = await api.post('/ai/assistant', payload);
   return response.data;
 };
 
@@ -149,8 +181,7 @@ export const swiperComponentData = async (values: SwiperComponent) => {
   formData.append('project_id', projectId ?? '');
   formData.append('client_email', clientEmail ?? '');
   formData.append('designer_email', designerEmail ?? '');
-
-  formData.append('is_canonical', 'false');    // ← force false, user swipe records are never canonical
+  formData.append('is_canonical', 'false');
 
   // Backend expects UploadFile — fetch URL and convert to File blob
   if (values.thumbnail_url) {
@@ -166,7 +197,6 @@ export const swiperComponentData = async (values: SwiperComponent) => {
       formData.append('thumbnail_url', new File([blob], 'thumbnail.png', { type: 'image/png' }));
     }
   }
-
 
   return await api.post("/swiper/components", formData, {
     headers: { "Content-Type": "multipart/form-data" },

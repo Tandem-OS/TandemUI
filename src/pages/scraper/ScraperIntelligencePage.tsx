@@ -28,7 +28,7 @@ import BillingGateModal from '@/common-components/BillingGateModal';
 
 import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch, RootState } from '@/store';
-import { pollForThumbnails } from '@/features/composition/compositionSlice';
+import { pollForThumbnails, setPageSchema } from '@/features/composition/compositionSlice';
 
 import { useNavigate } from 'react-router-dom';
 import Toast from '@/common-components/Toast';
@@ -49,7 +49,7 @@ import {
     clearError,
 } from '@/features/scraper/scraperSlice';
 import type { ScraperErrorType } from '@/features/scraper/scraperSlice';
-import { getAllProjectCompose } from '@/lib/requests/CompositionRequest';
+import { getAllProjectCompose, callAiComposePipeline } from '@/lib/requests/CompositionRequest';
 
 const t = layoutTokens.scraper;
 
@@ -237,8 +237,10 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
 
         const checkExistingCompose = async () => {
             try {
+                // Check if a compose already exists for this project
                 const response = await getAllProjectCompose(projectId);
                 if (response?.composition_id) {
+                    // Existing compose found — load it directly
                     setCompositionId(response.composition_id);
                     if (response?.page_schema?.sections?.length) {
                         dispatch(setScrapedDataFromIdea({
@@ -251,9 +253,33 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                         }));
                         setCurrentStep('results');
                     }
+                    return;
                 }
             } catch {
-                // No existing compose found — show StartFromIdea modal as normal
+                // No existing compose found — fall through to auto-generate
+            }
+
+            // No existing compose — auto-generate from intake + scraper + swiper context.
+            // User has already given us all the signals. Never show StartFromIdea here.
+            try {
+                const result = await callAiComposePipeline({ user_input: null });
+                if (result?.composition_id) {
+                    setCompositionId(result.composition_id);
+                    dispatch(setPageSchema(result.page_schema as any));
+                    dispatch(setScrapedDataFromIdea({
+                        url: 'Generated from your preferences',
+                        analyzedAt: new Date().toISOString(),
+                        sections: ((result.page_schema as any)?.sections ?? []).map((s: any) => ({
+                            ...s,
+                            id: s.id ?? s.component_id ?? s.category ?? crypto.randomUUID(),
+                        })),
+                    }));
+                    setCurrentStep('results');
+                    showToast('Layout generated from your intake and swiper preferences');
+                }
+            } catch {
+                // Auto-generate failed — fall back to StartFromIdea as last resort
+                showToast('Could not generate layout automatically. Please try again.', 'error');
             } finally {
                 setComposeCheckLoading(false);
             }
@@ -588,9 +614,8 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                 </motion.button>
 
                                 {!isDesigner && (
-                                    // If compose already exists, show "Continue Your Layout" button
-                                    // that navigates directly to the compose page — skip StartFromIdea modal
                                     compositionId ? (
+                                        // Existing compose — go directly to layout
                                         <motion.button
                                             onClick={() => {
                                                 dispatch(pollForThumbnails({ compositionId: compositionId! }));
@@ -603,7 +628,42 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                             <FaEye className="text-icon-md" />
                                             <span>Continue Your Layout</span>
                                         </motion.button>
+                                    ) : mode === 'compose' ? (
+                                        // Compose mode with no layout yet — generate from project signals
+                                        // Never show StartFromIdea here — client already gave intake/scraper/swiper
+                                        <motion.button
+                                            onClick={async () => {
+                                                setComposeCheckLoading(true);
+                                                try {
+                                                    const result = await callAiComposePipeline({ user_input: null });
+                                                    if (result?.composition_id) {
+                                                        setCompositionId(result.composition_id);
+                                                        dispatch(setPageSchema(result.page_schema as any));
+                                                        dispatch(setScrapedDataFromIdea({
+                                                            url: 'Generated from your preferences',
+                                                            analyzedAt: new Date().toISOString(),
+                                                            sections: ((result.page_schema as any)?.sections ?? []).map((s: any) => ({
+                                                                ...s,
+                                                                id: s.id ?? s.component_id ?? s.category ?? crypto.randomUUID(),
+                                                            })),
+                                                        }));
+                                                        setCurrentStep('results');
+                                                    }
+                                                } catch {
+                                                    showToast('Could not generate layout. Please try again.', 'error');
+                                                } finally {
+                                                    setComposeCheckLoading(false);
+                                                }
+                                            }}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            className={t.welcomePrimaryBtn}
+                                        >
+                                            <FaLightbulb className="text-icon-md" />
+                                            <span>Generate My Layout</span>
+                                        </motion.button>
                                     ) : (
+                                        // Scraper mode only — show StartFromIdea for free-text generation
                                         <StartFromIdea
                                             onGenerateLayout={handleGenerateLayout}
                                             disabled={disableIdea}
@@ -647,10 +707,10 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                             <div className={t.inputLeft}>
                                 <div className={t.inputLeftInner}>
                                     <button
-                                        onClick={() => setCurrentStep('welcome')}
+                                        onClick={() => navigate(userRole === 'Designer' ? '/dashboard/designer' : '/dashboard/client')}
                                         className={t.inputBackBtn}
                                     >
-                                        <FaArrowLeftLong /> Back to home
+                                        <FaArrowLeftLong /> Back to dashboard
                                     </button>
 
                                     <div className={t.inputToggleWrapper}>
@@ -957,6 +1017,9 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                             <div className={t.resultsHeaderInner}>
                                 <div className={t.resultsHeaderRow}>
                                     <div className={t.resultsHeaderLeft}>
+                                        <button onClick={() => navigate(userRole === 'Designer' ? '/dashboard/designer' : '/dashboard/client')} className={t.resultsBackBtn}>
+                                            <FaArrowLeftLong /> Dashboard
+                                        </button>
                                         <button onClick={() => setCurrentStep('input')} className={t.resultsBackBtn}>
                                             <FaArrowLeftLong /> Back
                                         </button>
@@ -968,8 +1031,17 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                         </div>
                                     </div>
                                     <div className={`${t.resultsHeaderRight} flex-wrap`}>
-                                        {/* Only show StartFromIdea in results header if no compose exists */}
-                                        {!isDesigner && !compositionId && (
+                                        {/* Compose mode: show Use This Direction CTA */}
+                                        {mode === 'compose' && compositionId && (
+                                            <button
+                                                onClick={() => navigate(`/dashboard/client/compose/${compositionId}`)}
+                                                className="flex items-center gap-xs px-md py-sm bg-accent-default text-accent-foreground rounded-xl text-para-sm font-medium hover:bg-accent-hover transition-colors"
+                                            >
+                                                Use This Direction →
+                                            </button>
+                                        )}
+                                        {/* Only show StartFromIdea if not compose mode */}
+                                        {!isDesigner && mode !== 'compose' && !compositionId && (
                                             <StartFromIdea
                                                 onGenerateLayout={handleGenerateLayout}
                                                 disabled={disableIdea}
