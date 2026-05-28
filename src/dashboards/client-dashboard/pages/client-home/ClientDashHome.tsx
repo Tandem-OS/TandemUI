@@ -16,6 +16,7 @@ import ProjectChecklist from './components/ProjectCheckList';
 import DashHero from './components/DashHero';
 import QuickActionCard from './components/QuickActionCard';
 import { getAllProjectCompose, downloadCompositionJson } from '@/lib/requests/CompositionRequest';
+import { FiDownload, FiExternalLink, FiLayers, FiCode, FiCheckCircle, FiPackage } from 'react-icons/fi';
 
 // ─── COPY ─────────────────────────────────────────────────────────────────────
 
@@ -329,62 +330,232 @@ const getDashState = (status: string | null, hasProject: boolean): 0 | 1 | 2 | 3
   }
 };
 
-// ─── Delivered banner ─────────────────────────────────────────────────────────
+// ─── Handoff Screen ───────────────────────────────────────────────────────────
 
-const DeliveredBanner: React.FC<{
-  onPrimary: () => void;
-  onSecondary: () => void;
-  isDownloading?: boolean;
-}> = ({ onPrimary, onSecondary, isDownloading = false }) => (
-  <motion.div
-    initial={{ opacity: 0, y: -8 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.4 }}
-    className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-lg p-xl rounded-2xl mb-xl"
-    style={{ background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)' }}
-  >
-    <div className="flex-1">
-      <div className="flex items-center gap-sm mb-sm">
-        <span className="px-sm py-xs rounded-full bg-white/20 text-white text-para-xs font-bold uppercase tracking-widest">
-          {COPY.states.s07.deliveredBadge}
-        </span>
-        <span className="text-white/60 text-para-xs">·</span>
-        <span className="text-white/70 text-para-xs font-medium">
-          {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-        </span>
+interface HandoffData {
+  compositionId: string | null;
+  pageSchema: any | null;
+  isDownloading: boolean;
+  onDownload: () => void;
+  onTestimonial: () => void;
+  projectId: string | null;
+}
+
+const HandoffScreen: React.FC<HandoffData> = ({
+  compositionId,
+  pageSchema,
+  isDownloading,
+  onDownload,
+  onTestimonial,
+  projectId,
+}) => {
+  const sections = pageSchema?.sections ?? [];
+
+  // Extract brand colors from content_slots across sections
+  const brandColors: string[] = [];
+  let logoUrl: string | null = null;
+  sections.forEach((s: any) => {
+    const slots = s.content_slots ?? {};
+    if (slots.background_color && slots.background_color.startsWith('#')) {
+      if (!brandColors.includes(slots.background_color)) brandColors.push(slots.background_color);
+    }
+    if (slots.accent_color && slots.accent_color.startsWith('#')) {
+      if (!brandColors.includes(slots.accent_color)) brandColors.push(slots.accent_color);
+    }
+    if (!logoUrl && slots.logo_url) logoUrl = slots.logo_url;
+  });
+
+  const SECTION_LABELS: Record<string, string> = {
+    nav: 'Navigation', hero: 'Hero', features: 'Features', pricing: 'Pricing',
+    faq: 'FAQ', testimonials: 'Testimonials', cta: 'Call to Action',
+    contact: 'Contact', timeline: 'Timeline', footer: 'Footer',
+  };
+
+  const SECTION_NOTES: Record<string, string> = {
+    nav: 'Sticky navigation with logo and CTA button',
+    hero: 'Above-the-fold hero with headline, subheading, and primary action',
+    features: 'Feature grid highlighting key product capabilities',
+    pricing: 'Pricing tiers with comparison and CTA per tier',
+    faq: 'Accordion FAQ for common client questions',
+    testimonials: 'Social proof section with customer quotes',
+    cta: 'Conversion section with email capture or direct CTA',
+    contact: 'Contact form with split layout',
+    timeline: 'Process or onboarding timeline',
+    footer: 'Footer with links, brand, and legal',
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+
+      {/* Delivered Banner */}
+      <div
+        className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-lg p-xl rounded-2xl mb-xl"
+        style={{ background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)' }}
+      >
+        <div className="flex-1">
+          <div className="flex items-center gap-sm mb-sm">
+            <span className="px-sm py-xs rounded-full bg-white/20 text-white text-para-xs font-bold uppercase tracking-widest">
+              {COPY.states.s07.deliveredBadge}
+            </span>
+            <span className="text-white/60 text-para-xs">·</span>
+            <span className="text-white/70 text-para-xs font-medium">
+              {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </span>
+          </div>
+          <h1 className="text-h2-sm sm:text-h1-sm font-bold text-white mb-sm leading-tight">
+            {COPY.states.s07.heading}
+          </h1>
+          <p className="text-para-md text-white/80 leading-relaxed max-w-xl">
+            {COPY.states.s07.body}
+          </p>
+        </div>
+        <div className="flex items-center gap-sm flex-shrink-0">
+          <button
+            onClick={onTestimonial}
+            className="px-lg py-sm rounded-xl border border-white/30 bg-white/10 text-white text-para-sm font-medium hover:bg-white/20 transition-colors"
+          >
+            {COPY.states.s07.secondaryCta}
+          </button>
+          <button
+            onClick={onDownload}
+            disabled={!compositionId || isDownloading}
+            className="flex items-center gap-xs px-lg py-sm rounded-xl bg-white text-green-700 text-para-sm font-semibold hover:bg-white/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isDownloading
+              ? <span className="w-4 h-4 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
+              : <FiDownload className="text-icon-sm" />
+            }
+            {isDownloading ? 'Preparing...' : 'Export JSON'}
+          </button>
+        </div>
       </div>
-      <h1 className="text-h2-sm sm:text-h1-sm font-bold text-white mb-sm leading-tight">
-        {COPY.states.s07.heading}
-      </h1>
-      <p className="text-para-md text-white/80 leading-relaxed max-w-xl">
-        {COPY.states.s07.body}
-      </p>
-    </div>
 
-    <div className="flex items-center gap-sm flex-shrink-0">
-      <button
-        onClick={onSecondary}
-        className="px-lg py-sm rounded-xl border border-white/30 bg-white/10 text-white text-para-sm font-medium hover:bg-white/20 transition-colors"
-      >
-        {COPY.states.s07.secondaryCta}
-      </button>
-      <button
-        onClick={onPrimary}
-        disabled={isDownloading}
-        className="flex items-center gap-xs px-lg py-sm rounded-xl bg-white text-green-700 text-para-sm font-semibold hover:bg-white/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-      >
-        {isDownloading ? (
-          <span className="w-4 h-4 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
-        ) : (
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-        {isDownloading ? 'Downloading...' : COPY.states.s07.primaryCta}
-      </button>
-    </div>
-  </motion.div>
-);
+      {/* Main handoff grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
+
+        {/* Live Preview — 2 cols */}
+        <div className="lg:col-span-2 bg-background-primary-2 rounded-2xl border border-border-default overflow-hidden">
+          <div className="flex items-center justify-between px-lg py-md border-b border-border-default">
+            <div className="flex items-center gap-sm">
+              <FiExternalLink className="text-accent-default text-icon-sm" />
+              <span className="text-para-md font-semibold text-text-primary">Live Preview</span>
+            </div>
+            {compositionId && (
+              <a
+                href={`/dashboard/client/compose/${compositionId}`}
+                className="text-para-xs text-accent-default hover:underline flex items-center gap-xs"
+              >
+                Open full preview <FiExternalLink className="text-icon-xs" />
+              </a>
+            )}
+          </div>
+          <BrowserMockup projectId={projectId ?? undefined} />
+        </div>
+
+        {/* Handoff details — 1 col */}
+        <div className="space-y-md">
+
+          {/* Brand tokens */}
+          <div className="bg-background-primary-2 rounded-2xl border border-border-default p-lg">
+            <div className="flex items-center gap-sm mb-md">
+              <FiPackage className="text-purple-500 text-icon-sm" />
+              <h3 className="text-para-md font-semibold text-text-primary">Brand Tokens</h3>
+            </div>
+            {logoUrl && (
+              <div className="mb-md">
+                <p className="text-para-xs text-text-tertiary uppercase tracking-wide mb-xs">Logo</p>
+                <img src={logoUrl} alt="Brand logo" className="h-8 w-auto object-contain" />
+              </div>
+            )}
+            {brandColors.length > 0 ? (
+              <div>
+                <p className="text-para-xs text-text-tertiary uppercase tracking-wide mb-sm">Colors</p>
+                <div className="flex flex-wrap gap-sm">
+                  {brandColors.slice(0, 6).map((color, i) => (
+                    <div key={i} className="flex items-center gap-xs">
+                      <div className="w-6 h-6 rounded-md border border-border-default shadow-sm flex-shrink-0" style={{ backgroundColor: color }} />
+                      <span className="text-para-xs text-text-secondary font-mono">{color}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-para-xs text-text-tertiary">Tokens embedded in export JSON</p>
+            )}
+          </div>
+
+          {/* Export */}
+          <div className="bg-background-primary-2 rounded-2xl border border-border-default p-lg">
+            <div className="flex items-center gap-sm mb-md">
+              <FiCode className="text-emerald-500 text-icon-sm" />
+              <h3 className="text-para-md font-semibold text-text-primary">Export</h3>
+            </div>
+            <div className="space-y-sm">
+              <button
+                onClick={onDownload}
+                disabled={!compositionId || isDownloading}
+                className="w-full flex items-center justify-between px-md py-sm rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-para-sm font-medium"
+              >
+                <span className="flex items-center gap-xs">
+                  <FiDownload className="text-icon-xs" />
+                  tandem_export.json
+                </span>
+                <span className="text-para-xs text-text-tertiary">Layout schema</span>
+              </button>
+              <div className="px-md py-sm rounded-xl bg-background-secondary border border-border-default">
+                <p className="text-para-xs text-text-tertiary leading-relaxed">
+                  Includes component IDs, content slots, brand tokens, image references, and section metadata. Import directly into your codebase or Figma plugin.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Component map */}
+      {sections.length > 0 && (
+        <div className="bg-background-primary-2 rounded-2xl border border-border-default p-xl mb-lg">
+          <div className="flex items-center gap-sm mb-lg">
+            <FiLayers className="text-accent-default text-icon-sm" />
+            <h3 className="text-para-md font-semibold text-text-primary">Component Map</h3>
+            <span className="ml-auto text-para-xs text-text-tertiary">{sections.length} sections</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-md">
+            {sections.map((section: any, i: number) => {
+              const category = section.category ?? 'unknown';
+              const slots = section.content_slots ?? {};
+              const headingText = slots.hero_heading ?? slots.section_heading ?? slots.headline ?? null;
+              return (
+                <div key={i} className="flex items-start gap-md p-md rounded-xl border border-border-default bg-background-secondary">
+                  <div className="w-8 h-8 rounded-lg bg-accent-subtle flex items-center justify-center flex-shrink-0 mt-xs">
+                    <FiCheckCircle className="text-accent-default text-icon-sm" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-xs mb-xs">
+                      <span className="text-para-sm font-semibold text-text-primary capitalize">
+                        {SECTION_LABELS[category] ?? category}
+                      </span>
+                      <span className="px-xs py-px rounded text-para-xs bg-background-muted text-text-tertiary font-mono">
+                        {section.component_id ?? category}
+                      </span>
+                    </div>
+                    {headingText && (
+                      <p className="text-para-xs text-accent-default font-medium mb-xs truncate">"{headingText}"</p>
+                    )}
+                    <p className="text-para-xs text-text-tertiary leading-relaxed">
+                      {SECTION_NOTES[category] ?? 'Custom section'}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+    </motion.div>
+  );
+};
 
 // ─── Designer card ────────────────────────────────────────────────────────────
 
@@ -486,6 +657,7 @@ const ClientDashHome: React.FC = () => {
   const designerEmail = useSelector((state: RootState) => state.auth.user?.designerEmail) ?? '';
 
   const [compositionId, setCompositionId] = useState<string | null>(null);
+  const [pageSchema, setPageSchema] = useState<any | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [projectName, setProjectName] = useState<string>('');
 
@@ -528,7 +700,10 @@ const ClientDashHome: React.FC = () => {
   useEffect(() => {
     if (dashState !== 7 || !projectId) return;
     getAllProjectCompose(projectId)
-      .then((res) => setCompositionId(res.composition_id))
+      .then((res) => {
+        setCompositionId(res.composition_id);
+        setPageSchema(res.page_schema ?? null);
+      })
       .catch(() => {});
   }, [dashState, projectId]);
 
@@ -704,10 +879,13 @@ const ClientDashHome: React.FC = () => {
             </div>
 
             {dashState === 7 ? (
-              <DeliveredBanner
-                onPrimary={handleDownloadJson}
-                onSecondary={() => navigate(secondaryRoute[dashState]!)}
+              <HandoffScreen
+                compositionId={compositionId}
+                pageSchema={pageSchema}
                 isDownloading={isDownloading}
+                onDownload={handleDownloadJson}
+                onTestimonial={() => navigate(secondaryRoute[dashState]!)}
+                projectId={projectId}
               />
             ) : (
               <DashHero
@@ -730,18 +908,29 @@ const ClientDashHome: React.FC = () => {
               upNext={upNext[dashState]}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
-              <div className="lg:col-span-2">
-                <BrowserMockup />
+            {dashState !== 7 && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg mb-lg">
+                <div className="lg:col-span-2">
+                  <BrowserMockup />
+                </div>
+                <div className="lg:col-span-1">
+                  <ProjectChecklist
+                    title={COPY.checklist.title}
+                    sub={COPY.checklist.sub}
+                    items={getChecklistItems(projectStatus, estimatedHandoff)}
+                  />
+                </div>
               </div>
-              <div className="lg:col-span-1">
+            )}
+            {dashState === 7 && (
+              <div className="mb-lg">
                 <ProjectChecklist
-                  title={dashState === 7 ? COPY.states.s07.projectLog : COPY.checklist.title}
-                  sub={dashState === 7 ? COPY.states.s07.projectLogSub : COPY.checklist.sub}
+                  title={COPY.states.s07.projectLog}
+                  sub={COPY.states.s07.projectLogSub}
                   items={getChecklistItems(projectStatus, estimatedHandoff)}
                 />
               </div>
-            </div>
+            )}
 
             <div className="mb-lg">
               <p className="text-para-md font-bold text-text-primary mb-xs">{COPY.quickActions.title}</p>

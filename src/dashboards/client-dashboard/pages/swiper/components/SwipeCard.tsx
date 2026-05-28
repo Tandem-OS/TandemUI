@@ -14,6 +14,24 @@ const DOUBLE_TAP_DELAY = 300;
 const IMAGE_TIMEOUT = 10000;
 const SWIPE_COOLDOWN = 800;
 
+// ── Section-specific image crop config ────────────────────────────────────────
+// Each category gets a height tuned to how that section type actually looks.
+// Nav and footer are shallow strips. Hero is wide 16:9. Pricing is tall.
+const CATEGORY_CROP: Record<string, { mobile: string; desktop: string }> = {
+    nav: { mobile: 'h-16 sm:h-20', desktop: 'h-[110px]' },
+    hero: { mobile: 'h-48 sm:h-60', desktop: 'h-[390px] 2xl:h-[480px]' },
+    features: { mobile: 'h-44 sm:h-52', desktop: 'h-[350px] 2xl:h-[440px]' },
+    pricing: { mobile: 'h-56 sm:h-64', desktop: 'h-[460px] 2xl:h-[560px]' },
+    faq: { mobile: 'h-48 sm:h-56', desktop: 'h-[410px] 2xl:h-[490px]' },
+    testimonials: { mobile: 'h-44 sm:h-52', desktop: 'h-[360px] 2xl:h-[450px]' },
+    cta: { mobile: 'h-36 sm:h-44', desktop: 'h-[280px] 2xl:h-[340px]' },
+    contact: { mobile: 'h-44 sm:h-52', desktop: 'h-[380px] 2xl:h-[460px]' },
+    timeline: { mobile: 'h-52 sm:h-60', desktop: 'h-[430px] 2xl:h-[530px]' },
+    footer: { mobile: 'h-20 sm:h-24', desktop: 'h-[150px]' },
+};
+const DEFAULT_CROP = { mobile: 'h-48 sm:h-56', desktop: 'h-[370px] 2xl:h-[470px]' };
+const getCrop = (category: string) => CATEGORY_CROP[category?.toLowerCase()] ?? DEFAULT_CROP;
+
 // Action configurations
 const ACTIONS = {
     like: { x: SWIPE_POWER, y: 0, key: 'ArrowRight' },
@@ -161,7 +179,7 @@ const ExpandModal: React.FC<{
                         <FiX className="text-icon-sm text-text-secondary group-hover:text-text-error" />
                     </motion.button>
                 </div>
-                <div className="relative w-full bg-background-primary" style={{ aspectRatio: '1440/860' }}>
+                <div className="relative w-full bg-background-primary overflow-y-auto max-h-[80vh]">
                     <img
                         src={src}
                         alt={title}
@@ -504,7 +522,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                     {/* Mobile Layout */}
                     <div className="block lg:!hidden">
                         <div className="grid grid-cols-1">
-                            <CardImage src={component.thumbnail_url} className="h-48 sm:h-56" />
+                            <CardImage src={component.thumbnail_url} className={getCrop(component.category).mobile} />
 
                             <div className="relative bg-background-primary-2 p-md sm:p-lg flex flex-col justify-center">
                                 <div className="absolute inset-0 z-10 pointer-events-auto" />
@@ -545,7 +563,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                     </div>
 
                     {/* Desktop Layout */}
-                    <div className="!hidden lg:!block relative h-[370px] 2xl:h-[470px]">
+                    <div className={`!hidden lg:!block relative ${getCrop(component.category).desktop}`}>
                         <CardImage src={component.thumbnail_url} className="absolute inset-0 w-full h-full" />
 
                         {/* Info Button */}

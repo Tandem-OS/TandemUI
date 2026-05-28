@@ -92,6 +92,7 @@ const EmptyPreview: React.FC = () => (
 
 const PreviewModal: React.FC<PreviewModalProps> = ({
     isOpen,
+    onClose,
     onContinue,
     roundsCompleted,
     userChoices,
@@ -164,8 +165,8 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.9, opacity: 0 }}
                         className={`bg-background-primary-2 flex flex-col ${isFullscreen
-                                ? 'w-full h-full'
-                                : 'rounded-2xl shadow-2xl w-full h-full max-w-7xl max-h-[90vh]'
+                            ? 'w-full h-full'
+                            : 'rounded-2xl shadow-2xl w-full h-full max-w-7xl max-h-[90vh]'
                             }`}
                     >
                         {/* ── Header ── */}
@@ -214,7 +215,7 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                                 </button>
 
                                 <button
-                                    onClick={onContinue}
+                                    onClick={onClose}
                                     className="p-sm text-text-secondary hover:text-text-primary hover:bg-background-secondary rounded-lg transition-all duration-200"
                                     title="Close preview"
                                 >

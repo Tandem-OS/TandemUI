@@ -666,7 +666,8 @@ const Swiper: React.FC = () => {
   const handleAnimationComplete = useCallback(() => dispatch(setAnimating(false)), [dispatch]);
   const handleExit = useCallback(() => {
     dispatch(setShowExitModal(false));
-  }, [dispatch]);
+    navigate('/dashboard/client');
+  }, [dispatch, navigate]);
 
   const RoundCompletionCelebration = () => (
     <motion.div {...animations.completion} className="flex flex-col items-center justify-center text-center px-md">
