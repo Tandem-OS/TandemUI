@@ -707,7 +707,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                             <div className={t.inputLeft}>
                                 <div className={t.inputLeftInner}>
                                     <button
-                                        onClick={() => navigate('/dashboard/client')}
+                                        onClick={() => navigate(userRole === 'Designer' ? '/dashboard/designer' : '/dashboard/client')}
                                         className={t.inputBackBtn}
                                     >
                                         <FaArrowLeftLong /> Back to dashboard
@@ -1017,7 +1017,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                             <div className={t.resultsHeaderInner}>
                                 <div className={t.resultsHeaderRow}>
                                     <div className={t.resultsHeaderLeft}>
-                                        <button onClick={() => navigate('/dashboard/client')} className={t.resultsBackBtn}>
+                                        <button onClick={() => navigate(userRole === 'Designer' ? '/dashboard/designer' : '/dashboard/client')} className={t.resultsBackBtn}>
                                             <FaArrowLeftLong /> Dashboard
                                         </button>
                                         <button onClick={() => setCurrentStep('input')} className={t.resultsBackBtn}>
