@@ -167,7 +167,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     <motion.img
                         src={component.thumbnail_url}
                         alt={component.title ?? undefined}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain" style={{ backgroundColor: "var(--color-background-muted, #f3f4f6)" }}
                         animate={isCardHovered && !isMobile && !isShaking ? { scale: 1.05 } : { scale: 1 }}
                         transition={{ duration: 0.3 }}
                     />
@@ -239,7 +239,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                 {/* Desktop Layout */}
                 <div className="hidden lg:flex w-full gap-lg items-start justify-center">
                     {/* Defender Card */}
-                    <div className="flex-1 max-w-2xl aspect-[4/3] rounded-xl" style={{ isolation: 'isolate', overflow: 'clip' }}>
+                    <div className="flex-1 max-w-2xl rounded-xl" style={{ aspectRatio: "16/10", minHeight: "300px", isolation: "isolate", overflow: "clip" }}>
                         <BattleCard
                             component={defender}
                             side="left"
@@ -260,7 +260,7 @@ const KingOfTheHill: React.FC<KingOfTheHillProps> = ({
                     </div>
 
                     {/* Challenger Card */}
-                    <div className="flex-1 max-w-2xl aspect-[4/3] overflow-hidden rounded-xl" style={{ isolation: 'isolate' }}>
+                    <div className="flex-1 max-w-2xl overflow-hidden rounded-xl" style={{ aspectRatio: "16/10", minHeight: "300px", isolation: "isolate" }}>
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={challenger.component_id}

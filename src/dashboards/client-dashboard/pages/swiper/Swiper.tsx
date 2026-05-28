@@ -693,7 +693,10 @@ const Swiper: React.FC = () => {
   }, [dispatch]);
 
   const handleGenerateLayout = useCallback(async () => {
-    navigate(`/dashboard/client/swiper/compose`);
+    // FIX: /dashboard/client/swiper/compose does not exist as a route.
+    // /dashboard/client/compose is ScraperIntelligencePage mode="compose"
+    // which checks for existing composition and shows StartFromIdea if none.
+    navigate('/dashboard/client/compose');
   }, [navigate]);
 
   const handleTransitionComplete = useCallback(() => {
@@ -987,6 +990,8 @@ const Swiper: React.FC = () => {
               setTimeout(() => { dispatch(unlockTransition()); }, 1000);
             }}
             roundsCompleted={currentRound + 1}
+            userChoices={userChoices}
+            roundsData={roundsData}
           />
           {gateState && (
             <BillingGateModal

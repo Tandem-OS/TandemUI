@@ -49,7 +49,7 @@ const useAudio = () => {
 // Custom hook for image loading
 const useImageLoading = (src: string) => {
     const [imageState, setImageState] = useState<'loading' | 'loaded' | 'error'>('loading');
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         if (!src) {
@@ -109,7 +109,7 @@ const CardImage: React.FC<{ src: string; className: string }> = ({ src, classNam
                 src={src}
                 alt=""
                 className="absolute inset-0 w-full h-full select-none"
-                style={{ objectFit: 'cover', objectPosition: 'top center' }}
+                style={{ objectFit: 'contain', objectPosition: 'top center', backgroundColor: 'var(--color-background-muted, #f3f4f6)' }}
                 initial={{ opacity: 0, filter: 'blur(10px)' }}
                 animate={{
                     opacity: imageState === 'loaded' ? 1 : 0,
@@ -165,7 +165,7 @@ const ExpandModal: React.FC<{
                     <img
                         src={src}
                         alt={title}
-                        className="w-full h-full object-cover object-top"
+                        className="w-full h-full object-contain object-top"
                     />
                 </div>
             </motion.div>
@@ -197,7 +197,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
     const lastPosition = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
     const lastVelocityUpdate = useRef<number>(Date.now());
     const velocityHistory = useRef<number[]>([]);
-    const swipeCooldownTimer = useRef<NodeJS.Timeout | null>(null);
+    const swipeCooldownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Motion values
     const x = useMotionValue(0);
@@ -213,7 +213,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
 
     // Double tap detection
     const lastTap = useRef<number>(0);
-    const tapTimeout = useRef<NodeJS.Timeout | null>(null);
+    const tapTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Reset states when component changes
     useEffect(() => {
@@ -646,8 +646,16 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
                                     {isActive && (
                                         <AskAiModal
                                             isOpen={isAiModalOpen}
-                                            description={`This ${component.vibe ? component.vibe.toLowerCase() + ' ' : ''}${component.category.toLowerCase()} design focuses on ${component.tone.join(', ')} aesthetics with ${component.layout_structure} layout structure to achieve ${component.intent.join(' and ')} goals.`}
                                             onClose={() => setIsAiModalOpen(false)}
+                                            component={{
+                                                component_id: component.component_id,
+                                                title: component.title ?? undefined,
+                                                category: component.category,
+                                                tags: component.tags,
+                                                tone: component.tone,
+                                                layout_structure: component.layout_structure ?? undefined,
+                                                description: component.description ?? undefined,
+                                            }}
                                         />
                                     )}
                                 </div>
