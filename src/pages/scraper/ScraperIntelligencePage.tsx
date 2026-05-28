@@ -279,7 +279,7 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                 }
             } catch {
                 // Auto-generate failed — fall back to StartFromIdea as last resort
-                showToast('Could not auto-generate. Please use Generate with Idea.', 'error');
+                showToast('Could not generate layout automatically. Please try again.', 'error');
             } finally {
                 setComposeCheckLoading(false);
             }
@@ -614,9 +614,8 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                 </motion.button>
 
                                 {!isDesigner && (
-                                    // If compose already exists, show "Continue Your Layout" button
-                                    // that navigates directly to the compose page — skip StartFromIdea modal
                                     compositionId ? (
+                                        // Existing compose — go directly to layout
                                         <motion.button
                                             onClick={() => {
                                                 dispatch(pollForThumbnails({ compositionId: compositionId! }));
@@ -629,7 +628,42 @@ const ScraperIntelligencePage = ({ mode }: Props) => {
                                             <FaEye className="text-icon-md" />
                                             <span>Continue Your Layout</span>
                                         </motion.button>
+                                    ) : mode === 'compose' ? (
+                                        // Compose mode with no layout yet — generate from project signals
+                                        // Never show StartFromIdea here — client already gave intake/scraper/swiper
+                                        <motion.button
+                                            onClick={async () => {
+                                                setComposeCheckLoading(true);
+                                                try {
+                                                    const result = await callAiComposePipeline({ user_input: null });
+                                                    if (result?.composition_id) {
+                                                        setCompositionId(result.composition_id);
+                                                        dispatch(setPageSchema(result.page_schema as any));
+                                                        dispatch(setScrapedDataFromIdea({
+                                                            url: 'Generated from your preferences',
+                                                            analyzedAt: new Date().toISOString(),
+                                                            sections: ((result.page_schema as any)?.sections ?? []).map((s: any) => ({
+                                                                ...s,
+                                                                id: s.id ?? s.component_id ?? s.category ?? crypto.randomUUID(),
+                                                            })),
+                                                        }));
+                                                        setCurrentStep('results');
+                                                    }
+                                                } catch {
+                                                    showToast('Could not generate layout. Please try again.', 'error');
+                                                } finally {
+                                                    setComposeCheckLoading(false);
+                                                }
+                                            }}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            className={t.welcomePrimaryBtn}
+                                        >
+                                            <FaLightbulb className="text-icon-md" />
+                                            <span>Generate My Layout</span>
+                                        </motion.button>
                                     ) : (
+                                        // Scraper mode only — show StartFromIdea for free-text generation
                                         <StartFromIdea
                                             onGenerateLayout={handleGenerateLayout}
                                             disabled={disableIdea}
