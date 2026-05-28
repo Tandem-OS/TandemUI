@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
-import { FaArrowLeft, FaExpand, FaCompress } from 'react-icons/fa'
+import { FaArrowLeft, FaCompress } from 'react-icons/fa'
 import {
   selectActiveOrPreviewSchema,
 } from '@/features/composition/compositionSelectors'

@@ -47,7 +47,6 @@ const SectionCard = ({
     feedback,
     onAddToLayout,
     updateTaste,
-    openChat,
     isJustRefined = false,
 }: SectionCardProps) => {
     const [showLikeOptions, setShowLikeOptions] = useState(false);

@@ -335,13 +335,6 @@ const ChatPanel = ({
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isTyping]);
 
-    const simulateTyping = async (response: string) => {
-        setIsTyping(true);
-        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
-        setIsTyping(false);
-        return response;
-    };
-
     const toggleSection = (sectionType: string) => {
         setSelectedSections(prev => {
             const next = new Set(prev);
