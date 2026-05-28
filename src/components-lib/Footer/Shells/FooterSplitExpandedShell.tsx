@@ -1,10 +1,28 @@
 import type { FooterSplitExpandedShellProps } from '../footer.types';
 
+// ── Color utilities ───────────────────────────────────────────────────────────
+function isValidHexColor(val?: string | null): boolean {
+  return !!val && /^#[0-9a-fA-F]{3,8}$/.test(val.trim())
+}
+
+function isDarkHexColor(val?: string | null): boolean {
+  if (!val || !isValidHexColor(val)) return false
+  const c = val.trim().replace('#', '')
+  const full = c.length === 3 ? c[0] + c[0] + c[1] + c[1] + c[2] + c[2] : c
+  const r = parseInt(full.slice(0, 2), 16)
+  const g = parseInt(full.slice(2, 4), 16)
+  const b = parseInt(full.slice(4, 6), 16)
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.50
+}
+
+
 export function FooterSplitExpandedShell({ slot, styles }: FooterSplitExpandedShellProps) {
+  const footerTextColor = isDarkHexColor(slot.background_color) ? 'white' : undefined
+
   return (
     <footer
       className={`${styles.wrapper}`}
-      style={{ backgroundColor: slot.background_color }}
+      style={{ backgroundColor: slot.background_color, color: footerTextColor }}
     >
       <div className="max-w-7xl mx-auto px-6">
 

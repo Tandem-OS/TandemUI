@@ -103,7 +103,12 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (isOpen) setIsLoading(true);
+        if (!isOpen) return;
+        setIsLoading(true);
+        // Give images ~400ms to start loading, then reveal.
+        // Don't rely on onAnimationComplete — it fires inconsistently.
+        const t = setTimeout(() => setIsLoading(false), 400);
+        return () => clearTimeout(t);
     }, [isOpen]);
 
     useEffect(() => {
@@ -244,7 +249,6 @@ const PreviewModal: React.FC<PreviewModalProps> = ({
                                             ) : (
                                                 <motion.div
                                                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-md"
-                                                    onAnimationComplete={() => setIsLoading(false)}
                                                 >
                                                     {likedItems.map(({ choice, component }, index) => (
                                                         <LikedCard

@@ -98,56 +98,42 @@ const SectionCard = ({
 
     // Build a rich description from all available section fields
     // so GPT always has full context regardless of which fields are populated
-    const buildSectionContext = (userSelectedReasons: string[] = []) => {
+    // Build context ONLY from scraper section fields.
+    // Scraper sections and compose sections are different shapes:
+    //   Scraper: section_type, layout_structure, intent, tone (string), metadata.insight, editableProps, source_url
+    //   Compose: category, content_slots, tokens, component_id  ← handled separately via ChatPanel refine
+    const buildScraperSectionContext = (userSelectedReasons: string[] = []) => {
         const parts: string[] = [];
 
-        // Section type — scraped sections use section_type, composed sections use category
-        const sectionType = section.section_type ?? section.category;
-        if (sectionType) parts.push(`Section type: ${sectionType}`);
-
-        if (section.layout_structure) parts.push(`Layout structure: ${section.layout_structure}`);
+        if (section.section_type) parts.push(`Section type: ${section.section_type}`);
+        if (section.layout_structure) parts.push(`Layout: ${section.layout_structure}`);
         if (section.intent) parts.push(`Intent: ${section.intent}`);
+        if (section.tone) parts.push(`Tone: ${section.tone}`);
 
-        // Tone — can be a string (scraper) or array (swiper/compose)
-        const tone = section.tone;
-        if (tone) parts.push(`Tone: ${Array.isArray(tone) ? tone.join(', ') : tone}`);
-
-        // Design insight from scraper metadata
         if (section.metadata?.insight) parts.push(`Design insight: ${section.metadata.insight}`);
 
-        // Component title — compose sections have a title field
-        if (section.title) parts.push(`Component title: ${section.title}`);
+        // Headline from scraper editableProps only
+        const headline = section.editableProps?.title
+            ?? section.editableProps?.hero_heading
+            ?? section.editableProps?.heading;
+        if (headline) parts.push(`Headline: "${headline}"`);
 
-        // Tags from scraped data
-        const sectionTags = section.tags ?? section.metadata?.tags;
-        if (Array.isArray(sectionTags) && sectionTags.length > 0) {
-            parts.push(`Section tags: ${sectionTags.slice(0, 5).join(', ')}`);
-        }
-
-        // User selected like reasons — what the user noticed about this section
-        if (userSelectedReasons.length > 0) {
-            parts.push(`User highlighted these qualities: ${userSelectedReasons.join(', ')}`);
-        }
-
-        // Headline copy — check all possible field shapes
-        const editableTitle =
-            section.editableProps?.title ||
-            section.editableProps?.hero_heading ||
-            section.content_slots?.hero_heading ||
-            section.content_slots?.heading ||
-            section.content_slots?.title;
-        if (editableTitle) parts.push(`Headline: "${editableTitle}"`);
-
-        // Subheading copy
-        const subtitle =
-            section.editableProps?.subtitle ||
-            section.editableProps?.hero_subheading ||
-            section.content_slots?.hero_subheading ||
-            section.content_slots?.subheading;
+        const subtitle = section.editableProps?.subtitle
+            ?? section.editableProps?.hero_subheading;
         if (subtitle) parts.push(`Subheading: "${subtitle}"`);
 
-        // Source URL
-        if (section.source_url) parts.push(`Source: ${section.source_url}`);
+        // Tags from scraper metadata
+        const tags = section.metadata?.tags ?? section.tags;
+        if (Array.isArray(tags) && tags.length > 0) {
+            parts.push(`Tags: ${tags.slice(0, 5).join(', ')}`);
+        }
+
+        // User selected like reasons
+        if (userSelectedReasons.length > 0) {
+            parts.push(`User highlighted: ${userSelectedReasons.join(', ')}`);
+        }
+
+        if (section.source_url) parts.push(`From: ${section.source_url}`);
 
         return parts.join('. ');
     };
@@ -157,16 +143,17 @@ const SectionCard = ({
         history: DesignAssistantMessage[],
         userSelectedReasons: string[] = []
     ): Promise<string> => {
-        const context = buildSectionContext(userSelectedReasons);
+        const context = buildScraperSectionContext(userSelectedReasons);
         const enrichedMessage = context
             ? `${prompt}\n\nSection context: ${context}`
             : prompt;
-        const sectionType = section.section_type ?? section.category;
         const result = await callDesignAssistant({
-            component_category: sectionType ?? undefined,
+            component_category: section.section_type ?? undefined,
             component_layout_structure: section.layout_structure ?? undefined,
-            component_description: section.metadata?.insight ?? section.title ?? undefined,
-            component_tags: userSelectedReasons.length > 0 ? userSelectedReasons : (Array.isArray(section.tone) ? section.tone : section.tone ? [section.tone] : undefined),
+            component_description: section.metadata?.insight ?? undefined,
+            component_tags: userSelectedReasons.length > 0
+                ? userSelectedReasons
+                : (section.tone ? [section.tone] : undefined),
             conversation_history: history,
             user_message: enrichedMessage,
         });
@@ -623,11 +610,10 @@ const SectionCard = ({
                                         key={i}
                                         className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                                     >
-                                        <div className={`max-w-[85%] px-sm py-xs rounded-lg text-para-xs sm:text-para-sm leading-relaxed ${
-                                            msg.role === 'user'
+                                        <div className={`max-w-[85%] px-sm py-xs rounded-lg text-para-xs sm:text-para-sm leading-relaxed ${msg.role === 'user'
                                                 ? 'bg-accent-default text-accent-foreground'
                                                 : 'bg-background-secondary text-text-secondary'
-                                        }`}>
+                                            }`}>
                                             {msg.text}
                                         </div>
                                     </div>
